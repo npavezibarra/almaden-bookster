@@ -1,0 +1,182 @@
+/* Estilos generales de tipografía e interfaz */
+body {
+    font-family: 'Inter', sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Variables de temas del editor */
+.theme-light {
+    --bg-app: #f8fafc;
+    --bg-sidebar: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --bg-editor: #ffffff;
+    --bg-pdf-container: #e2e8f0;
+}
+.theme-sepia {
+    --bg-app: #f4ecd8;
+    --bg-sidebar: #fdf6e3;
+    --text-main: #5c4a3c;
+    --text-muted: #8f7a66;
+    --border-color: #e4d7ba;
+    --bg-editor: #fdf6e3;
+    --bg-pdf-container: #ebdcb9;
+}
+.theme-dark {
+    --bg-app: #0f172a;
+    --bg-sidebar: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border-color: #334155;
+    --bg-editor: #1e293b;
+    --bg-pdf-container: #020617;
+}
+
+/* Estilos del simulador de páginas PDF */
+.pdf-page-container {
+    background-color: var(--bg-pdf-container);
+}
+
+/* Dimensiones exactas con proporción A4 para la visualización en pantalla */
+.pdf-page {
+    width: 210mm;
+    height: 297mm;
+    min-height: 297mm;
+    padding: 25mm 20mm 25mm 20mm;
+    margin: 0 auto 24px auto;
+    background: #ffffff;
+    color: #111111;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Tipografía del libro de alta gama dentro del PDF */
+.pdf-content {
+    font-family: 'Merriweather', serif;
+    font-size: 11.5pt;
+    line-height: 1.65;
+    text-align: justify;
+    color: #2d2d2d;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.pdf-content h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24pt;
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 30px;
+    color: #111111;
+    font-weight: 700;
+}
+
+.pdf-content h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 16pt;
+    margin-top: 24px;
+    margin-bottom: 12px;
+    color: #222222;
+    font-weight: 600;
+    text-align: left;
+}
+
+.pdf-content p {
+    /* Las reglas de margen y sangría ahora son inyectadas dinámicamente por JS */
+}
+
+.pdf-content blockquote {
+    font-style: italic;
+    border-left: 3px solid #666;
+    padding-left: 15px;
+    margin: 15px 25px;
+    color: #555;
+    text-align: left;
+}
+
+.pdf-content ul {
+    list-style-type: disc;
+    margin-left: 25px;
+    margin-bottom: 14pt;
+    text-align: left;
+}
+
+.pdf-content ol {
+    list-style-type: decimal;
+    margin-left: 25px;
+    margin-bottom: 14pt;
+    text-align: left;
+}
+
+/* Encabezados y pies de página dinámicos del PDF */
+.pdf-header {
+    font-family: 'Merriweather', serif;
+    font-size: 8.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #777777;
+    padding-bottom: 6px;
+    margin-bottom: 15mm;
+}
+
+.pdf-footer {
+    font-family: 'Merriweather', serif;
+    font-size: 9pt;
+    color: #777777;
+    text-align: center;
+    padding-top: 8px;
+    margin-top: 10mm;
+}
+
+/* Ocultar elementos auxiliares en la impresión */
+@media print {
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+    }
+    /* Ocultar toda la interfaz que no sea el escrolador del PDF */
+    header, #sidebar, #editor-pane, .no-print {
+        display: none !important;
+    }
+    
+    main, #pdf-preview-pane, #pdf-scroller {
+        display: block !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+        position: relative !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+    }
+
+    .pdf-page {
+        margin: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        page-break-after: always;
+        page-break-inside: avoid;
+    }
+}
+
+/* Personalización de barra de desplazamiento */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}

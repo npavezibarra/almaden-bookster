@@ -1,0 +1,252 @@
+// Datos del libro por defecto (si el usuario ingresa por primera vez)
+const DEFAULT_CHAPTERS = [
+    {
+        id: "cap-1",
+        title: "Capítulo I: El Primer Suspiro",
+        content: "# Capítulo I\n## El Primer Suspiro\n\nEl viento soplaba furioso contra las ventanas de la antigua cabaña. Aquella noche de invierno no parecía diferente a las anteriores, pero el destino ya había trazado su línea de no retorno. Daniel, sentado frente a su rústica mesa de madera, sostenía una pluma gastada.\n\n*\"Las palabras tienen el poder de dar vida, pero también de arrebatarla\"*, murmuró para sus adentros.\n\nFrente a él yacía un manuscrito antiguo encuadernado en cuero desgastado. Nadie debía saber lo que contenía, pero las sombras acechaban más de lo usual en los rincones de la habitación. De repente, un golpe seco resonó en la puerta principal. Tres toques rítmicos, seguidos de un profundo silencio.\n\n> Aquel que busca respuestas en las sombras debe estar preparado para ver lo que las sombras revelan.\n\n- Daniel apagó la vela rápidamente.\n- El silencio de la casa se volvió ensordecedor.\n- Con sigilo, deslizó la mano por debajo de la mesa buscando la vieja llave de latón."
+    },
+    {
+        id: "cap-2",
+        title: "Capítulo II: Sombras en el Umbral",
+        content: "# Capítulo II\n## Sombras en el Umbral\n\nAl no recibir respuesta, la cerradura crujió levemente. Una ráfaga de aire helado invadió la sala de estar cuando la puerta cedió. Una silueta alta y envuelta en una capa oscura se recortó contra la pálida luz de la luna que se filtraba a través de las nubes grises.\n\nDaniel retrocedió hasta sentir el frío muro a su espalda.\n\n—Sé que estás aquí, Daniel —dijo una voz suave, pero cargada de una extraña vibración que hizo erizar su piel—.\n\nLa figura se despojó lentamente de su capucha, revelando unos ojos claros que parecían brillar con luz propia en medio de la penumbra. No buscaba confrontación, buscaba el manuscrito que reposaba sobre la mesa.\n\n**\"El destino se ha cumplido hoy,\"** pensó Daniel desesperado mientras recordaba las advertencias de su mentor."
+    }
+];
+
+// Al iniciar la aplicación
+window.onload = function() {
+    // Cargar tema de LocalStorage si existe (preferencia visual)
+    const savedTheme = localStorage.getItem('bookcraft_theme');
+    if (savedTheme) {
+        bookState.theme = savedTheme;
+    }
+
+    // Aplicar el título del libro
+    const titleInput = document.getElementById('book-title-input');
+    if (titleInput) {
+        titleInput.value = bookState.title;
+    }
+
+    // Inicializar Listeners
+    initEventListeners();
+
+    // Renderizar Sidebar
+    renderSidebar();
+
+    // Cargar el capítulo activo
+    loadActiveChapter();
+
+    // Aplicar Tema Guardado
+    changeTheme(bookState.theme);
+
+    // Aplicar Vista
+    setViewMode(bookState.viewMode);
+    
+    // Aplicar maquetación dinámica del PDF
+    applyDynamicPDFStyles();
+    
+    showToast("¡Bienvenido de vuelta a tu manuscrito!", "fa-solid fa-book-open");
+};
+
+// Inicializador de Event Listeners
+function initEventListeners() {
+    const textarea = document.getElementById('editor-textarea');
+    const chapterTitle = document.getElementById('chapter-title-input');
+    const bookTitle = document.getElementById('book-title-input');
+
+    if (textarea) {
+        textarea.addEventListener('input', () => {
+            const activeId = bookState.activeChapterId;
+            const chapter = bookState.chapters.find(c => c.id === activeId);
+            if (chapter) {
+                chapter.content = textarea.value;
+                updateWordCounts();
+                compilePDFPreview();
+                saveStateToLocalStorage();
+            }
+        });
+    }
+
+    if (chapterTitle) {
+        chapterTitle.addEventListener('input', () => {
+            const activeId = bookState.activeChapterId;
+            const chapter = bookState.chapters.find(c => c.id === activeId);
+            if (chapter) {
+                chapter.title = chapterTitle.value;
+                renderSidebar(); // Actualiza el sidebar en tiempo real
+                compilePDFPreview();
+                saveStateToLocalStorage();
+            }
+        });
+    }
+
+    if (bookTitle) {
+        bookTitle.addEventListener('input', () => {
+            bookState.title = bookTitle.value;
+            compilePDFPreview(); // Para actualizar los encabezados de página
+            saveStateToLocalStorage();
+        });
+    }
+
+    // Ajustar el ancho y visibilidad al cambiar tamaño de pantalla
+    window.addEventListener('resize', () => {
+        if (window.innerWidth < 1024) {
+            // En móviles, se fuerza vista de editor si está en dividido
+            if (bookState.viewMode === 'split') {
+                setViewMode('edit');
+            }
+        }
+    });
+}
+
+// Cambia el tema visual del editor (Claro, Sepia, Oscuro)
+function changeTheme(themeName) {
+    const body = document.body;
+    body.className = ''; // Limpiar clases
+    
+    if (themeName === 'light') {
+        body.classList.add('theme-light', 'h-full', 'overflow-hidden', 'flex', 'flex-col');
+    } else if (themeName === 'sepia') {
+        body.classList.add('theme-sepia', 'h-full', 'overflow-hidden', 'flex', 'flex-col');
+    } else if (themeName === 'dark') {
+        body.classList.add('theme-dark', 'h-full', 'overflow-hidden', 'flex', 'flex-col');
+    }
+    
+    bookState.theme = themeName;
+    localStorage.setItem('bookcraft_theme', themeName);
+}
+
+// Modos de vista del espacio de trabajo (Dividido, Solo Editor, Solo PDF)
+function setViewMode(mode) {
+    const editorPane = document.getElementById('editor-pane');
+    const previewPane = document.getElementById('pdf-preview-pane');
+    const splitBtn = document.getElementById('view-split-btn');
+    const editBtn = document.getElementById('view-edit-btn');
+    const previewBtn = document.getElementById('view-preview-btn');
+
+    // Resetear clases de botones
+    [splitBtn, editBtn, previewBtn].forEach(btn => {
+        if (btn) {
+            btn.className = "px-3 py-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] transition";
+        }
+    });
+
+    if (mode === 'split') {
+        if (editorPane) editorPane.classList.remove('hidden');
+        if (previewPane) previewPane.classList.remove('hidden');
+        if (splitBtn) splitBtn.className = "px-3 py-1.5 rounded-md bg-indigo-600 text-white shadow-sm transition";
+    } else if (mode === 'edit') {
+        if (editorPane) editorPane.classList.remove('hidden');
+        if (previewPane) previewPane.classList.add('hidden');
+        if (editBtn) editBtn.className = "px-3 py-1.5 rounded-md bg-indigo-600 text-white shadow-sm transition";
+    } else if (mode === 'preview') {
+        if (editorPane) editorPane.classList.add('hidden');
+        if (previewPane) previewPane.classList.remove('hidden');
+        if (previewBtn) previewBtn.className = "px-3 py-1.5 rounded-md bg-indigo-600 text-white shadow-sm transition";
+    }
+
+    bookState.viewMode = mode;
+    saveStateToLocalStorage();
+}
+
+// Mostrar / Ocultar la barra lateral de capítulos
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar-panel');
+    const toggleIcon = document.getElementById('sidebar-toggle-icon');
+    
+    if (sidebar && toggleIcon) {
+        if (sidebar.classList.contains('w-80')) {
+            // Contraer lateral
+            sidebar.classList.remove('w-80', 'opacity-100');
+            sidebar.classList.add('w-0', 'opacity-0', 'pointer-events-none');
+            toggleIcon.classList.remove('fa-chevron-left');
+            toggleIcon.classList.add('fa-chevron-right');
+        } else {
+            // Expandir lateral
+            sidebar.classList.remove('w-0', 'opacity-0', 'pointer-events-none');
+            sidebar.classList.add('w-80', 'opacity-100');
+            toggleIcon.classList.remove('fa-chevron-right');
+            toggleIcon.classList.add('fa-chevron-left');
+        }
+    }
+}
+
+// Muestra notificaciones personalizadas dinámicas de la aplicación
+function showToast(message, iconClass = "fa-solid fa-circle-check") {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toast-message');
+    const toastIcon = document.getElementById('toast-icon');
+
+    if (toast && toastMessage && toastIcon) {
+        toastMessage.textContent = message;
+        toastIcon.innerHTML = `<i class="${iconClass}"></i>`;
+
+        // Efecto flotante de aparición fluida
+        toast.classList.remove('translate-y-10', 'opacity-0', 'pointer-events-none');
+        toast.classList.add('translate-y-0', 'opacity-100');
+
+        setTimeout(() => {
+            toast.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none');
+            toast.classList.remove('translate-y-0', 'opacity-100');
+        }, 3000);
+    }
+}
+
+// Funciones para la barra de formato Markdown
+function wrapText(prefix, suffix) {
+    const textarea = document.getElementById('editor-textarea');
+    if (!textarea) return;
+    
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    
+    // Si hay texto seleccionado, lo envuelve
+    if (start !== end) {
+        const selectedText = text.substring(start, end);
+        textarea.value = text.substring(0, start) + prefix + selectedText + suffix + text.substring(end);
+        textarea.selectionStart = start + prefix.length;
+        textarea.selectionEnd = end + prefix.length;
+    } else {
+        // Si no hay selección, inserta los marcadores y pone el cursor en medio
+        textarea.value = text.substring(0, start) + prefix + suffix + text.substring(start);
+        textarea.selectionStart = textarea.selectionEnd = start + prefix.length;
+    }
+    
+    textarea.focus();
+    triggerEditorUpdate();
+}
+
+function addPrefix(prefix) {
+    const textarea = document.getElementById('editor-textarea');
+    if (!textarea) return;
+    
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    
+    // Encontrar el inicio de la línea donde está el cursor
+    let lineStart = text.lastIndexOf('\n', start - 1);
+    lineStart = lineStart === -1 ? 0 : lineStart + 1;
+    
+    textarea.value = text.substring(0, lineStart) + prefix + text.substring(lineStart);
+    
+    textarea.selectionStart = start + prefix.length;
+    textarea.selectionEnd = end + prefix.length;
+    textarea.focus();
+    
+    triggerEditorUpdate();
+}
+
+function triggerEditorUpdate() {
+    const textarea = document.getElementById('editor-textarea');
+    if (!textarea) return;
+    
+    const activeId = bookState.activeChapterId;
+    const chapter = bookState.chapters.find(c => c.id === activeId);
+    if (chapter) {
+        chapter.content = textarea.value;
+        if (typeof updateWordCounts === 'function') updateWordCounts();
+        if (typeof compilePDFPreview === 'function') compilePDFPreview();
+        if (typeof saveStateToLocalStorage === 'function') saveStateToLocalStorage();
+    }
+}
