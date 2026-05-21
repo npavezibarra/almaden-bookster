@@ -409,6 +409,8 @@ $google_fonts_url = 'https://fonts.googleapis.com/css2?' . implode( '&', array_m
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-chapters.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-settings.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-markdown.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-compiler.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-export.js?v='   . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-styles.js?v='   . time(), __FILE__ ) ); ?>"></script>
 </body>
 </html>
