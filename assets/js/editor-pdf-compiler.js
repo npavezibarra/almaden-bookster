@@ -79,7 +79,9 @@ function createNewPageElement(pageNumber, chapterTitle, isFirstPageOfChapter = f
 
     pageDiv.innerHTML = `
         <div class="pdf-header text-xs">${headerHtml}</div>
-        <div class="${contentClass}" style="${contentStyle}" lang="${settings.content_language || 'es'}"></div>
+        <div class="${contentClass}" style="${contentStyle}" lang="${settings.content_language || 'es'}">
+            <div class="pdf-content-inner"></div>
+        </div>
         <div class="pdf-footnotes hidden"></div>
         <div class="pdf-footer text-xs">${footerHtml}</div>
     `;
@@ -176,15 +178,72 @@ function compilePDFPreview() {
         let currentPageEl = createNewPageElement(currentPageNumber, chapter.title, isFirstPageOfChapter, false);
         currentPageEl.setAttribute('data-chapter-id', chapter.id);
         scroller.appendChild(currentPageEl);
-        let currentContentContainer  = currentPageEl.querySelector('.pdf-content');
+        let currentInnerContainer = currentPageEl.querySelector('.pdf-content-inner');
         let currentFootnotesContainer = currentPageEl.querySelector('.pdf-footnotes');
 
-        let currentHeight = 0;
         let activePageFootnotes = [];
 
-        childNodes.forEach(node => {
+        // Helper para dividir párrafos entre páginas
+        function splitParagraphAcrossPages(pNode, innerContainer, footnotesHeight, maxTotalHeight) {
+            if (pNode.tagName !== 'P') return null;
+            const originalChildNodes = Array.from(pNode.childNodes);
+            pNode.innerHTML = '';
+            
+            const secondHalfNode = pNode.cloneNode(false);
+            let overflowed = false;
+
+            function processChild(child, target1, target2) {
+                if (overflowed) {
+                    target2.appendChild(child.cloneNode(true));
+                    return;
+                }
+                if (child.nodeType === Node.TEXT_NODE) {
+                    const words = child.textContent.split(/(\s+)/);
+                    let remainderText = '';
+                    const textNode1 = document.createTextNode('');
+                    target1.appendChild(textNode1);
+                    
+                    for (let i = 0; i < words.length; i++) {
+                        if (overflowed) {
+                            remainderText += words[i];
+                        } else {
+                            const prevText = textNode1.data;
+                            textNode1.data += words[i];
+                            if (innerContainer.offsetHeight + footnotesHeight > maxTotalHeight) {
+                                overflowed = true;
+                                textNode1.data = prevText;
+                                remainderText += words[i];
+                            }
+                        }
+                    }
+                    if (remainderText) target2.appendChild(document.createTextNode(remainderText));
+                } else if (child.nodeType === Node.ELEMENT_NODE) {
+                    target1.appendChild(child);
+                    if (innerContainer.offsetHeight + footnotesHeight > maxTotalHeight) {
+                        target1.removeChild(child);
+                        const part1 = child.cloneNode(false);
+                        const part2 = child.cloneNode(false);
+                        target1.appendChild(part1);
+                        target2.appendChild(part2);
+                        
+                        Array.from(child.childNodes).forEach(sub => processChild(sub, part1, part2));
+                        
+                        if (part1.childNodes.length === 0) target1.removeChild(part1);
+                        if (part2.childNodes.length === 0) target2.removeChild(part2);
+                    }
+                }
+            }
+
+            originalChildNodes.forEach(child => processChild(child, pNode, secondHalfNode));
+            if (pNode.textContent.trim() === '') return null;
+            return secondHalfNode;
+        }
+
+        // Iterar usando un while para poder inyectar partes remanentes
+        while (childNodes.length > 0) {
+            const node = childNodes.shift();
             const clonedNode = node.cloneNode(true);
-            currentContentContainer.appendChild(clonedNode);
+            currentInnerContainer.appendChild(clonedNode);
 
             const footnoteRefsInNode = [];
             if (clonedNode.classList && clonedNode.classList.contains('pdf-footnote-ref')) footnoteRefsInNode.push(clonedNode);
@@ -202,43 +261,40 @@ function compilePDFPreview() {
             });
             if (footnotesAdded) renderPageFootnotes(currentFootnotesContainer, activePageFootnotes);
 
-            const nodeHeight      = clonedNode.offsetHeight || 25;
             const footnotesHeight = currentFootnotesContainer && !currentFootnotesContainer.classList.contains('hidden')
                 ? currentFootnotesContainer.offsetHeight : 0;
 
-            if (currentHeight + nodeHeight + footnotesHeight > MAX_PAGE_CONTENT_HEIGHT) {
-                currentContentContainer.removeChild(clonedNode);
-                activePageFootnotes = previousPageFootnotes;
-                renderPageFootnotes(currentFootnotesContainer, activePageFootnotes);
+            if (currentInnerContainer.offsetHeight + footnotesHeight > MAX_PAGE_CONTENT_HEIGHT) {
+                // Intento dividir el nodo
+                let remainderNode = null;
+                if (clonedNode.tagName === 'P') {
+                    // splitParagraphAcrossPages modifica clonedNode inplace (dejando solo lo que cabe)
+                    remainderNode = splitParagraphAcrossPages(clonedNode, currentInnerContainer, footnotesHeight, MAX_PAGE_CONTENT_HEIGHT);
+                }
 
+                if (!remainderNode) {
+                    // No se pudo dividir (o no es un P). Quitamos el nodo entero y lo pasamos a la siguiente página
+                    currentInnerContainer.removeChild(clonedNode);
+                    activePageFootnotes = previousPageFootnotes;
+                    renderPageFootnotes(currentFootnotesContainer, activePageFootnotes);
+                    // Re-encolamos el nodo entero al principio
+                    childNodes.unshift(node);
+                } else {
+                    // Se dividió. remainderNode tiene la segunda mitad.
+                    childNodes.unshift(remainderNode);
+                }
+
+                // Crear nueva página
                 currentPageNumber++;
                 isFirstPageOfChapter = false;
                 currentPageEl = createNewPageElement(currentPageNumber, chapter.title, isFirstPageOfChapter, false);
                 currentPageEl.setAttribute('data-chapter-id', chapter.id);
                 scroller.appendChild(currentPageEl);
-                currentContentContainer  = currentPageEl.querySelector('.pdf-content');
+                currentInnerContainer = currentPageEl.querySelector('.pdf-content-inner');
                 currentFootnotesContainer = currentPageEl.querySelector('.pdf-footnotes');
-
                 activePageFootnotes = [];
-                currentContentContainer.appendChild(clonedNode);
-
-                // Re-procesar notas al pie para la nueva página
-                const newFootnoteRefs = [];
-                if (clonedNode.classList && clonedNode.classList.contains('pdf-footnote-ref')) newFootnoteRefs.push(clonedNode);
-                if (clonedNode.querySelectorAll) clonedNode.querySelectorAll('.pdf-footnote-ref').forEach(ref => newFootnoteRefs.push(ref));
-                newFootnoteRefs.forEach(ref => {
-                    const fnId  = ref.getAttribute('data-footnote-id');
-                    const fnNum = ref.getAttribute('data-footnote-number');
-                    if (fnId && footnoteDefs[fnId] && !activePageFootnotes.some(fn => fn.id === fnId)) {
-                        activePageFootnotes.push({ id: fnId, number: fnNum, text: footnoteDefs[fnId] });
-                    }
-                });
-                renderPageFootnotes(currentFootnotesContainer, activePageFootnotes);
-                currentHeight = clonedNode.offsetHeight || 25;
-            } else {
-                currentHeight += nodeHeight;
             }
-        });
+        }
 
         currentPageNumber++;
     });

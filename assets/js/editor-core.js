@@ -250,3 +250,32 @@ function triggerEditorUpdate() {
         if (typeof saveStateToLocalStorage === 'function') saveStateToLocalStorage();
     }
 }
+
+// Selector de lenguaje para hyphens
+function toggleLangDropdown() {
+    const dropdown = document.getElementById('lang-dropdown');
+    dropdown.classList.toggle('hidden');
+}
+
+// Cierra el dropdown si se hace click fuera
+document.addEventListener('click', function(event) {
+    const wrapper = document.getElementById('lang-selector-wrapper');
+    const dropdown = document.getElementById('lang-dropdown');
+    if (wrapper && dropdown && !wrapper.contains(event.target)) {
+        dropdown.classList.add('hidden');
+    }
+});
+
+function applyLanguage(langCode) {
+    wrapText(`[lang:${langCode}]`, '[/lang]');
+    document.getElementById('lang-dropdown').classList.add('hidden');
+}
+
+function removeLanguage() {
+    // Esto es un poco más complejo, requiere buscar en la selección actual
+    // y remover las etiquetas. Por simplicidad, el usuario puede borrarlas a mano.
+    // Dejaremos la estructura por si más adelante queremos hacer un regex replace en la selección.
+    showToast("Borra las etiquetas [lang] manualmente en el editor.", "fa-solid fa-circle-info");
+    document.getElementById('lang-dropdown').classList.add('hidden');
+}
+

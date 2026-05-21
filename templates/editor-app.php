@@ -338,6 +338,43 @@ $google_fonts_url = 'https://fonts.googleapis.com/css2?' . implode( '&', array_m
                         <button onclick="addPrefix('- ')" class="p-1.5 hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Lista de viñetas">
                             <i class="fa-solid fa-list-ul"></i>
                         </button>
+                        <div class="h-4 w-px bg-[var(--border-color)] mx-1"></div>
+                        <!-- Selector de idioma para hyphenation específico por frase -->
+                        <div class="relative" id="lang-selector-wrapper">
+                            <button onclick="toggleLangDropdown()" 
+                                class="flex items-center gap-1 px-2 py-1 text-xs font-mono font-semibold hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition border border-transparent hover:border-[var(--border-color)]"
+                                title="Aplicar idioma a texto seleccionado (para hyphenation)">
+                                <i class="fa-solid fa-language text-sm"></i>
+                                <span class="hidden sm:inline">Lang</span>
+                                <i class="fa-solid fa-chevron-down text-[9px] opacity-60"></i>
+                            </button>
+                            <!-- Dropdown de idiomas -->
+                            <div id="lang-dropdown" class="hidden absolute top-full left-0 mt-1 bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg shadow-xl z-50 py-1 min-w-[160px]">
+                                <p class="text-[10px] text-[var(--text-muted)] px-3 pt-1 pb-1 uppercase tracking-wider font-semibold">Idioma del fragmento</p>
+                                <button onclick="applyLanguage('es')" class="w-full text-left px-3 py-1.5 text-xs hover:bg-[var(--bg-app)] transition flex items-center gap-2">
+                                    <span class="font-mono font-bold text-indigo-500">es</span> Español
+                                </button>
+                                <button onclick="applyLanguage('en')" class="w-full text-left px-3 py-1.5 text-xs hover:bg-[var(--bg-app)] transition flex items-center gap-2">
+                                    <span class="font-mono font-bold text-indigo-500">en</span> English
+                                </button>
+                                <button onclick="applyLanguage('fr')" class="w-full text-left px-3 py-1.5 text-xs hover:bg-[var(--bg-app)] transition flex items-center gap-2">
+                                    <span class="font-mono font-bold text-indigo-500">fr</span> Français
+                                </button>
+                                <button onclick="applyLanguage('de')" class="w-full text-left px-3 py-1.5 text-xs hover:bg-[var(--bg-app)] transition flex items-center gap-2">
+                                    <span class="font-mono font-bold text-indigo-500">de</span> Deutsch
+                                </button>
+                                <button onclick="applyLanguage('pt')" class="w-full text-left px-3 py-1.5 text-xs hover:bg-[var(--bg-app)] transition flex items-center gap-2">
+                                    <span class="font-mono font-bold text-indigo-500">pt</span> Português
+                                </button>
+                                <button onclick="applyLanguage('it')" class="w-full text-left px-3 py-1.5 text-xs hover:bg-[var(--bg-app)] transition flex items-center gap-2">
+                                    <span class="font-mono font-bold text-indigo-500">it</span> Italiano
+                                </button>
+                                <div class="border-t border-[var(--border-color)] my-1"></div>
+                                <button onclick="removeLanguage()" class="w-full text-left px-3 py-1.5 text-xs hover:bg-[var(--bg-app)] transition flex items-center gap-2 text-rose-500">
+                                    <i class="fa-solid fa-xmark text-xs"></i> Quitar idioma
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Contador local del Capítulo -->
@@ -347,16 +384,20 @@ $google_fonts_url = 'https://fonts.googleapis.com/css2?' . implode( '&', array_m
                 </div>
 
                 <!-- Campo de Entrada del Título del Capítulo -->
-                <div class="p-6 pb-2">
-                    <input id="chapter-title-input" type="text" placeholder="Título del Capítulo..."
-                        class="w-full bg-transparent font-serif font-semibold text-2xl md:text-3xl border-b-2 border-transparent focus:border-indigo-500 focus:outline-none pb-2 text-[var(--text-main)] transition-all">
-                </div>
-
-                <!-- Área de Texto de Escritura Raw -->
-                <div class="flex-1 px-6 pb-6 relative">
-                    <textarea id="editor-textarea" 
-                        class="w-full h-full resize-none bg-transparent text-[var(--text-main)] focus:outline-none font-mono text-sm leading-relaxed placeholder-gray-400 dark:placeholder-gray-600 focus:ring-0 overflow-y-auto"
-                        placeholder="Escribe tu historia aquí utilizando formato simple o las herramientas de arriba..."></textarea>
+                <!-- Contenido centrado: Título + Textarea con max-width 800px -->
+                <div class="flex-1 flex flex-col overflow-hidden">
+                    <div class="flex-1 overflow-y-auto">
+                        <div class="max-w-[800px] mx-auto px-6 pt-6 pb-6 flex flex-col h-full min-h-full">
+                            <!-- Título del capítulo -->
+                            <input id="chapter-title-input" type="text" placeholder="Título del Capítulo..."
+                                class="w-full bg-transparent font-serif font-semibold text-2xl md:text-3xl border-b-2 border-transparent focus:border-indigo-500 focus:outline-none pb-2 mb-4 text-[var(--text-main)] transition-all">
+                            <!-- Área de escritura -->
+                            <textarea id="editor-textarea"
+                                class="flex-1 w-full resize-none bg-transparent text-[var(--text-main)] focus:outline-none font-mono text-sm leading-relaxed placeholder-gray-400 dark:placeholder-gray-600 focus:ring-0"
+                                style="min-height: 400px;"
+                                placeholder="Escribe tu historia aquí utilizando formato simple o las herramientas de arriba..."></textarea>
+                        </div>
+                    </div>
                 </div>
             </section>
 
