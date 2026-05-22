@@ -231,6 +231,43 @@ function almaden_bookster_load_editor() {
 	$request_uri = trim( parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ), '/' );
 	
 	if ( strpos( $request_uri, 'almaden-book-editor' ) === 0 ) {
+		$book_id = isset( $_GET['book_id'] ) ? intval( $_GET['book_id'] ) : 0;
+
+		// Asegurar sesión autenticada de WordPress (necesario para wp.media y async-upload.php)
+		if ( ! is_user_logged_in() ) {
+			auth_redirect();
+		}
+		
+		// Ocultar barra de administración de WordPress en el editor
+		show_admin_bar( false );
+		
+		// Cargar funciones de admin para que wp_enqueue_media funcione completamente
+		if ( ! defined( 'DOING_AJAX' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/media.php';
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+		}
+		
+		add_action('wp_enqueue_scripts', function() use ($book_id) {
+			// Limpiar estilos y scripts del tema, preservando el core
+			global $wp_styles, $wp_scripts;
+			if (isset($wp_styles->queue)) {
+				foreach ($wp_styles->queue as $handle) {
+					if (strpos($handle, 'wp-') === false && strpos($handle, 'dashicons') === false) {
+						wp_dequeue_style($handle);
+					}
+				}
+			}
+			if (isset($wp_scripts->queue)) {
+				foreach ($wp_scripts->queue as $handle) {
+					if (strpos($handle, 'wp-') === false && strpos($handle, 'media-') === false && strpos($handle, 'jquery') === false) {
+						wp_dequeue_script($handle);
+					}
+				}
+			}
+			wp_enqueue_media( array( 'post' => $book_id ) );
+		}, 9999);
+
 		$template_path = plugin_dir_path( __FILE__ ) . 'templates/editor-app.php';
 		if ( file_exists( $template_path ) ) {
 			require_once $template_path;
@@ -264,9 +301,10 @@ function almaden_bookster_save_book_ajax() {
 	$sanitized_chapters = array();
 	foreach ( $chapters as $chapter ) {
 		$sanitized_chapters[] = array(
-			'id'      => sanitize_text_field( $chapter['id'] ),
-			'title'   => sanitize_text_field( $chapter['title'] ),
-			'content' => wp_kses_post( $chapter['content'] ),
+			'id'           => sanitize_text_field( $chapter['id'] ),
+			'title'        => sanitize_text_field( $chapter['title'] ),
+			'content'      => wp_kses_post( $chapter['content'] ),
+			'parity_image' => isset( $chapter['parity_image'] ) ? sanitize_text_field( $chapter['parity_image'] ) : '',
 		);
 	}
 
@@ -292,7 +330,7 @@ function almaden_bookster_create_settings_table() {
 	global $wpdb;
 	$table_name = $wpdb->prefix . 'almaden_book_settings';
 	
-	if ( get_option( 'almaden_bookster_db_version' ) !== '1.8.0' ) {
+	if ( get_option( 'almaden_bookster_db_version' ) !== '1.8.1' ) {
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE $table_name (
@@ -351,6 +389,7 @@ function almaden_bookster_create_settings_table() {
 			footer_odd_type varchar(20) DEFAULT 'page_number' NOT NULL,
 			show_header_page_one tinyint(1) DEFAULT 0 NOT NULL,
 			chapter_start_parity varchar(10) DEFAULT 'any' NOT NULL,
+			parity_image_mode varchar(20) DEFAULT 'content' NOT NULL,
 			chapter_page_one_align varchar(10) DEFAULT 'center' NOT NULL,
 			chapter_page_one_vertical varchar(10) DEFAULT 'top' NOT NULL,
 			chapter_title_font_family varchar(50) DEFAULT 'Playfair Display' NOT NULL,
@@ -373,7 +412,7 @@ function almaden_bookster_create_settings_table() {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 
-		update_option( 'almaden_bookster_db_version', '1.8.0' );
+		update_option( 'almaden_bookster_db_version', '1.8.1' );
 	}
 }
 add_action( 'init', 'almaden_bookster_create_settings_table' );
@@ -445,6 +484,7 @@ function almaden_bookster_save_settings_ajax() {
 		'footer_odd_type'            => sanitize_text_field( $_POST['footer_odd_type'] ),
 		'show_header_page_one'       => intval( $_POST['show_header_page_one'] ),
 		'chapter_start_parity'       => sanitize_text_field( $_POST['chapter_start_parity'] ),
+		'parity_image_mode'          => sanitize_text_field( $_POST['parity_image_mode'] ),
 		'chapter_page_one_align'     => sanitize_text_field( $_POST['chapter_page_one_align'] ),
 		'chapter_page_one_vertical'  => sanitize_text_field( $_POST['chapter_page_one_vertical'] ),
 		'chapter_title_font_family'  => sanitize_text_field( $_POST['chapter_title_font_family'] ),

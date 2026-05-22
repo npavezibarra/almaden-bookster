@@ -48,6 +48,18 @@ function updateUnitFields() {
     });
 }
 
+function toggleParityImageMode() {
+    const parity = document.getElementById('setting-chapter-start-parity').value;
+    const wrapper = document.getElementById('parity-image-mode-wrapper');
+    if (wrapper) {
+        if (parity === 'odd') {
+            wrapper.classList.remove('hidden');
+        } else {
+            wrapper.classList.add('hidden');
+        }
+    }
+}
+
 // Mostrar / Ocultar campos de dimensiones personalizados
 function toggleCustomPageFields() {
     const pageSize = document.getElementById('setting-page-size').value;
@@ -137,6 +149,7 @@ function toggleSettingsModal(show) {
 
         // Pestaña Capítulos
         document.getElementById('setting-chapter-start-parity').value = settings.chapter_start_parity || 'any';
+        document.getElementById('setting-parity-image-mode').value = settings.parity_image_mode || 'content';
         document.getElementById('setting-chapter-page-one-align').value = settings.chapter_page_one_align || 'center';
         document.getElementById('setting-chapter-page-one-vertical').value = settings.chapter_page_one_vertical || 'top';
         document.getElementById('setting-chapter-title-font-family').value = settings.chapter_title_font_family || 'Playfair Display';
@@ -146,10 +159,12 @@ function toggleSettingsModal(show) {
         document.getElementById('setting-chapter-title-align').value = settings.chapter_title_align || 'center';
         document.getElementById('setting-chapter-title-padding-top').value = settings.chapter_title_padding_top ?? 0;
         document.getElementById('setting-chapter-title-padding-bottom').value = settings.chapter_title_padding_bottom ?? 1.5;
+        document.getElementById('setting-chapter-title-line-height').value = settings.chapter_title_line_height ?? 1.2;
 
         updateUnitFields();
         toggleCustomPageFields();
         toggleCustomHeaderFields();
+        toggleParityImageMode();
 
         modal.classList.remove('hidden');
         setTimeout(() => {
@@ -262,6 +277,7 @@ function savePDFSettings() {
 
     // Capítulos
     data.append('chapter_start_parity', document.getElementById('setting-chapter-start-parity').value);
+    data.append('parity_image_mode', document.getElementById('setting-parity-image-mode').value);
     data.append('chapter_page_one_align', document.getElementById('setting-chapter-page-one-align').value);
     data.append('chapter_page_one_vertical', document.getElementById('setting-chapter-page-one-vertical').value);
     data.append('chapter_title_font_family', document.getElementById('setting-chapter-title-font-family').value);
@@ -271,6 +287,7 @@ function savePDFSettings() {
     data.append('chapter_title_align', document.getElementById('setting-chapter-title-align').value);
     data.append('chapter_title_padding_top', getCleanVal('setting-chapter-title-padding-top'));
     data.append('chapter_title_padding_bottom', getCleanVal('setting-chapter-title-padding-bottom'));
+    data.append('chapter_title_line_height', getCleanVal('setting-chapter-title-line-height'));
 
     fetch(bookState.ajaxUrl, {
         method: 'POST',
@@ -348,6 +365,7 @@ function savePDFSettings() {
                 footer_align: document.getElementById('setting-footer-align').value,
 
                 chapter_start_parity: document.getElementById('setting-chapter-start-parity').value,
+                parity_image_mode: document.getElementById('setting-parity-image-mode').value,
                 chapter_page_one_align: document.getElementById('setting-chapter-page-one-align').value,
                 chapter_page_one_vertical: document.getElementById('setting-chapter-page-one-vertical').value,
                 chapter_title_font_family: document.getElementById('setting-chapter-title-font-family').value,
@@ -360,6 +378,7 @@ function savePDFSettings() {
             };
 
             applyDynamicPDFStyles();
+            if (typeof updateParityButtonVisibility === 'function') updateParityButtonVisibility();
             toggleSettingsModal(false);
             showToast("Configuración del PDF guardada", "fa-solid fa-circle-check");
         } else {

@@ -22,69 +22,71 @@ function getPageDimensions() {
     return { width, height, unit };
 }
 
-// Abre una ventana de impresión limpia con solo las páginas del libro
-function triggerPrint() {
-    compilePDFPreview();
+async function triggerPrint() {
+    await compilePDFPreview();
 
     const { width, height, unit } = getPageDimensions();
 
-    const scroller = document.getElementById('pdf-scroller');
-    const pagesHtml = scroller ? scroller.innerHTML : '<p>Sin contenido</p>';
-
-    // Recoger todos los estilos activos (Google Fonts + estilos dinámicos)
-    let stylesHtml = '';
-    document.querySelectorAll('link[rel="stylesheet"], style').forEach(el => {
-        stylesHtml += el.outerHTML;
-    });
-
-    const printContent = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>${bookState.title || 'Libro'}</title>
-    ${stylesHtml}
-    <style>
-        @page {
-            size: ${width}${unit} ${height}${unit};
-            margin: 0mm;
-        }
-        html, body {
-            margin: 0 !important;
-            padding: 0 !important;
-            background: white !important;
-        }
-        .pdf-page {
-            margin: 0 !important;
-            box-shadow: none !important;
-            border: none !important;
-            page-break-after: always;
-            page-break-inside: avoid;
-            break-after: page;
-        }
-        .pdf-page:last-child {
-            page-break-after: auto;
-        }
-    </style>
-</head>
-<body>
-    ${pagesHtml}
-</body>
-</html>`;
-
-    const printWin = window.open('', '_blank', `width=${Math.round(width * 37.8)},height=${Math.round(height * 37.8)}`);
-    if (!printWin) {
-        showToast('Activa los popups para este sitio e intenta de nuevo.', 'fa-solid fa-triangle-exclamation');
-        return;
+    let styleEl = document.getElementById('print-export-style');
+    if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'print-export-style';
+        document.head.appendChild(styleEl);
     }
-    printWin.document.open();
-    printWin.document.write(printContent);
-    printWin.document.close();
 
-    // Esperar a que carguen las fuentes antes de lanzar el diálogo
-    printWin.onload = function () {
-        setTimeout(() => {
-            printWin.focus();
-            printWin.print();
-        }, 1000);
-    };
+    styleEl.innerHTML = `
+        @media print {
+            header, aside, #editor-pane, .pdf-toolbar, #split-resizer {
+                display: none !important;
+            }
+            html, body {
+                height: auto !important;
+                overflow: visible !important;
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            body > div.flex.flex-1, main, #preview-pane, #pdf-container, #pdf-scroller {
+                display: block !important;
+                height: auto !important;
+                overflow: visible !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                position: static !important;
+                transform: none !important;
+            }
+            @page {
+                size: ${width}${unit} ${height}${unit};
+                margin: 0mm;
+            }
+            .pdf-page {
+                margin: 0 !important; /* Ensure it sticks to top-left of the @page */
+                box-shadow: none !important;
+                border: none !important;
+                page-break-after: always !important;
+                break-after: page !important;
+                width: ${width}${unit} !important;
+                height: ${height}${unit} !important;
+                min-height: ${height}${unit} !important;
+                max-height: ${height}${unit} !important;
+                transform: none !important;
+                box-sizing: border-box !important;
+            }
+            .pdf-page:last-child {
+                page-break-after: auto !important;
+                break-after: auto !important;
+            }
+            .print\\:hidden {
+                display: none !important;
+            }
+        }
+    `;
+
+    // Pequeño delay para permitir que el navegador aplique los estilos antes de abrir el diálogo
+    setTimeout(() => {
+        window.print();
+    }, 300);
 }

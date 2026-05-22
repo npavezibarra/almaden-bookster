@@ -81,6 +81,7 @@ $pdf_settings = array(
 	'footer_odd_type'            => 'page_number',
 	'show_header_page_one'       => 0,
 	'chapter_start_parity'       => 'any',
+	'parity_image_mode'          => 'content',
 	'chapter_page_one_align'     => 'center',
 	'chapter_page_one_vertical'  => 'top',
 	'chapter_title_font_family'  => 'Playfair Display',
@@ -200,6 +201,10 @@ $google_fonts_url = 'https://fonts.googleapis.com/css2?' . implode( '&', array_m
     <link rel="stylesheet" href="<?php echo esc_url( plugins_url( '../assets/css/editor-style.css?v=' . time(), __FILE__ ) ); ?>">
     <!-- Estilos dinámicos de maquetación del PDF -->
     <style id="dynamic-pdf-settings"></style>
+    <script>
+        var ajaxurl = "<?php echo admin_url( 'admin-ajax.php' ); ?>";
+    </script>
+    <?php wp_head(); ?>
 </head>
 
 <body class="theme-light h-full overflow-hidden flex flex-col bg-[var(--bg-app)] text-[var(--text-main)]">
@@ -325,6 +330,9 @@ $google_fonts_url = 'https://fonts.googleapis.com/css2?' . implode( '&', array_m
                         <button onclick="wrapText('<u>', '</u>')" class="p-1.5 hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Subrayado">
                             <i class="fa-solid fa-underline"></i>
                         </button>
+                        <button onclick="openMediaUploader()" class="p-1.5 hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Insertar Imagen">
+                            <i class="fa-regular fa-image"></i>
+                        </button>
                         <div class="h-4 w-px bg-[var(--border-color)] mx-1"></div>
                         <button onclick="addPrefix('# ')" class="p-1.5 hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Título Principal">
                             <span class="font-bold text-xs">H1</span>
@@ -338,6 +346,13 @@ $google_fonts_url = 'https://fonts.googleapis.com/css2?' . implode( '&', array_m
                         <button onclick="addPrefix('- ')" class="p-1.5 hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Lista de viñetas">
                             <i class="fa-solid fa-list-ul"></i>
                         </button>
+
+                        <div class="h-4 w-px bg-[var(--border-color)] mx-1"></div>
+
+                        <button id="btn-parity-image" onclick="openParityImageUploader()" class="hidden p-1.5 hover:bg-[var(--bg-app)] hover:text-indigo-500 rounded transition text-indigo-400" title="Añadir Imagen a la Página en Blanco (Paridad)">
+                            <i class="fa-regular fa-image"></i>
+                        </button>
+
                         <div class="h-4 w-px bg-[var(--border-color)] mx-1"></div>
                         <!-- Selector de idioma para hyphenation específico por frase -->
                         <div class="relative" id="lang-selector-wrapper">
@@ -453,5 +468,6 @@ $google_fonts_url = 'https://fonts.googleapis.com/css2?' . implode( '&', array_m
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-compiler.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-export.js?v='   . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-styles.js?v='   . time(), __FILE__ ) ); ?>"></script>
+    <?php wp_footer(); ?>
 </body>
 </html>

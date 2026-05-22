@@ -44,6 +44,11 @@ window.onload = function() {
     // Aplicar maquetación dinámica del PDF
     applyDynamicPDFStyles();
     
+    // Configurar visibilidad del botón de imagen de paridad
+    if (typeof updateParityButtonVisibility === 'function') {
+        updateParityButtonVisibility();
+    }
+    
     showToast("¡Bienvenido de vuelta a tu manuscrito!", "fa-solid fa-book-open");
 };
 
@@ -234,6 +239,110 @@ function addPrefix(prefix) {
     textarea.selectionEnd = end + prefix.length;
     textarea.focus();
     
+    triggerEditorUpdate();
+}
+
+let mediaUploader;
+function openMediaUploader() {
+    if (mediaUploader) {
+        mediaUploader.open();
+        return;
+    }
+
+    if (typeof wp === 'undefined' || !wp.media) {
+        showToast("Error: Media API no está disponible. Guarda y recarga la página.", "fa-solid fa-triangle-exclamation");
+        return;
+    }
+
+    mediaUploader = wp.media({
+        title: 'Seleccionar Imagen',
+        button: { text: 'Insertar en el capítulo' },
+        multiple: false,
+        library: { type: 'image' }
+    });
+
+    mediaUploader.on('select', function() {
+        const attachment = mediaUploader.state().get('selection').first().toJSON();
+        const imgUrl = attachment.url;
+        const imgAlt = attachment.alt || attachment.title || 'Imagen del libro';
+        
+        // El wrapper HTML con tamaño pequeño para el editor, que el compilador pasará tal cual
+        const imageTag = `\n<img src="${imgUrl}" alt="${imgAlt}" width="150" class="pdf-book-image" />\n`;
+        
+        insertAtCursor(imageTag);
+    });
+
+    mediaUploader.open();
+}
+
+let parityMediaUploader;
+function openParityImageUploader() {
+    if (!bookState.activeChapterId) {
+        showToast("Selecciona un capítulo primero.", "fa-solid fa-circle-exclamation");
+        return;
+    }
+
+    if (parityMediaUploader) {
+        parityMediaUploader.open();
+        return;
+    }
+
+    if (typeof wp === 'undefined' || !wp.media) {
+        showToast("Error: Media API no está disponible.", "fa-solid fa-triangle-exclamation");
+        return;
+    }
+
+    parityMediaUploader = wp.media({
+        title: 'Seleccionar Imagen para Página en Blanco (Paridad)',
+        button: { text: 'Establecer como imagen de paridad' },
+        multiple: false,
+        library: { type: 'image' }
+    });
+
+    parityMediaUploader.on('select', function() {
+        const attachment = parityMediaUploader.state().get('selection').first().toJSON();
+        const imgUrl = attachment.url;
+        
+        const chapter = bookState.chapters.find(c => c.id === bookState.activeChapterId);
+        if (chapter) {
+            chapter.parity_image = imgUrl;
+            showToast("Imagen de paridad asignada al capítulo", "fa-solid fa-image");
+            
+            // Mark as dirty and auto-save
+            triggerEditorUpdate();
+            
+            // Si el motor ya está compilando, podríamos forzar un refresco
+            if (typeof compilePDFPreview === 'function') {
+                compilePDFPreview();
+            }
+        }
+    });
+
+    parityMediaUploader.open();
+}
+
+function updateParityButtonVisibility() {
+    const btn = document.getElementById('btn-parity-image');
+    if (!btn) return;
+    
+    if (bookState && bookState.settings && bookState.settings.chapter_start_parity === 'odd') {
+        btn.classList.remove('hidden');
+    } else {
+        btn.classList.add('hidden');
+    }
+}
+
+function insertAtCursor(text) {
+    const textarea = document.getElementById('editor-textarea');
+    if (!textarea) return;
+    
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const value = textarea.value;
+    
+    textarea.value = value.substring(0, start) + text + value.substring(end);
+    textarea.selectionStart = textarea.selectionEnd = start + text.length;
+    textarea.focus();
     triggerEditorUpdate();
 }
 

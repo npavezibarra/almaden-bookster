@@ -36,3 +36,47 @@ mysql --socket="/Users/nicolasibarra/Library/Application Support/Local/run/J__JX
 - **URL de Admin:** `http://ada.local/wp-admin/`
 - **Usuario:** `chatgpt`
 - **Contraseña:** `chatgpt123`
+# BookCraft Editor Architecture Guide
+
+This file serves as a guide for AI agents (and developers) working on the Almaden Bookster plugin. It explains the responsibilities and structure of the JavaScript assets and PHP templates that power the main book editor interface.
+
+## 📂 JavaScript (`assets/js/`)
+
+The frontend editor logic is broken down into specific modular files to avoid massive files and maintain clean architecture.
+
+- **`editor-core.js`**: 
+  The brain of the application. Handles initialization, global state management (`bookState`), fetching book data on load, autosaving, and managing global event listeners.
+- **`editor-chapters.js`**: 
+  Handles everything related to chapter management in the left sidebar. This includes creating new chapters, deleting chapters, reordering chapters, and selecting an active chapter.
+- **`editor-markdown.js`**: 
+  Responsible for parsing the raw text input and converting it into structured HTML elements (paragraphs, headers, lists) before they are sent to the compiler.
+- **`editor-pdf-compiler.js`**: 
+  The most complex file. Takes the HTML elements and handles the **pagination logic**. It measures heights, applies page breaks, manages "flow-root" margins, and splits paragraphs across pages when they overflow the physical boundaries of a page.
+- **`editor-pdf-styles.js`**: 
+  Takes the user's saved settings (margins, typography, line height, etc.) and dynamically constructs a `<style>` block. This CSS is injected into the DOM to style the compiled PDF preview pages accurately.
+- **`editor-pdf-export.js`**: 
+  Contains the logic to trigger the actual browser print dialog (`window.print()`) for exporting the compiled pages to a physical PDF file.
+- **`editor-settings.js`**: 
+  Manages the behavior of the Settings Modal. It handles opening/closing the modal, reading current values into the UI fields, updating UI logic (like toggling custom unit fields), and sending the `FormData` via AJAX to save the settings in the database.
+- **`admin-fonts-page.js`**: 
+  *Note:* This does not run in the editor. It runs in the WordPress wp-admin dashboard to handle the custom font upload and management interface.
+
+---
+
+## 📂 Templates (`templates/`)
+
+These files define the HTML structure and PHP rendering for the BookCraft application shell.
+
+- **`editor-app.php`**: 
+  The main entry point for the editor application. It renders the entire application shell: the left sidebar (chapters), the top toolbar, the main content area (text input), and the right preview area (PDF visualizer). It also enqueues the necessary scripts and styles.
+- **`editor-settings-modal.php`**: 
+  The shell container for the PDF Layout Settings modal. To adhere to file length limits (< 500 lines), this file is strictly a wrapper that includes the individual tabs from the `settings-tabs` directory.
+
+### `templates/settings-tabs/`
+Contains the modularized components of the Settings Modal:
+
+- **`functions.php`**: Contains PHP arrays defining the default available font families and utility functions for rendering `<select>` options.
+- **`tab-page.php`**: The HTML UI for configuring physical page dimensions, margins, bleed, and units.
+- **`tab-typography.php`**: The HTML UI for configuring global content typography, headers (H1/H2/H3), paragraph spacing, and hyphenation.
+- **`tab-header-footer.php`**: The HTML UI for configuring the content, typography, and margins of the running headers and footers across pages.
+- **`tab-chapters.php`**: The HTML UI for configuring how chapters behave (e.g., forcing them to start on odd pages) and the styling/spacing of the main Chapter Titles.

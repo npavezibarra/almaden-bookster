@@ -14,14 +14,17 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
         return '';
     });
 
+    // Extraer tags <img> antes de escapar para preservarlos como HTML real
+    const imgPlaceholders = {};
+    let imgCounter = 0;
+    cleanMarkdown = cleanMarkdown.replace(/<img\s[^>]*\/>/gi, (match) => {
+        const key = `%%IMG_PLACEHOLDER_${imgCounter++}%%`;
+        imgPlaceholders[key] = match;
+        return key;
+    });
+
     // Escapar etiquetas HTML para evitar rotura del DOM
     let html = cleanMarkdown
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt bridge;"); // Fix placeholder or actual escape
-
-    // Restablecer el escape de las etiquetas controladas
-    html = cleanMarkdown
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
@@ -36,7 +39,7 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
     html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
 
     // Convertir etiquetas de idioma: [lang:en]Word[/lang]
-    html = html.replace(/\[lang:([a-zA-Z]{2})\]([\s\S]*?)\[\/lang\]/g, '<span lang="$1" class="lang-wrapper bg-indigo-50/50 border border-indigo-100 rounded print:bg-transparent print:border-transparent" title="Idioma: $1">$2<sup class="print:hidden text-indigo-400 text-[8px] font-mono ml-0.5 select-none">$1</sup></span>');
+    html = html.replace(/\[lang:([a-zA-Z]{2})\]([\s\S]*?)\[\/lang\]/g, '<span lang="$1" class="lang-wrapper bg-indigo-50/50 border border-indigo-100 rounded print:bg-transparent print:border-transparent" title="Idioma: $1"><em>$2</em><sup class="print:hidden text-indigo-400 text-[8px] font-mono ml-0.5 select-none">$1</sup></span>');
 
     // Reemplazar referencias inline de notas al pie
     html = html.replace(/\[\^([^\]]+)\]/g, (match, id) => {
@@ -103,6 +106,11 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
                 inList = false;
             }
         }
+        // Imagen (placeholder %%IMG_PLACEHOLDER_N%%)
+        else if (/^%%IMG_PLACEHOLDER_\d+%%$/.test(line)) {
+            if (inList) { compiledBlocks.push(`</${listType}>`); inList = false; }
+            compiledBlocks.push(line); // se restaurará con el img real después
+        }
         // Párrafos convencionales de libro
         else {
             if (inList) {
@@ -116,6 +124,13 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
     if (inList) {
         compiledBlocks.push(`</${listType}>`);
     }
+
+    // Restaurar placeholders de imágenes como bloques HTML reales
+    let result = compiledBlocks.join('\n');
+    for (const [key, imgTag] of Object.entries(imgPlaceholders)) {
+        result = result.replace(key, imgTag);
+    }
+    compiledBlocks = result.split('\n');
 
     // Agregar sección de notas al pie al final si es necesario (ej. para exportación HTML)
     if (appendFootnotes && footnoteRefs.length > 0) {
