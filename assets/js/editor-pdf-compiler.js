@@ -22,15 +22,24 @@ function renderPageFootnotes(container, footnotes) {
 }
 
 // Crea la estructura HTML limpia de una página física virtual del libro
-function createNewPageElement(pageNumber, chapterTitle, isFirstPageOfChapter = false, isBlankPage = false, parityImageUrl = null) {
+function createNewPageElement(pageNumber, chapter, isFirstPageOfChapter = false, isBlankPage = false) {
     const pageDiv = document.createElement('div');
     pageDiv.className = 'pdf-page' + (isBlankPage ? ' blank-page' : '');
 
     const settings = bookState.settings || {};
+    
+    // Extraer ajustes locales con fallback a globales
+    const parityImageUrl = chapter ? chapter.parity_image : null;
+    const chapterTitle = chapter ? chapter.title : '';
+    const parityImageMode = (chapter && chapter.parity_image_mode) ? chapter.parity_image_mode : (settings.parity_image_mode || 'content');
+    const showHeaderPageOne = (chapter && chapter.show_header_page_one === '1') ? true : (parseInt(settings.show_header_page_one) === 1);
+    const customRunningHeader = (chapter && chapter.custom_running_header) ? chapter.custom_running_header : null;
+    const pageOneVertical = (chapter && chapter.page_one_vertical) ? chapter.page_one_vertical : (settings.chapter_page_one_vertical || 'top');
+    const disableHyphenation = (chapter && chapter.disable_hyphenation === '1');
 
     if (isBlankPage) {
         if (parityImageUrl) {
-            const mode = settings.parity_image_mode || 'content';
+            const mode = parityImageMode;
             
             if (mode === 'bleed') {
                 pageDiv.classList.add('pdf-page-has-bleed');
@@ -72,13 +81,13 @@ function createNewPageElement(pageNumber, chapterTitle, isFirstPageOfChapter = f
 
     // Header Content
     let headerHtml = '&nbsp;';
-    const showHeader = !isFirstPageOfChapter || (parseInt(settings.show_header_page_one) === 1);
+    const showHeader = !isFirstPageOfChapter || showHeaderPageOne;
     if (showHeader) {
         const headerType = isEven ? (settings.header_even_type || 'book_title') : (settings.header_odd_type || 'chapter_title');
         if (headerType === 'book_title') {
             headerHtml = `<span>${bookState.title}</span>`;
         } else if (headerType === 'chapter_title') {
-            headerHtml = `<span>${chapterTitle || 'Sin título'}</span>`;
+            headerHtml = `<span>${customRunningHeader ? customRunningHeader : (chapterTitle || 'Sin título')}</span>`;
         } else if (headerType === 'custom') {
             const customText = isEven ? (settings.header_even_custom || '') : (settings.header_odd_custom || '');
             headerHtml = `<span>${customText}</span>`;
@@ -97,12 +106,19 @@ function createNewPageElement(pageNumber, chapterTitle, isFirstPageOfChapter = f
     // Alignment and layout for chapter start
     let contentClass = 'pdf-content';
     let contentStyle = '';
+    
+    if (disableHyphenation) {
+        contentStyle += ' hyphens: none;';
+    }
+    
     if (isFirstPageOfChapter) {
         contentClass += ' chapter-first-page';
         const align = settings.chapter_page_one_align || 'center';
         contentStyle += ` text-align: ${align};`;
-        if (settings.chapter_page_one_vertical === 'half') {
+        if (pageOneVertical === 'half' || pageOneVertical === 'center') {
             contentClass += ' flex flex-col justify-center';
+        } else if (pageOneVertical === 'bottom') {
+            contentClass += ' flex flex-col justify-end';
         }
     }
 
@@ -176,16 +192,18 @@ async function compilePDFPreview() {
 
     for (let index = 0; index < bookState.chapters.length; index++) {
         const chapter = bookState.chapters[index];
-        // Forzar paridad de página de inicio de capítulo si corresponde
-        if (index > 0 && settings.chapter_start_parity && settings.chapter_start_parity !== 'any') {
+        // Determinar paridad
+        const chapterStartParity = (chapter.start_parity && chapter.start_parity !== 'any') ? chapter.start_parity : settings.chapter_start_parity;
+        
+        if (index > 0 && chapterStartParity && chapterStartParity !== 'any') {
             const isOdd = (currentPageNumber % 2 === 1);
-            if (settings.chapter_start_parity === 'odd' && !isOdd) {
-                const blankPage = createNewPageElement(currentPageNumber, '', false, true, chapter.parity_image);
+            if (chapterStartParity === 'odd' && !isOdd) {
+                const blankPage = createNewPageElement(currentPageNumber, chapter, false, true);
                 blankPage.setAttribute('data-chapter-id', chapter.id);
                 scroller.appendChild(blankPage);
                 currentPageNumber++;
-            } else if (settings.chapter_start_parity === 'even' && isOdd) {
-                const blankPage = createNewPageElement(currentPageNumber, '', false, true, chapter.parity_image);
+            } else if (chapterStartParity === 'even' && isOdd) {
+                const blankPage = createNewPageElement(currentPageNumber, chapter, false, true);
                 blankPage.setAttribute('data-chapter-id', chapter.id);
                 scroller.appendChild(blankPage);
                 currentPageNumber++;
@@ -200,7 +218,14 @@ async function compilePDFPreview() {
         });
 
         let compiledHtml = compileMarkdownToHTML(chapter.content);
-        if (chapter.title && chapter.title.trim() !== '') {
+        
+        // Letra Capitular (Drop Cap)
+        if (chapter.drop_cap_enabled === '1') {
+            // Reemplazar la primera p para agregar la clase drop-cap
+            compiledHtml = compiledHtml.replace(/<p>/, '<p class="drop-cap">');
+        }
+
+        if (chapter.title && chapter.title.trim() !== '' && chapter.hide_title !== '1') {
             compiledHtml = `<div class="chapter-main-title">${chapter.title.trim()}</div>\n\n` + compiledHtml;
         }
         tempContainer.innerHTML = compiledHtml;
@@ -224,10 +249,15 @@ async function compilePDFPreview() {
             }
         }
 
-        const childNodes = Array.from(tempContainer.childNodes);
+        const childNodes = Array.from(tempContainer.childNodes).filter(node => {
+            if (node.nodeType === Node.ELEMENT_NODE && (node.classList.contains('uploader-inline') || node.classList.contains('uploader-editor'))) {
+                return false;
+            }
+            return true;
+        });
 
         let isFirstPageOfChapter = true;
-        let currentPageEl = createNewPageElement(currentPageNumber, chapter.title, isFirstPageOfChapter, false);
+        let currentPageEl = createNewPageElement(currentPageNumber, chapter, isFirstPageOfChapter, false);
         currentPageEl.setAttribute('data-chapter-id', chapter.id);
         scroller.appendChild(currentPageEl);
         let currentInnerContainer = currentPageEl.querySelector('.pdf-content-inner');
@@ -436,7 +466,7 @@ async function compilePDFPreview() {
                 // Crear nueva página
                 currentPageNumber++;
                 isFirstPageOfChapter = false;
-                currentPageEl = createNewPageElement(currentPageNumber, chapter.title, isFirstPageOfChapter, false);
+                currentPageEl = createNewPageElement(currentPageNumber, chapter, isFirstPageOfChapter, false);
                 currentPageEl.setAttribute('data-chapter-id', chapter.id);
                 scroller.appendChild(currentPageEl);
                 currentInnerContainer = currentPageEl.querySelector('.pdf-content-inner');

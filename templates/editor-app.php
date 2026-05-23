@@ -404,9 +404,14 @@ $google_fonts_url = 'https://fonts.googleapis.com/css2?' . implode( '&', array_m
                 <div class="flex-1 flex flex-col overflow-hidden">
                     <div class="flex-1 overflow-y-auto">
                         <div class="max-w-[800px] mx-auto px-6 pt-6 pb-6 flex flex-col h-full min-h-full">
-                            <!-- Título del capítulo -->
-                            <input id="chapter-title-input" type="text" placeholder="Título del Capítulo..."
-                                class="w-full bg-transparent font-serif font-semibold text-2xl md:text-3xl border-b-2 border-transparent focus:border-indigo-500 focus:outline-none pb-2 mb-4 text-[var(--text-main)] transition-all">
+                            <!-- Título del capítulo y Configuración Local -->
+                            <div class="flex items-center gap-3 mb-4 border-b-2 border-transparent focus-within:border-indigo-500 transition-all pb-2">
+                                <input id="chapter-title-input" type="text" placeholder="Título del Capítulo..."
+                                    class="w-full bg-transparent font-serif font-semibold text-2xl md:text-3xl focus:outline-none text-[var(--text-main)]">
+                                <button onclick="openChapterSettingsModal()" class="text-[var(--text-muted)] hover:text-indigo-500 transition-colors p-2 rounded-lg hover:bg-[var(--bg-sidebar)]" title="Configuración de este Capítulo">
+                                    <i class="fa-solid fa-gear text-lg"></i>
+                                </button>
+                            </div>
                             <!-- Área de escritura -->
                             <textarea id="editor-textarea"
                                 class="flex-1 w-full resize-none bg-transparent text-[var(--text-main)] focus:outline-none font-mono text-sm leading-relaxed placeholder-gray-400 dark:placeholder-gray-600 focus:ring-0"
@@ -440,8 +445,9 @@ $google_fonts_url = 'https://fonts.googleapis.com/css2?' . implode( '&', array_m
         </main>
     </div>
 
-    <!-- MODAL DE CONFIGURACIÓN DEL LIBRO -->
+    <!-- Modals -->
     <?php include plugin_dir_path( __FILE__ ) . 'editor-settings-modal.php'; ?>
+    <?php include plugin_dir_path( __FILE__ ) . 'chapter-settings-modal.php'; ?>
 
     <!-- NOTIFICACIÓN FLOTANTE (TOAST) -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-10 opacity-0 pointer-events-none transition-all duration-300 bg-slate-900 text-white dark:bg-indigo-600 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3">
@@ -470,6 +476,7 @@ $google_fonts_url = 'https://fonts.googleapis.com/css2?' . implode( '&', array_m
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-core.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-chapters.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-settings.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-chapter-settings.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-markdown.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-compiler.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-export.js?v='   . time(), __FILE__ ) ); ?>"></script>

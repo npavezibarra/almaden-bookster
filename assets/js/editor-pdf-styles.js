@@ -212,6 +212,17 @@ function applyDynamicPDFStyles() {
             text-indent: 0 !important;
         }
 
+        .pdf-content p.drop-cap::first-letter {
+            float: left;
+            font-size: 3.5em;
+            line-height: 0.85;
+            margin-right: 0.1em;
+            margin-top: 0.05em;
+            margin-bottom: -0.1em;
+            font-weight: bold;
+            font-family: '${settings.font_family_h1 || 'Playfair Display'}', serif !important;
+        }
+
         /* ── Imágenes ── */
         .pdf-content img.pdf-book-image {
             width: 100% !important;
