@@ -17,311 +17,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once plugin_dir_path( __FILE__ ) . 'includes/admin-fonts.php';
 require_once plugin_dir_path( __FILE__ ) . 'admin/admin-fonts-page.php';
 
-// Registrar el Custom Post Type: Libros (almaden-books)
-function almaden_bookster_register_cpt_books() {
-	$labels = array(
-		'name'                  => _x( 'Libros', 'Post Type General Name', 'almaden-bookster' ),
-		'singular_name'         => _x( 'Libro', 'Post Type Singular Name', 'almaden-bookster' ),
-		'menu_name'             => __( 'Libros', 'almaden-bookster' ),
-		'name_admin_bar'        => __( 'Libro', 'almaden-bookster' ),
-		'archives'              => __( 'Archivos de Libros', 'almaden-bookster' ),
-		'attributes'            => __( 'Atributos de Libro', 'almaden-bookster' ),
-		'parent_item_colon'     => __( 'Libro Padre:', 'almaden-bookster' ),
-		'all_items'             => __( 'Todos los Libros', 'almaden-bookster' ),
-		'add_new_item'          => __( 'Añadir Nuevo Libro', 'almaden-bookster' ),
-		'add_new'               => __( 'Añadir Nuevo', 'almaden-bookster' ),
-		'new_item'              => __( 'Nuevo Libro', 'almaden-bookster' ),
-		'edit_item'             => __( 'Editar Libro', 'almaden-bookster' ),
-		'update_item'           => __( 'Actualizar Libro', 'almaden-bookster' ),
-		'view_item'             => __( 'Ver Libro', 'almaden-bookster' ),
-		'view_items'            => __( 'Ver Libros', 'almaden-bookster' ),
-		'search_items'          => __( 'Buscar Libro', 'almaden-bookster' ),
-		'not_found'             => __( 'No encontrado', 'almaden-bookster' ),
-		'not_found_in_trash'    => __( 'No encontrado en la Papelera', 'almaden-bookster' ),
-		'featured_image'        => __( 'Imagen Destacada', 'almaden-bookster' ),
-		'set_featured_image'    => __( 'Establecer imagen destacada', 'almaden-bookster' ),
-		'remove_featured_image' => __( 'Quitar imagen destacada', 'almaden-bookster' ),
-		'use_featured_image'    => __( 'Usar como imagen destacada', 'almaden-bookster' ),
-		'insert_into_item'      => __( 'Insertar en el libro', 'almaden-bookster' ),
-		'uploaded_to_this_item' => __( 'Subido a este libro', 'almaden-bookster' ),
-		'items_list'            => __( 'Lista de libros', 'almaden-bookster' ),
-		'items_list_navigation' => __( 'Navegación de lista de libros', 'almaden-bookster' ),
-		'filter_items_list'     => __( 'Filtrar lista de libros', 'almaden-bookster' ),
-	);
-	$args = array(
-		'label'                 => __( 'Libro', 'almaden-bookster' ),
-		'description'           => __( 'Libros físicos y digitales', 'almaden-bookster' ),
-		'labels'                => $labels,
-		'supports'              => array( 'title', 'editor', 'thumbnail', 'excerpt', 'custom-fields', 'page-attributes' ),
-		'taxonomies'            => array( 'category', 'post_tag' ),
-		'hierarchical'          => false,
-		'public'                => true,
-		'show_ui'               => true,
-		'show_in_menu'          => true,
-		'menu_position'         => 5,
-		'menu_icon'             => 'dashicons-book-alt',
-		'show_in_admin_bar'     => true,
-		'show_in_nav_menus'     => true,
-		'can_export'            => true,
-		'has_archive'           => true,
-		'exclude_from_search'   => false,
-		'publicly_queryable'    => true,
-		'capability_type'       => 'post',
-		'show_in_rest'          => true, // Habilita Gutenberg
-	);
-	register_post_type( 'almaden-books', $args );
-}
-add_action( 'init', 'almaden_bookster_register_cpt_books', 0 );
-
-function almaden_bookster_register_cpt_chapters() {
-	$labels = array(
-		'name'                  => _x( 'Capítulos', 'Post Type General Name', 'almaden-bookster' ),
-		'singular_name'         => _x( 'Capítulo', 'Post Type Singular Name', 'almaden-bookster' ),
-		'menu_name'             => __( 'Capítulos', 'almaden-bookster' ),
-		'name_admin_bar'        => __( 'Capítulo', 'almaden-bookster' ),
-		'archives'              => __( 'Archivo de Capítulos', 'almaden-bookster' ),
-		'attributes'            => __( 'Atributos del Capítulo', 'almaden-bookster' ),
-		'parent_item_colon'     => __( 'Libro Padre:', 'almaden-bookster' ),
-		'all_items'             => __( 'Todos los Capítulos', 'almaden-bookster' ),
-		'add_new_item'          => __( 'Añadir Nuevo Capítulo', 'almaden-bookster' ),
-		'add_new'               => __( 'Añadir Nuevo', 'almaden-bookster' ),
-		'new_item'              => __( 'Nuevo Capítulo', 'almaden-bookster' ),
-		'edit_item'             => __( 'Editar Capítulo', 'almaden-bookster' ),
-		'update_item'           => __( 'Actualizar Capítulo', 'almaden-bookster' ),
-		'view_item'             => __( 'Ver Capítulo', 'almaden-bookster' ),
-		'view_items'            => __( 'Ver Capítulos', 'almaden-bookster' ),
-		'search_items'          => __( 'Buscar Capítulo', 'almaden-bookster' ),
-		'not_found'             => __( 'No encontrado', 'almaden-bookster' ),
-		'not_found_in_trash'    => __( 'No encontrado en la Papelera', 'almaden-bookster' ),
-	);
-	$args = array(
-		'label'                 => __( 'Capítulo', 'almaden-bookster' ),
-		'description'           => __( 'Capítulos de libros', 'almaden-bookster' ),
-		'labels'                => $labels,
-		'supports'              => array( 'title', 'editor', 'revisions', 'page-attributes', 'custom-fields' ),
-		'hierarchical'          => false,
-		'public'                => true,
-		'show_ui'               => true,
-		'show_in_menu'          => 'edit.php?post_type=almaden-books', // Submenú de Libros
-		'menu_position'         => 5,
-		'show_in_admin_bar'     => true,
-		'show_in_nav_menus'     => true,
-		'can_export'            => true,
-		'has_archive'           => false,
-		'exclude_from_search'   => false,
-		'publicly_queryable'    => true,
-		'capability_type'       => 'post',
-		'show_in_rest'          => true, // Habilita Gutenberg
-	);
-	register_post_type( 'book_chapter', $args );
-}
-add_action( 'init', 'almaden_bookster_register_cpt_chapters', 0 );
+// Modulos CPT
+require_once plugin_dir_path( __FILE__ ) . 'includes/cpt.php';
 
 // --- Frontend Booklist y Creación Automática de Página ---
-
-// 1. Crear la página física automáticamente si no existe
-function almaden_bookster_create_page() {
-	$page_slug = 'almaden-booklist';
-	$page = get_page_by_path( $page_slug );
-	
-	if ( ! $page ) {
-		wp_insert_post( array(
-			'post_title'     => 'Almaden Booklist',
-			'post_name'      => $page_slug,
-			'post_status'    => 'publish',
-			'post_type'      => 'page',
-			'post_content'   => '<!-- El contenido de esta página es generado dinámicamente por el plugin AlmadenBookster -->',
-		) );
-	}
-}
-add_action( 'init', 'almaden_bookster_create_page' );
-
-// 2. Sobreescribir el contenido de la página para mostrar el listado y formulario
-function almaden_bookster_page_content( $content ) {
-	if ( is_page( 'almaden-booklist' ) && in_the_loop() && is_main_query() ) {
-		ob_start();
-
-		// Mostrar mensajes de éxito/error si existen
-		if ( isset( $_GET['book_created'] ) && $_GET['book_created'] == '1' ) {
-			echo '<div style="background: #d4edda; color: #155724; padding: 10px; margin-bottom: 20px; border-radius: 4px;">Libro creado con éxito.</div>';
-		}
-
-		// Botón y Formulario de creación (Oculto por defecto)
-		?>
-		<div class="almaden-book-creation" style="margin-bottom: 30px;">
-			<button type="button" id="almaden-toggle-book-form" style="padding: 10px 20px; background: #0073aa; color: #fff; border: none; cursor: pointer; font-weight: bold; border-radius: 4px;">CREATE BOOK</button>
-			
-			<div id="almaden-book-form-container" style="display: none; margin-top: 15px; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-radius: 4px;">
-				<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="POST">
-					<input type="hidden" name="action" value="almaden_create_book">
-					<?php wp_nonce_field( 'almaden_create_book_nonce', 'almaden_nonce' ); ?>
-					
-					<div style="margin-bottom: 10px;">
-						<label style="display: block; font-weight: bold; margin-bottom: 5px;">Título del Libro</label>
-						<input type="text" name="book_title" required style="width: 100%; padding: 8px;">
-					</div>
-					
-					<div style="margin-bottom: 10px;">
-						<label style="display: block; font-weight: bold; margin-bottom: 5px;">Autor</label>
-						<input type="text" name="book_author" required style="width: 100%; padding: 8px;">
-					</div>
-					
-					<div style="margin-bottom: 10px;">
-						<label style="display: block; font-weight: bold; margin-bottom: 5px;">Descripción</label>
-						<textarea name="book_content" rows="4" style="width: 100%; padding: 8px;"></textarea>
-					</div>
-					
-					<button type="submit" style="padding: 10px 20px; background: #28a745; color: #fff; border: none; cursor: pointer; border-radius: 4px;">Guardar Libro</button>
-				</form>
-			</div>
-		</div>
-
-		<script>
-			document.getElementById('almaden-toggle-book-form').addEventListener('click', function() {
-				var formContainer = document.getElementById('almaden-book-form-container');
-				if (formContainer.style.display === 'none') {
-					formContainer.style.display = 'block';
-				} else {
-					formContainer.style.display = 'none';
-				}
-			});
-		</script>
-		<?php
-
-		// Listado de libros
-		$args = array(
-			'post_type'      => 'almaden-books',
-			'posts_per_page' => -1,
-			'post_status'    => 'publish',
-		);
-		$books_query = new WP_Query( $args );
-
-		if ( $books_query->have_posts() ) {
-			echo '<div class="almaden-book-list" style="display: grid; gap: 20px;">';
-			while ( $books_query->have_posts() ) {
-				$books_query->the_post();
-				echo '<div style="padding: 15px; border: 1px solid #eee; border-radius: 4px; background: #fff;">';
-				echo '<h3 style="margin-top: 0; margin-bottom: 10px;">' . esc_html( get_the_title() ) . '</h3>';
-				
-				$author = get_post_meta( get_the_ID(), 'book_author', true );
-				if ( ! empty( $author ) ) {
-					echo '<p style="margin-top: 0; margin-bottom: 10px; font-style: italic; color: #555;">Autor: ' . esc_html( $author ) . '</p>';
-				}
-				
-				echo '<div>' . wp_kses_post( wp_trim_words( get_the_content(), 20 ) ) . '</div>';
-				$editor_url = home_url( '/almaden-book-editor/?book_id=' . get_the_ID() );
-				echo '<a href="' . esc_url( $editor_url ) . '" style="display: inline-block; margin-top: 10px; color: #0073aa; font-weight: bold; text-decoration: none;">Editar en BookCraft &rarr;</a>';
-				echo '</div>';
-			}
-			echo '</div>';
-			wp_reset_postdata();
-		} else {
-			echo '<p>No hay libros todavía.</p>';
-		}
-
-		return ob_get_clean();
-	}
-	
-	return $content;
-}
-add_filter( 'the_content', 'almaden_bookster_page_content' );
-
-
-// --- Procesar Formulario de Creación ---
-
-function almaden_bookster_handle_create_book() {
-	// Validar nonce
-	if ( ! isset( $_POST['almaden_nonce'] ) || ! wp_verify_nonce( $_POST['almaden_nonce'], 'almaden_create_book_nonce' ) ) {
-		wp_die( 'Validación de seguridad fallida.' );
-	}
-
-	$title   = isset( $_POST['book_title'] ) ? sanitize_text_field( $_POST['book_title'] ) : '';
-	$author  = isset( $_POST['book_author'] ) ? sanitize_text_field( $_POST['book_author'] ) : '';
-	$content = isset( $_POST['book_content'] ) ? wp_kses_post( $_POST['book_content'] ) : '';
-
-	if ( empty( $title ) ) {
-		wp_die( 'El título es obligatorio.' );
-	}
-
-	// Crear el post
-	$post_data = array(
-		'post_title'   => $title,
-		'post_content' => $content,
-		'post_status'  => 'publish',
-		'post_type'    => 'almaden-books',
-		'meta_input'   => array(
-			'book_author' => $author,
-		),
-	);
-
-	$post_id = wp_insert_post( $post_data );
-
-	if ( ! is_wp_error( $post_id ) ) {
-		// Redirigir de vuelta con mensaje de éxito
-		$redirect_url = add_query_arg( 'book_created', '1', wp_get_referer() );
-		wp_safe_redirect( $redirect_url );
-		exit;
-	} else {
-		wp_die( 'Hubo un error al crear el libro.' );
-	}
-}
-// Permitir a todos procesar la petición (ajustar permisos si es necesario)
-add_action( 'admin_post_almaden_create_book', 'almaden_bookster_handle_create_book' );
-add_action( 'admin_post_nopriv_almaden_create_book', 'almaden_bookster_handle_create_book' );
-
-// --- Editor BookCraft a Pantalla Completa ---
-
-function almaden_bookster_load_editor() {
-	$request_uri = trim( parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ), '/' );
-	
-	if ( strpos( $request_uri, 'almaden-book-editor' ) === 0 ) {
-		$book_id = isset( $_GET['book_id'] ) ? intval( $_GET['book_id'] ) : 0;
-
-		// Asegurar sesión autenticada de WordPress (necesario para wp.media y async-upload.php)
-		if ( ! is_user_logged_in() ) {
-			auth_redirect();
-		}
-		
-		// Ocultar barra de administración de WordPress en el editor
-		show_admin_bar( false );
-		
-		// Cargar funciones de admin para que wp_enqueue_media funcione completamente
-		if ( ! defined( 'DOING_AJAX' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/media.php';
-			require_once ABSPATH . 'wp-admin/includes/file.php';
-			require_once ABSPATH . 'wp-admin/includes/image.php';
-		}
-		
-		add_action('wp_enqueue_scripts', function() use ($book_id) {
-			// Limpiar estilos y scripts del tema, preservando el core
-			global $wp_styles, $wp_scripts;
-			if (isset($wp_styles->queue)) {
-				foreach ($wp_styles->queue as $handle) {
-					if (strpos($handle, 'wp-') === false && strpos($handle, 'dashicons') === false) {
-						wp_dequeue_style($handle);
-					}
-				}
-			}
-			if (isset($wp_scripts->queue)) {
-				foreach ($wp_scripts->queue as $handle) {
-					if (strpos($handle, 'wp-') === false && strpos($handle, 'media-') === false && strpos($handle, 'jquery') === false) {
-						wp_dequeue_script($handle);
-					}
-				}
-			}
-			wp_enqueue_media( array( 'post' => $book_id ) );
-		}, 9999);
-
-		$template_path = plugin_dir_path( __FILE__ ) . 'templates/editor-app.php';
-		if ( file_exists( $template_path ) ) {
-			require_once $template_path;
-			exit;
-		} else {
-			wp_die( 'Plantilla del editor no encontrada.' );
-		}
-	}
-}
-add_action( 'template_redirect', 'almaden_bookster_load_editor', 5 );
+require_once plugin_dir_path( __FILE__ ) . 'includes/frontend.php';
 
 // --- AJAX Guardar Libro en Base de Datos ---
 
@@ -359,9 +59,11 @@ function almaden_bookster_save_book_ajax() {
 		$disable_hyphenation   = isset( $chapter['disable_hyphenation'] ) ? sanitize_text_field( $chapter['disable_hyphenation'] ) : '0';
 		$page_one_vertical     = isset( $chapter['page_one_vertical'] ) ? sanitize_text_field( $chapter['page_one_vertical'] ) : 'top';
 		$start_parity          = isset( $chapter['start_parity'] ) ? sanitize_text_field( $chapter['start_parity'] ) : 'any';
-		$show_header_page_one  = isset( $chapter['show_header_page_one'] ) ? sanitize_text_field( $chapter['show_header_page_one'] ) : '0';
+		$first_page_header_type = isset( $chapter['first_page_header_type'] ) ? sanitize_text_field( $chapter['first_page_header_type'] ) : 'blank';
+		$first_page_header_custom = isset( $chapter['first_page_header_custom'] ) ? sanitize_text_field( $chapter['first_page_header_custom'] ) : '';
+		$first_page_footer_type = isset( $chapter['first_page_footer_type'] ) ? sanitize_text_field( $chapter['first_page_footer_type'] ) : 'page_number';
+		$first_page_footer_custom = isset( $chapter['first_page_footer_custom'] ) ? sanitize_text_field( $chapter['first_page_footer_custom'] ) : '';
 		$parity_image_mode     = isset( $chapter['parity_image_mode'] ) ? sanitize_text_field( $chapter['parity_image_mode'] ) : 'content';
-
 		$post_id = 0;
 		$is_new = false;
 
@@ -396,7 +98,10 @@ function almaden_bookster_save_book_ajax() {
 			update_post_meta( $post_id, '_disable_hyphenation', $disable_hyphenation );
 			update_post_meta( $post_id, '_page_one_vertical', $page_one_vertical );
 			update_post_meta( $post_id, '_start_parity', $start_parity );
-			update_post_meta( $post_id, '_show_header_page_one', $show_header_page_one );
+			update_post_meta( $post_id, '_first_page_header_type', $first_page_header_type );
+			update_post_meta( $post_id, '_first_page_header_custom', $first_page_header_custom );
+			update_post_meta( $post_id, '_first_page_footer_type', $first_page_footer_type );
+			update_post_meta( $post_id, '_first_page_footer_custom', $first_page_footer_custom );
 			update_post_meta( $post_id, '_parity_image_mode', $parity_image_mode );
 
 			$incoming_ids[] = $post_id;
@@ -412,7 +117,10 @@ function almaden_bookster_save_book_ajax() {
 				'disable_hyphenation'   => $disable_hyphenation,
 				'page_one_vertical'     => $page_one_vertical,
 				'start_parity'          => $start_parity,
-				'show_header_page_one'  => $show_header_page_one,
+				'first_page_header_type'  => $first_page_header_type,
+				'first_page_header_custom' => $first_page_header_custom,
+				'first_page_footer_type'  => $first_page_footer_type,
+				'first_page_footer_custom' => $first_page_footer_custom,
 				'parity_image_mode'     => $parity_image_mode,
 			);
 			
@@ -462,7 +170,7 @@ function almaden_bookster_create_settings_table() {
 	global $wpdb;
 	$table_name = $wpdb->prefix . 'almaden_book_settings';
 	
-	if ( get_option( 'almaden_bookster_db_version' ) !== '1.8.1' ) {
+	if ( get_option( 'almaden_bookster_db_version' ) !== '1.8.4' ) {
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE $table_name (
@@ -519,7 +227,10 @@ function almaden_bookster_create_settings_table() {
 			footer_letter_spacing float DEFAULT 0.0 NOT NULL,
 			footer_even_type varchar(20) DEFAULT 'page_number' NOT NULL,
 			footer_odd_type varchar(20) DEFAULT 'page_number' NOT NULL,
-			show_header_page_one tinyint(1) DEFAULT 0 NOT NULL,
+			first_page_header_type varchar(20) DEFAULT 'blank' NOT NULL,
+			first_page_header_custom varchar(255) DEFAULT '' NOT NULL,
+			first_page_footer_type varchar(20) DEFAULT 'page_number' NOT NULL,
+			first_page_footer_custom varchar(255) DEFAULT '' NOT NULL,
 			chapter_start_parity varchar(10) DEFAULT 'any' NOT NULL,
 			parity_image_mode varchar(20) DEFAULT 'content' NOT NULL,
 			chapter_page_one_align varchar(10) DEFAULT 'center' NOT NULL,
@@ -532,6 +243,15 @@ function almaden_bookster_create_settings_table() {
 			chapter_title_padding_top float DEFAULT 0.0 NOT NULL,
 			chapter_title_padding_bottom float DEFAULT 1.5 NOT NULL,
 			chapter_title_line_height float DEFAULT 1.2 NOT NULL,
+			chapter_prefix_show tinyint(1) DEFAULT 0 NOT NULL,
+			chapter_prefix_template varchar(50) DEFAULT 'Capítulo {N}' NOT NULL,
+			chapter_prefix_position varchar(20) DEFAULT 'above' NOT NULL,
+			chapter_prefix_font_family varchar(50) DEFAULT 'Playfair Display' NOT NULL,
+			chapter_prefix_font_size float DEFAULT 16.0 NOT NULL,
+			chapter_prefix_font_weight varchar(20) DEFAULT 'normal' NOT NULL,
+			chapter_prefix_font_style varchar(20) DEFAULT 'normal' NOT NULL,
+			chapter_prefix_letter_spacing float DEFAULT 0.0 NOT NULL,
+			chapter_prefix_ornament varchar(20) DEFAULT 'none' NOT NULL,
 			header_margin_top float DEFAULT 1.0 NOT NULL,
 			header_margin_bottom float DEFAULT 0.5 NOT NULL,
 			header_align varchar(20) DEFAULT 'center' NOT NULL,
@@ -545,7 +265,7 @@ function almaden_bookster_create_settings_table() {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 
-		update_option( 'almaden_bookster_db_version', '1.8.2' );
+		update_option( 'almaden_bookster_db_version', '1.8.4' );
 	}
 }
 add_action( 'init', 'almaden_bookster_create_settings_table' );
@@ -615,7 +335,10 @@ function almaden_bookster_save_settings_ajax() {
 		'footer_letter_spacing'      => floatval( str_replace( ',', '.', $_POST['footer_letter_spacing'] ) ),
 		'footer_even_type'           => sanitize_text_field( $_POST['footer_even_type'] ),
 		'footer_odd_type'            => sanitize_text_field( $_POST['footer_odd_type'] ),
-		'show_header_page_one'       => intval( $_POST['show_header_page_one'] ),
+		'first_page_header_type'     => sanitize_text_field( $_POST['first_page_header_type'] ),
+		'first_page_header_custom'   => sanitize_text_field( $_POST['first_page_header_custom'] ),
+		'first_page_footer_type'     => sanitize_text_field( $_POST['first_page_footer_type'] ),
+		'first_page_footer_custom'   => sanitize_text_field( $_POST['first_page_footer_custom'] ),
 		'chapter_start_parity'       => sanitize_text_field( $_POST['chapter_start_parity'] ),
 		'parity_image_mode'          => sanitize_text_field( $_POST['parity_image_mode'] ),
 		'chapter_page_one_align'     => sanitize_text_field( $_POST['chapter_page_one_align'] ),
@@ -628,6 +351,15 @@ function almaden_bookster_save_settings_ajax() {
 		'chapter_title_padding_top'  => floatval( str_replace( ',', '.', $_POST['chapter_title_padding_top'] ) ),
 		'chapter_title_padding_bottom'=> floatval( str_replace( ',', '.', $_POST['chapter_title_padding_bottom'] ) ),
 		'chapter_title_line_height'  => isset($_POST['chapter_title_line_height']) ? floatval( str_replace( ',', '.', $_POST['chapter_title_line_height'] ) ) : 1.2,
+		'chapter_prefix_show'        => isset($_POST['chapter_prefix_show']) ? intval($_POST['chapter_prefix_show']) : 0,
+		'chapter_prefix_template'    => sanitize_text_field( $_POST['chapter_prefix_template'] ),
+		'chapter_prefix_position'    => sanitize_text_field( $_POST['chapter_prefix_position'] ),
+		'chapter_prefix_font_family' => sanitize_text_field( $_POST['chapter_prefix_font_family'] ),
+		'chapter_prefix_font_size'   => floatval( str_replace( ',', '.', $_POST['chapter_prefix_font_size'] ) ),
+		'chapter_prefix_font_weight' => sanitize_text_field( $_POST['chapter_prefix_font_weight'] ),
+		'chapter_prefix_font_style'  => sanitize_text_field( $_POST['chapter_prefix_font_style'] ),
+		'chapter_prefix_letter_spacing' => floatval( str_replace( ',', '.', $_POST['chapter_prefix_letter_spacing'] ) ),
+		'chapter_prefix_ornament'    => sanitize_text_field( $_POST['chapter_prefix_ornament'] ),
 		'header_margin_top'          => floatval( str_replace( ',', '.', $_POST['header_margin_top'] ) ),
 		'header_margin_bottom'       => floatval( str_replace( ',', '.', $_POST['header_margin_bottom'] ) ),
 		'header_align'               => sanitize_text_field( $_POST['header_align'] ),

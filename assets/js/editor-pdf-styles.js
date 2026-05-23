@@ -240,11 +240,55 @@ function applyDynamicPDFStyles() {
             font-weight: ${settings.chapter_title_font_weight || 'bold'} !important;
             font-style: ${settings.chapter_title_font_style || 'normal'} !important;
             text-align: ${settings.chapter_title_align || 'center'} !important;
+            padding-top: ${toPx(settings.chapter_title_padding_top || 0.0)}px !important;
+            padding-bottom: ${toPx(settings.chapter_title_padding_bottom || 1.5)}px !important;
             line-height: ${settings.chapter_title_line_height || 1.2} !important;
-            padding-top: ${toPx(parseFloat(settings.chapter_title_padding_top ?? 0))}px !important;
-            padding-bottom: ${toPx(parseFloat(settings.chapter_title_padding_bottom ?? 1.5))}px !important;
+            margin: 0 !important;
             page-break-after: avoid;
             width: 100%;
+        }
+
+        /* ── Prefijo de Capítulo ── */
+        .pdf-content .chapter-prefix-wrapper {
+            text-align: ${settings.chapter_title_align || 'center'} !important;
+            margin-bottom: ${settings.chapter_prefix_position === 'above' ? '15px' : '0'} !important;
+            margin-top: ${settings.chapter_prefix_position === 'below' ? '15px' : '0'} !important;
+        }
+        
+        .pdf-content .chapter-prefix-text {
+            font-family: '${settings.chapter_prefix_font_family || 'Playfair Display'}', serif !important;
+            font-size: ${toPx(settings.chapter_prefix_font_size || 16.0, true)}px !important;
+            font-weight: ${settings.chapter_prefix_font_weight || 'normal'} !important;
+            font-style: ${settings.chapter_prefix_font_style || 'normal'} !important;
+            letter-spacing: ${toPx(settings.chapter_prefix_letter_spacing || 0, true)}px !important;
+            text-transform: uppercase;
+        }
+
+        .pdf-content .chapter-prefix-line {
+            width: 50px;
+            height: 1px;
+            background-color: #000;
+            margin: 10px auto;
+        }
+
+        /* Si está alineado a la izquierda o derecha, ajustar el margen de la línea */
+        ${settings.chapter_title_align === 'left' ? '.pdf-content .chapter-prefix-line { margin-left: 0; }' : ''}
+        ${settings.chapter_title_align === 'right' ? '.pdf-content .chapter-prefix-line { margin-right: 0; }' : ''}
+
+        .pdf-content .chapter-prefix-wrapper[data-ornament="line_above_below"]::before {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 1px;
+            background-color: #000;
+            margin: 10px auto 10px ${settings.chapter_title_align === 'left' ? '0' : (settings.chapter_title_align === 'right' ? 'auto' : 'auto')};
+        }
+        
+        ${settings.chapter_title_align === 'right' && settings.chapter_prefix_ornament === 'line_above_below' ? '.pdf-content .chapter-prefix-wrapper[data-ornament="line_above_below"]::before { margin-left: auto; margin-right: 0; }' : ''}
+
+        .pdf-content .chapter-prefix-asterisks {
+            margin: 5px 0;
+            letter-spacing: 3px;
         }
 
         /* ── Encabezados h1/h2/h3 ── */

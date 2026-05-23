@@ -22,6 +22,73 @@
                 </div>
 
                 <div>
+                    <h4 class="text-[10px] font-bold uppercase tracking-wider text-indigo-500 mb-2 border-b border-[var(--border-color)] pb-1">Prefijo de Capítulo (Ej: Capítulo 1)</h4>
+                    <div class="grid grid-cols-2 gap-3 mb-2">
+                        <div>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Mostrar Prefijo</label>
+                            <label class="relative inline-flex items-center cursor-pointer mt-1">
+                                <input type="checkbox" id="setting-chapter-prefix-show" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                            </label>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Texto (usa {N} para el número)</label>
+                            <input id="setting-chapter-prefix-template" type="text" value="Capítulo {N}" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 mb-2">
+                        <div>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Posición</label>
+                            <select id="setting-chapter-prefix-position" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="above">Arriba del título</option>
+                                <option value="below">Abajo del título</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Ornamento</label>
+                            <select id="setting-chapter-prefix-ornament" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="none">Ninguno</option>
+                                <option value="line_below">Línea debajo</option>
+                                <option value="line_above_below">Línea arriba y abajo</option>
+                                <option value="asterisks">Asteriscos (***)</option>
+                            </select>
+                        </div>
+                        <div class="col-span-2">
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Fuente</label>
+                            <select id="setting-chapter-prefix-font-family" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <?php almaden_render_font_options( $heading_default_fonts, $selector_fonts ); ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2">
+                        <div>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Tamaño (pt)</label>
+                            <input id="setting-chapter-prefix-font-size" type="number" step="0.5" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Estilo</label>
+                            <select id="setting-chapter-prefix-font-style" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="normal">Normal</option>
+                                <option value="italic">Cursiva</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Peso</label>
+                            <select id="setting-chapter-prefix-font-weight" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="300">Light (300)</option>
+                                <option value="normal">Normal (400)</option>
+                                <option value="600">Semi Bold (600)</option>
+                                <option value="bold">Bold (700)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Let. Spacing</label>
+                            <input id="setting-chapter-prefix-letter-spacing" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
                     <h4 class="text-[10px] font-bold uppercase tracking-wider text-indigo-500 mb-2 border-b border-[var(--border-color)] pb-1">Diseño de Página 1 del Capítulo</h4>
                     <div class="grid grid-cols-2 gap-2">
                         <div>

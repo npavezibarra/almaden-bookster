@@ -40,6 +40,24 @@ function toggleCustomHeaderFields() {
     }
 }
 
+function toggleCustomFirstPageHeader() {
+    const type = document.getElementById('setting-first-page-header-type').value;
+    const input = document.getElementById('setting-first-page-header-custom');
+    if (input) {
+        if (type === 'custom') input.classList.remove('hidden');
+        else input.classList.add('hidden');
+    }
+}
+
+function toggleCustomFirstPageFooter() {
+    const type = document.getElementById('setting-first-page-footer-type').value;
+    const input = document.getElementById('setting-first-page-footer-custom');
+    if (input) {
+        if (type === 'custom') input.classList.remove('hidden');
+        else input.classList.add('hidden');
+    }
+}
+
 // Actualizar las etiquetas de unidad en el formulario (cm o in)
 function updateUnitFields() {
     const unit = document.getElementById('setting-unit').value;
@@ -138,7 +156,10 @@ function toggleSettingsModal(show) {
         document.getElementById('setting-footer-letter-spacing').value = settings.footer_letter_spacing || 0;
         document.getElementById('setting-footer-even-type').value = settings.footer_even_type || 'page_number';
         document.getElementById('setting-footer-odd-type').value = settings.footer_odd_type || 'page_number';
-        document.getElementById('setting-show-header-page-one').checked = (parseInt(settings.show_header_page_one) === 1);
+        document.getElementById('setting-first-page-header-type').value = settings.first_page_header_type || 'blank';
+        document.getElementById('setting-first-page-header-custom').value = settings.first_page_header_custom || '';
+        document.getElementById('setting-first-page-footer-type').value = settings.first_page_footer_type || 'page_number';
+        document.getElementById('setting-first-page-footer-custom').value = settings.first_page_footer_custom || '';
 
         document.getElementById('setting-header-margin-top').value = settings.header_margin_top !== undefined ? settings.header_margin_top : 1.0;
         document.getElementById('setting-header-margin-bottom').value = settings.header_margin_bottom !== undefined ? settings.header_margin_bottom : 0.5;
@@ -161,9 +182,21 @@ function toggleSettingsModal(show) {
         document.getElementById('setting-chapter-title-padding-bottom').value = settings.chapter_title_padding_bottom ?? 1.5;
         document.getElementById('setting-chapter-title-line-height').value = settings.chapter_title_line_height ?? 1.2;
 
+        document.getElementById('setting-chapter-prefix-show').checked = settings.chapter_prefix_show == 1;
+        document.getElementById('setting-chapter-prefix-template').value = settings.chapter_prefix_template || 'Capítulo {N}';
+        document.getElementById('setting-chapter-prefix-position').value = settings.chapter_prefix_position || 'above';
+        document.getElementById('setting-chapter-prefix-font-family').value = settings.chapter_prefix_font_family || 'Playfair Display';
+        document.getElementById('setting-chapter-prefix-font-size').value = settings.chapter_prefix_font_size || 16;
+        document.getElementById('setting-chapter-prefix-font-weight').value = settings.chapter_prefix_font_weight || 'normal';
+        document.getElementById('setting-chapter-prefix-font-style').value = settings.chapter_prefix_font_style || 'normal';
+        document.getElementById('setting-chapter-prefix-letter-spacing').value = settings.chapter_prefix_letter_spacing ?? 0;
+        document.getElementById('setting-chapter-prefix-ornament').value = settings.chapter_prefix_ornament || 'none';
+
         updateUnitFields();
         toggleCustomPageFields();
         toggleCustomHeaderFields();
+        toggleCustomFirstPageHeader();
+        toggleCustomFirstPageFooter();
         toggleParityImageMode();
 
         modal.classList.remove('hidden');
@@ -266,7 +299,10 @@ function savePDFSettings() {
     data.append('footer_letter_spacing', getCleanVal('setting-footer-letter-spacing'));
     data.append('footer_even_type', document.getElementById('setting-footer-even-type').value);
     data.append('footer_odd_type', document.getElementById('setting-footer-odd-type').value);
-    data.append('show_header_page_one', document.getElementById('setting-show-header-page-one').checked ? 1 : 0);
+    data.append('first_page_header_type', document.getElementById('setting-first-page-header-type').value);
+    data.append('first_page_header_custom', document.getElementById('setting-first-page-header-custom').value);
+    data.append('first_page_footer_type', document.getElementById('setting-first-page-footer-type').value);
+    data.append('first_page_footer_custom', document.getElementById('setting-first-page-footer-custom').value);
 
     data.append('header_margin_top', getCleanVal('setting-header-margin-top'));
     data.append('header_margin_bottom', getCleanVal('setting-header-margin-bottom'));
@@ -288,6 +324,16 @@ function savePDFSettings() {
     data.append('chapter_title_padding_top', getCleanVal('setting-chapter-title-padding-top'));
     data.append('chapter_title_padding_bottom', getCleanVal('setting-chapter-title-padding-bottom'));
     data.append('chapter_title_line_height', getCleanVal('setting-chapter-title-line-height'));
+
+    data.append('chapter_prefix_show', document.getElementById('setting-chapter-prefix-show').checked ? 1 : 0);
+    data.append('chapter_prefix_template', document.getElementById('setting-chapter-prefix-template').value);
+    data.append('chapter_prefix_position', document.getElementById('setting-chapter-prefix-position').value);
+    data.append('chapter_prefix_font_family', document.getElementById('setting-chapter-prefix-font-family').value);
+    data.append('chapter_prefix_font_size', getCleanVal('setting-chapter-prefix-font-size'));
+    data.append('chapter_prefix_font_weight', document.getElementById('setting-chapter-prefix-font-weight').value);
+    data.append('chapter_prefix_font_style', document.getElementById('setting-chapter-prefix-font-style').value);
+    data.append('chapter_prefix_letter_spacing', getCleanVal('setting-chapter-prefix-letter-spacing'));
+    data.append('chapter_prefix_ornament', document.getElementById('setting-chapter-prefix-ornament').value);
 
     fetch(bookState.ajaxUrl, {
         method: 'POST',
@@ -355,7 +401,10 @@ function savePDFSettings() {
                 footer_letter_spacing: parseVal('setting-footer-letter-spacing', 0),
                 footer_even_type: document.getElementById('setting-footer-even-type').value,
                 footer_odd_type: document.getElementById('setting-footer-odd-type').value,
-                show_header_page_one: document.getElementById('setting-show-header-page-one').checked ? 1 : 0,
+                first_page_header_type: document.getElementById('setting-first-page-header-type').value,
+                first_page_header_custom: document.getElementById('setting-first-page-header-custom').value,
+                first_page_footer_type: document.getElementById('setting-first-page-footer-type').value,
+                first_page_footer_custom: document.getElementById('setting-first-page-footer-custom').value,
 
                 header_margin_top: parseVal('setting-header-margin-top', 1.0),
                 header_margin_bottom: parseVal('setting-header-margin-bottom', 0.5),
@@ -374,7 +423,18 @@ function savePDFSettings() {
                 chapter_title_font_style: document.getElementById('setting-chapter-title-font-style').value,
                 chapter_title_align: document.getElementById('setting-chapter-title-align').value,
                 chapter_title_padding_top: parseVal('setting-chapter-title-padding-top', 0),
-                chapter_title_padding_bottom: parseVal('setting-chapter-title-padding-bottom', 1.5)
+                chapter_title_padding_bottom: parseVal('setting-chapter-title-padding-bottom', 1.5),
+                chapter_title_line_height: parseVal('setting-chapter-title-line-height', 1.2),
+
+                chapter_prefix_show: document.getElementById('setting-chapter-prefix-show').checked ? 1 : 0,
+                chapter_prefix_template: document.getElementById('setting-chapter-prefix-template').value,
+                chapter_prefix_position: document.getElementById('setting-chapter-prefix-position').value,
+                chapter_prefix_font_family: document.getElementById('setting-chapter-prefix-font-family').value,
+                chapter_prefix_font_size: parseVal('setting-chapter-prefix-font-size', 16),
+                chapter_prefix_font_weight: document.getElementById('setting-chapter-prefix-font-weight').value,
+                chapter_prefix_font_style: document.getElementById('setting-chapter-prefix-font-style').value,
+                chapter_prefix_letter_spacing: parseVal('setting-chapter-prefix-letter-spacing', 0),
+                chapter_prefix_ornament: document.getElementById('setting-chapter-prefix-ornament').value
             };
 
             applyDynamicPDFStyles();

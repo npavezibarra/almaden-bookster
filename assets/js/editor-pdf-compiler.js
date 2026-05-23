@@ -32,7 +32,10 @@ function createNewPageElement(pageNumber, chapter, isFirstPageOfChapter = false,
     const parityImageUrl = chapter ? chapter.parity_image : null;
     const chapterTitle = chapter ? chapter.title : '';
     const parityImageMode = (chapter && chapter.parity_image_mode) ? chapter.parity_image_mode : (settings.parity_image_mode || 'content');
-    const showHeaderPageOne = (chapter && chapter.show_header_page_one === '1') ? true : (parseInt(settings.show_header_page_one) === 1);
+    const firstPageHeaderType = (chapter && chapter.first_page_header_type && chapter.first_page_header_type !== 'global') ? chapter.first_page_header_type : (settings.first_page_header_type || 'blank');
+    const firstPageHeaderCustom = (chapter && chapter.first_page_header_custom) ? chapter.first_page_header_custom : (settings.first_page_header_custom || '');
+    const firstPageFooterType = (chapter && chapter.first_page_footer_type && chapter.first_page_footer_type !== 'global') ? chapter.first_page_footer_type : (settings.first_page_footer_type || 'page_number');
+    const firstPageFooterCustom = (chapter && chapter.first_page_footer_custom) ? chapter.first_page_footer_custom : (settings.first_page_footer_custom || '');
     const customRunningHeader = (chapter && chapter.custom_running_header) ? chapter.custom_running_header : null;
     const pageOneVertical = (chapter && chapter.page_one_vertical) ? chapter.page_one_vertical : (settings.chapter_page_one_vertical || 'top');
     const disableHyphenation = (chapter && chapter.disable_hyphenation === '1');
@@ -81,25 +84,39 @@ function createNewPageElement(pageNumber, chapter, isFirstPageOfChapter = false,
 
     // Header Content
     let headerHtml = '&nbsp;';
-    const showHeader = !isFirstPageOfChapter || showHeaderPageOne;
-    if (showHeader) {
-        const headerType = isEven ? (settings.header_even_type || 'book_title') : (settings.header_odd_type || 'chapter_title');
+    const headerType = isFirstPageOfChapter ? firstPageHeaderType : (isEven ? (settings.header_even_type || 'book_title') : (settings.header_odd_type || 'chapter_title'));
+    
+    if (headerType !== 'blank') {
         if (headerType === 'book_title') {
             headerHtml = `<span>${bookState.title}</span>`;
         } else if (headerType === 'chapter_title') {
             headerHtml = `<span>${customRunningHeader ? customRunningHeader : (chapterTitle || 'Sin título')}</span>`;
+        } else if (headerType === 'page_number') {
+            headerHtml = `<span>${pageNumber}</span>`;
+        } else if (headerType === 'author') {
+            headerHtml = `<span>Autor</span>`; // We might need to pull the author name if we have it, for now generic or skip. Wait, usually they don't use 'author' without setting it. Let's just output "Autor" as placeholder if not defined.
         } else if (headerType === 'custom') {
-            const customText = isEven ? (settings.header_even_custom || '') : (settings.header_odd_custom || '');
+            const customText = isFirstPageOfChapter ? firstPageHeaderCustom : (isEven ? (settings.header_even_custom || '') : (settings.header_odd_custom || ''));
             headerHtml = `<span>${customText}</span>`;
         }
     }
 
     // Footer Content
     let footerHtml = '&nbsp;';
-    if (showHeader) {
-        const footerType = isEven ? (settings.footer_even_type || 'page_number') : (settings.footer_odd_type || 'page_number');
+    const footerType = isFirstPageOfChapter ? firstPageFooterType : (isEven ? (settings.footer_even_type || 'page_number') : (settings.footer_odd_type || 'page_number'));
+    
+    if (footerType !== 'blank') {
         if (footerType === 'page_number') {
             footerHtml = `<span>${pageNumber}</span>`;
+        } else if (footerType === 'book_title') {
+            footerHtml = `<span>${bookState.title}</span>`;
+        } else if (footerType === 'chapter_title') {
+            footerHtml = `<span>${customRunningHeader ? customRunningHeader : (chapterTitle || 'Sin título')}</span>`;
+        } else if (footerType === 'author') {
+            footerHtml = `<span>Autor</span>`;
+        } else if (footerType === 'custom') {
+            const customText = isFirstPageOfChapter ? firstPageFooterCustom : '';
+            footerHtml = `<span>${customText}</span>`;
         }
     }
 
@@ -226,7 +243,37 @@ async function compilePDFPreview() {
         }
 
         if (chapter.title && chapter.title.trim() !== '' && chapter.hide_title !== '1') {
-            compiledHtml = `<div class="chapter-main-title">${chapter.title.trim()}</div>\n\n` + compiledHtml;
+            let titleHtml = `<div class="chapter-main-title">${chapter.title.trim()}</div>`;
+            
+            // Lógica de prefijo de capítulo
+            if (settings.chapter_prefix_show == 1) {
+                const chapterNumber = index + 1; // Contador simple por ahora
+                let prefixText = (settings.chapter_prefix_template || 'Capítulo {N}').replace('{N}', chapterNumber);
+                
+                let ornamentHtml = '';
+                if (settings.chapter_prefix_ornament === 'line_below') {
+                    ornamentHtml = '<div class="chapter-prefix-line"></div>';
+                } else if (settings.chapter_prefix_ornament === 'line_above_below') {
+                    ornamentHtml = '<div class="chapter-prefix-line"></div>'; // Usaremos CSS para el before/after
+                } else if (settings.chapter_prefix_ornament === 'asterisks') {
+                    ornamentHtml = '<div class="chapter-prefix-asterisks">***</div>';
+                }
+
+                const prefixHtml = `
+                    <div class="chapter-prefix-wrapper" data-ornament="${settings.chapter_prefix_ornament}">
+                        <div class="chapter-prefix-text">${prefixText}</div>
+                        ${ornamentHtml}
+                    </div>
+                `;
+
+                if (settings.chapter_prefix_position === 'below') {
+                    titleHtml = titleHtml + prefixHtml;
+                } else {
+                    titleHtml = prefixHtml + titleHtml;
+                }
+            }
+            
+            compiledHtml = titleHtml + `\n\n` + compiledHtml;
         }
         tempContainer.innerHTML = compiledHtml;
 

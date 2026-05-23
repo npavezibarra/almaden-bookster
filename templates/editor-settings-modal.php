@@ -212,11 +212,34 @@
                     </div>
                 </div>
 
-                <!-- OPCIONES GENERALES / GLOBALES -->
-                <div class="px-2 pt-1">
-                    <div class="flex items-center gap-2">
-                        <input id="setting-show-header-page-one" type="checkbox" value="1" class="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4 bg-[var(--bg-app)] border-[var(--border-color)]">
-                        <label for="setting-show-header-page-one" class="text-xs text-[var(--text-main)] select-none">¿Llevar cabecera/pie en la primera página de cada capítulo?</label>
+                <!-- OPCIONES PRIMERA PÁGINA DEL CAPÍTULO -->
+                <div class="px-2 pt-1 border-t border-[var(--border-color)] mt-4">
+                    <label class="block text-[11px] font-bold text-[var(--text-main)] mb-3">CONTENIDO 1ª PÁG DEL CAPÍTULO</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Contenido Cabecera</label>
+                            <select id="setting-first-page-header-type" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" onchange="toggleCustomFirstPageHeader()">
+                                <option value="blank">En blanco</option>
+                                <option value="book_title">Título del Libro</option>
+                                <option value="chapter_title">Título del Capítulo</option>
+                                <option value="author">Autor</option>
+                                <option value="page_number">Número de Página</option>
+                                <option value="custom">Texto Personalizado</option>
+                            </select>
+                            <input type="text" id="setting-first-page-header-custom" class="hidden mt-2 w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Escribe aquí...">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Contenido Pie</label>
+                            <select id="setting-first-page-footer-type" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" onchange="toggleCustomFirstPageFooter()">
+                                <option value="blank">En blanco</option>
+                                <option value="book_title">Título del Libro</option>
+                                <option value="chapter_title">Título del Capítulo</option>
+                                <option value="author">Autor</option>
+                                <option value="page_number" selected>Número de Página</option>
+                                <option value="custom">Texto Personalizado</option>
+                            </select>
+                            <input type="text" id="setting-first-page-footer-custom" class="hidden mt-2 w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Escribe aquí...">
+                        </div>
                     </div>
                 </div>
             </div>
