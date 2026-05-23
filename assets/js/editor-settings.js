@@ -378,6 +378,7 @@ function savePDFSettings() {
             };
 
             applyDynamicPDFStyles();
+            compilePDFPreview(); // RECOMPILAR PDF con los nuevos márgenes/anchos
             if (typeof updateParityButtonVisibility === 'function') updateParityButtonVisibility();
             toggleSettingsModal(false);
             showToast("Configuración del PDF guardada", "fa-solid fa-circle-check");
