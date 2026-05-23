@@ -70,7 +70,6 @@ function initEventListeners() {
             if (chapter) {
                 chapter.content = textarea.value;
                 updateWordCounts();
-                compilePDFPreview();
                 saveStateToLocalStorage();
             }
         });
@@ -83,7 +82,6 @@ function initEventListeners() {
             if (chapter) {
                 chapter.title = chapterTitle.value;
                 renderSidebar(); // Actualiza el sidebar en tiempo real
-                compilePDFPreview();
                 saveStateToLocalStorage();
             }
         });
@@ -92,7 +90,6 @@ function initEventListeners() {
     if (bookTitle) {
         bookTitle.addEventListener('input', () => {
             bookState.title = bookTitle.value;
-            compilePDFPreview(); // Para actualizar los encabezados de página
             saveStateToLocalStorage();
         });
     }
@@ -110,6 +107,14 @@ function initEventListeners() {
     const btnToggleSpread = document.getElementById('btn-toggle-spread');
     if (btnToggleSpread) {
         btnToggleSpread.addEventListener('click', toggleSpreadView);
+    }
+    
+    // Botón de Guardado Manual
+    const btnManualSave = document.getElementById('btn-manual-save');
+    if (btnManualSave) {
+        btnManualSave.addEventListener('click', () => {
+            saveStateToLocalStorage(true); // Pasar true para guardar y compilar de inmediato
+        });
     }
 }
 

@@ -531,6 +531,7 @@ function almaden_bookster_create_settings_table() {
 			chapter_title_align varchar(20) DEFAULT 'center' NOT NULL,
 			chapter_title_padding_top float DEFAULT 0.0 NOT NULL,
 			chapter_title_padding_bottom float DEFAULT 1.5 NOT NULL,
+			chapter_title_line_height float DEFAULT 1.2 NOT NULL,
 			header_margin_top float DEFAULT 1.0 NOT NULL,
 			header_margin_bottom float DEFAULT 0.5 NOT NULL,
 			header_align varchar(20) DEFAULT 'center' NOT NULL,
@@ -544,7 +545,7 @@ function almaden_bookster_create_settings_table() {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 
-		update_option( 'almaden_bookster_db_version', '1.8.1' );
+		update_option( 'almaden_bookster_db_version', '1.8.2' );
 	}
 }
 add_action( 'init', 'almaden_bookster_create_settings_table' );
@@ -626,6 +627,7 @@ function almaden_bookster_save_settings_ajax() {
 		'chapter_title_align'        => sanitize_text_field( $_POST['chapter_title_align'] ),
 		'chapter_title_padding_top'  => floatval( str_replace( ',', '.', $_POST['chapter_title_padding_top'] ) ),
 		'chapter_title_padding_bottom'=> floatval( str_replace( ',', '.', $_POST['chapter_title_padding_bottom'] ) ),
+		'chapter_title_line_height'  => isset($_POST['chapter_title_line_height']) ? floatval( str_replace( ',', '.', $_POST['chapter_title_line_height'] ) ) : 1.2,
 		'header_margin_top'          => floatval( str_replace( ',', '.', $_POST['header_margin_top'] ) ),
 		'header_margin_bottom'       => floatval( str_replace( ',', '.', $_POST['header_margin_bottom'] ) ),
 		'header_align'               => sanitize_text_field( $_POST['header_align'] ),

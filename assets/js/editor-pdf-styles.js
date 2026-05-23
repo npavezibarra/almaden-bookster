@@ -117,8 +117,8 @@ function applyDynamicPDFStyles() {
             height: ${heightPx}px !important;
             min-height: ${heightPx}px !important;
             padding: 0 !important;
-            margin-top: 80px !important;
-            margin-bottom: 80px !important;
+            margin-top: ${36 + bleedingPx}px !important;
+            margin-bottom: ${36 + bleedingPx}px !important;
             border: ${bleeding > 0 ? '2px dashed #f59e0b' : '1px solid #e2e8f0'} !important;
             position: relative;
             box-sizing: border-box !important;
@@ -142,10 +142,11 @@ function applyDynamicPDFStyles() {
             grid-template-columns: max-content max-content;
             justify-content: center;
             column-gap: 0;
-            row-gap: 80px;
+            padding: 40px 0; /* Fallback top/bottom spacing instead of row-gap */
         }
         #pdf-scroller.spread-view .pdf-page {
-            margin: 0 !important;
+            margin-top: 40px !important;
+            margin-bottom: 40px !important;
         }
         /* ODD pages (Right side of the spread) -> Grid Column 2 */
         #pdf-scroller.spread-view .pdf-page:nth-child(odd) {

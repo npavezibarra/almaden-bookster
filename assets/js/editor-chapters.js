@@ -171,15 +171,29 @@ function moveChapterUp(index) {
 
 let saveTimeout;
 // Guarda el estado actual en la base de datos de WordPress (autosave)
-function saveStateToLocalStorage() {
+function saveStateToLocalStorage(immediate = false) {
     const statusIndicator = document.getElementById('save-status');
-    if (statusIndicator) {
-        statusIndicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs mr-1"></i> Guardando...';
-        statusIndicator.className = 'flex items-center gap-1 font-semibold text-amber-500';
+    
+    // Indicador visual de 'Pendiente' en cuanto se escribe, antes de guardar
+    if (statusIndicator && !immediate && !saveTimeout) {
+        statusIndicator.innerHTML = '<i class="fa-solid fa-pen text-xs mr-1"></i> Editando...';
+        statusIndicator.className = 'flex items-center gap-1 font-semibold text-slate-500';
     }
 
     clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(() => {
+
+    const executeSave = () => {
+        saveTimeout = null;
+        if (statusIndicator) {
+            statusIndicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs mr-1"></i> Guardando...';
+            statusIndicator.className = 'flex items-center gap-1 font-semibold text-amber-500';
+        }
+        
+        // Compilar PDF JUSTO ANTES de guardar (para que refleje los cambios recientes)
+        if (typeof compilePDFPreview === 'function') {
+            compilePDFPreview();
+        }
+
         const data = new FormData();
         data.append('action', 'almaden_save_book');
         data.append('book_id', bookState.bookId);
@@ -212,5 +226,11 @@ function saveStateToLocalStorage() {
                 statusIndicator.className = 'flex items-center gap-1 font-semibold text-rose-600';
             }
         });
-    }, 1000); // 1 segundo de debounce para evitar saturar el servidor
+    };
+
+    if (immediate) {
+        executeSave();
+    } else {
+        saveTimeout = setTimeout(executeSave, 15000); // 15 segundos de autosave
+    }
 }

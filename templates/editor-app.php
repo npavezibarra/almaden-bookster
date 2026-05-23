@@ -91,6 +91,7 @@ $pdf_settings = array(
 	'chapter_title_align'        => 'center',
 	'chapter_title_padding_top'  => 0.0,
 	'chapter_title_padding_bottom'=> 1.5,
+	'chapter_title_line_height'  => 1.2,
 	'header_margin_top'          => 1.0,
 	'header_margin_bottom'       => 0.5,
 	'header_align'               => 'center',
