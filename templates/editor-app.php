@@ -423,7 +423,12 @@ $google_fonts_url = 'https://fonts.googleapis.com/css2?' . implode( '&', array_m
                     <span class="font-semibold uppercase tracking-wider flex items-center gap-1">
                         <i class="fa-solid fa-magnifying-glass-doc text-xs text-indigo-500"></i> Vista Previa Maquetada
                     </span>
-                    <span id="pdf-page-indicator">0 Páginas</span>
+                    <div class="flex items-center gap-4">
+                        <button id="btn-toggle-spread" class="text-[var(--text-muted)] hover:text-indigo-500 transition-colors" title="Alternar Vista a Doble Página">
+                            <i class="fa-solid fa-file-lines"></i>
+                        </button>
+                        <span id="pdf-page-indicator">0 Páginas</span>
+                    </div>
                 </div>
 
                 <!-- Visor Scrollable de Páginas PDF -->

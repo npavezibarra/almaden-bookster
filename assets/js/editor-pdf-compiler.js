@@ -33,8 +33,9 @@ function createNewPageElement(pageNumber, chapterTitle, isFirstPageOfChapter = f
             const mode = settings.parity_image_mode || 'content';
             
             if (mode === 'bleed') {
+                pageDiv.classList.add('pdf-page-has-bleed');
                 pageDiv.innerHTML = `
-                    <div style="position: absolute; top: -5mm; bottom: -5mm; left: -5mm; right: 0; z-index: 0;">
+                    <div class="parity-bleed-container" style="position: absolute; z-index: 0;">
                         <img src="${parityImageUrl}" alt="Página de paridad" style="width: 100%; height: 100%; object-fit: cover;" />
                     </div>
                     <!-- Línea de corte visual (no se imprime) -->

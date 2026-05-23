@@ -49,6 +49,11 @@ window.onload = function() {
         updateParityButtonVisibility();
     }
     
+    // Inicializar la vista de doble página si estaba guardada
+    if (typeof initSpreadView === 'function') {
+        initSpreadView();
+    }
+    
     showToast("¡Bienvenido de vuelta a tu manuscrito!", "fa-solid fa-book-open");
 };
 
@@ -101,6 +106,37 @@ function initEventListeners() {
             }
         }
     });
+
+    const btnToggleSpread = document.getElementById('btn-toggle-spread');
+    if (btnToggleSpread) {
+        btnToggleSpread.addEventListener('click', toggleSpreadView);
+    }
+}
+
+// Spread View Logic
+function toggleSpreadView() {
+    const scroller = document.getElementById('pdf-scroller');
+    const btn = document.getElementById('btn-toggle-spread');
+    if (!scroller || !btn) return;
+
+    scroller.classList.toggle('spread-view');
+    const isSpread = scroller.classList.contains('spread-view');
+    
+    // Save to localStorage
+    localStorage.setItem('bookcraft_spread_view', isSpread ? 'true' : 'false');
+    
+    // Update icon
+    btn.innerHTML = isSpread ? '<i class="fa-solid fa-book-open"></i>' : '<i class="fa-solid fa-file-lines"></i>';
+}
+
+function initSpreadView() {
+    const isSpread = localStorage.getItem('bookcraft_spread_view') === 'true';
+    if (isSpread) {
+        const scroller = document.getElementById('pdf-scroller');
+        const btn = document.getElementById('btn-toggle-spread');
+        if (scroller) scroller.classList.add('spread-view');
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-book-open"></i>';
+    }
 }
 
 // Cambia el tema visual del editor (Claro, Sepia, Oscuro)

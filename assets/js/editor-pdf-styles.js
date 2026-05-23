@@ -37,23 +37,76 @@ function applyDynamicPDFStyles() {
     const widthPx = toPx(width);
     const heightPx = toPx(height);
     const bleedingPx = toPx(bleeding);
+    // Sangría fija de 5mm para el modo de imagen de paridad con sangría
+    const parityBleedingPx = toPx(unit === 'cm' ? 0.5 : (0.5 / 2.54));
 
     styleEl.innerHTML = `
         @page {
-            size: ${widthPx}px ${heightPx}px;
+            size: ${widthPx + bleedingPx}px ${heightPx + (bleedingPx * 2)}px;
             margin: 0px;
         }
+        @page parity_bleed_page {
+            size: ${widthPx + parityBleedingPx}px ${heightPx + (parityBleedingPx * 2)}px;
+            margin: 0px;
+        }
+
+        /* ── Screen Parity Bleed (3-sided) ── */
+        .pdf-page:nth-child(even) .parity-bleed-container {
+            top: -${parityBleedingPx}px;
+            bottom: -${parityBleedingPx}px;
+            left: -${parityBleedingPx}px;
+            right: 0;
+        }
+        .pdf-page:nth-child(odd) .parity-bleed-container {
+            top: -${parityBleedingPx}px;
+            bottom: -${parityBleedingPx}px;
+            left: 0;
+            right: -${parityBleedingPx}px;
+        }
+
         @media print {
             html, body {
                 margin: 0 !important;
                 padding: 0 !important;
             }
             .pdf-page {
+                width: ${widthPx + bleedingPx}px !important;
+                height: ${heightPx + (bleedingPx * 2)}px !important;
+                min-height: ${heightPx + (bleedingPx * 2)}px !important;
+                box-sizing: border-box !important;
                 margin: 0 !important;
                 border: none !important;
                 box-shadow: none !important;
+                position: relative !important;
+            }
+            /* Even pages (spine is on the right, so no right bleed) */
+            .pdf-page:nth-child(even) {
+                padding: ${bleedingPx}px 0 ${bleedingPx}px ${bleedingPx}px !important;
+            }
+            /* Odd pages (spine is on the left, so no left bleed) */
+            .pdf-page:nth-child(odd) {
+                padding: ${bleedingPx}px ${bleedingPx}px ${bleedingPx}px 0 !important;
+            }
+
+            .pdf-page.pdf-page-has-bleed {
+                page: parity_bleed_page;
+                width: ${widthPx + parityBleedingPx}px !important;
+                height: ${heightPx + (parityBleedingPx * 2)}px !important;
+                min-height: ${heightPx + (parityBleedingPx * 2)}px !important;
+            }
+            .pdf-page.pdf-page-has-bleed:nth-child(even) {
+                padding: ${parityBleedingPx}px 0 ${parityBleedingPx}px ${parityBleedingPx}px !important;
+            }
+            .pdf-page.pdf-page-has-bleed:nth-child(odd) {
+                padding: ${parityBleedingPx}px ${parityBleedingPx}px ${parityBleedingPx}px 0 !important;
             }
             .pdf-page::after { display: none !important; }
+            .parity-bleed-container {
+                top: 0 !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+            }
         }
 
         /* ── Página ── */
@@ -64,8 +117,8 @@ function applyDynamicPDFStyles() {
             height: ${heightPx}px !important;
             min-height: ${heightPx}px !important;
             padding: 0 !important;
-            margin-top: ${36 + bleedingPx}px !important;
-            margin-bottom: ${36 + bleedingPx}px !important;
+            margin-top: 80px !important;
+            margin-bottom: 80px !important;
             border: ${bleeding > 0 ? '2px dashed #f59e0b' : '1px solid #e2e8f0'} !important;
             position: relative;
             box-sizing: border-box !important;
@@ -82,6 +135,28 @@ function applyDynamicPDFStyles() {
             font-family: sans-serif;
             font-weight: bold;
         }` : ''}
+
+        /* ── Spread View (Pantalla) ── */
+        #pdf-scroller.spread-view {
+            display: grid !important;
+            grid-template-columns: max-content max-content;
+            justify-content: center;
+            column-gap: 0;
+            row-gap: 80px;
+        }
+        #pdf-scroller.spread-view .pdf-page {
+            margin: 0 !important;
+        }
+        /* ODD pages (Right side of the spread) -> Grid Column 2 */
+        #pdf-scroller.spread-view .pdf-page:nth-child(odd) {
+            grid-column: 2;
+            border-left: none !important; /* Remove double border in the middle */
+        }
+        /* EVEN pages (Left side of the spread) -> Grid Column 1 */
+        #pdf-scroller.spread-view .pdf-page:nth-child(even) {
+            grid-column: 1;
+            border-right: none !important; /* Remove double border in the middle */
+        }
 
         /* ── Cabecera ── */
         .pdf-header {
