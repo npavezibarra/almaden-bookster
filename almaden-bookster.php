@@ -73,6 +73,50 @@ function almaden_bookster_register_cpt_books() {
 }
 add_action( 'init', 'almaden_bookster_register_cpt_books', 0 );
 
+function almaden_bookster_register_cpt_chapters() {
+	$labels = array(
+		'name'                  => _x( 'Capítulos', 'Post Type General Name', 'almaden-bookster' ),
+		'singular_name'         => _x( 'Capítulo', 'Post Type Singular Name', 'almaden-bookster' ),
+		'menu_name'             => __( 'Capítulos', 'almaden-bookster' ),
+		'name_admin_bar'        => __( 'Capítulo', 'almaden-bookster' ),
+		'archives'              => __( 'Archivo de Capítulos', 'almaden-bookster' ),
+		'attributes'            => __( 'Atributos del Capítulo', 'almaden-bookster' ),
+		'parent_item_colon'     => __( 'Libro Padre:', 'almaden-bookster' ),
+		'all_items'             => __( 'Todos los Capítulos', 'almaden-bookster' ),
+		'add_new_item'          => __( 'Añadir Nuevo Capítulo', 'almaden-bookster' ),
+		'add_new'               => __( 'Añadir Nuevo', 'almaden-bookster' ),
+		'new_item'              => __( 'Nuevo Capítulo', 'almaden-bookster' ),
+		'edit_item'             => __( 'Editar Capítulo', 'almaden-bookster' ),
+		'update_item'           => __( 'Actualizar Capítulo', 'almaden-bookster' ),
+		'view_item'             => __( 'Ver Capítulo', 'almaden-bookster' ),
+		'view_items'            => __( 'Ver Capítulos', 'almaden-bookster' ),
+		'search_items'          => __( 'Buscar Capítulo', 'almaden-bookster' ),
+		'not_found'             => __( 'No encontrado', 'almaden-bookster' ),
+		'not_found_in_trash'    => __( 'No encontrado en la Papelera', 'almaden-bookster' ),
+	);
+	$args = array(
+		'label'                 => __( 'Capítulo', 'almaden-bookster' ),
+		'description'           => __( 'Capítulos de libros', 'almaden-bookster' ),
+		'labels'                => $labels,
+		'supports'              => array( 'title', 'editor', 'revisions', 'page-attributes', 'custom-fields' ),
+		'hierarchical'          => false,
+		'public'                => true,
+		'show_ui'               => true,
+		'show_in_menu'          => 'edit.php?post_type=almaden-books', // Submenú de Libros
+		'menu_position'         => 5,
+		'show_in_admin_bar'     => true,
+		'show_in_nav_menus'     => true,
+		'can_export'            => true,
+		'has_archive'           => false,
+		'exclude_from_search'   => false,
+		'publicly_queryable'    => true,
+		'capability_type'       => 'post',
+		'show_in_rest'          => true, // Habilita Gutenberg
+	);
+	register_post_type( 'book_chapter', $args );
+}
+add_action( 'init', 'almaden_bookster_register_cpt_chapters', 0 );
+
 // --- Frontend Booklist y Creación Automática de Página ---
 
 // 1. Crear la página física automáticamente si no existe
@@ -297,15 +341,103 @@ function almaden_bookster_save_book_ajax() {
 		wp_send_json_error( 'Datos de capítulos inválidos.' );
 	}
 
-	// Sanitizar capítulos
-	$sanitized_chapters = array();
+	// Sanitizar y Guardar Capítulos en CPT
+	$updated_chapters = array();
+	$menu_order = 1;
+	$incoming_ids = array();
+
 	foreach ( $chapters as $chapter ) {
-		$sanitized_chapters[] = array(
-			'id'           => sanitize_text_field( $chapter['id'] ),
-			'title'        => sanitize_text_field( $chapter['title'] ),
-			'content'      => wp_kses_post( $chapter['content'] ),
-			'parity_image' => isset( $chapter['parity_image'] ) ? sanitize_text_field( $chapter['parity_image'] ) : '',
-		);
+		$chapter_id = sanitize_text_field( $chapter['id'] );
+		$chapter_title = sanitize_text_field( $chapter['title'] );
+		$chapter_content = wp_kses_post( $chapter['content'] );
+		
+		// Meta-datos locales
+		$parity_image          = isset( $chapter['parity_image'] ) ? sanitize_text_field( $chapter['parity_image'] ) : '';
+		$hide_title            = isset( $chapter['hide_title'] ) ? sanitize_text_field( $chapter['hide_title'] ) : '0';
+		$custom_running_header = isset( $chapter['custom_running_header'] ) ? sanitize_text_field( $chapter['custom_running_header'] ) : '';
+		$drop_cap_enabled      = isset( $chapter['drop_cap_enabled'] ) ? sanitize_text_field( $chapter['drop_cap_enabled'] ) : '0';
+		$disable_hyphenation   = isset( $chapter['disable_hyphenation'] ) ? sanitize_text_field( $chapter['disable_hyphenation'] ) : '0';
+		$page_one_vertical     = isset( $chapter['page_one_vertical'] ) ? sanitize_text_field( $chapter['page_one_vertical'] ) : 'top';
+		$start_parity          = isset( $chapter['start_parity'] ) ? sanitize_text_field( $chapter['start_parity'] ) : 'any';
+		$show_header_page_one  = isset( $chapter['show_header_page_one'] ) ? sanitize_text_field( $chapter['show_header_page_one'] ) : '0';
+		$parity_image_mode     = isset( $chapter['parity_image_mode'] ) ? sanitize_text_field( $chapter['parity_image_mode'] ) : 'content';
+
+		$post_id = 0;
+		$is_new = false;
+
+		// Si el ID no es numérico (ej. 'cap-3'), es un capítulo nuevo
+		if ( ! is_numeric( $chapter_id ) ) {
+			$post_id = wp_insert_post( array(
+				'post_title'   => $chapter_title,
+				'post_content' => $chapter_content,
+				'post_status'  => 'publish',
+				'post_type'    => 'book_chapter',
+				'post_parent'  => $book_id,
+				'menu_order'   => $menu_order++,
+			) );
+			$is_new = true;
+		} else {
+			// Es un capítulo existente, actualizarlo
+			$post_id = intval( $chapter_id );
+			wp_update_post( array(
+				'ID'           => $post_id,
+				'post_title'   => $chapter_title,
+				'post_content' => $chapter_content,
+				'menu_order'   => $menu_order++,
+			) );
+		}
+
+		if ( ! is_wp_error( $post_id ) && $post_id > 0 ) {
+			// Guardar meta-datos
+			update_post_meta( $post_id, '_parity_image', $parity_image );
+			update_post_meta( $post_id, '_hide_title', $hide_title );
+			update_post_meta( $post_id, '_custom_running_header', $custom_running_header );
+			update_post_meta( $post_id, '_drop_cap_enabled', $drop_cap_enabled );
+			update_post_meta( $post_id, '_disable_hyphenation', $disable_hyphenation );
+			update_post_meta( $post_id, '_page_one_vertical', $page_one_vertical );
+			update_post_meta( $post_id, '_start_parity', $start_parity );
+			update_post_meta( $post_id, '_show_header_page_one', $show_header_page_one );
+			update_post_meta( $post_id, '_parity_image_mode', $parity_image_mode );
+
+			$incoming_ids[] = $post_id;
+			
+			$chapter_response = array(
+				'id'                    => strval( $post_id ),
+				'title'                 => $chapter_title,
+				'content'               => $chapter_content,
+				'parity_image'          => $parity_image,
+				'hide_title'            => $hide_title,
+				'custom_running_header' => $custom_running_header,
+				'drop_cap_enabled'      => $drop_cap_enabled,
+				'disable_hyphenation'   => $disable_hyphenation,
+				'page_one_vertical'     => $page_one_vertical,
+				'start_parity'          => $start_parity,
+				'show_header_page_one'  => $show_header_page_one,
+				'parity_image_mode'     => $parity_image_mode,
+			);
+			
+			if ( $is_new ) {
+				$chapter_response['old_id'] = $chapter_id;
+			}
+			
+			$updated_chapters[] = $chapter_response;
+		}
+	}
+
+	// Eliminar capítulos que ya no están en el payload (fueron borrados en JS)
+	if ( ! empty( $incoming_ids ) ) {
+		$existing_chapters = get_posts( array(
+			'post_type'      => 'book_chapter',
+			'post_parent'    => $book_id,
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+		) );
+		
+		foreach ( $existing_chapters as $existing_id ) {
+			if ( ! in_array( $existing_id, $incoming_ids ) ) {
+				wp_delete_post( $existing_id, true ); // Forzar borrado físico
+			}
+		}
 	}
 
 	// Actualizar título del libro (post)
@@ -316,10 +448,10 @@ function almaden_bookster_save_book_ajax() {
 		) );
 	}
 
-	// Guardar los capítulos en post meta
-	update_post_meta( $book_id, '_almaden_chapters', $sanitized_chapters );
-
-	wp_send_json_success( array( 'message' => 'Libro guardado con éxito.' ) );
+	wp_send_json_success( array( 
+		'message'  => 'Libro guardado con éxito.',
+		'chapters' => $updated_chapters 
+	) );
 }
 add_action( 'wp_ajax_almaden_save_book', 'almaden_bookster_save_book_ajax' );
 add_action( 'wp_ajax_nopriv_almaden_save_book', 'almaden_bookster_save_book_ajax' );
@@ -456,7 +588,7 @@ function almaden_bookster_save_settings_ajax() {
 		'content_language'           => sanitize_text_field( $_POST['content_language'] ),
 		'content_paragraph_indent'   => floatval( str_replace( ',', '.', $_POST['content_paragraph_indent'] ) ),
 		'content_paragraph_spacing'  => floatval( str_replace( ',', '.', $_POST['content_paragraph_spacing'] ) ),
-		'font_family_headings'       => sanitize_text_field( $_POST['font_family_headings'] ),
+		'font_family_headings'       => isset($_POST['font_family_headings']) ? sanitize_text_field( $_POST['font_family_headings'] ) : '',
 		'font_family_h1'             => sanitize_text_field( $_POST['font_family_h1'] ),
 		'font_family_h2'             => sanitize_text_field( $_POST['font_family_h2'] ),
 		'font_family_h3'             => sanitize_text_field( $_POST['font_family_h3'] ),
