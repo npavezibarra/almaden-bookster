@@ -7,8 +7,50 @@
 
 // Inyecta dinámicamente las reglas de CSS en base a la configuración de maquetación actual
 function applyDynamicPDFStyles() {
-    const settings = bookState.settings;
-    const styleEl  = document.getElementById('dynamic-pdf-settings');
+    const settings = bookState.settings || {};
+    // Extract TOC chapter settings if it exists
+    const tocChapter = bookState.chapters && bookState.chapters.find(c => c.is_toc === '1');
+    const tocSettings = tocChapter ? {
+        fontFamily: tocChapter.toc_font_family || settings.font_family_content || 'Merriweather',
+        fontSize: tocChapter.toc_font_size ? parseFloat(tocChapter.toc_font_size) : parseFloat(settings.font_size_content || 11.5),
+        fontStyle: tocChapter.toc_font_style || 'normal',
+        fontWeight: tocChapter.toc_font_weight || 'normal',
+        textTransform: tocChapter.toc_text_transform || 'none',
+        letterSpacing: tocChapter.toc_letter_spacing ? parseFloat(tocChapter.toc_letter_spacing) : 0,
+        lineHeight: tocChapter.toc_line_height ? parseFloat(tocChapter.toc_line_height) : 1.8,
+        leaderStyle: tocChapter.toc_leader_style || 'dotted',
+        leaderPosition: tocChapter.toc_leader_position || 'middle',
+        titleFontFamily: tocChapter.toc_title_font_family || settings.chapter_title_font_family || 'Playfair Display',
+        titleFontSize: tocChapter.toc_title_font_size ? parseFloat(tocChapter.toc_title_font_size) : parseFloat(settings.chapter_title_font_size || 24.0),
+        titleFontStyle: tocChapter.toc_title_font_style || settings.chapter_title_font_style || 'normal',
+        titleFontWeight: tocChapter.toc_title_font_weight || settings.chapter_title_font_weight || 'bold',
+        titleTextTransform: tocChapter.toc_title_text_transform || settings.chapter_title_text_transform || 'none',
+        titleAlign: tocChapter.toc_title_align || settings.chapter_title_align || 'center',
+        titlePaddingTop: tocChapter.toc_title_padding_top ? parseFloat(tocChapter.toc_title_padding_top) : parseFloat(settings.chapter_title_padding_top || 0.0),
+        titlePaddingBottom: tocChapter.toc_title_padding_bottom ? parseFloat(tocChapter.toc_title_padding_bottom) : parseFloat(settings.chapter_title_padding_bottom || 1.5),
+        titleLineHeight: tocChapter.toc_title_line_height ? parseFloat(tocChapter.toc_title_line_height) : parseFloat(settings.chapter_title_line_height || 1.2)
+    } : {
+        fontFamily: settings.font_family_content || 'Merriweather',
+        fontSize: parseFloat(settings.font_size_content || 11.5),
+        fontStyle: 'normal',
+        fontWeight: 'normal',
+        textTransform: 'none',
+        letterSpacing: 0,
+        lineHeight: 1.8,
+        leaderStyle: 'dotted',
+        leaderPosition: 'middle',
+        titleFontFamily: settings.chapter_title_font_family || 'Playfair Display',
+        titleFontSize: parseFloat(settings.chapter_title_font_size || 24.0),
+        titleFontStyle: settings.chapter_title_font_style || 'normal',
+        titleFontWeight: settings.chapter_title_font_weight || 'bold',
+        titleTextTransform: settings.chapter_title_text_transform || 'none',
+        titleAlign: settings.chapter_title_align || 'center',
+        titlePaddingTop: parseFloat(settings.chapter_title_padding_top || 0.0),
+        titlePaddingBottom: parseFloat(settings.chapter_title_padding_bottom || 1.5),
+        titleLineHeight: parseFloat(settings.chapter_title_line_height || 1.2)
+    };
+
+    let styleEl = document.getElementById('dynamic-pdf-settings');
     if (!settings || !styleEl) return;
 
     const unit = settings.unit || 'cm';
@@ -37,75 +79,45 @@ function applyDynamicPDFStyles() {
     const widthPx = toPx(width);
     const heightPx = toPx(height);
     const bleedingPx = toPx(bleeding);
-    // Sangría fija de 5mm para el modo de imagen de paridad con sangría
-    const parityBleedingPx = toPx(unit === 'cm' ? 0.5 : (0.5 / 2.54));
+    const globalBleedPx = toPx(unit === 'cm' ? 0.5 : (0.5 / 2.54));
 
     styleEl.innerHTML = `
         @page {
-            size: ${widthPx + bleedingPx}px ${heightPx + (bleedingPx * 2)}px;
-            margin: 0px;
-        }
-        @page parity_bleed_page {
-            size: ${widthPx + parityBleedingPx}px ${heightPx + (parityBleedingPx * 2)}px;
+            size: ${widthPx + globalBleedPx}px ${heightPx + (globalBleedPx * 2)}px;
             margin: 0px;
         }
 
         /* ── Screen Parity Bleed (3-sided) ── */
         .pdf-page:nth-child(even) .parity-bleed-container {
-            top: -${parityBleedingPx}px;
-            bottom: -${parityBleedingPx}px;
-            left: -${parityBleedingPx}px;
+            top: 0;
+            bottom: 0;
+            left: 0;
             right: 0;
+            width: 100%;
+            height: 100%;
         }
         .pdf-page:nth-child(odd) .parity-bleed-container {
-            top: -${parityBleedingPx}px;
-            bottom: -${parityBleedingPx}px;
+            top: 0;
+            bottom: 0;
             left: 0;
-            right: -${parityBleedingPx}px;
+            right: 0;
+            width: 100%;
+            height: 100%;
         }
 
         @media print {
+            .bleed-guide-line, .global-trim-line {
+                display: none !important;
+            }
             html, body {
                 margin: 0 !important;
                 padding: 0 !important;
             }
             .pdf-page {
-                width: ${widthPx + bleedingPx}px !important;
-                height: ${heightPx + (bleedingPx * 2)}px !important;
-                min-height: ${heightPx + (bleedingPx * 2)}px !important;
                 box-sizing: border-box !important;
                 margin: 0 !important;
                 border: none !important;
                 box-shadow: none !important;
-                position: relative !important;
-            }
-            /* Even pages (spine is on the right, so no right bleed) */
-            .pdf-page:nth-child(even) {
-                padding: ${bleedingPx}px 0 ${bleedingPx}px ${bleedingPx}px !important;
-            }
-            /* Odd pages (spine is on the left, so no left bleed) */
-            .pdf-page:nth-child(odd) {
-                padding: ${bleedingPx}px ${bleedingPx}px ${bleedingPx}px 0 !important;
-            }
-
-            .pdf-page.pdf-page-has-bleed {
-                page: parity_bleed_page;
-                width: ${widthPx + parityBleedingPx}px !important;
-                height: ${heightPx + (parityBleedingPx * 2)}px !important;
-                min-height: ${heightPx + (parityBleedingPx * 2)}px !important;
-            }
-            .pdf-page.pdf-page-has-bleed:nth-child(even) {
-                padding: ${parityBleedingPx}px 0 ${parityBleedingPx}px ${parityBleedingPx}px !important;
-            }
-            .pdf-page.pdf-page-has-bleed:nth-child(odd) {
-                padding: ${parityBleedingPx}px ${parityBleedingPx}px ${parityBleedingPx}px 0 !important;
-            }
-            .pdf-page::after { display: none !important; }
-            .parity-bleed-container {
-                top: 0 !important;
-                bottom: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
             }
         }
 
@@ -113,50 +125,67 @@ function applyDynamicPDFStyles() {
         .pdf-page {
             display: flex !important;
             flex-direction: column !important;
-            width: ${widthPx}px !important;
-            height: ${heightPx}px !important;
-            min-height: ${heightPx}px !important;
-            padding: 0 !important;
-            margin-top: ${36 + bleedingPx}px !important;
-            margin-bottom: ${36 + bleedingPx}px !important;
-            border: ${bleeding > 0 ? '2px dashed #f59e0b' : '1px solid #e2e8f0'} !important;
+            width: ${widthPx + globalBleedPx}px !important;
+            height: ${heightPx + (globalBleedPx * 2)}px !important;
+            min-height: ${heightPx + (globalBleedPx * 2)}px !important;
+            margin-top: ${36 + globalBleedPx}px !important;
+            margin-bottom: ${36 + globalBleedPx}px !important;
+            border: 1px solid #e2e8f0 !important;
             position: relative;
             box-sizing: border-box !important;
             background-color: white !important;
             color: #1e293b !important;
         }
-        ${bleeding > 0 ? `
-        .pdf-page::after {
-            content: "Línea de Sangría (${bleeding}${unit})";
+
+        .pdf-page:nth-child(even) {
+            padding: ${globalBleedPx}px 0 ${globalBleedPx}px ${globalBleedPx}px !important;
+        }
+        .pdf-page:nth-child(odd) {
+            padding: ${globalBleedPx}px ${globalBleedPx}px ${globalBleedPx}px 0 !important;
+        }
+
+        .global-trim-line {
             position: absolute;
-            top: -15px; left: 0;
-            font-size: 8px;
-            color: #f59e0b;
-            font-family: sans-serif;
-            font-weight: bold;
-        }` : ''}
+            border: 1px dashed gray;
+            z-index: 20;
+            pointer-events: none;
+        }
+        .pdf-page:nth-child(even) .global-trim-line {
+            top: ${globalBleedPx}px;
+            bottom: ${globalBleedPx}px;
+            left: ${globalBleedPx}px;
+            right: 0;
+        }
+        .pdf-page:nth-child(odd) .global-trim-line {
+            top: ${globalBleedPx}px;
+            bottom: ${globalBleedPx}px;
+            right: ${globalBleedPx}px;
+            left: 0;
+        }
 
         /* ── Spread View (Pantalla) ── */
-        #pdf-scroller.spread-view {
-            display: grid !important;
-            grid-template-columns: max-content max-content;
-            justify-content: center;
-            column-gap: 0;
-            padding: 40px 0; /* Fallback top/bottom spacing instead of row-gap */
-        }
-        #pdf-scroller.spread-view .pdf-page {
-            margin-top: 40px !important;
-            margin-bottom: 40px !important;
-        }
-        /* ODD pages (Right side of the spread) -> Grid Column 2 */
-        #pdf-scroller.spread-view .pdf-page:nth-child(odd) {
-            grid-column: 2;
-            border-left: none !important; /* Remove double border in the middle */
-        }
-        /* EVEN pages (Left side of the spread) -> Grid Column 1 */
-        #pdf-scroller.spread-view .pdf-page:nth-child(even) {
-            grid-column: 1;
-            border-right: none !important; /* Remove double border in the middle */
+        @media screen {
+            #pdf-scroller.spread-view {
+                display: grid !important;
+                grid-template-columns: max-content max-content;
+                justify-content: center;
+                column-gap: 0;
+                padding: 40px 0; /* Fallback top/bottom spacing instead of row-gap */
+            }
+            #pdf-scroller.spread-view .pdf-page {
+                margin-top: 40px !important;
+                margin-bottom: 40px !important;
+            }
+            /* ODD pages (Right side of the spread) -> Grid Column 2 */
+            #pdf-scroller.spread-view .pdf-page:nth-child(odd) {
+                grid-column: 2;
+                border-left: none !important; /* Remove double border in the middle */
+            }
+            /* EVEN pages (Left side of the spread) -> Grid Column 1 */
+            #pdf-scroller.spread-view .pdf-page:nth-child(even) {
+                grid-column: 1;
+                border-right: none !important; /* Remove double border in the middle */
+            }
         }
 
         /* ── Cabecera ── */
@@ -200,8 +229,8 @@ function applyDynamicPDFStyles() {
             text-indent: ${toPx(settings.content_paragraph_indent !== undefined ? settings.content_paragraph_indent : 0.0, true)}px !important;
         }
         .pdf-content p.split-paragraph-start {
-            text-align-last: justify !important;
             margin-bottom: 0 !important;
+            text-align-last: justify !important;
         }
         .pdf-content p.split-paragraph-continuation {
             text-indent: 0 !important;
@@ -239,10 +268,27 @@ function applyDynamicPDFStyles() {
             font-size: ${toPx(settings.chapter_title_font_size || 24.0, true)}px !important;
             font-weight: ${settings.chapter_title_font_weight || 'bold'} !important;
             font-style: ${settings.chapter_title_font_style || 'normal'} !important;
+            text-transform: ${settings.chapter_title_text_transform || 'none'} !important;
             text-align: ${settings.chapter_title_align || 'center'} !important;
             padding-top: ${toPx(settings.chapter_title_padding_top || 0.0)}px !important;
             padding-bottom: ${toPx(settings.chapter_title_padding_bottom || 1.5)}px !important;
             line-height: ${settings.chapter_title_line_height || 1.2} !important;
+            margin: 0 !important;
+            page-break-after: avoid;
+            width: 100%;
+        }
+        
+        /* ── Título del Índice (TOC) ── */
+        .pdf-content .toc-main-title {
+            font-family: '${tocSettings.titleFontFamily}', serif !important;
+            font-size: ${toPx(tocSettings.titleFontSize, true)}px !important;
+            font-weight: ${tocSettings.titleFontWeight} !important;
+            font-style: ${tocSettings.titleFontStyle} !important;
+            text-transform: ${tocSettings.titleTextTransform} !important;
+            text-align: ${tocSettings.titleAlign} !important;
+            padding-top: ${toPx(tocSettings.titlePaddingTop)}px !important;
+            padding-bottom: ${toPx(tocSettings.titlePaddingBottom)}px !important;
+            line-height: ${tocSettings.titleLineHeight} !important;
             margin: 0 !important;
             page-break-after: avoid;
             width: 100%;
@@ -262,6 +308,49 @@ function applyDynamicPDFStyles() {
             font-style: ${settings.chapter_prefix_font_style || 'normal'} !important;
             letter-spacing: ${toPx(settings.chapter_prefix_letter_spacing || 0, true)}px !important;
             text-transform: uppercase;
+        }
+
+        /* ── Tabla de Contenidos (TOC) ── */
+        .toc-item {
+            display: flex;
+            align-items: flex-end;
+            width: 100%;
+            margin-bottom: 8px;
+            font-family: '${tocSettings.fontFamily}', serif !important;
+            font-size: ${toPx(tocSettings.fontSize, true)}px !important;
+            font-style: ${tocSettings.fontStyle} !important;
+            font-weight: ${tocSettings.fontWeight} !important;
+            text-transform: ${tocSettings.textTransform} !important;
+            letter-spacing: ${tocSettings.letterSpacing}px !important;
+            line-height: ${tocSettings.lineHeight} !important;
+            hyphens: none !important;
+        }
+        .toc-title-wrapper {
+            flex: 1;
+            position: relative;
+            text-align: left;
+            margin-right: 5px;
+        }
+        .toc-title-wrapper::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: ${tocSettings.leaderPosition === 'bottom' ? '0' : '4px'};
+            border-bottom: ${tocSettings.leaderStyle === 'none' ? 'none' : '1.5px ' + tocSettings.leaderStyle + ' #a0aec0'};
+            z-index: 0;
+        }
+        .toc-title {
+            display: inline;
+            background-color: white;
+            padding-right: 5px;
+            position: relative;
+            z-index: 1;
+        }
+        .toc-page {
+            flex-shrink: 0;
+            margin-left: 5px;
+            font-variant-numeric: tabular-nums;
         }
 
         .pdf-content .chapter-prefix-line {
@@ -339,13 +428,21 @@ function applyDynamicPDFStyles() {
 
         /* ── Notas al pie ── */
         .pdf-footnotes {
-            margin-top: ${toPx(0.5)}px !important;
-            padding-top: ${toPx(0.3)}px !important;
-            border-top: 1px solid #cbd5e1 !important;
+            padding-top: ${toPx(0.5)}px !important;
+            margin-top: 0 !important;
+            border-top: none !important;
             font-family: '${settings.font_family_content || 'Merriweather'}', serif !important;
             font-size: ${toPx((parseFloat(settings.font_size_content) || 11.5) * 0.8, true)}px !important;
             line-height: 1.4 !important;
             color: #475569 !important;
+        }
+
+        .pdf-footnotes::before {
+            content: '';
+            display: block;
+            width: 100%; /* El ancho del contenedor de texto, sin incluir el padding de la página */
+            border-top: 0.5px solid #000; /* Línea más fina posible y negra */
+            margin-bottom: ${toPx(0.3)}px; /* Espacio entre la línea y las notas */
         }
 
         .pdf-footnote-item {

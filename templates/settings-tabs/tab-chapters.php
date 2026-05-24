@@ -10,14 +10,7 @@
                                 <option value="even">Página par (Lado izquierdo)</option>
                             </select>
                         </div>
-                        <div id="parity-image-mode-wrapper" class="hidden">
-                            <label class="block text-[9px] text-[var(--text-muted)] mb-1">Imagen de Paridad (Modo)</label>
-                            <select id="setting-parity-image-mode" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                <option value="content">Ajustar al Contenido (Excluye Header/Footer)</option>
-                                <option value="bleed">Sangría (100% Página + 5mm Bleed)</option>
-                                <option value="fullpage">Pantalla Completa (100% Página sin Bleed)</option>
-                            </select>
-                        </div>
+
                     </div>
                 </div>
 
@@ -119,7 +112,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="grid grid-cols-4 gap-2 mb-2">
+                    <div class="grid grid-cols-5 gap-2 mb-2">
                         <div>
                             <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Tamaño (pt)</label>
                             <input id="setting-chapter-title-font-size" type="number" step="0.5" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -137,6 +130,13 @@
                             <select id="setting-chapter-title-font-style" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                 <option value="normal">Normal</option>
                                 <option value="italic">Cursiva</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Transformación</label>
+                            <select id="setting-chapter-title-text-transform" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="none">Normal</option>
+                                <option value="uppercase">ALL CAPS</option>
                             </select>
                         </div>
                         <div>

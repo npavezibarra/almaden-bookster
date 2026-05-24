@@ -12,20 +12,90 @@ function openChapterSettingsModal() {
     if (!activeChapter) return;
 
     // Cargar los valores del capítulo en el formulario
+    const isToc = activeChapter.is_toc === '1';
+    
+    // Toggle containers
+    const normalContainer = document.getElementById('normal-chapter-settings');
+    const tocContainer = document.getElementById('toc-chapter-settings');
+    
+    // Shared settings
+    document.getElementById('chapter_start_parity').value = activeChapter.start_parity || 'any';
+    
+    if (isToc) {
+        normalContainer.classList.add('hidden');
+        tocContainer.classList.remove('hidden');
+        
+        // Poblar las tipografías instaladas si no se ha hecho
+        const fontSelect = document.getElementById('chapter_toc_font_family');
+        const titleFontSelect = document.getElementById('chapter_toc_title_font_family');
+        
+        if (fontSelect && fontSelect.options.length === 0 && bookState.installedFonts) {
+            // Añadir fuente por defecto
+            fontSelect.innerHTML = '<option value="">Fuente por defecto (Merriweather)</option>';
+            if (titleFontSelect) {
+                titleFontSelect.innerHTML = '<option value="">Usar Global</option>';
+            }
+            bookState.installedFonts.forEach(font => {
+                const opt = document.createElement('option');
+                opt.value = font.family;
+                opt.textContent = font.family;
+                fontSelect.appendChild(opt);
+                
+                if (titleFontSelect) {
+                    const optTitle = document.createElement('option');
+                    optTitle.value = font.family;
+                    optTitle.textContent = font.family;
+                    titleFontSelect.appendChild(optTitle);
+                }
+            });
+        }
+
+        // Cargar valores TOC
+        document.getElementById('chapter_toc_font_size').value = activeChapter.toc_font_size || '';
+        document.getElementById('chapter_toc_enumerate').value = activeChapter.toc_enumerate || 'none';
+        document.getElementById('chapter_toc_font_family').value = activeChapter.toc_font_family || '';
+        document.getElementById('chapter_toc_font_style').value = activeChapter.toc_font_style || 'normal';
+        document.getElementById('chapter_toc_font_weight').value = activeChapter.toc_font_weight || 'normal';
+        document.getElementById('chapter_toc_text_transform').value = activeChapter.toc_text_transform || 'none';
+        document.getElementById('chapter_toc_letter_spacing').value = activeChapter.toc_letter_spacing || '';
+        document.getElementById('chapter_toc_line_height').value = activeChapter.toc_line_height || '';
+        document.getElementById('chapter_toc_leader_style').value = activeChapter.toc_leader_style || 'dotted';
+        document.getElementById('chapter_toc_leader_position').value = activeChapter.toc_leader_position || 'middle';
+        
+        // TOC Title Formats
+        document.getElementById('chapter_toc_title_align').value = activeChapter.toc_title_align || '';
+        document.getElementById('chapter_toc_page_one_vertical').value = activeChapter.toc_page_one_vertical || '';
+        document.getElementById('chapter_toc_title_font_family').value = activeChapter.toc_title_font_family || '';
+        document.getElementById('chapter_toc_title_font_size').value = activeChapter.toc_title_font_size || '';
+        document.getElementById('chapter_toc_title_font_style').value = activeChapter.toc_title_font_style || '';
+        document.getElementById('chapter_toc_title_text_transform').value = activeChapter.toc_title_text_transform || '';
+        document.getElementById('chapter_toc_title_font_weight').value = activeChapter.toc_title_font_weight || '';
+        document.getElementById('chapter_toc_title_padding_top').value = activeChapter.toc_title_padding_top || '';
+        document.getElementById('chapter_toc_title_padding_bottom').value = activeChapter.toc_title_padding_bottom || '';
+        document.getElementById('chapter_toc_title_line_height').value = activeChapter.toc_title_line_height || '';
+    } else {
+        normalContainer.classList.remove('hidden');
+        tocContainer.classList.add('hidden');
+        
+        // Cargar valores Normales
     document.getElementById('chapter_hide_title').checked = activeChapter.hide_title === '1';
     document.getElementById('chapter_custom_running_header').value = activeChapter.custom_running_header || '';
     document.getElementById('chapter_drop_cap_enabled').checked = activeChapter.drop_cap_enabled === '1';
     document.getElementById('chapter_disable_hyphenation').checked = activeChapter.disable_hyphenation === '1';
     document.getElementById('chapter_page_one_vertical').value = activeChapter.page_one_vertical || 'top';
-    document.getElementById('chapter_start_parity').value = activeChapter.start_parity || 'any';
     document.getElementById('chapter_first_page_header_type').value = activeChapter.first_page_header_type || 'global';
     document.getElementById('chapter_first_page_header_custom').value = activeChapter.first_page_header_custom || '';
     document.getElementById('chapter_first_page_footer_type').value = activeChapter.first_page_footer_type || 'global';
     document.getElementById('chapter_first_page_footer_custom').value = activeChapter.first_page_footer_custom || '';
     document.getElementById('chapter_parity_image_mode').value = activeChapter.parity_image_mode || 'content';
+    document.getElementById('chapter_parity_image_width').value = activeChapter.parity_image_width || '';
+    document.getElementById('chapter_parity_image_height').value = activeChapter.parity_image_height || '';
+
+    }
 
     toggleChapterCustomFirstPageHeader();
     toggleChapterCustomFirstPageFooter();
+    toggleParityImageSizeInputs();
 
     // Mostrar modal con animación
     modal.classList.remove('hidden');
@@ -63,18 +133,49 @@ function saveChapterSettings() {
         return;
     }
 
-    // Leer valores del formulario
-    activeChapter.hide_title = document.getElementById('chapter_hide_title').checked ? '1' : '0';
-    activeChapter.custom_running_header = document.getElementById('chapter_custom_running_header').value.trim();
-    activeChapter.drop_cap_enabled = document.getElementById('chapter_drop_cap_enabled').checked ? '1' : '0';
-    activeChapter.disable_hyphenation = document.getElementById('chapter_disable_hyphenation').checked ? '1' : '0';
-    activeChapter.page_one_vertical = document.getElementById('chapter_page_one_vertical').value;
+    const isToc = activeChapter.is_toc === '1';
+
+    // Shared settings
     activeChapter.start_parity = document.getElementById('chapter_start_parity').value;
-    activeChapter.first_page_header_type = document.getElementById('chapter_first_page_header_type').value;
-    activeChapter.first_page_header_custom = document.getElementById('chapter_first_page_header_custom').value;
-    activeChapter.first_page_footer_type = document.getElementById('chapter_first_page_footer_type').value;
-    activeChapter.first_page_footer_custom = document.getElementById('chapter_first_page_footer_custom').value;
-    activeChapter.parity_image_mode = document.getElementById('chapter_parity_image_mode').value;
+
+    if (isToc) {
+        activeChapter.toc_font_size = document.getElementById('chapter_toc_font_size').value;
+        activeChapter.toc_enumerate = document.getElementById('chapter_toc_enumerate').value;
+        activeChapter.toc_font_family = document.getElementById('chapter_toc_font_family').value;
+        activeChapter.toc_font_style = document.getElementById('chapter_toc_font_style').value;
+        activeChapter.toc_font_weight = document.getElementById('chapter_toc_font_weight').value;
+        activeChapter.toc_text_transform = document.getElementById('chapter_toc_text_transform').value;
+        activeChapter.toc_letter_spacing = document.getElementById('chapter_toc_letter_spacing').value;
+        activeChapter.toc_line_height = document.getElementById('chapter_toc_line_height').value;
+        activeChapter.toc_leader_style = document.getElementById('chapter_toc_leader_style').value;
+        activeChapter.toc_leader_position = document.getElementById('chapter_toc_leader_position').value;
+        
+        // TOC Title formats
+        activeChapter.toc_title_align = document.getElementById('chapter_toc_title_align').value;
+        activeChapter.toc_page_one_vertical = document.getElementById('chapter_toc_page_one_vertical').value;
+        activeChapter.toc_title_font_family = document.getElementById('chapter_toc_title_font_family').value;
+        activeChapter.toc_title_font_size = document.getElementById('chapter_toc_title_font_size').value;
+        activeChapter.toc_title_font_style = document.getElementById('chapter_toc_title_font_style').value;
+        activeChapter.toc_title_text_transform = document.getElementById('chapter_toc_title_text_transform').value;
+        activeChapter.toc_title_font_weight = document.getElementById('chapter_toc_title_font_weight').value;
+        activeChapter.toc_title_padding_top = document.getElementById('chapter_toc_title_padding_top').value;
+        activeChapter.toc_title_padding_bottom = document.getElementById('chapter_toc_title_padding_bottom').value;
+        activeChapter.toc_title_line_height = document.getElementById('chapter_toc_title_line_height').value;
+    } else {
+        // Leer valores del formulario
+        activeChapter.hide_title = document.getElementById('chapter_hide_title').checked ? '1' : '0';
+        activeChapter.custom_running_header = document.getElementById('chapter_custom_running_header').value.trim();
+        activeChapter.drop_cap_enabled = document.getElementById('chapter_drop_cap_enabled').checked ? '1' : '0';
+        activeChapter.disable_hyphenation = document.getElementById('chapter_disable_hyphenation').checked ? '1' : '0';
+        activeChapter.page_one_vertical = document.getElementById('chapter_page_one_vertical').value;
+        activeChapter.first_page_header_type = document.getElementById('chapter_first_page_header_type').value;
+        activeChapter.first_page_header_custom = document.getElementById('chapter_first_page_header_custom').value;
+        activeChapter.first_page_footer_type = document.getElementById('chapter_first_page_footer_type').value;
+        activeChapter.first_page_footer_custom = document.getElementById('chapter_first_page_footer_custom').value;
+        activeChapter.parity_image_mode = document.getElementById('chapter_parity_image_mode').value;
+        activeChapter.parity_image_width = document.getElementById('chapter_parity_image_width').value;
+        activeChapter.parity_image_height = document.getElementById('chapter_parity_image_height').value;
+    }
 
     // Cerrar modal
     closeChapterSettingsModal();
@@ -114,5 +215,17 @@ function toggleChapterCustomFirstPageFooter() {
     if (input) {
         if (type === 'custom') input.classList.remove('hidden');
         else input.classList.add('hidden');
+    }
+}
+
+function toggleParityImageSizeInputs() {
+    const mode = document.getElementById('chapter_parity_image_mode').value;
+    const wrapper = document.getElementById('parity_image_custom_size');
+    if (mode === 'custom') {
+        wrapper.classList.remove('hidden');
+        wrapper.classList.add('grid');
+    } else {
+        wrapper.classList.add('hidden');
+        wrapper.classList.remove('grid');
     }
 }

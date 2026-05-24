@@ -64,6 +64,33 @@ function almaden_bookster_save_book_ajax() {
 		$first_page_footer_type = isset( $chapter['first_page_footer_type'] ) ? sanitize_text_field( $chapter['first_page_footer_type'] ) : 'page_number';
 		$first_page_footer_custom = isset( $chapter['first_page_footer_custom'] ) ? sanitize_text_field( $chapter['first_page_footer_custom'] ) : '';
 		$parity_image_mode     = isset( $chapter['parity_image_mode'] ) ? sanitize_text_field( $chapter['parity_image_mode'] ) : 'content';
+		$parity_image_width    = isset( $chapter['parity_image_width'] ) ? sanitize_text_field( $chapter['parity_image_width'] ) : '';
+		$parity_image_height   = isset( $chapter['parity_image_height'] ) ? sanitize_text_field( $chapter['parity_image_height'] ) : '';
+		$is_toc                = isset( $chapter['is_toc'] ) ? sanitize_text_field( $chapter['is_toc'] ) : '0';
+		
+		// TOC metadata
+		$toc_font_family       = isset( $chapter['toc_font_family'] ) ? sanitize_text_field( $chapter['toc_font_family'] ) : '';
+		$toc_font_size         = isset( $chapter['toc_font_size'] ) ? sanitize_text_field( $chapter['toc_font_size'] ) : '';
+		$toc_enumerate         = isset( $chapter['toc_enumerate'] ) ? sanitize_text_field( $chapter['toc_enumerate'] ) : 'none';
+		$toc_font_style        = isset( $chapter['toc_font_style'] ) ? sanitize_text_field( $chapter['toc_font_style'] ) : 'normal';
+		$toc_font_weight       = isset( $chapter['toc_font_weight'] ) ? sanitize_text_field( $chapter['toc_font_weight'] ) : 'normal';
+		$toc_text_transform    = isset( $chapter['toc_text_transform'] ) ? sanitize_text_field( $chapter['toc_text_transform'] ) : 'none';
+		$toc_letter_spacing    = isset( $chapter['toc_letter_spacing'] ) ? sanitize_text_field( $chapter['toc_letter_spacing'] ) : '';
+		$toc_line_height       = isset( $chapter['toc_line_height'] ) ? sanitize_text_field( $chapter['toc_line_height'] ) : '';
+		$toc_leader_style      = isset( $chapter['toc_leader_style'] ) ? sanitize_text_field( $chapter['toc_leader_style'] ) : 'dotted';
+		$toc_leader_position   = isset( $chapter['toc_leader_position'] ) ? sanitize_text_field( $chapter['toc_leader_position'] ) : 'middle';
+		
+		$toc_title_align       = isset( $chapter['toc_title_align'] ) ? sanitize_text_field( $chapter['toc_title_align'] ) : '';
+		$toc_page_one_vertical = isset( $chapter['toc_page_one_vertical'] ) ? sanitize_text_field( $chapter['toc_page_one_vertical'] ) : '';
+		$toc_title_font_family = isset( $chapter['toc_title_font_family'] ) ? sanitize_text_field( $chapter['toc_title_font_family'] ) : '';
+		$toc_title_font_size   = isset( $chapter['toc_title_font_size'] ) ? sanitize_text_field( $chapter['toc_title_font_size'] ) : '';
+		$toc_title_font_style  = isset( $chapter['toc_title_font_style'] ) ? sanitize_text_field( $chapter['toc_title_font_style'] ) : '';
+		$toc_title_text_transform = isset( $chapter['toc_title_text_transform'] ) ? sanitize_text_field( $chapter['toc_title_text_transform'] ) : '';
+		$toc_title_font_weight = isset( $chapter['toc_title_font_weight'] ) ? sanitize_text_field( $chapter['toc_title_font_weight'] ) : '';
+		$toc_title_padding_top = isset( $chapter['toc_title_padding_top'] ) ? sanitize_text_field( $chapter['toc_title_padding_top'] ) : '';
+		$toc_title_padding_bottom = isset( $chapter['toc_title_padding_bottom'] ) ? sanitize_text_field( $chapter['toc_title_padding_bottom'] ) : '';
+		$toc_title_line_height = isset( $chapter['toc_title_line_height'] ) ? sanitize_text_field( $chapter['toc_title_line_height'] ) : '';
+		
 		$post_id = 0;
 		$is_new = false;
 
@@ -103,6 +130,32 @@ function almaden_bookster_save_book_ajax() {
 			update_post_meta( $post_id, '_first_page_footer_type', $first_page_footer_type );
 			update_post_meta( $post_id, '_first_page_footer_custom', $first_page_footer_custom );
 			update_post_meta( $post_id, '_parity_image_mode', $parity_image_mode );
+			update_post_meta( $post_id, '_parity_image_width', $parity_image_width );
+			update_post_meta( $post_id, '_parity_image_height', $parity_image_height );
+			update_post_meta( $post_id, '_is_toc', $is_toc );
+			
+			// TOC metadata
+			update_post_meta( $post_id, '_toc_font_family', $toc_font_family );
+			update_post_meta( $post_id, '_toc_font_size', $toc_font_size );
+			update_post_meta( $post_id, '_toc_enumerate', $toc_enumerate );
+			update_post_meta( $post_id, '_toc_font_style', $toc_font_style );
+			update_post_meta( $post_id, '_toc_font_weight', $toc_font_weight );
+			update_post_meta( $post_id, '_toc_text_transform', $toc_text_transform );
+			update_post_meta( $post_id, '_toc_letter_spacing', $toc_letter_spacing );
+			update_post_meta( $post_id, '_toc_line_height', $toc_line_height );
+			update_post_meta( $post_id, '_toc_leader_style', $toc_leader_style );
+			update_post_meta( $post_id, '_toc_leader_position', $toc_leader_position );
+			
+			update_post_meta( $post_id, '_toc_title_align', $toc_title_align );
+			update_post_meta( $post_id, '_toc_page_one_vertical', $toc_page_one_vertical );
+			update_post_meta( $post_id, '_toc_title_font_family', $toc_title_font_family );
+			update_post_meta( $post_id, '_toc_title_font_size', $toc_title_font_size );
+			update_post_meta( $post_id, '_toc_title_font_style', $toc_title_font_style );
+			update_post_meta( $post_id, '_toc_title_text_transform', $toc_title_text_transform );
+			update_post_meta( $post_id, '_toc_title_font_weight', $toc_title_font_weight );
+			update_post_meta( $post_id, '_toc_title_padding_top', $toc_title_padding_top );
+			update_post_meta( $post_id, '_toc_title_padding_bottom', $toc_title_padding_bottom );
+			update_post_meta( $post_id, '_toc_title_line_height', $toc_title_line_height );
 
 			$incoming_ids[] = $post_id;
 			
@@ -122,6 +175,29 @@ function almaden_bookster_save_book_ajax() {
 				'first_page_footer_type'  => $first_page_footer_type,
 				'first_page_footer_custom' => $first_page_footer_custom,
 				'parity_image_mode'     => $parity_image_mode,
+				'parity_image_width'    => $parity_image_width,
+				'parity_image_height'   => $parity_image_height,
+				'is_toc'                => $is_toc,
+				'toc_font_family'       => $toc_font_family,
+				'toc_font_size'         => $toc_font_size,
+				'toc_enumerate'         => $toc_enumerate,
+				'toc_font_style'        => $toc_font_style,
+				'toc_font_weight'       => $toc_font_weight,
+				'toc_text_transform'    => $toc_text_transform,
+				'toc_letter_spacing'    => $toc_letter_spacing,
+				'toc_line_height'       => $toc_line_height,
+				'toc_leader_style'      => $toc_leader_style,
+				'toc_leader_position'   => $toc_leader_position,
+				'toc_title_align'       => $toc_title_align,
+				'toc_page_one_vertical' => $toc_page_one_vertical,
+				'toc_title_font_family' => $toc_title_font_family,
+				'toc_title_font_size'   => $toc_title_font_size,
+				'toc_title_font_style'  => $toc_title_font_style,
+				'toc_title_text_transform' => $toc_title_text_transform,
+				'toc_title_font_weight' => $toc_title_font_weight,
+				'toc_title_padding_top' => $toc_title_padding_top,
+				'toc_title_padding_bottom' => $toc_title_padding_bottom,
+				'toc_title_line_height' => $toc_title_line_height,
 			);
 			
 			if ( $is_new ) {
@@ -170,7 +246,7 @@ function almaden_bookster_create_settings_table() {
 	global $wpdb;
 	$table_name = $wpdb->prefix . 'almaden_book_settings';
 	
-	if ( get_option( 'almaden_bookster_db_version' ) !== '1.8.4' ) {
+	if ( get_option( 'almaden_bookster_db_version' ) !== '1.8.5' ) {
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE $table_name (
@@ -243,6 +319,7 @@ function almaden_bookster_create_settings_table() {
 			chapter_title_padding_top float DEFAULT 0.0 NOT NULL,
 			chapter_title_padding_bottom float DEFAULT 1.5 NOT NULL,
 			chapter_title_line_height float DEFAULT 1.2 NOT NULL,
+			chapter_title_text_transform varchar(20) DEFAULT 'none' NOT NULL,
 			chapter_prefix_show tinyint(1) DEFAULT 0 NOT NULL,
 			chapter_prefix_template varchar(50) DEFAULT 'Capítulo {N}' NOT NULL,
 			chapter_prefix_position varchar(20) DEFAULT 'above' NOT NULL,
@@ -265,7 +342,7 @@ function almaden_bookster_create_settings_table() {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 
-		update_option( 'almaden_bookster_db_version', '1.8.4' );
+		update_option( 'almaden_bookster_db_version', '1.8.5' );
 	}
 }
 add_action( 'init', 'almaden_bookster_create_settings_table' );
@@ -351,6 +428,7 @@ function almaden_bookster_save_settings_ajax() {
 		'chapter_title_padding_top'  => floatval( str_replace( ',', '.', $_POST['chapter_title_padding_top'] ) ),
 		'chapter_title_padding_bottom'=> floatval( str_replace( ',', '.', $_POST['chapter_title_padding_bottom'] ) ),
 		'chapter_title_line_height'  => isset($_POST['chapter_title_line_height']) ? floatval( str_replace( ',', '.', $_POST['chapter_title_line_height'] ) ) : 1.2,
+		'chapter_title_text_transform'=> isset($_POST['chapter_title_text_transform']) ? sanitize_text_field( $_POST['chapter_title_text_transform'] ) : 'none',
 		'chapter_prefix_show'        => isset($_POST['chapter_prefix_show']) ? intval($_POST['chapter_prefix_show']) : 0,
 		'chapter_prefix_template'    => sanitize_text_field( $_POST['chapter_prefix_template'] ),
 		'chapter_prefix_position'    => sanitize_text_field( $_POST['chapter_prefix_position'] ),

@@ -23,7 +23,25 @@ function getPageDimensions() {
 }
 
 async function triggerPrint() {
-    await compilePDFPreview();
+    // Si estaba en modo rápido, forzamos compilación completa para poder imprimir el libro entero
+    const previousMode = window.currentPreviewMode;
+    if (window.currentPreviewMode !== 'full') {
+        const scroller = document.getElementById('pdf-scroller');
+        if (scroller) {
+            scroller.innerHTML = '<div class="flex items-center justify-center h-full w-full text-indigo-500 gap-2"><i class="fa-solid fa-spinner fa-spin"></i> Preparando libro completo para imprimir...</div>';
+        }
+        window.currentPreviewMode = 'full';
+        
+        // Esperar a que el navegador dibuje el loading
+        await new Promise(resolve => setTimeout(resolve, 50));
+        await compilePDFPreview();
+        
+        // Update select UI
+        const select = document.getElementById('preview-mode-select');
+        if (select) select.value = 'full';
+    } else {
+        await compilePDFPreview();
+    }
 
     const { width, height, unit } = getPageDimensions();
 

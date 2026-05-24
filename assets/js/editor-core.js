@@ -12,6 +12,9 @@ const DEFAULT_CHAPTERS = [
     }
 ];
 
+// Estado global para el modo de renderizado ('active' o 'full')
+window.currentPreviewMode = 'active';
+
 // Al iniciar la aplicación
 window.onload = function() {
     // Cargar tema de LocalStorage si existe (preferencia visual)
@@ -115,6 +118,24 @@ function initEventListeners() {
         btnManualSave.addEventListener('click', () => {
             saveStateToLocalStorage(true); // Pasar true para guardar y compilar de inmediato
         });
+    }
+}
+
+// Cambiar modo de Vista Previa
+function changePreviewMode(mode) {
+    window.currentPreviewMode = mode;
+    // Mostrar un pequeño indicador de carga si es full
+    if (mode === 'full') {
+        const scroller = document.getElementById('pdf-scroller');
+        if (scroller) {
+            scroller.innerHTML = '<div class="flex items-center justify-center h-full w-full text-indigo-500 gap-2"><i class="fa-solid fa-spinner fa-spin"></i> Compilando libro completo...</div>';
+        }
+        // Usar un setTimeout para permitir que el DOM renderice el spinner antes de congelar
+        setTimeout(() => {
+            compilePDFPreview();
+        }, 100);
+    } else {
+        compilePDFPreview();
     }
 }
 

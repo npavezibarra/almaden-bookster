@@ -23,6 +23,8 @@ function updateWordCounts() {
     }
 }
 
+let draggedChapterIndex = null;
+
 // Renderiza los capítulos en la barra lateral con interacciones premium
 function renderSidebar() {
     const listContainer = document.getElementById('chapters-list');
@@ -44,7 +46,9 @@ function renderSidebar() {
             <div class="flex items-center gap-3 overflow-hidden">
                 <span class="text-xs font-bold text-indigo-500/80 dark:text-indigo-400/80 group-hover:scale-110 transition-transform">${index + 1}</span>
                 <div class="truncate">
-                    <h4 class="text-sm font-semibold truncate ${isActive ? 'text-indigo-700 dark:text-indigo-400' : 'text-[var(--text-main)]'}">${chapter.title || 'Capítulo sin título'}</h4>
+                    <h4 class="text-sm font-semibold truncate ${isActive ? 'text-indigo-700 dark:text-indigo-400' : 'text-[var(--text-main)]'}">
+                        ${chapter.is_toc == '1' ? '<i class="fa-solid fa-list-ol mr-1"></i> ' : ''}${chapter.title || 'Capítulo sin título'}
+                    </h4>
                     <p class="text-[10px] text-[var(--text-muted)] truncate">${getExcerpt(chapter.content)}</p>
                 </div>
             </div>
@@ -58,6 +62,57 @@ function renderSidebar() {
                 </button>
             </div>
         `;
+
+        chapterEl.setAttribute('draggable', 'true');
+        
+        chapterEl.addEventListener('dragstart', (e) => {
+            draggedChapterIndex = index;
+            e.dataTransfer.effectAllowed = 'move';
+            // setTimeout prevents the element from disappearing while being dragged
+            setTimeout(() => {
+                chapterEl.classList.add('opacity-30', 'scale-95');
+                document.body.classList.add('is-dragging-chapter');
+            }, 0);
+        });
+
+        chapterEl.addEventListener('dragend', (e) => {
+            chapterEl.classList.remove('opacity-30', 'scale-95');
+            document.body.classList.remove('is-dragging-chapter');
+            draggedChapterIndex = null;
+            renderSidebar();
+        });
+
+        chapterEl.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        });
+
+        chapterEl.addEventListener('dragenter', (e) => {
+            e.preventDefault();
+            if (draggedChapterIndex !== null && draggedChapterIndex !== index) {
+                chapterEl.classList.add('ring-2', 'ring-indigo-500', 'ring-offset-1', 'scale-[1.02]', 'bg-indigo-50', 'dark:bg-indigo-900/40');
+                chapterEl.classList.remove('border-transparent');
+            }
+        });
+
+        chapterEl.addEventListener('dragleave', (e) => {
+            chapterEl.classList.remove('ring-2', 'ring-indigo-500', 'ring-offset-1', 'scale-[1.02]', 'bg-indigo-50', 'dark:bg-indigo-900/40');
+            if (!isActive) chapterEl.classList.add('border-transparent');
+        });
+
+        chapterEl.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (draggedChapterIndex !== null && draggedChapterIndex !== index) {
+                const draggedItem = bookState.chapters.splice(draggedChapterIndex, 1)[0];
+                bookState.chapters.splice(index, 0, draggedItem);
+                
+                renderSidebar();
+                saveStateToLocalStorage();
+                showToast("Capítulos reordenados", "fa-solid fa-sort");
+            }
+        });
 
         listContainer.appendChild(chapterEl);
     });
@@ -90,7 +145,7 @@ function loadActiveChapter() {
         if (titleInput) titleInput.value = chapter.title;
         if (textInput) textInput.value = chapter.content;
         updateWordCounts();
-        compilePDFPreview();
+        compilePDFPreview(true);
     } else if (bookState.chapters.length > 0) {
         // Si el activo no existe pero hay capítulos, seleccionar el primero
         bookState.activeChapterId = bookState.chapters[0].id;
@@ -100,26 +155,34 @@ function loadActiveChapter() {
         if (titleInput) titleInput.value = '';
         if (textInput) textInput.value = '';
         updateWordCounts();
-        compilePDFPreview();
+        compilePDFPreview(true);
     }
 }
 
 // Selecciona un capítulo específico
 function selectChapter(id) {
     bookState.activeChapterId = id;
+    localStorage.setItem(`almaden_active_chapter_${bookState.bookId}`, id);
     loadActiveChapter();
     renderSidebar();
     saveStateToLocalStorage();
 }
 
 // Crea un nuevo capítulo
-function createNewChapter() {
+function createNewChapter(isToc = false) {
+    // Si ya existe un TOC, no permitir otro
+    if (isToc && bookState.chapters.some(c => c.is_toc == '1')) {
+        showToast("Ya existe un Índice", "fa-solid fa-circle-exclamation");
+        return;
+    }
+
     const newIndex = bookState.chapters.length + 1;
     const newId = `cap-${Date.now()}`;
     const newChapter = {
         id: newId,
-        title: `Capítulo ${newIndex}: Título Nuevo`,
-        content: `# Capítulo ${newIndex}\n## Título Nuevo\n\nComienza a escribir la historia de este capítulo aquí...`
+        title: isToc ? 'Índice' : `Capítulo ${newIndex}: Título Nuevo`,
+        content: isToc ? `En este capítulo se generará automáticamente el Índice de contenidos.` : `# Capítulo ${newIndex}\n## Título Nuevo\n\nComienza a escribir la historia de este capítulo aquí...`,
+        is_toc: isToc ? '1' : '0'
     };
 
     bookState.chapters.push(newChapter);

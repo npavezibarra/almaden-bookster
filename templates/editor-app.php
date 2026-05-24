@@ -7,8 +7,59 @@ if ( ! $book || $book->post_type !== 'almaden-books' ) {
 }
 
 $book_title = $book->post_title;
-$saved_chapters = get_post_meta( $book_id, '_almaden_chapters', true );
+$chapter_posts = get_posts( array(
+	'post_type'      => 'book_chapter',
+	'post_parent'    => $book_id,
+	'posts_per_page' => -1,
+	'orderby'        => 'menu_order',
+	'order'          => 'ASC',
+) );
 
+$saved_chapters = array();
+if ( $chapter_posts ) {
+	foreach ( $chapter_posts as $cp ) {
+		$saved_chapters[] = array(
+			'id'                       => strval( $cp->ID ),
+			'title'                    => $cp->post_title,
+			'content'                  => $cp->post_content,
+			'parity_image'             => get_post_meta( $cp->ID, '_parity_image', true ),
+			'hide_title'               => get_post_meta( $cp->ID, '_hide_title', true ),
+			'custom_running_header'    => get_post_meta( $cp->ID, '_custom_running_header', true ),
+			'drop_cap_enabled'         => get_post_meta( $cp->ID, '_drop_cap_enabled', true ),
+			'disable_hyphenation'      => get_post_meta( $cp->ID, '_disable_hyphenation', true ),
+			'page_one_vertical'        => get_post_meta( $cp->ID, '_page_one_vertical', true ),
+			'start_parity'             => get_post_meta( $cp->ID, '_start_parity', true ),
+			'first_page_header_type'   => get_post_meta( $cp->ID, '_first_page_header_type', true ),
+			'first_page_header_custom' => get_post_meta( $cp->ID, '_first_page_header_custom', true ),
+			'first_page_footer_type'   => get_post_meta( $cp->ID, '_first_page_footer_type', true ),
+			'first_page_footer_custom' => get_post_meta( $cp->ID, '_first_page_footer_custom', true ),
+			'parity_image_mode'        => get_post_meta( $cp->ID, '_parity_image_mode', true ),
+			'parity_image_width'       => get_post_meta( $cp->ID, '_parity_image_width', true ),
+			'parity_image_height'      => get_post_meta( $cp->ID, '_parity_image_height', true ),
+			'is_toc'                   => get_post_meta( $cp->ID, '_is_toc', true ),
+			'toc_font_family'          => get_post_meta( $cp->ID, '_toc_font_family', true ),
+			'toc_font_size'            => get_post_meta( $cp->ID, '_toc_font_size', true ),
+			'toc_enumerate'            => get_post_meta( $cp->ID, '_toc_enumerate', true ),
+			'toc_font_style'           => get_post_meta( $cp->ID, '_toc_font_style', true ),
+			'toc_font_weight'          => get_post_meta( $cp->ID, '_toc_font_weight', true ),
+			'toc_text_transform'       => get_post_meta( $cp->ID, '_toc_text_transform', true ),
+			'toc_letter_spacing'       => get_post_meta( $cp->ID, '_toc_letter_spacing', true ),
+			'toc_line_height'          => get_post_meta( $cp->ID, '_toc_line_height', true ),
+			'toc_leader_style'         => get_post_meta( $cp->ID, '_toc_leader_style', true ),
+			'toc_leader_position'      => get_post_meta( $cp->ID, '_toc_leader_position', true ),
+			'toc_title_align'          => get_post_meta( $cp->ID, '_toc_title_align', true ),
+			'toc_page_one_vertical'    => get_post_meta( $cp->ID, '_toc_page_one_vertical', true ),
+			'toc_title_font_family'    => get_post_meta( $cp->ID, '_toc_title_font_family', true ),
+			'toc_title_font_size'      => get_post_meta( $cp->ID, '_toc_title_font_size', true ),
+			'toc_title_font_style'     => get_post_meta( $cp->ID, '_toc_title_font_style', true ),
+			'toc_title_text_transform' => get_post_meta( $cp->ID, '_toc_title_text_transform', true ),
+			'toc_title_font_weight'    => get_post_meta( $cp->ID, '_toc_title_font_weight', true ),
+			'toc_title_padding_top'    => get_post_meta( $cp->ID, '_toc_title_padding_top', true ),
+			'toc_title_padding_bottom' => get_post_meta( $cp->ID, '_toc_title_padding_bottom', true ),
+			'toc_title_line_height'    => get_post_meta( $cp->ID, '_toc_title_line_height', true ),
+		);
+	}
+}
 if ( ! is_array( $saved_chapters ) || empty( $saved_chapters ) ) {
 	$saved_chapters = array(
 		array(
@@ -95,6 +146,16 @@ $pdf_settings = array(
 	'chapter_title_padding_top'  => 0.0,
 	'chapter_title_padding_bottom'=> 1.5,
 	'chapter_title_line_height'  => 1.2,
+	'chapter_title_text_transform' => 'none',
+	'chapter_prefix_show'        => 0,
+	'chapter_prefix_template'    => 'Capítulo {N}',
+	'chapter_prefix_position'    => 'above',
+	'chapter_prefix_font_family' => 'Playfair Display',
+	'chapter_prefix_font_size'   => 16.0,
+	'chapter_prefix_font_weight' => 'normal',
+	'chapter_prefix_font_style'  => 'normal',
+	'chapter_prefix_letter_spacing' => 0.0,
+	'chapter_prefix_ornament'    => 'none',
 	'header_margin_top'          => 1.0,
 	'header_margin_bottom'       => 0.5,
 	'header_align'               => 'center',
@@ -205,6 +266,9 @@ $google_fonts_url = 'https://fonts.googleapis.com/css2?' . implode( '&', array_m
     <link rel="stylesheet" href="<?php echo esc_url( plugins_url( '../assets/css/editor-style.css?v=' . time(), __FILE__ ) ); ?>">
     <!-- Estilos dinámicos de maquetación del PDF -->
     <style id="dynamic-pdf-settings"></style>
+    <style>
+        .is-dragging-chapter .group * { pointer-events: none; }
+    </style>
     <script>
         var ajaxurl = "<?php echo admin_url( 'admin-ajax.php' ); ?>";
     </script>
@@ -259,7 +323,7 @@ $google_fonts_url = 'https://fonts.googleapis.com/css2?' . implode( '&', array_m
                 </button>
             </div>
 
-            <!-- Botones de Exportación -->
+            <!-- Botones de Acción -->
             <div class="flex gap-2">
                 <button onclick="toggleSettingsModal(true)" class="p-2 border border-[var(--border-color)] hover:bg-[var(--bg-app)] rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] transition" title="Configuración de Maquetación del PDF">
                     <i class="fa-solid fa-gear"></i>
@@ -276,15 +340,21 @@ $google_fonts_url = 'https://fonts.googleapis.com/css2?' . implode( '&', array_m
     <div class="flex flex-1 overflow-hidden relative">
 
         <!-- BARRA LATERAL IZQUIERDA -->
-        <aside id="sidebar" class="w-80 border-r border-[var(--border-color)] bg-[var(--bg-sidebar)] flex flex-col justify-between transition-all z-20 no-print">
-            <div class="p-4 flex flex-col flex-1 overflow-y-auto">
-                <button onclick="createNewChapter()" class="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 mb-6">
+        <aside id="sidebar" class="w-80 border-r border-[var(--border-color)] bg-[var(--bg-sidebar)] flex flex-col justify-between transition-all z-20 no-print h-full">
+            <div class="p-4 shrink-0 pb-2 flex gap-2">
+                <button onclick="createNewChapter(false)" class="flex-1 py-3 px-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1 text-sm">
                     <i class="fa-solid fa-plus-circle"></i>
-                    Crear Capítulo
+                    Capítulo
                 </button>
+                <button onclick="createNewChapter(true)" class="flex-1 py-3 px-2 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1 text-sm" title="Crear Índice">
+                    <i class="fa-solid fa-list-ol"></i>
+                    Índice
+                </button>
+            </div>
 
+            <div class="px-4 pb-4 flex flex-col flex-1 overflow-y-auto">
                 <!-- Listado de Capítulos -->
-                <div class="flex-1">
+                <div class="flex-1 mt-2">
                     <div class="flex items-center justify-between mb-3 px-2">
                         <span class="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Índice de Capítulos</span>
                         <span id="chapter-count" class="text-xs bg-indigo-100 text-indigo-800 dark:bg-slate-800 dark:text-indigo-400 font-bold px-2 py-0.5 rounded-full">0</span>
@@ -399,6 +469,11 @@ $google_fonts_url = 'https://fonts.googleapis.com/css2?' . implode( '&', array_m
                     <!-- Contador local del Capítulo -->
                     <div class="text-xs font-semibold flex items-center gap-3">
                         <span id="current-word-count">0 palabras</span>
+                        <div class="h-4 w-px bg-[var(--border-color)] mx-1"></div>
+                        <button onclick="saveStateToLocalStorage(true)" id="toolbar-save-btn" class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800/50 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded transition flex items-center gap-1.5" title="Guardar cambios (Ctrl+S / Cmd+S)">
+                            <i class="fa-solid fa-floppy-disk text-[10px]"></i>
+                            <span>Guardar</span>
+                        </button>
                     </div>
                 </div>
 
@@ -430,9 +505,14 @@ $google_fonts_url = 'https://fonts.googleapis.com/css2?' . implode( '&', array_m
                 <!-- Barra informativa superior de página -->
                 <div class="h-12 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] px-4 flex items-center justify-between text-xs text-[var(--text-muted)] no-print">
                     <span class="font-semibold uppercase tracking-wider flex items-center gap-1">
-                        <i class="fa-solid fa-magnifying-glass-doc text-xs text-indigo-500"></i> Vista Previa Maquetada
+                        <i class="fa-solid fa-magnifying-glass-doc text-xs text-indigo-500"></i> Vista Previa
                     </span>
-                    <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <select id="preview-mode-select" onchange="changePreviewMode(this.value)" class="bg-transparent border border-[var(--border-color)] rounded px-1 py-0.5 text-[10px] sm:text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            <option value="active">Solo Cap. Actual (Rápido)</option>
+                            <option value="full">Libro Completo (Lento)</option>
+                        </select>
+                        <div class="h-4 w-px bg-[var(--border-color)]"></div>
                         <button id="btn-toggle-spread" class="text-[var(--text-muted)] hover:text-indigo-500 transition-colors" title="Alternar Vista a Doble Página">
                             <i class="fa-solid fa-file-lines"></i>
                         </button>
@@ -465,7 +545,7 @@ $google_fonts_url = 'https://fonts.googleapis.com/css2?' . implode( '&', array_m
         let bookState = {
             title: <?php echo json_encode( $book_title ); ?>,
             chapters: <?php echo json_encode( $saved_chapters ); ?>,
-            activeChapterId: <?php echo json_encode( !empty($saved_chapters) ? $saved_chapters[0]['id'] : '' ); ?>,
+            activeChapterId: localStorage.getItem('almaden_active_chapter_<?php echo $book_id; ?>') || <?php echo json_encode( !empty($saved_chapters) ? $saved_chapters[0]['id'] : '' ); ?>,
             theme: "light",
             viewMode: "split",
             bookId: <?php echo $book_id; ?>,
