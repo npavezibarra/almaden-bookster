@@ -1,3 +1,15 @@
+// Manejo del estado, editor y lógica principal
+
+window.editorLastSelection = { start: 0, end: 0 };
+
+function trackEditorSelection() {
+    const textarea = document.getElementById('editor-textarea');
+    if (textarea && document.activeElement === textarea) {
+        window.editorLastSelection.start = textarea.selectionStart;
+        window.editorLastSelection.end = textarea.selectionEnd;
+    }
+}
+
 // Datos del libro por defecto (si el usuario ingresa por primera vez)
 const DEFAULT_CHAPTERS = [
     {
@@ -76,7 +88,19 @@ function initEventListeners() {
                 saveStateToLocalStorage();
             }
         });
+
+        // Rastrear la selección para restaurarla al hacer clic en botones
+        textarea.addEventListener('mouseup', trackEditorSelection);
+        textarea.addEventListener('keyup', trackEditorSelection);
+        textarea.addEventListener('focus', trackEditorSelection);
     }
+    
+    document.addEventListener('selectionchange', () => {
+        const textarea = document.getElementById('editor-textarea');
+        if (textarea && document.activeElement === textarea) {
+            trackEditorSelection();
+        }
+    });
 
     if (chapterTitle) {
         chapterTitle.addEventListener('input', () => {
@@ -263,6 +287,13 @@ function wrapText(prefix, suffix) {
     const textarea = document.getElementById('editor-textarea');
     if (!textarea) return;
     
+    // Si el textarea no tiene el foco (ej: se hizo clic en un botón de la toolbar),
+    // restaurar la última selección conocida
+    if (document.activeElement !== textarea && typeof window.editorLastSelection !== 'undefined') {
+        textarea.selectionStart = window.editorLastSelection.start || 0;
+        textarea.selectionEnd = window.editorLastSelection.end || 0;
+    }
+
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const text = textarea.value;

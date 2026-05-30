@@ -23,6 +23,15 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
         return key;
     });
 
+    // Extraer bloques [html]...[/html] para permitir inyección de código puro sin escapar
+    const rawHtmlPlaceholders = {};
+    let rawHtmlCounter = 0;
+    cleanMarkdown = cleanMarkdown.replace(/\[html\]([\s\S]*?)\[\/html\]/gi, (match, content) => {
+        const key = `%%RAW_HTML_PLACEHOLDER_${rawHtmlCounter++}%%`;
+        rawHtmlPlaceholders[key] = content;
+        return key;
+    });
+
     // Extraer shortcodes de maquetación antes de escapar el HTML
     const shortcodePlaceholders = {};
     let scCounter = 0;
@@ -203,6 +212,11 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
 
     // Restaurar placeholders de imágenes como bloques HTML reales
     let result = compiledBlocks.join('\n');
+    for (const [key, rawHtml] of Object.entries(rawHtmlPlaceholders)) {
+        // Des-envolver el placeholder de la etiqueta <p> si se generó
+        result = result.replace(new RegExp(`<p>\\s*${key}\\s*<\\/p>`, 'g'), key);
+        result = result.replace(key, rawHtml);
+    }
     for (const [key, imgTag] of Object.entries(imgPlaceholders)) {
         result = result.replace(key, imgTag);
     }
