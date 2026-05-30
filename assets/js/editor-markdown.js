@@ -23,6 +23,65 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
         return key;
     });
 
+    // Extraer shortcodes de maquetación antes de escapar el HTML
+    const shortcodePlaceholders = {};
+    let scCounter = 0;
+
+    // [box style="..."] ... [/box]
+    cleanMarkdown = cleanMarkdown.replace(/\[box\s*([^\]]*)\]/gi, (match, attrs) => {
+        const key = `%%SC_PLACEHOLDER_${scCounter++}%%`;
+        shortcodePlaceholders[key] = `<div class="almaden-box" ${attrs}>`;
+        return key;
+    });
+    cleanMarkdown = cleanMarkdown.replace(/\[\/box\]/gi, () => {
+        const key = `%%SC_PLACEHOLDER_${scCounter++}%%`;
+        shortcodePlaceholders[key] = `</div>`;
+        return key;
+    });
+
+    // [columns style="..."] ... [/columns]
+    cleanMarkdown = cleanMarkdown.replace(/\[columns\s*([^\]]*)\]/gi, (match, attrs) => {
+        const key = `%%SC_PLACEHOLDER_${scCounter++}%%`;
+        shortcodePlaceholders[key] = `<div class="almaden-columns" style="display:flex; gap: 1rem; width: 100%;" ${attrs}>`;
+        return key;
+    });
+    cleanMarkdown = cleanMarkdown.replace(/\[\/columns\]/gi, () => {
+        const key = `%%SC_PLACEHOLDER_${scCounter++}%%`;
+        shortcodePlaceholders[key] = `</div>`;
+        return key;
+    });
+
+    // [col style="..."] ... [/col]
+    cleanMarkdown = cleanMarkdown.replace(/\[col\s*([^\]]*)\]/gi, (match, attrs) => {
+        const key = `%%SC_PLACEHOLDER_${scCounter++}%%`;
+        shortcodePlaceholders[key] = `<div class="almaden-col" style="flex:1;" ${attrs}>`;
+        return key;
+    });
+    cleanMarkdown = cleanMarkdown.replace(/\[\/col\]/gi, () => {
+        const key = `%%SC_PLACEHOLDER_${scCounter++}%%`;
+        shortcodePlaceholders[key] = `</div>`;
+        return key;
+    });
+
+    // [align=center] ... [/align]
+    cleanMarkdown = cleanMarkdown.replace(/\[align=([a-zA-Z]+)\]/gi, (match, align) => {
+        const key = `%%SC_PLACEHOLDER_${scCounter++}%%`;
+        shortcodePlaceholders[key] = `<div class="almaden-align-${align}" style="text-align: ${align};">`;
+        return key;
+    });
+    cleanMarkdown = cleanMarkdown.replace(/\[\/align\]/gi, () => {
+        const key = `%%SC_PLACEHOLDER_${scCounter++}%%`;
+        shortcodePlaceholders[key] = `</div>`;
+        return key;
+    });
+
+    // [page_break] o [pagebreak]
+    cleanMarkdown = cleanMarkdown.replace(/\[page[-_]?break\]/gi, () => {
+        const key = `%%SC_PLACEHOLDER_${scCounter++}%%`;
+        shortcodePlaceholders[key] = `<div class="pdf-page-break"></div>`;
+        return key;
+    });
+
     // Escapar etiquetas HTML para evitar rotura del DOM
     let html = cleanMarkdown
         .replace(/&/g, "&amp;")
@@ -40,6 +99,18 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
 
     // Convertir etiquetas de idioma: [lang:en]Word[/lang]
     html = html.replace(/\[lang:([a-zA-Z]{2})\]([\s\S]*?)\[\/lang\]/g, '<span lang="$1" class="lang-wrapper bg-indigo-50/50 border border-indigo-100 rounded print:bg-transparent print:border-transparent" title="Idioma: $1"><em>$2</em><sup class="print:hidden text-indigo-400 text-[8px] font-mono ml-0.5 select-none">$1</sup></span>');
+
+    // Inline shortcodes: [size=24]texto[/size]
+    html = html.replace(/\[size=([0-9]+(?:\.[0-9]+)?)(px|pt|em|rem)?\]([\s\S]*?)\[\/size\]/gi, (match, val, unit, content) => {
+        const u = unit || 'px'; // Default a px si no se especifica unidad
+        return `<span style="font-size: ${val}${u};">${content}</span>`;
+    });
+
+    // Inline shortcodes: [font="Roboto"]texto[/font]
+    // Consideramos posibles escapes de comillas que hace la línea anterior: &quot; o &#039;
+    html = html.replace(/\[font=(?:&quot;|&#039;|"|')([^\]]+?)(?:&quot;|&#039;|"|')\]([\s\S]*?)\[\/font\]/gi, (match, fontName, content) => {
+        return `<span style="font-family: '${fontName}', serif;">${content}</span>`;
+    });
 
     // Reemplazar referencias inline de notas al pie
     html = html.replace(/\[\^([^\]]+)\]/g, (match, id) => {
@@ -111,6 +182,11 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
             if (inList) { compiledBlocks.push(`</${listType}>`); inList = false; }
             compiledBlocks.push(line); // se restaurará con el img real después
         }
+        // Shortcodes estructurales (placeholder %%SC_PLACEHOLDER_N%%)
+        else if (/^%%SC_PLACEHOLDER_\d+%%$/.test(line)) {
+            if (inList) { compiledBlocks.push(`</${listType}>`); inList = false; }
+            compiledBlocks.push(line); // se restaurará con el div real después
+        }
         // Párrafos convencionales de libro
         else {
             if (inList) {
@@ -129,6 +205,12 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
     let result = compiledBlocks.join('\n');
     for (const [key, imgTag] of Object.entries(imgPlaceholders)) {
         result = result.replace(key, imgTag);
+    }
+    // Restaurar placeholders de shortcodes
+    for (const [key, divTag] of Object.entries(shortcodePlaceholders)) {
+        // Evitar que los shortcodes (como [box], [align]) queden envueltos en <p>
+        result = result.replace(new RegExp(`<p>\\s*${key}\\s*<\\/p>`, 'g'), key);
+        result = result.replace(key, divTag);
     }
     compiledBlocks = result.split('\n');
 

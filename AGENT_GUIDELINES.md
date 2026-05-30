@@ -17,6 +17,11 @@ La modularidad extrema es la prioridad de este proyecto. Si la implementación d
 
 *Cualquier código que incumpla estas reglas será considerado como un fallo en la implementación de la arquitectura.*
 
+## Contexto Obligatorio (READMEs)
+
+**Antes de crear o modificar cualquier archivo dentro de una carpeta específica, el Agente AI DEBE buscar y leer el archivo `README.md` de ese directorio (si existe).**
+Este archivo contendrá la información arquitectónica de las responsabilidades de los archivos dentro del módulo. Modificar código sin entender la arquitectura descrita en el `README.md` está estrictamente prohibido.
+
 ## Conexión a Base de Datos (Local by Flywheel)
 
 Para operaciones directas en la base de datos MySQL, utilizar el siguiente socket:

@@ -450,3 +450,26 @@ function removeLanguage() {
     document.getElementById('lang-dropdown').classList.add('hidden');
 }
 
+// Funciones para aplicar estilos desde la barra de herramientas
+function applyFontSize() {
+    const input = document.getElementById('toolbar-font-size');
+    if (input && input.value) {
+        wrapText(`[size=${input.value}]`, '[/size]');
+        // Devolvemos el foco al editor
+        const textarea = document.getElementById('editor-textarea');
+        if (textarea) textarea.focus();
+    }
+}
+
+function applyFontFamily(fontName) {
+    if (fontName) {
+        wrapText(`[font="${fontName}"]`, '[/font]');
+        // Reset the select box to show "Fuente..." again
+        const select = document.getElementById('toolbar-font-family');
+        if (select) select.selectedIndex = 0;
+        
+        const textarea = document.getElementById('editor-textarea');
+        if (textarea) textarea.focus();
+    }
+}
+

@@ -228,10 +228,37 @@ function applyDynamicPDFStyles() {
             margin-bottom: ${toPx(settings.content_paragraph_spacing !== undefined ? settings.content_paragraph_spacing : 14.0, true)}px !important;
             text-indent: ${toPx(settings.content_paragraph_indent !== undefined ? settings.content_paragraph_indent : 0.0, true)}px !important;
         }
+
+        .pdf-content .almaden-align-center, .pdf-content .almaden-align-center p {
+            text-align: center !important;
+            text-indent: 0 !important;
+        }
+        
+        .pdf-content .almaden-align-left, .pdf-content .almaden-align-left p {
+            text-align: left !important;
+            text-indent: 0 !important;
+        }
+
+        .pdf-content .almaden-align-right, .pdf-content .almaden-align-right p {
+            text-align: right !important;
+            text-indent: 0 !important;
+        }
+
+        .pdf-content .almaden-align-justify, .pdf-content .almaden-align-justify p {
+            text-align: justify !important;
+            text-indent: ${toPx(settings.content_paragraph_indent !== undefined ? settings.content_paragraph_indent : 0.0, true)}px !important;
+        }
+
         .pdf-content p.split-paragraph-start {
             margin-bottom: 0 !important;
             text-align-last: justify !important;
         }
+
+        .pdf-content p:last-child {
+            margin-bottom: 0 !important;
+            text-align-last: auto !important;
+        }
+        
         .pdf-content p.split-paragraph-continuation {
             text-indent: 0 !important;
         }
@@ -254,7 +281,6 @@ function applyDynamicPDFStyles() {
 
         /* ── Imágenes ── */
         .pdf-content img.pdf-book-image {
-            width: 100% !important;
             max-width: 100% !important;
             height: auto !important;
             display: block !important;
