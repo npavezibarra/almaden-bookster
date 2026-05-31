@@ -61,8 +61,13 @@ window.onload = function() {
     
     // Inicializar el conteo de páginas oculto para tener todos los capítulos medidos
     if (window.currentPreviewMode === 'active' && typeof window.calculateAllPagesBackground === 'function') {
-        setTimeout(() => {
-            window.calculateAllPagesBackground();
+        setTimeout(async () => {
+            await window.calculateAllPagesBackground();
+            // Después de calcular todas las páginas, re-renderizamos la vista activa
+            // para que actualice los números de página (especialmente útil si estamos viendo el Índice)
+            if (typeof compilePDFPreview === 'function') {
+                compilePDFPreview(false, 'pdf-scroller', false);
+            }
         }, 1000); // Dar 1 segundo para que la página cargue completa
     }
     
