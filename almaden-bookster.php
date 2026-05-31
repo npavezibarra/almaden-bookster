@@ -231,6 +231,12 @@ function almaden_bookster_save_book_ajax() {
 			'post_title' => $title,
 		) );
 	}
+	
+	// Guardar total de páginas compiladas
+	$total_pages = isset( $_POST['total_pages'] ) ? intval( $_POST['total_pages'] ) : 0;
+	if ( $total_pages >= 0 ) {
+		update_post_meta( $book_id, '_almaden_total_pages', $total_pages );
+	}
 
 	wp_send_json_success( array( 
 		'message'  => 'Libro guardado con éxito.',

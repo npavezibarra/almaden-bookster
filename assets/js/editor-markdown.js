@@ -107,7 +107,7 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
     html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
 
     // Convertir etiquetas de idioma: [lang:en]Word[/lang]
-    html = html.replace(/\[lang:([a-zA-Z]{2})\]([\s\S]*?)\[\/lang\]/g, '<span lang="$1" class="lang-wrapper bg-indigo-50/50 border border-indigo-100 rounded print:bg-transparent print:border-transparent" title="Idioma: $1"><em>$2</em><sup class="print:hidden text-indigo-400 text-[8px] font-mono ml-0.5 select-none">$1</sup></span>');
+    html = html.replace(/\[lang:([a-zA-Z]{2})\]([\s\S]*?)\[\/lang\]/g, '<span lang="$1"><em>$2</em></span>');
 
     // Inline shortcodes: [size=24]texto[/size]
     html = html.replace(/\[size=([0-9]+(?:\.[0-9]+)?)(px|pt|em|rem)?\]([\s\S]*?)\[\/size\]/gi, (match, val, unit, content) => {

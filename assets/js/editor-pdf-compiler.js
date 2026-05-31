@@ -8,18 +8,20 @@
 // se han movido a editor-pdf-dom.js para cumplir con los límites de tamaño.
 // Paginación interactiva: divide inteligentemente el contenido en hojas virtuales
 window._pdfCompileCounter = 0;
-async function compilePDFPreview(scrollToActive = false) {
+async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf-scroller', forceFull = false) {
     try {
         const currentVersion = ++window._pdfCompileCounter;
-        const scroller = document.getElementById('pdf-scroller');
+        const scroller = document.getElementById(targetScrollerId);
         if (!scroller) return;
     
-    const previousScrollTop = scroller.scrollTop;
+    const previousScrollTop = scroller.scrollTop || 0;
 
     if (!bookState.chapters || bookState.chapters.length === 0) {
-        scroller.innerHTML = '<div class="text-center text-slate-400 py-10">Crea o selecciona un capítulo para comenzar.</div>';
-        const indicator = document.getElementById('pdf-page-indicator');
-        if (indicator) indicator.textContent = '0 Páginas';
+        if (targetScrollerId === 'pdf-scroller') {
+            scroller.innerHTML = '<div class="text-center text-slate-400 py-10">Crea o selecciona un capítulo para comenzar.</div>';
+            const indicator = document.getElementById('pdf-page-indicator');
+            if (indicator) indicator.textContent = '0 Páginas';
+        }
         return;
     }
 
@@ -64,40 +66,46 @@ async function compilePDFPreview(scrollToActive = false) {
 
     scroller.innerHTML = '';
     let currentPageNumber = 1;
-    window.bookChapterPages = {};
+    
+    if (forceFull || window.currentPreviewMode === 'full') {
+        window.bookChapterPages = {};
+        window.bookChapterPreParityPages = {};
+    }
 
     for (let index = 0; index < bookState.chapters.length; index++) {
         const chapter = bookState.chapters[index];
         
         // Optimización: Si estamos en modo "active" (Capítulo Actual), omitimos los demás
-        if (window.currentPreviewMode === 'active' && chapter.id !== bookState.activeChapterId) {
+        if (!forceFull && window.currentPreviewMode === 'active' && chapter.id !== bookState.activeChapterId) {
             continue;
         }
-        // Determinar paridad
+        
+        // Si estamos en modo active, recuperamos el número de página real ANTES de aplicar paridad
+        if (!forceFull && window.currentPreviewMode === 'active') {
+            currentPageNumber = (window.bookChapterPreParityPages && window.bookChapterPreParityPages[chapter.id]) ? window.bookChapterPreParityPages[chapter.id] : 1;
+        }
+
+        // Guardamos el número de página antes de la paridad (para cuando estemos en active)
+        window.bookChapterPreParityPages = window.bookChapterPreParityPages || {};
+        window.bookChapterPreParityPages[chapter.id] = currentPageNumber;
+
+        // Determinar paridad (AHORA SI se ejecuta en modo active)
         const chapterStartParity = (chapter.start_parity && chapter.start_parity !== 'any') ? chapter.start_parity : settings.chapter_start_parity;
         
         if (index > 0 && chapterStartParity && chapterStartParity !== 'any') {
             const isOdd = (currentPageNumber % 2 === 1);
             if (chapterStartParity === 'odd') {
                 if (!isOdd) {
-                    // Terminó en impar -> página actual es par (Izquierda).
-                    // Insertamos la página de paridad o página en blanco a la izquierda.
                     const blankPage = window.createNewPageElement(currentPageNumber, chapter, false, true);
                     blankPage.setAttribute('data-chapter-id', chapter.id);
                     scroller.appendChild(blankPage);
                     currentPageNumber++;
                 } else {
-                    // Terminó en par -> página actual es impar (Derecha).
-                    // Como el capítulo DEBE iniciar a la derecha, y su imagen de paridad a la izquierda,
-                    // debemos insertar UNA página impar intencionalmente en blanco, y luego UNA página par con la paridad.
-                    
-                    // 1. Página en blanco pura a la derecha (Odd)
                     const pureBlankPage = window.createNewPageElement(currentPageNumber, { ...chapter, parity_image: null }, false, true);
                     pureBlankPage.setAttribute('data-chapter-id', chapter.id);
                     scroller.appendChild(pureBlankPage);
                     currentPageNumber++;
 
-                    // 2. Página de paridad a la izquierda (Even)
                     const parityPage = window.createNewPageElement(currentPageNumber, chapter, false, true);
                     parityPage.setAttribute('data-chapter-id', chapter.id);
                     scroller.appendChild(parityPage);
@@ -112,6 +120,7 @@ async function compilePDFPreview(scrollToActive = false) {
         }
 
         // Registrar la página de inicio del capítulo
+        window.bookChapterPages = window.bookChapterPages || {};
         window.bookChapterPages[chapter.id] = currentPageNumber;
 
         // Extraer definiciones de notas al pie de este capítulo
@@ -353,7 +362,7 @@ async function compilePDFPreview(scrollToActive = false) {
             if (effectiveHeight + footnotesHeight > currentMaxContentHeight) {
                 // Intento dividir el nodo
                 let remainderNode = null;
-                if (clonedNode.tagName === 'P') {
+                if (['P', 'UL', 'OL', 'DIV', 'BLOCKQUOTE'].includes(clonedNode.tagName)) {
                     // splitParagraphAcrossPages modifica clonedNode inplace (dejando solo lo que cabe)
                     remainderNode = window.splitParagraphAcrossPages(clonedNode, currentInnerContainer, footnotesHeight, currentMaxContentHeight);
                 }
@@ -379,22 +388,27 @@ async function compilePDFPreview(scrollToActive = false) {
                             lastChild = currentInnerContainer.lastElementChild;
                         }
                     }
-                } else {
+                } else if (remainderNode === true) {
+                    // El párrafo cupo completo gracias a la remoción del margin-bottom durante el test.
+                    // No hacemos nada, se queda en esta página.
+                } else if (remainderNode && remainderNode.textContent.trim() !== '') {
                     // Se dividió. remainderNode tiene la segunda mitad.
                     childNodes.unshift(remainderNode);
 
                     // --- NUEVA LÓGICA: Prevención de viuda de encabezado + 1 sola línea ---
-                    const prevElement = clonedNode.previousElementSibling;
-                    if (prevElement && /^H[123]$/.test(prevElement.tagName)) {
-                        // Si la porción que quedó es menor a ~45px y NO estamos ya al principio de la página
-                        // (length > 2 significa que hay algo antes del encabezado y el texto actual)
-                        if (clonedNode.offsetHeight < 45 && currentInnerContainer.childNodes.length > 2) {
-                            currentInnerContainer.removeChild(clonedNode);
-                            const orphanedHeading = currentInnerContainer.removeChild(prevElement);
-                            
-                            childNodes.shift(); // Quitar el remainderNode
-                            childNodes.unshift(node); // Encolar P original completo
-                            childNodes.unshift(orphanedHeading); // Encolar encabezado
+                    if (remainderNode && remainderNode !== true) {
+                        const prevElement = clonedNode.previousElementSibling;
+                        if (prevElement && /^H[123]$/.test(prevElement.tagName)) {
+                            // Si la porción que quedó es menor a ~45px y NO estamos ya al principio de la página
+                            // (length > 2 significa que hay algo antes del encabezado y el texto actual)
+                            if (clonedNode.offsetHeight < 45 && currentInnerContainer.childNodes.length > 2) {
+                                currentInnerContainer.removeChild(clonedNode);
+                                const orphanedHeading = currentInnerContainer.removeChild(prevElement);
+                                
+                                childNodes.shift(); // Quitar el remainderNode
+                                childNodes.unshift(node); // Encolar P original completo
+                                childNodes.unshift(orphanedHeading); // Encolar encabezado
+                            }
                         }
                     }
                 }
@@ -491,22 +505,59 @@ async function compilePDFPreview(scrollToActive = false) {
         }
     });
 
+    // Calcular la cantidad de páginas de cada capítulo
+    window.bookChapterLengths = window.bookChapterLengths || {};
     const totalPages = currentPageNumber - 1;
+
+    if (forceFull || window.currentPreviewMode === 'full') {
+        bookState.chapters.forEach((ch, idx) => {
+            const start = window.bookChapterPages[ch.id];
+            const nextStart = idx + 1 < bookState.chapters.length ? window.bookChapterPages[bookState.chapters[idx+1].id] : currentPageNumber;
+            window.bookChapterLengths[ch.id] = nextStart - start;
+        });
+    } else if (window.currentPreviewMode === 'active' && targetScrollerId === 'pdf-scroller') {
+        window.bookChapterLengths[bookState.activeChapterId] = currentPageNumber - (window.bookChapterPages[bookState.activeChapterId] || 1);
+    }
+
+    let globalTotalPages = 0;
+    if (Object.keys(window.bookChapterLengths).length > 0) {
+        Object.values(window.bookChapterLengths).forEach(val => {
+            globalTotalPages += (parseInt(val) || 0);
+        });
+    } else {
+        globalTotalPages = totalPages;
+    }
+
+    const totalPagesSidebarEl = document.getElementById('total-pages-sidebar');
+    if (totalPagesSidebarEl) {
+        totalPagesSidebarEl.textContent = globalTotalPages;
+    }
+    
+    if (typeof renderSidebar === 'function' && targetScrollerId === 'pdf-scroller') {
+        renderSidebar();
+    }
     if (tempContainer.parentNode) document.body.removeChild(tempContainer);
 
-    const indicator = document.getElementById('pdf-page-indicator');
-    if (indicator) indicator.textContent = `${totalPages} ${totalPages === 1 ? 'Página' : 'Páginas'}`;
-
-    if (scrollToActive) {
-        // Scroll suave al capítulo activo
-        setTimeout(() => {
-            const activePage = scroller.querySelector(`.pdf-page[data-chapter-id="${bookState.activeChapterId}"]`);
-            if (activePage) activePage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-    } else {
-        // Restaurar scroll previo para evitar saltos al auto-guardar
-        scroller.scrollTop = previousScrollTop;
+    if (targetScrollerId === 'pdf-scroller') {
+        const indicator = document.getElementById('pdf-page-indicator');
+        let displayedPages = scroller.querySelectorAll('.pdf-page').length;
+        if (indicator) indicator.textContent = `${displayedPages} ${displayedPages === 1 ? 'Página' : 'Páginas'}`;
     }
+
+        if (targetScrollerId === 'pdf-scroller') {
+            if (scrollToActive) {
+                // Scroll suave al capítulo activo
+                setTimeout(() => {
+                    const activePage = scroller.querySelector(`.pdf-page[data-chapter-id="${bookState.activeChapterId}"]`);
+                    if (activePage) activePage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            } else {
+                // Restaurar scroll previo para evitar saltos al auto-guardar
+                scroller.scrollTop = previousScrollTop;
+            }
+        }
+        
+        return totalPages;
     } catch (e) {
         console.error("PDF Compiler Error:", e);
         alert("CRITICAL ERROR in PDF Compiler:\n" + e.message + "\nLine: " + e.lineNumber + "\nStack:\n" + e.stack);

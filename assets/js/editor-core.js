@@ -59,6 +59,13 @@ window.onload = function() {
     // Aplicar maquetación dinámica del PDF
     applyDynamicPDFStyles();
     
+    // Inicializar el conteo de páginas oculto para tener todos los capítulos medidos
+    if (window.currentPreviewMode === 'active' && typeof window.calculateAllPagesBackground === 'function') {
+        setTimeout(() => {
+            window.calculateAllPagesBackground();
+        }, 1000); // Dar 1 segundo para que la página cargue completa
+    }
+    
     // Configurar visibilidad del botón de imagen de paridad
     if (typeof updateParityButtonVisibility === 'function') {
         updateParityButtonVisibility();

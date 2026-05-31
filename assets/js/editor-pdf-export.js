@@ -92,6 +92,7 @@ async function triggerPrint() {
                 max-height: ${height}${unit} !important;
                 transform: none !important;
                 box-sizing: border-box !important;
+                padding: 0 !important;
             }
             .pdf-page:last-child {
                 page-break-after: auto !important;

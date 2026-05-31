@@ -42,13 +42,21 @@ function renderSidebar() {
         }`;
         chapterEl.setAttribute('onclick', `selectChapter('${chapter.id}')`);
 
+        let chapterPagesStr = '';
+        if (window.bookChapterLengths && window.bookChapterLengths[chapter.id] !== undefined) {
+            chapterPagesStr = `<span class="text-[9px] text-indigo-400 font-medium whitespace-nowrap"><i class="fa-regular fa-file-lines mr-0.5"></i> ${window.bookChapterLengths[chapter.id]} p.</span>`;
+        }
+
         chapterEl.innerHTML = `
-            <div class="flex items-center gap-3 overflow-hidden">
+            <div class="flex items-center gap-3 overflow-hidden w-full">
                 <span class="text-xs font-bold text-indigo-500/80 dark:text-indigo-400/80 group-hover:scale-110 transition-transform">${index + 1}</span>
-                <div class="truncate">
-                    <h4 class="text-sm font-semibold truncate ${isActive ? 'text-indigo-700 dark:text-indigo-400' : 'text-[var(--text-main)]'}">
-                        ${chapter.is_toc == '1' ? '<i class="fa-solid fa-list-ol mr-1"></i> ' : ''}${chapter.title || 'Capítulo sin título'}
-                    </h4>
+                <div class="truncate flex-1">
+                    <div class="flex items-center justify-between gap-2">
+                        <h4 class="text-sm font-semibold truncate ${isActive ? 'text-indigo-700 dark:text-indigo-400' : 'text-[var(--text-main)]'}">
+                            ${chapter.is_toc == '1' ? '<i class="fa-solid fa-list-ol mr-1"></i> ' : ''}${chapter.title || 'Capítulo sin título'}
+                        </h4>
+                        ${chapterPagesStr}
+                    </div>
                     <p class="text-[10px] text-[var(--text-muted)] truncate">${getExcerpt(chapter.content)}</p>
                 </div>
             </div>
@@ -245,15 +253,51 @@ function saveStateToLocalStorage(immediate = false) {
 
     clearTimeout(saveTimeout);
 
-    const executeSave = () => {
+    const calculateAllPagesBackground = async () => {
+        let dummyScroller = document.getElementById('dummy-pdf-scroller');
+        if (!dummyScroller) {
+            dummyScroller = document.createElement('div');
+            dummyScroller.id = 'dummy-pdf-scroller';
+            dummyScroller.style.position = 'absolute';
+            dummyScroller.style.visibility = 'hidden';
+            dummyScroller.style.pointerEvents = 'none';
+            dummyScroller.style.zIndex = '-9999';
+            dummyScroller.style.top = '0';
+            dummyScroller.style.left = '0';
+            // Necesitamos que tenga dimensiones similares al visor real para que CSS de las páginas funcione igual
+            const realScroller = document.getElementById('pdf-scroller');
+            if (realScroller) {
+                dummyScroller.style.width = realScroller.clientWidth + 'px';
+            }
+            document.body.appendChild(dummyScroller);
+        }
+        
+        // Esperamos el cálculo del motor PDF (forceFull = true)
+        const totalPages = await compilePDFPreview(false, 'dummy-pdf-scroller', true);
+        dummyScroller.innerHTML = ''; // Liberar memoria
+        return totalPages;
+    };
+    
+    window.calculateAllPagesBackground = calculateAllPagesBackground;
+
+    const executeSave = async () => {
         saveTimeout = null;
         if (statusIndicator) {
             statusIndicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs mr-1"></i> Guardando...';
             statusIndicator.className = 'flex items-center gap-1 font-semibold text-amber-500';
         }
         
+        let totalPages = 0;
+        
         // Compilar PDF JUSTO ANTES de guardar (para que refleje los cambios recientes)
         if (typeof compilePDFPreview === 'function') {
+            // 1. Calcular las páginas reales totales en background de forma invisible PRIMERO
+            // Esto actualiza window.bookChapterPages con las posiciones correctas
+            if (typeof calculateAllPagesBackground === 'function') {
+                totalPages = await calculateAllPagesBackground();
+            }
+            
+            // 2. Actualizar la vista principal normalmente AHORA, usando los datos frescos
             compilePDFPreview();
         }
 
@@ -263,6 +307,7 @@ function saveStateToLocalStorage(immediate = false) {
         data.append('nonce', bookState.nonce);
         data.append('title', bookState.title);
         data.append('chapters', JSON.stringify(bookState.chapters));
+        data.append('total_pages', totalPages || 0);
 
         fetch(bookState.ajaxUrl, {
             method: 'POST',

@@ -6,11 +6,18 @@
 
 // Helper para dividir párrafos entre páginas
 window.splitParagraphAcrossPages = function(pNode, innerContainer, footnotesHeight, maxTotalHeight) {
-    if (pNode.tagName !== 'P') return null;
+    if (!['P', 'UL', 'OL', 'DIV', 'BLOCKQUOTE'].includes(pNode.tagName)) return null;
+    
+    // Aplicar clase tempranamente para que el cálculo de altura ignore el margin-bottom
+    // que será removido de todas formas al dividir el párrafo, evitando huecos al final.
+    pNode.classList.add('split-paragraph-start');
+    
     const originalChildNodes = Array.from(pNode.childNodes);
     pNode.innerHTML = '';
     
     const secondHalfNode = pNode.cloneNode(false);
+    secondHalfNode.classList.remove('split-paragraph-start');
+    
     let overflowed = false;
 
     function getEffectiveHeight() {
@@ -131,6 +138,15 @@ window.splitParagraphAcrossPages = function(pNode, innerContainer, footnotesHeig
 
     originalChildNodes.forEach(child => processChild(child, pNode, secondHalfNode));
     if (pNode.textContent.trim() === '') return null;
+    
+    // Si la segunda mitad no tiene texto, significa que el párrafo completo cupo
+    // perfectamente en la página actual (gracias a que le quitamos el margin-bottom).
+    if (secondHalfNode.textContent.trim() === '') {
+        // En este caso, no necesitamos que sea un "split-paragraph-start", ya que no se dividió.
+        // Pero lo dejamos así o le devolvemos su estado. Mejor solo retornamos true.
+        pNode.classList.remove('split-paragraph-start');
+        return true; 
+    }
     
     // --- FIX FOR HANGING HYPHENS AND INDENTATION ON SPLIT PARAGRAPHS ---
     pNode.classList.add('split-paragraph-start');

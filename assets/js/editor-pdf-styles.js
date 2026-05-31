@@ -88,7 +88,7 @@ function applyDynamicPDFStyles() {
         }
 
         /* ── Screen Parity Bleed (3-sided) ── */
-        .pdf-page:nth-child(even) .parity-bleed-container {
+        .pdf-page.page-even .parity-bleed-container {
             top: 0;
             bottom: 0;
             left: 0;
@@ -96,7 +96,7 @@ function applyDynamicPDFStyles() {
             width: 100%;
             height: 100%;
         }
-        .pdf-page:nth-child(odd) .parity-bleed-container {
+        .pdf-page.page-odd .parity-bleed-container {
             top: 0;
             bottom: 0;
             left: 0;
@@ -137,10 +137,10 @@ function applyDynamicPDFStyles() {
             color: #1e293b !important;
         }
 
-        .pdf-page:nth-child(even) {
+        .pdf-page.page-even {
             padding: ${globalBleedPx}px 0 ${globalBleedPx}px ${globalBleedPx}px !important;
         }
-        .pdf-page:nth-child(odd) {
+        .pdf-page.page-odd {
             padding: ${globalBleedPx}px ${globalBleedPx}px ${globalBleedPx}px 0 !important;
         }
 
@@ -150,13 +150,13 @@ function applyDynamicPDFStyles() {
             z-index: 20;
             pointer-events: none;
         }
-        .pdf-page:nth-child(even) .global-trim-line {
+        .pdf-page.page-even .global-trim-line {
             top: ${globalBleedPx}px;
             bottom: ${globalBleedPx}px;
             left: ${globalBleedPx}px;
             right: 0;
         }
-        .pdf-page:nth-child(odd) .global-trim-line {
+        .pdf-page.page-odd .global-trim-line {
             top: ${globalBleedPx}px;
             bottom: ${globalBleedPx}px;
             right: ${globalBleedPx}px;
@@ -177,12 +177,12 @@ function applyDynamicPDFStyles() {
                 margin-bottom: 40px !important;
             }
             /* ODD pages (Right side of the spread) -> Grid Column 2 */
-            #pdf-scroller.spread-view .pdf-page:nth-child(odd) {
+            #pdf-scroller.spread-view .pdf-page.page-odd {
                 grid-column: 2;
                 border-left: none !important; /* Remove double border in the middle */
             }
             /* EVEN pages (Left side of the spread) -> Grid Column 1 */
-            #pdf-scroller.spread-view .pdf-page:nth-child(even) {
+            #pdf-scroller.spread-view .pdf-page.page-even {
                 grid-column: 1;
                 border-right: none !important; /* Remove double border in the middle */
             }
@@ -213,6 +213,7 @@ function applyDynamicPDFStyles() {
             font-family: '${settings.font_family_content || 'Merriweather'}', serif !important;
             font-size: ${toPx(settings.font_size_content || 11.5, true)}px !important;
             line-height: ${settings.line_height_content || 1.65} !important;
+            overflow: visible !important;
         }
         .pdf-content p, .pdf-content ul, .pdf-content ol {
             font-family: '${settings.font_family_content || 'Merriweather'}', serif !important;
@@ -249,12 +250,32 @@ function applyDynamicPDFStyles() {
             text-indent: ${toPx(settings.content_paragraph_indent !== undefined ? settings.content_paragraph_indent : 0.0, true)}px !important;
         }
 
-        .pdf-content p.split-paragraph-start {
+        .pdf-content p.split-paragraph-start,
+        .pdf-content ul.split-paragraph-start,
+        .pdf-content ol.split-paragraph-start,
+        .pdf-content div.split-paragraph-start,
+        .pdf-content blockquote.split-paragraph-start {
             margin-bottom: 0 !important;
-            text-align-last: justify !important;
+            text-align-last: justify !important; /* Mantiene la justificación perfecta en la última línea */
+        }
+        
+        /* Desactivar text-align-last justify en listas para evitar que los items se estiren raro */
+        .pdf-content ul.split-paragraph-start,
+        .pdf-content ol.split-paragraph-start {
+            text-align-last: auto !important;
         }
 
-        .pdf-content p:last-child {
+        /* ── Párrafos Continuación (segunda mitad tras el salto) ── */
+        .pdf-content p.split-paragraph-continuation,
+        .pdf-content ul.split-paragraph-continuation,
+        .pdf-content ol.split-paragraph-continuation,
+        .pdf-content div.split-paragraph-continuation,
+        .pdf-content blockquote.split-paragraph-continuation {
+            text-indent: 0 !important;
+            margin-top: 0 !important;
+        }
+
+        .pdf-content p:last-child:not(.split-paragraph-start) {
             margin-bottom: 0 !important;
             text-align-last: auto !important;
         }
@@ -501,17 +522,17 @@ function applyDynamicPDFStyles() {
         }
 
         /* ── Márgenes laterales por paridad ── */
-        .pdf-page:nth-child(odd) .pdf-header,
-        .pdf-page:nth-child(odd) .pdf-content,
-        .pdf-page:nth-child(odd) .pdf-footnotes,
-        .pdf-page:nth-child(odd) .pdf-footer {
+        .pdf-page.page-odd .pdf-header,
+        .pdf-page.page-odd .pdf-content,
+        .pdf-page.page-odd .pdf-footnotes,
+        .pdf-page.page-odd .pdf-footer {
             padding-left: ${toPx(parseFloat(settings.margin_left_odd  ?? settings.margin_left  ?? 2) + parseFloat(settings.padding_left  ?? 0))}px !important;
             padding-right: ${toPx(parseFloat(settings.margin_right_odd ?? settings.margin_right ?? 2) + parseFloat(settings.padding_right ?? 0))}px !important;
         }
-        .pdf-page:nth-child(even) .pdf-header,
-        .pdf-page:nth-child(even) .pdf-content,
-        .pdf-page:nth-child(even) .pdf-footnotes,
-        .pdf-page:nth-child(even) .pdf-footer {
+        .pdf-page.page-even .pdf-header,
+        .pdf-page.page-even .pdf-content,
+        .pdf-page.page-even .pdf-footnotes,
+        .pdf-page.page-even .pdf-footer {
             padding-left: ${toPx(parseFloat(settings.margin_left_even  ?? settings.margin_left  ?? 2) + parseFloat(settings.padding_left  ?? 0))}px !important;
             padding-right: ${toPx(parseFloat(settings.margin_right_even ?? settings.margin_right ?? 2) + parseFloat(settings.padding_right ?? 0))}px !important;
         }

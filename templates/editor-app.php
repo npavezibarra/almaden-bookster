@@ -129,9 +129,13 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
                         <i class="fa-solid fa-cloud-arrow-up text-xs"></i> Guardado
                     </span>
                 </div>
-                <div class="flex justify-between text-xs text-[var(--text-muted)]">
+                <div class="flex justify-between text-xs text-[var(--text-muted)] mb-1">
                     <span>Palabras Totales:</span>
                     <span id="total-words" class="font-bold text-[var(--text-main)]">0</span>
+                </div>
+                <div class="flex justify-between text-xs text-[var(--text-muted)]">
+                    <span>Páginas Totales:</span>
+                    <span id="total-pages-sidebar" class="font-bold text-[var(--text-main)]"><?php echo esc_html( get_post_meta( $book_id, '_almaden_total_pages', true ) ?: '-' ); ?></span>
                 </div>
                 <!-- Mini manual rápido -->
                 <div class="mt-3 p-2 bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg text-[10px] text-[var(--text-muted)] leading-relaxed">

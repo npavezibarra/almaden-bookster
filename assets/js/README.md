@@ -46,3 +46,17 @@ El motor PDF es el componente más complejo de la aplicación, encargado de simu
 
 - **`admin-fonts-page.js`**:
   A diferencia del resto, este archivo **no** se carga en el editor del frontend. Su única función es brindar interactividad a la pantalla de configuración en el WP Admin Dashboard, concretamente para subir, procesar y eliminar archivos tipográficos personalizados (TTF, WOFF).
+
+## Problemas Conocidos y Correcciones Críticas
+
+Para futuros mantenedores, documentamos las soluciones a dos problemas complejos de renderizado que surgieron durante el desarrollo del motor PDF:
+
+### 1. Letras "decapitadas" (Clipping Horizontal)
+- **El Problema:** La primera o última línea de la página se veía cortada horizontalmente (especialmente los trazos altos y bajos como la tilde o la cola de la "p").
+- **La Causa:** El contenedor `.pdf-content` tenía la propiedad `overflow: hidden;`. Al intentar meter "con calzador" el texto basándose en la altura de línea matemática, la tinta que sobresale de la caja de la línea (típico en fuentes serif altas como Merriweather) era rebanada por el contenedor como si fuera una guillotina.
+- **La Solución:** Siempre asegurar que `.pdf-content` mantenga `overflow: visible !important`. La paginación evita que se rompa el layout, así que no necesitamos guillotinas CSS.
+
+### 2. Espacios en Blanco o Borde Irregular al Final de la Página (Ragged Right Edge)
+- **El Problema:** La última línea de texto de una página, antes de continuar en la siguiente, no se justificaba hacia la derecha (quedaba alineada a la izquierda o irregular).
+- **La Causa:** Había un conflicto de especificidad CSS en `editor-pdf-styles.js`. La regla `.pdf-content p:last-child { text-align-last: auto !important; }` sobrescribía a `.pdf-content p.split-paragraph-start { text-align-last: justify !important; }`. 
+- **La Solución:** Se protegió la especificidad agregando una pseudo-clase de negación: `.pdf-content p:last-child:not(.split-paragraph-start)`. Esto asegura que los párrafos partidos siempre se justifiquen perfectamente antes del salto de página.

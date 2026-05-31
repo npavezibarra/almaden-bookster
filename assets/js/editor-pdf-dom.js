@@ -23,8 +23,9 @@ window.renderPageFootnotes = function(container, footnotes) {
 
 // Crea la estructura HTML limpia de una página física virtual del libro
 window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter = false, isBlankPage = false) {
+    const isOdd = (pageNumber % 2 !== 0);
     const pageDiv = document.createElement('div');
-    pageDiv.className = 'pdf-page' + (isBlankPage ? ' blank-page' : '');
+    pageDiv.className = 'pdf-page' + (isBlankPage ? ' blank-page' : '') + (isOdd ? ' page-odd' : ' page-even');
 
     const settings = bookState.settings || {};
     

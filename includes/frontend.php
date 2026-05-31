@@ -173,3 +173,30 @@ function almaden_bookster_load_editor() {
 	}
 }
 add_action( 'template_redirect', 'almaden_bookster_load_editor', 5 );
+
+// --- Editor de Portadas (Cover) ---
+
+function almaden_bookster_load_cover_editor() {
+	$request_uri = trim( parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ), '/' );
+	
+	if ( strpos( $request_uri, 'almaden-book-cover' ) === 0 ) {
+		$book_id = isset( $_GET['book_id'] ) ? intval( $_GET['book_id'] ) : 0;
+
+		// Asegurar sesión autenticada de WordPress
+		if ( ! is_user_logged_in() ) {
+			auth_redirect();
+		}
+		
+		// Ocultar barra de administración de WordPress en el editor
+		show_admin_bar( false );
+		
+		$template_path = dirname( __FILE__ ) . '/../templates/cover-app.php';
+		if ( file_exists( $template_path ) ) {
+			require_once $template_path;
+			exit;
+		} else {
+			wp_die( 'Plantilla de portada no encontrada.' );
+		}
+	}
+}
+add_action( 'template_redirect', 'almaden_bookster_load_cover_editor', 5 );

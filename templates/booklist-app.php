@@ -167,11 +167,8 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
                                 </div>
                             </div>
                             
-                            <h3 class="text-lg font-bold text-gray-900 serif leading-tight mb-1 group-hover:underline decoration-2 underline-offset-2">
-                                <a href="<?php echo esc_url( $editor_url ); ?>" class="focus:outline-none">
-                                    <span class="absolute inset-0" aria-hidden="true"></span>
-                                    <?php echo esc_html( get_the_title() ); ?>
-                                </a>
+                            <h3 class="text-lg font-bold text-gray-900 serif leading-tight mb-1">
+                                <?php echo esc_html( get_the_title() ); ?>
                             </h3>
                             
                             <?php if ( ! empty( $author ) ) : ?>
@@ -181,6 +178,15 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
                             <p class="text-sm text-gray-600 line-clamp-3 mb-4 flex-1">
                                 <?php echo $content_preview ? esc_html($content_preview) : '<span class="italic text-gray-400">Sin descripción...</span>'; ?>
                             </p>
+
+                            <div class="mt-2 flex gap-2">
+                                <a href="<?php echo esc_url( $editor_url ); ?>" class="flex-1 inline-flex justify-center items-center py-2 px-3 bg-black text-white text-xs font-semibold rounded-md hover:bg-gray-800 transition-colors">
+                                    EDIT CONTENT
+                                </a>
+                                <a href="<?php echo esc_url( home_url( '/almaden-book-cover/?book_id=' . get_the_ID() ) ); ?>" class="flex-1 inline-flex justify-center items-center py-2 px-3 bg-white text-gray-700 border border-gray-300 text-xs font-semibold rounded-md hover:bg-gray-50 transition-colors">
+                                    EDIT BOOK COVER
+                                </a>
+                            </div>
                         </div>
                         
                         <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
