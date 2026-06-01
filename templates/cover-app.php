@@ -290,12 +290,12 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
                         </button>
                     </div>
 
-                    <div>
+                    <div class="text-only-prop">
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Contenido</label>
                         <textarea id="prop-text-content" rows="2" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
                     </div>
 
-                    <div>
+                    <div class="text-only-prop">
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Tipografía</label>
                         <select id="prop-font-family" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500">
                             <!-- Populated via JS -->
@@ -307,7 +307,7 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
                             <label class="block text-xs font-semibold text-gray-700 mb-1">Rotación (°)</label>
                             <input type="number" id="prop-rotation" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500" />
                         </div>
-                        <div class="flex-1">
+                        <div class="flex-1 text-only-prop">
                             <label class="block text-xs font-semibold text-gray-700 mb-1">Tamaño (px)</label>
                             <input type="number" id="prop-font-size" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500" />
                         </div>
@@ -324,7 +324,7 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
                         </div>
                     </div>
 
-                    <div>
+                    <div class="text-only-prop">
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Color</label>
                         <div class="flex items-center gap-1">
                             <input type="color" id="prop-text-color" class="block w-8 h-8 p-0 border-0 rounded cursor-pointer" />
@@ -332,7 +332,7 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
                         </div>
                     </div>
 
-                    <div>
+                    <div class="text-only-prop">
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Alineación</label>
                         <div class="flex bg-gray-100 rounded-md p-1 gap-1">
                             <button class="prop-align-btn flex-1 py-1 rounded hover:bg-white text-gray-600 transition" data-align="left" title="Izquierda">
@@ -350,7 +350,7 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2 mt-1">
+                    <div class="flex items-center gap-2 mt-1 text-only-prop">
                         <input type="checkbox" id="prop-hyphens" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
                         <label for="prop-hyphens" class="text-xs font-semibold text-gray-700 cursor-pointer">Separación por sílabas (guiones)</label>
                     </div>
@@ -399,11 +399,13 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
                 <h2 class="font-bold text-sm uppercase tracking-wider text-gray-800">Capas (Layers)</h2>
             </div>
             
-            <div class="p-2 border-b border-gray-100 flex justify-center gap-2 bg-white">
-                <button id="add-text-layer-btn" class="flex-1 bg-white border border-gray-300 text-gray-700 py-1.5 rounded text-xs font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-1 shadow-sm">
+            <div class="p-2 border-b border-gray-100 flex flex-col justify-center gap-2 bg-white">
+                <button id="add-text-layer-btn" class="w-full bg-white border border-gray-300 text-gray-700 py-1.5 rounded text-xs font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-1 shadow-sm">
                     <i class="fa-solid fa-t"></i> Texto
                 </button>
-                <!-- Preparado para futuras formas/imágenes -->
+                <button id="add-image-layer-btn" class="w-full bg-white border border-gray-300 text-gray-700 py-1.5 rounded text-xs font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-1 shadow-sm">
+                    <i class="fa-regular fa-image"></i> Imagen
+                </button>
             </div>
 
             <div id="layers-list" class="flex-1 overflow-y-auto bg-gray-50 flex flex-col-reverse justify-end p-2 gap-1">

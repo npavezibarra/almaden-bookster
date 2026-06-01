@@ -223,4 +223,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // Register exports
     window.CoverEditor.actions.applyImageToCover = applyImageToCover;
     window.CoverEditor.actions.applySpreadImage = applySpreadImage;
+    window.CoverEditor.actions.openMediaUploader = openMediaUploader;
 });

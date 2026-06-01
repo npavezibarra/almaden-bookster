@@ -6,7 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleTextsBtn = document.getElementById('toggle-texts-section');
     const textsIcon = document.getElementById('texts-section-icon');
     const addTextLayerBtn = document.getElementById('add-text-layer-btn');
+    const addImageLayerBtn = document.getElementById('add-image-layer-btn');
     const deleteTextBtn = document.getElementById('delete-text-btn');
+
+    const textOnlyProps = document.querySelectorAll('.text-only-prop');
 
     // Text properties inputs
     const propTextContent = document.getElementById('prop-text-content');
@@ -55,29 +58,38 @@ document.addEventListener('DOMContentLoaded', () => {
             div.style.transform = `rotate(${layer.rotation || 0}deg)`;
             div.style.zIndex = layer.zIndex || 30;
             
-            div.style.fontFamily = layer.fontFamily;
-            div.style.fontSize = `${layer.fontSize}px`;
-            div.style.color = layer.color;
-            div.style.textAlign = layer.textAlign;
-            div.style.whiteSpace = 'pre-wrap';
-            div.style.lineHeight = '1.2';
-            
-            if (layer.width) div.style.width = `${layer.width}px`;
-            else div.style.width = 'auto';
-
-            if (layer.height) div.style.height = `${layer.height}px`;
-            else div.style.height = 'auto';
-
-            if (layer.hyphens) {
-                div.style.hyphens = 'auto';
-                div.style.webkitHyphens = 'auto';
-                div.lang = 'es';
+            if (layer.type === 'image') {
+                div.style.backgroundImage = `url(${layer.url})`;
+                div.style.backgroundSize = 'contain';
+                div.style.backgroundRepeat = 'no-repeat';
+                div.style.backgroundPosition = 'center';
+                if (!layer.width) div.style.width = '200px';
+                if (!layer.height) div.style.height = '200px';
             } else {
-                div.style.hyphens = 'none';
-                div.style.webkitHyphens = 'none';
+                div.style.fontFamily = layer.fontFamily;
+                div.style.fontSize = `${layer.fontSize}px`;
+                div.style.color = layer.color;
+                div.style.textAlign = layer.textAlign;
+                div.style.whiteSpace = 'pre-wrap';
+                div.style.lineHeight = '1.2';
+                
+                if (layer.hyphens) {
+                    div.style.hyphens = 'auto';
+                    div.style.webkitHyphens = 'auto';
+                    div.lang = 'es';
+                } else {
+                    div.style.hyphens = 'none';
+                    div.style.webkitHyphens = 'none';
+                }
+                
+                div.textContent = layer.text;
             }
             
-            div.textContent = layer.text;
+            if (layer.width) div.style.width = `${layer.width}px`;
+            else if (layer.type !== 'image') div.style.width = 'auto';
+
+            if (layer.height) div.style.height = `${layer.height}px`;
+            else if (layer.type !== 'image') div.style.height = 'auto';
 
             div.addEventListener('mousedown', (e) => {
                 if (e.target !== div) return; 
@@ -107,26 +119,31 @@ document.addEventListener('DOMContentLoaded', () => {
             el.textsContent.classList.add('flex');
             textsIcon.classList.add('-rotate-90');
             
-            propTextContent.value = layer.text || '';
-            propFontFamily.value = layer.fontFamily || (coverData.installedFonts && coverData.installedFonts[0] ? coverData.installedFonts[0].family : 'Inter');
-            propFontSize.value = layer.fontSize;
+            if (layer.type === 'image') {
+                textOnlyProps.forEach(el => el.classList.add('hidden'));
+            } else {
+                textOnlyProps.forEach(el => el.classList.remove('hidden'));
+                propTextContent.value = layer.text || '';
+                propFontFamily.value = layer.fontFamily || (coverData.installedFonts && coverData.installedFonts[0] ? coverData.installedFonts[0].family : 'Inter');
+                propFontSize.value = layer.fontSize;
+                propTextColor.value = layer.color;
+                propTextColorHex.value = layer.color;
+                propHyphens.checked = !!layer.hyphens;
+                
+                propAlignBtns.forEach(btn => {
+                    if (btn.dataset.align === layer.textAlign) {
+                        btn.classList.add('bg-white', 'shadow-sm', 'text-indigo-600');
+                        btn.classList.remove('text-gray-600');
+                    } else {
+                        btn.classList.remove('bg-white', 'shadow-sm', 'text-indigo-600');
+                        btn.classList.add('text-gray-600');
+                    }
+                });
+            }
+            
             propRotation.value = layer.rotation || 0;
             propWidth.value = layer.width || '';
             propHeight.value = layer.height || '';
-            propTextColor.value = layer.color;
-            propTextColorHex.value = layer.color;
-            
-            propAlignBtns.forEach(btn => {
-                if (btn.dataset.align === layer.textAlign) {
-                    btn.classList.add('bg-white', 'shadow-sm', 'text-indigo-600');
-                    btn.classList.remove('text-gray-600');
-                } else {
-                    btn.classList.remove('bg-white', 'shadow-sm', 'text-indigo-600');
-                    btn.classList.add('text-gray-600');
-                }
-            });
-            
-            propHyphens.checked = !!layer.hyphens;
         } else {
             el.textPropertiesPanel.classList.remove('flex');
             el.textPropertiesPanel.classList.add('hidden');
@@ -153,8 +170,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }`;
             
             btn.innerHTML = `
-                <i class="fa-solid fa-t text-gray-400"></i>
-                <span class="truncate flex-1">${layer.text || 'Texto vacío'}</span>
+                <i class="fa-${layer.type === 'image' ? 'regular fa-image' : 'solid fa-t'} text-gray-400"></i>
+                <span class="truncate flex-1">${layer.type === 'image' ? 'Imagen' : (layer.text || 'Texto vacío')}</span>
             `;
 
             btn.addEventListener('click', () => {
@@ -204,6 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
     addTextLayerBtn.addEventListener('click', () => {
         const newLayer = {
             id: generateId(),
+            type: 'text',
             text: 'Nuevo Texto',
             x: 50,
             y: 50,
@@ -222,6 +240,30 @@ document.addEventListener('DOMContentLoaded', () => {
         renderLayersPanel();
         selectLayer(newLayer.id);
     });
+
+    if (addImageLayerBtn) {
+        addImageLayerBtn.addEventListener('click', () => {
+            if (window.CoverEditor.actions.openMediaUploader) {
+                window.CoverEditor.actions.openMediaUploader('Seleccionar Imagen para Capa', (url) => {
+                    const newLayer = {
+                        id: generateId(),
+                        type: 'image',
+                        url: url,
+                        x: 50,
+                        y: 50,
+                        rotation: 0,
+                        width: 200,
+                        height: 200,
+                        zIndex: 30 + s.textLayers.length
+                    };
+                    s.textLayers.push(newLayer);
+                    renderTextLayers();
+                    renderLayersPanel();
+                    selectLayer(newLayer.id);
+                });
+            }
+        });
+    }
 
     deleteTextBtn.addEventListener('click', () => {
         if (!s.activeLayerId) return;
