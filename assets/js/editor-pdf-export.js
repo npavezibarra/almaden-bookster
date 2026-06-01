@@ -45,6 +45,12 @@ async function triggerPrint() {
 
     const { width, height, unit } = getPageDimensions();
 
+    const conversionFactor = (unit === 'cm') ? 37.7952755906 : (37.7952755906 * 2.54);
+    const toPx = (val) => val * conversionFactor;
+    const widthPx = toPx(width);
+    const heightPx = toPx(height);
+    const globalBleedPx = toPx(unit === 'cm' ? 0.5 : (0.5 / 2.54));
+
     let styleEl = document.getElementById('print-export-style');
     if (!styleEl) {
         styleEl = document.createElement('style');
@@ -77,8 +83,8 @@ async function triggerPrint() {
                 transform: none !important;
             }
             @page {
-                size: ${width}${unit} ${height}${unit};
-                margin: 0mm;
+                size: ${width + (unit === 'cm' ? 0.5 : 0.5/2.54)}${unit} ${height + (unit === 'cm' ? 1.0 : 1.0/2.54)}${unit};
+                margin: 0px;
             }
             .pdf-page {
                 margin: 0 !important; /* Ensure it sticks to top-left of the @page */
@@ -86,13 +92,7 @@ async function triggerPrint() {
                 border: none !important;
                 page-break-after: always !important;
                 break-after: page !important;
-                width: ${width}${unit} !important;
-                height: ${height}${unit} !important;
-                min-height: ${height}${unit} !important;
-                max-height: ${height}${unit} !important;
                 transform: none !important;
-                box-sizing: border-box !important;
-                padding: 0 !important;
             }
             .pdf-page:last-child {
                 page-break-after: auto !important;

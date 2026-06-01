@@ -37,6 +37,17 @@ El motor PDF es el componente más complejo de la aplicación, encargado de simu
 - **`editor-pdf-styles.js`**:
   Se encarga de leer los ajustes (Settings) configurados por el usuario y construir dinámicamente un bloque `<style>` de CSS que se inyecta en el DOM para aplicar márgenes, fuentes, e interlineado exacto en la vista previa del libro.
 
+### Editor y Vista Previa PDF (`editor-pdf-compiler.js`, `editor-pdf-styles.js`, `editor-pdf-pagination.js`)
+
+**Motor de Renderizado PDF**: 
+El corazón del plugin es el mecanismo que transforma HTML fluido en páginas físicas virtuales (tamaño fijo, con sangrías y márgenes configurables).
+- Se utiliza un contenedor oculto con las dimensiones exactas del área de contenido para medir dinámicamente cómo reflye el texto.
+- `splitParagraphAcrossPages` es responsable de dividir párrafos, listas y otros nodos cuando exceden la altura disponible en la página actual. Implementa lógica para respetar cortes de sílabas y evitar palabras huérfanas/viudas.
+- **Bug de Flexbox en Chrome Print:** Cuando Chrome imprime (`window.print()`), su motor de cálculo de `@media print` suele fallar al evaluar contenedores que usan `flex: 1` para llenar espacio. Esto causa que el texto se "desborde" y se imprima sobre el pie de página u otros elementos. 
+  - *Solución implementada:* Una vez que una página se llena de contenido y se completan las notas al pie, el script "congela" su altura (`pdfContent.style.flex = 'none'; pdfContent.style.height = clientHeight + 'px'`). Al usar un height fijo, Chrome Print renderiza los bloques de forma predecible sin depender del flex recalculado.
+
+### Manejo del DOM (`editor-pdf-dom.js`)
+
 ## Exportación Física
 
 - **`editor-pdf-export.js`**:

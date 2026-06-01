@@ -205,6 +205,7 @@ function applyDynamicPDFStyles() {
         /* ── Contenido ── */
         .pdf-content {
             flex: 1 !important;
+            min-height: 0 !important;
             box-sizing: border-box !important;
             padding-top: ${toPx(settings.padding_top)}px !important;
             padding-bottom: ${toPx(settings.padding_bottom)}px !important;
@@ -220,8 +221,8 @@ function applyDynamicPDFStyles() {
             font-size: ${toPx(settings.font_size_content || 11.5, true)}px !important;
             line-height: ${settings.line_height_content || 1.65} !important;
             text-align: ${settings.content_text_align || 'justify'} !important;
-            hyphens: ${parseInt(settings.content_hyphenation) === 1 ? 'auto' : 'none'} !important;
-            -webkit-hyphens: ${parseInt(settings.content_hyphenation) === 1 ? 'auto' : 'none'} !important;
+            hyphens: none !important;
+            -webkit-hyphens: none !important;
             text-rendering: geometricPrecision !important;
             -webkit-font-smoothing: antialiased !important;
         }
@@ -255,15 +256,10 @@ function applyDynamicPDFStyles() {
         .pdf-content ol.split-paragraph-start,
         .pdf-content div.split-paragraph-start,
         .pdf-content blockquote.split-paragraph-start {
-            margin-bottom: 0 !important;
-            text-align-last: justify !important; /* Mantiene la justificación perfecta en la última línea */
-        }
-        
-        /* Desactivar text-align-last justify en listas para evitar que los items se estiren raro */
-        .pdf-content ul.split-paragraph-start,
-        .pdf-content ol.split-paragraph-start {
-            text-align-last: auto !important;
-        }
+            margin-bottom: 0px !important;
+            padding-bottom: 0px !important;
+            text-align-last: justify !important;
+        } 
 
         /* ── Párrafos Continuación (segunda mitad tras el salto) ── */
         .pdf-content p.split-paragraph-continuation,
@@ -277,7 +273,6 @@ function applyDynamicPDFStyles() {
 
         .pdf-content p:last-child:not(.split-paragraph-start) {
             margin-bottom: 0 !important;
-            text-align-last: auto !important;
         }
         
         .pdf-content p.split-paragraph-continuation {

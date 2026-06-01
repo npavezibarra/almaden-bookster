@@ -424,6 +424,13 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
                 });
                 window.renderPageFootnotes(currentFootnotesContainer, activePageFootnotes);
 
+                // Fix Chrome Print Flexbox Bug: freeze the content height so it doesn't recalculate when printing
+                const pdfContentToFreeze = currentPageEl.querySelector('.pdf-content');
+                if (pdfContentToFreeze) {
+                    pdfContentToFreeze.style.setProperty('flex', 'none', 'important');
+                    pdfContentToFreeze.style.setProperty('height', pdfContentToFreeze.clientHeight + 'px', 'important');
+                }
+
                 // Crear nueva página
                 currentPageNumber++;
                 isFirstPageOfChapter = false;
@@ -441,29 +448,11 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
             // caiga en una nueva página inyectando un page-break en la cola.
             if (isBox) {
                 // Asegurar que las páginas generadas por [box] sigan los ajustes de cabecera y pie de la 'Primera Página'
-                const firstPageHeaderType = (chapter && chapter.first_page_header_type && chapter.first_page_header_type !== 'global') ? chapter.first_page_header_type : (settings.first_page_header_type || 'blank');
-                const firstPageHeaderCustom = (chapter && chapter.first_page_header_custom) ? chapter.first_page_header_custom : (settings.first_page_header_custom || '');
-                const firstPageFooterType = (chapter && chapter.first_page_footer_type && chapter.first_page_footer_type !== 'global') ? chapter.first_page_footer_type : (settings.first_page_footer_type || 'page_number');
-                const firstPageFooterCustom = (chapter && chapter.first_page_footer_custom) ? chapter.first_page_footer_custom : (settings.first_page_footer_custom || '');
+                // Solo modificamos la cabecera/pie actual si realmente queremos que este box se comporte como primera página.
+                // Sin embargo, las cabeceras y pies ya fueron renderizados correctamente al crear la página.
+                // No debemos sobrescribir todas las páginas con la lógica de 'firstPageHeaderType'.
                 
-                let headerHtml = '&nbsp;';
-                if (firstPageHeaderType === 'book_title') headerHtml = `<span>${bookState.title || ''}</span>`;
-                else if (firstPageHeaderType === 'chapter_title') headerHtml = `<span>${(chapter && chapter.custom_running_header) ? chapter.custom_running_header : ((chapter && chapter.title) ? chapter.title : 'Sin título')}</span>`;
-                else if (firstPageHeaderType === 'page_number') headerHtml = `<span>${currentPageNumber}</span>`;
-                else if (firstPageHeaderType === 'author') headerHtml = `<span>Autor</span>`;
-                else if (firstPageHeaderType === 'custom') headerHtml = `<span>${firstPageHeaderCustom}</span>`;
-                
-                let footerHtml = '&nbsp;';
-                if (firstPageFooterType === 'book_title') footerHtml = `<span>${bookState.title || ''}</span>`;
-                else if (firstPageFooterType === 'chapter_title') footerHtml = `<span>${(chapter && chapter.custom_running_header) ? chapter.custom_running_header : ((chapter && chapter.title) ? chapter.title : 'Sin título')}</span>`;
-                else if (firstPageFooterType === 'page_number') footerHtml = `<span>${currentPageNumber}</span>`;
-                else if (firstPageFooterType === 'author') footerHtml = `<span>Autor</span>`;
-                else if (firstPageFooterType === 'custom') footerHtml = `<span>${firstPageFooterCustom}</span>`;
-                
-                const headerEl = currentPageEl.querySelector('.pdf-header');
-                const footerEl = currentPageEl.querySelector('.pdf-footer');
-                if (headerEl) headerEl.innerHTML = headerHtml;
-                if (footerEl) footerEl.innerHTML = footerHtml;
+                // Simplemente inyectamos el salto de página si hay más contenido.
 
                 let hasRealContentAfter = false;
                 for (let i = 0; i < childNodes.length; i++) {
@@ -488,6 +477,13 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
                     childNodes.unshift(manualBreak);
                 }
             }
+        }
+
+        // Freeze the last page of the chapter as well
+        const lastPdfContentToFreeze = currentPageEl.querySelector('.pdf-content');
+        if (lastPdfContentToFreeze) {
+            lastPdfContentToFreeze.style.setProperty('flex', 'none', 'important');
+            lastPdfContentToFreeze.style.setProperty('height', lastPdfContentToFreeze.clientHeight + 'px', 'important');
         }
 
         currentPageNumber++;

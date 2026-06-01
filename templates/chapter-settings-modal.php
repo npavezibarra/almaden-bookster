@@ -135,6 +135,14 @@
                 <!-- Modo de Imagen de Paridad -->
                 <div class="grid grid-cols-1 gap-4 pb-4">
                     <div>
+                        <label class="block font-semibold mb-1">Imagen de Paridad (Página en Blanco)</label>
+                        <p class="text-xs text-[var(--text-muted)] mb-2">Selecciona la imagen que se mostrará en la página opuesta al inicio del capítulo.</p>
+                        <div class="flex items-center gap-2 mb-4">
+                            <button type="button" onclick="openParityImageUploader()" class="px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800 rounded-lg text-sm font-semibold transition flex items-center gap-2">
+                                <i class="fa-solid fa-upload"></i> Subir / Seleccionar Imagen
+                            </button>
+                        </div>
+
                         <label class="block font-semibold mb-1">Modo de Imagen de Paridad</label>
                         <p class="text-xs text-[var(--text-muted)] mb-2">Define si la imagen que llena la página en blanco se extiende hasta el borde (Sangría) o respeta los márgenes.</p>
                         <select id="chapter_parity_image_mode" name="parity_image_mode" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-[var(--text-main)] focus:outline-none focus:border-indigo-500" onchange="toggleParityImageSizeInputs()">
