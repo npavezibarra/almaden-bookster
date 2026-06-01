@@ -221,8 +221,12 @@ function applyDynamicPDFStyles() {
             font-size: ${toPx(settings.font_size_content || 11.5, true)}px !important;
             line-height: ${settings.line_height_content || 1.65} !important;
             text-align: ${settings.content_text_align || 'justify'} !important;
-            hyphens: none !important;
-            -webkit-hyphens: none !important;
+            hyphens: auto !important;
+            -webkit-hyphens: auto !important;
+            hyphenate-limit-chars: 6 3 3 !important;
+            hyphenate-limit-lines: 2 !important;
+            -webkit-hyphenate-limit-before: 3 !important;
+            -webkit-hyphenate-limit-after: 3 !important;
             text-rendering: geometricPrecision !important;
             -webkit-font-smoothing: antialiased !important;
         }

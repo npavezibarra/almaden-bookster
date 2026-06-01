@@ -20,7 +20,9 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BookCover Editor - <?php echo esc_attr( $book_title ); ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="<?php echo esc_url( $google_fonts_url ); ?>" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
@@ -34,12 +36,12 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
         
         /* Contenedor del workspace con scroll y centrado */
         #workspace-container {
-            height: calc(100vh - 64px); /* 64px es el alto del navbar */
             overflow: auto;
             display: flex;
             align-items: center;
             justify-content: center;
             background-color: #e5e7eb;
+            position: relative;
         }
 
         /* Envoltura escalable para el zoom */
@@ -51,17 +53,25 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
         
         /* El "spread" de la portada (Contraportada + Lomo + Portada) */
         #cover-spread {
+            position: relative;
             display: flex;
             flex-direction: row;
             background: white;
             box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
         
         /* Partes de la portada */
         .cover-part {
             position: relative;
             background-color: white;
-            border: 1px dashed #d1d5db; /* Para visualizar límites provisionalmente */
+            border: 1px dashed #d1d5db;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            flex-shrink: 0;
         }
         
         #spine {
@@ -77,10 +87,16 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
     <script>
         // Exportar a JS
         const coverData = {
+            bookId: <?php echo intval($book_id); ?>,
+            nonce: "<?php echo esc_js($cover_nonce); ?>",
+            ajaxUrl: "<?php echo esc_url(admin_url('admin-ajax.php')); ?>",
             pageWidthCm: <?php echo floatval($page_width); ?>,
-            pageHeightCm: <?php echo floatval($page_height); ?>
+            pageHeightCm: <?php echo floatval($page_height); ?>,
+            settings: <?php echo json_encode($cover_settings); ?>,
+            installedFonts: <?php echo json_encode($installed_fonts); ?>
         };
     </script>
+    <?php wp_head(); ?>
 </head>
 <body class="h-screen w-screen overflow-hidden flex flex-col">
 
@@ -126,16 +142,234 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
                 </button>
             </div>
             
-            <button class="bg-black text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition shadow-sm">
-                Guardar Portada
+            <button id="save-cover-btn" class="bg-black text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition shadow-sm flex items-center gap-2">
+                <i class="fa-solid fa-floppy-disk"></i> Guardar Portada
             </button>
         </div>
     </nav>
 
-    <!-- Workspace -->
-    <main id="workspace-container">
-        <div id="cover-scaler">
+    <!-- Main Content Area -->
+    <div class="flex flex-1 overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside class="w-72 bg-white border-r border-gray-200 flex flex-col shrink-0 shadow-sm z-10 overflow-y-auto">
+            <div class="p-4 border-b border-gray-100 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition select-none" id="toggle-images-section">
+                <h2 class="font-bold text-sm uppercase tracking-wider text-gray-800">Imágenes</h2>
+                <i class="fa-solid fa-chevron-down text-gray-400 transition-transform duration-200" id="images-section-icon"></i>
+            </div>
+            
+            <div class="hidden flex-col gap-6 bg-white pb-4" id="images-section-content">
+                <div class="px-4 pt-4">
+                    <p class="text-xs text-gray-500">Asigna las imágenes para la cubierta del libro.</p>
+                </div>
+                
+                <div class="px-4 flex flex-col gap-6">
+                    <!-- Portada -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Portada (Front Cover)</label>
+                    <button type="button" id="btn-front-cover" class="block w-full text-sm font-semibold bg-gray-100 text-gray-700 py-2 px-4 rounded-md border border-gray-300 hover:bg-gray-200 transition mb-2 text-center">
+                        <i class="fa-solid fa-image mr-1"></i> Seleccionar Imagen
+                    </button>
+                    <input type="hidden" id="upload-front-cover" />
+                    <button id="clear-front-cover" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Eliminar Portada</button>
+                </div>
+                
+                <div class="h-px bg-gray-200"></div>
+
+                <!-- Contraportada -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Contraportada (Back Cover)</label>
+                    <button type="button" id="btn-back-cover" class="block w-full text-sm font-semibold bg-gray-100 text-gray-700 py-2 px-4 rounded-md border border-gray-300 hover:bg-gray-200 transition mb-2 text-center">
+                        <i class="fa-solid fa-image mr-1"></i> Seleccionar Imagen
+                    </button>
+                    <input type="hidden" id="upload-back-cover" />
+                    <button id="clear-back-cover" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Eliminar Contraportada</button>
+                </div>
+
+                <div class="h-px bg-gray-200"></div>
+
+                <!-- Lomo -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Lomo (Spine)</label>
+                    <div class="flex gap-2 mb-2">
+                        <div class="flex-1">
+                            <button type="button" id="btn-spine-image" class="block w-full text-xs font-semibold bg-gray-100 text-gray-700 py-2 px-2 rounded-md border border-gray-300 hover:bg-gray-200 transition text-center">
+                                <i class="fa-solid fa-image mr-1"></i> Imagen
+                            </button>
+                            <input type="hidden" id="upload-spine-image" />
+                        </div>
+                        <div class="flex items-center gap-1 border border-gray-300 rounded-md px-2 bg-gray-50 hover:bg-gray-100 transition">
+                            <i class="fa-solid fa-fill-drip text-gray-400 text-xs"></i>
+                            <input type="color" id="spine-color-picker" value="#f9fafb" class="block w-6 h-6 p-0 border-0 rounded cursor-pointer bg-transparent" title="Color de Fondo" />
+                        </div>
+                    </div>
+                    <button id="clear-spine" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Limpiar Lomo</button>
+                </div>
+
+                <div class="h-px bg-gray-200"></div>
+
+                <!-- Spread Completo -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Spread Completo</label>
+                    <p class="text-xs text-gray-500 mb-3">Reemplaza portada, contraportada y lomo con una sola imagen.</p>
+                    <button type="button" id="btn-full-spread" class="block w-full text-sm font-semibold bg-gray-100 text-gray-700 py-2 px-4 rounded-md border border-gray-300 hover:bg-gray-200 transition mb-2 text-center">
+                        <i class="fa-solid fa-image mr-1"></i> Seleccionar Imagen
+                    </button>
+                    <input type="hidden" id="upload-full-spread" />
+                    <button id="clear-full-spread" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Eliminar Spread</button>
+                </div>
+            </div>
+            </div>
+
+            <!-- Section: Solapas -->
+            <div class="p-4 border-b border-gray-100 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition select-none border-t" id="toggle-flaps-section">
+                <h2 class="font-bold text-sm uppercase tracking-wider text-gray-800">Solapas</h2>
+                <i class="fa-solid fa-chevron-down text-gray-400 transition-transform duration-200 -rotate-90" id="flaps-section-icon"></i>
+            </div>
+            
+            <div class="hidden flex-col gap-6 bg-white pb-4" id="flaps-section-content">
+                <div class="px-4 pt-4">
+                    <p class="text-xs text-gray-500">Agrega solapas a tu cubierta (ancho en mm).</p>
+                </div>
+                
+                <div class="px-4 flex flex-col gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Solapa Portada (mm)</label>
+                        <input type="number" id="front-flap-width" value="0" min="0" class="block w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-black focus:border-black mb-2" />
+                        <div class="flex gap-2 mb-2">
+                            <div class="flex-1">
+                                <button type="button" id="btn-front-flap-image" class="block w-full text-xs font-semibold bg-gray-100 text-gray-700 py-2 px-2 rounded-md border border-gray-300 hover:bg-gray-200 transition text-center">
+                                    <i class="fa-solid fa-image mr-1"></i> Imagen
+                                </button>
+                                <input type="hidden" id="upload-front-flap-image" />
+                            </div>
+                            <div class="flex items-center gap-1 border border-gray-300 rounded-md px-2 bg-gray-50 hover:bg-gray-100 transition">
+                                <i class="fa-solid fa-fill-drip text-gray-400 text-xs"></i>
+                                <input type="color" id="front-flap-color-picker" value="#ffffff" class="block w-6 h-6 p-0 border-0 rounded cursor-pointer bg-transparent" title="Color de Fondo" />
+                            </div>
+                        </div>
+                        <button id="clear-front-flap" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Limpiar Fondo</button>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Solapa Contraportada (mm)</label>
+                        <input type="number" id="back-flap-width" value="0" min="0" class="block w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-black focus:border-black mb-2" />
+                        <div class="flex gap-2 mb-2">
+                            <div class="flex-1">
+                                <button type="button" id="btn-back-flap-image" class="block w-full text-xs font-semibold bg-gray-100 text-gray-700 py-2 px-2 rounded-md border border-gray-300 hover:bg-gray-200 transition text-center">
+                                    <i class="fa-solid fa-image mr-1"></i> Imagen
+                                </button>
+                                <input type="hidden" id="upload-back-flap-image" />
+                            </div>
+                            <div class="flex items-center gap-1 border border-gray-300 rounded-md px-2 bg-gray-50 hover:bg-gray-100 transition">
+                                <i class="fa-solid fa-fill-drip text-gray-400 text-xs"></i>
+                                <input type="color" id="back-flap-color-picker" value="#ffffff" class="block w-6 h-6 p-0 border-0 rounded cursor-pointer bg-transparent" title="Color de Fondo" />
+                            </div>
+                        </div>
+                        <button id="clear-back-flap" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Limpiar Fondo</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Textos y Capas -->
+            <div class="p-4 border-b border-gray-100 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition select-none border-t" id="toggle-texts-section">
+                <h2 class="font-bold text-sm uppercase tracking-wider text-gray-800">Textos y Capas</h2>
+                <i class="fa-solid fa-chevron-down text-gray-400 transition-transform duration-200 -rotate-90" id="texts-section-icon"></i>
+            </div>
+
+            <div class="hidden flex-col gap-4 bg-white pb-4" id="texts-section-content">
+                <div class="px-4 pt-4">
+                    <p class="text-[10px] text-gray-500 leading-tight">Haz clic en un texto de la portada o en el panel de capas (derecha) para editar sus propiedades.</p>
+                </div>
+                
+                <!-- Text Properties Panel (Hidden by default) -->
+                <div id="text-properties-panel" class="hidden px-4 flex-col gap-3 pt-2 border-t border-gray-100">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Propiedades</span>
+                        <button id="delete-text-btn" class="text-red-500 hover:text-red-700" title="Eliminar Texto">
+                            <i class="fa-solid fa-trash text-sm"></i>
+                        </button>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Contenido</label>
+                        <textarea id="prop-text-content" rows="2" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Tipografía</label>
+                        <select id="prop-font-family" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500">
+                            <!-- Populated via JS -->
+                        </select>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Rotación (°)</label>
+                            <input type="number" id="prop-rotation" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500" />
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Tamaño (px)</label>
+                            <input type="number" id="prop-font-size" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500" />
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Ancho (px)</label>
+                            <input type="number" id="prop-width" placeholder="Auto" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500" />
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Alto (px)</label>
+                            <input type="number" id="prop-height" placeholder="Auto" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500" />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Color</label>
+                        <div class="flex items-center gap-1">
+                            <input type="color" id="prop-text-color" class="block w-8 h-8 p-0 border-0 rounded cursor-pointer" />
+                            <input type="text" id="prop-text-color-hex" class="flex-1 text-xs border border-gray-300 rounded-md px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500" />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Alineación</label>
+                        <div class="flex bg-gray-100 rounded-md p-1 gap-1">
+                            <button class="prop-align-btn flex-1 py-1 rounded hover:bg-white text-gray-600 transition" data-align="left" title="Izquierda">
+                                <i class="fa-solid fa-align-left text-xs"></i>
+                            </button>
+                            <button class="prop-align-btn flex-1 py-1 rounded hover:bg-white text-gray-600 transition" data-align="center" title="Centro">
+                                <i class="fa-solid fa-align-center text-xs"></i>
+                            </button>
+                            <button class="prop-align-btn flex-1 py-1 rounded hover:bg-white text-gray-600 transition" data-align="right" title="Derecha">
+                                <i class="fa-solid fa-align-right text-xs"></i>
+                            </button>
+                            <button class="prop-align-btn flex-1 py-1 rounded hover:bg-white text-gray-600 transition" data-align="justify" title="Justificar">
+                                <i class="fa-solid fa-align-justify text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 mt-1">
+                        <input type="checkbox" id="prop-hyphens" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
+                        <label for="prop-hyphens" class="text-xs font-semibold text-gray-700 cursor-pointer">Separación por sílabas (guiones)</label>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Workspace -->
+        <main id="workspace-container" class="flex-1">
+            <div id="cover-scaler">
             <div id="cover-spread">
+                <!-- Bleed Guide -->
+                <div id="bleed-guide" class="absolute border-2 border-dashed border-red-500 pointer-events-none z-20"></div>
+
+                <!-- Back Flap -->
+                <div id="back-flap" class="cover-part flex items-center justify-center text-gray-300 overflow-hidden" style="width: 0px; border: none;">
+                    <span class="text-sm font-semibold uppercase tracking-widest text-gray-200 transform -rotate-90 whitespace-nowrap">Solapa</span>
+                </div>
+
                 <!-- Back Cover -->
                 <div id="back-cover" class="cover-part flex items-center justify-center text-gray-300 overflow-hidden">
                     <span class="text-xl font-semibold uppercase tracking-widest text-gray-200">Contraportada</span>
@@ -150,11 +384,39 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
                 <div id="front-cover" class="cover-part flex items-center justify-center text-gray-300 overflow-hidden">
                     <span class="text-xl font-semibold uppercase tracking-widest text-gray-200">Portada</span>
                 </div>
-            </div>
-        </div>
-    </main>
 
-    <!-- App Logic -->
-    <script src="<?php echo esc_url( plugins_url( 'assets/js/cover-editor.js', dirname(__FILE__) ) ); ?>"></script>
+                <!-- Front Flap -->
+                <div id="front-flap" class="cover-part flex items-center justify-center text-gray-300 overflow-hidden" style="width: 0px; border: none;">
+                    <span class="text-sm font-semibold uppercase tracking-widest text-gray-200 transform rotate-90 whitespace-nowrap">Solapa</span>
+                </div>
+            </div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar (Layers Panel) -->
+        <aside class="w-64 bg-white border-l border-gray-200 flex flex-col shrink-0 shadow-sm z-10">
+            <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h2 class="font-bold text-sm uppercase tracking-wider text-gray-800">Capas (Layers)</h2>
+            </div>
+            
+            <div class="p-2 border-b border-gray-100 flex justify-center gap-2 bg-white">
+                <button id="add-text-layer-btn" class="flex-1 bg-white border border-gray-300 text-gray-700 py-1.5 rounded text-xs font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-1 shadow-sm">
+                    <i class="fa-solid fa-t"></i> Texto
+                </button>
+                <!-- Preparado para futuras formas/imágenes -->
+            </div>
+
+            <div id="layers-list" class="flex-1 overflow-y-auto bg-gray-50 flex flex-col-reverse justify-end p-2 gap-1">
+                <!-- Layers will be rendered here via JS -->
+            </div>
+        </aside>
+    </div>
+
+    <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-state.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-dimensions.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-media.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-layers.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-save.js?v=' . time() ); ?>"></script>
+    <?php wp_footer(); ?>
 </body>
 </html>

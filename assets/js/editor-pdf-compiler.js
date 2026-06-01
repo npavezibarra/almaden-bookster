@@ -424,13 +424,6 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
                 });
                 window.renderPageFootnotes(currentFootnotesContainer, activePageFootnotes);
 
-                // Fix Chrome Print Flexbox Bug: freeze the content height so it doesn't recalculate when printing
-                const pdfContentToFreeze = currentPageEl.querySelector('.pdf-content');
-                if (pdfContentToFreeze) {
-                    pdfContentToFreeze.style.setProperty('flex', 'none', 'important');
-                    pdfContentToFreeze.style.setProperty('height', pdfContentToFreeze.clientHeight + 'px', 'important');
-                }
-
                 // Crear nueva página
                 currentPageNumber++;
                 isFirstPageOfChapter = false;
@@ -477,13 +470,6 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
                     childNodes.unshift(manualBreak);
                 }
             }
-        }
-
-        // Freeze the last page of the chapter as well
-        const lastPdfContentToFreeze = currentPageEl.querySelector('.pdf-content');
-        if (lastPdfContentToFreeze) {
-            lastPdfContentToFreeze.style.setProperty('flex', 'none', 'important');
-            lastPdfContentToFreeze.style.setProperty('height', lastPdfContentToFreeze.clientHeight + 'px', 'important');
         }
 
         currentPageNumber++;

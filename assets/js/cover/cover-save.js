@@ -1,0 +1,165 @@
+// cover-save.js
+document.addEventListener('DOMContentLoaded', () => {
+    const s = window.CoverEditor.state;
+    const el = window.CoverEditor.elements;
+    const act = window.CoverEditor.actions;
+
+    const saveCoverBtn = document.getElementById('save-cover-btn');
+    const frontFlapWidth = document.getElementById('front-flap-width');
+    const backFlapWidth = document.getElementById('back-flap-width');
+    const uploadFront = document.getElementById('upload-front-cover');
+    const uploadBack = document.getElementById('upload-back-cover');
+    const uploadSpine = document.getElementById('upload-spine-image');
+    const spineColorPicker = document.getElementById('spine-color-picker');
+    const uploadSpread = document.getElementById('upload-full-spread');
+    const uploadFrontFlapImage = document.getElementById('upload-front-flap-image');
+    const frontFlapColorPicker = document.getElementById('front-flap-color-picker');
+    const uploadBackFlapImage = document.getElementById('upload-back-flap-image');
+    const backFlapColorPicker = document.getElementById('back-flap-color-picker');
+
+    const clearFront = document.getElementById('clear-front-cover');
+    const clearBack = document.getElementById('clear-back-cover');
+    const clearSpine = document.getElementById('clear-spine');
+    const clearFrontFlap = document.getElementById('clear-front-flap');
+    const clearBackFlap = document.getElementById('clear-back-flap');
+
+    saveCoverBtn.addEventListener('click', () => {
+        saveCoverBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+        
+        const data = new FormData();
+        data.append('action', 'almaden_save_cover_settings');
+        data.append('book_id', coverData.bookId);
+        data.append('nonce', coverData.nonce);
+        data.append('paper_type', el.paperTypeSelect.value);
+        data.append('front_flap_width', frontFlapWidth.value);
+        data.append('back_flap_width', backFlapWidth.value);
+        data.append('front_image', uploadFront.value);
+        data.append('back_image', uploadBack.value);
+        data.append('spine_image', uploadSpine.value);
+        data.append('spine_color', spineColorPicker.value);
+        data.append('spread_image', uploadSpread.value);
+        
+        data.append('front_flap_image', uploadFrontFlapImage.value);
+        data.append('front_flap_color', frontFlapColorPicker.value);
+        data.append('back_flap_image', uploadBackFlapImage.value);
+        data.append('back_flap_color', backFlapColorPicker.value);
+
+        data.append('text_layers', JSON.stringify(s.textLayers));
+
+        fetch(coverData.ajaxUrl, {
+            method: 'POST',
+            body: data
+        })
+        .then(res => res.json())
+        .then(response => {
+            if (response.success) {
+                saveCoverBtn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> Guardado';
+                setTimeout(() => {
+                    saveCoverBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Portada';
+                }, 2000);
+            } else {
+                alert('Error al guardar: ' + response.data);
+                saveCoverBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Portada';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            saveCoverBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Portada';
+        });
+    });
+
+    function initCoverState() {
+        if (typeof coverData !== 'undefined' && coverData.settings) {
+            const settings = coverData.settings;
+            if (settings.paper_type) el.paperTypeSelect.value = settings.paper_type;
+            
+            const frontFlap = settings.front_flap_width || settings.front_flap;
+            if (frontFlap) {
+                frontFlapWidth.value = frontFlap;
+                el.flapsContent.classList.remove('hidden');
+                el.flapsContent.classList.add('flex');
+            }
+            
+            const backFlap = settings.back_flap_width || settings.back_flap;
+            if (backFlap) {
+                backFlapWidth.value = backFlap;
+                el.flapsContent.classList.remove('hidden');
+                el.flapsContent.classList.add('flex');
+            }
+            
+            if (settings.spread_image) {
+                act.applySpreadImage(settings.spread_image);
+                el.imagesContent.classList.remove('hidden');
+                el.imagesContent.classList.add('flex');
+            } else {
+                if (settings.front_image) {
+                    act.applyImageToCover(settings.front_image, el.frontCover, uploadFront, clearFront);
+                    el.imagesContent.classList.remove('hidden');
+                    el.imagesContent.classList.add('flex');
+                }
+                if (settings.back_image) {
+                    act.applyImageToCover(settings.back_image, el.backCover, uploadBack, clearBack);
+                    el.imagesContent.classList.remove('hidden');
+                    el.imagesContent.classList.add('flex');
+                }
+                
+                if (settings.spine_image) {
+                    act.applyImageToCover(settings.spine_image, el.spine, uploadSpine, clearSpine);
+                    el.imagesContent.classList.remove('hidden');
+                    el.imagesContent.classList.add('flex');
+                } else if (settings.spine_color && settings.spine_color !== '#f9fafb') {
+                    spineColorPicker.value = settings.spine_color;
+                    el.spine.style.backgroundColor = settings.spine_color;
+                    el.spine.innerHTML = '';
+                    clearSpine.classList.remove('hidden');
+                    el.imagesContent.classList.remove('hidden');
+                    el.imagesContent.classList.add('flex');
+                }
+            }
+            
+            if (parseFloat(settings.front_flap) > 0 || parseFloat(settings.back_flap) > 0) {
+                el.flapsContent.classList.remove('hidden');
+                el.flapsContent.classList.add('flex');
+            }
+            
+            if (settings.front_flap_image) {
+                act.applyImageToCover(settings.front_flap_image, el.frontFlap, uploadFrontFlapImage, clearFrontFlap);
+                el.flapsContent.classList.remove('hidden');
+                el.flapsContent.classList.add('flex');
+            } else if (settings.front_flap_color && settings.front_flap_color !== '#ffffff') {
+                frontFlapColorPicker.value = settings.front_flap_color;
+                el.frontFlap.style.backgroundColor = settings.front_flap_color;
+                const span = el.frontFlap.querySelector('span');
+                if (span) span.style.display = 'none';
+                clearFrontFlap.classList.remove('hidden');
+                el.flapsContent.classList.remove('hidden');
+                el.flapsContent.classList.add('flex');
+            }
+
+            if (settings.back_flap_image) {
+                act.applyImageToCover(settings.back_flap_image, el.backFlap, uploadBackFlapImage, clearBackFlap);
+                el.flapsContent.classList.remove('hidden');
+                el.flapsContent.classList.add('flex');
+            } else if (settings.back_flap_color && settings.back_flap_color !== '#ffffff') {
+                backFlapColorPicker.value = settings.back_flap_color;
+                el.backFlap.style.backgroundColor = settings.back_flap_color;
+                const span = el.backFlap.querySelector('span');
+                if (span) span.style.display = 'none';
+                clearBackFlap.classList.remove('hidden');
+                el.flapsContent.classList.remove('hidden');
+                el.flapsContent.classList.add('flex');
+            }
+
+            if (settings.text_layers && Array.isArray(settings.text_layers)) {
+                s.textLayers = settings.text_layers.filter(l => l && typeof l === 'object' && l.id);
+            }
+        }
+        
+        act.updateDimensions();
+        act.renderTextLayers();
+        act.renderLayersPanel();
+        act.fitToScreen();
+    }
+
+    initCoverState();
+});

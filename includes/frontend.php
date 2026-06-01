@@ -190,6 +190,49 @@ function almaden_bookster_load_cover_editor() {
 		// Ocultar barra de administración de WordPress en el editor
 		show_admin_bar( false );
 		
+		// Cargar wp.media para el selector de imágenes de la portada
+		if ( ! defined( 'DOING_AJAX' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/media.php';
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+		}
+		
+		add_action('wp_enqueue_scripts', function() use ($book_id) {
+			global $wp_styles, $wp_scripts;
+			if (isset($wp_styles->queue)) {
+				foreach ($wp_styles->queue as $handle) {
+					if (strpos($handle, 'wp-') === false && strpos($handle, 'dashicons') === false) {
+						wp_dequeue_style($handle);
+					}
+				}
+			}
+			if (isset($wp_scripts->queue)) {
+				foreach ($wp_scripts->queue as $handle) {
+					if (strpos($handle, 'wp-') === false && strpos($handle, 'media-') === false && strpos($handle, 'jquery') === false) {
+						wp_dequeue_script($handle);
+					}
+				}
+			}
+			wp_enqueue_media( array( 'post' => $book_id ) );
+		}, 9999);
+
+		$cover_settings = get_post_meta( $book_id, '_almaden_cover_settings', true );
+		if ( ! is_array( $cover_settings ) ) {
+			$cover_settings = array();
+		}
+		$cover_nonce = wp_create_nonce( 'almaden_save_cover_nonce_' . $book_id );
+		
+		// Load installed fonts
+		$installed_fonts = get_option( 'almaden_fonts_library', array() );
+		
+		$page_width = get_post_meta( $book_id, '_almaden_page_width', true );
+		$page_height = get_post_meta( $book_id, '_almaden_page_height', true );
+		if ( empty( $page_width ) ) $page_width = 14;
+		if ( empty( $page_height ) ) $page_height = 21;
+		
+		$total_pages = get_post_meta( $book_id, '_almaden_total_pages', true );
+		if ( empty( $total_pages ) ) $total_pages = 0;
+		
 		$template_path = dirname( __FILE__ ) . '/../templates/cover-app.php';
 		if ( file_exists( $template_path ) ) {
 			require_once $template_path;
