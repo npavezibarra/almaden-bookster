@@ -141,7 +141,9 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
                     <i class="fa-solid fa-plus text-xs"></i>
                 </button>
             </div>
-            
+            <button id="export-pdf-btn" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 transition shadow-sm flex items-center gap-2">
+                <i class="fa-solid fa-file-pdf text-red-500"></i> Descargar PDF
+            </button>
             <button id="save-cover-btn" class="bg-black text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition shadow-sm flex items-center gap-2">
                 <i class="fa-solid fa-floppy-disk"></i> Guardar Portada
             </button>
@@ -354,6 +356,48 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
                         <input type="checkbox" id="prop-hyphens" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
                         <label for="prop-hyphens" class="text-xs font-semibold text-gray-700 cursor-pointer">Separación por sílabas (guiones)</label>
                     </div>
+
+                    <!-- SHAPE PROPERTIES -->
+                    <div class="shape-only-prop hidden">
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Tipo de Forma</label>
+                        <select id="prop-shape-type" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="rectangle">Rectángulo</option>
+                            <option value="circle">Círculo</option>
+                        </select>
+                    </div>
+
+                    <div class="shape-only-prop hidden">
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Opacidad (%)</label>
+                        <input type="range" id="prop-shape-opacity" min="0" max="100" value="100" class="w-full accent-indigo-600" />
+                        <div class="text-xs text-center text-gray-500 mt-1" id="prop-shape-opacity-val">100%</div>
+                    </div>
+
+                    <div class="shape-only-prop hidden">
+                        <label class="block text-xs font-semibold text-gray-700 mb-2">Fondo (Background)</label>
+                        
+                        <div class="flex items-center gap-2 mb-2">
+                            <input type="checkbox" id="prop-shape-is-gradient" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
+                            <label for="prop-shape-is-gradient" class="text-xs font-semibold text-gray-700 cursor-pointer">Usar Degradado Lineal</label>
+                        </div>
+                        
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <div class="flex flex-col items-center flex-1">
+                                <span class="text-[10px] text-gray-500 uppercase font-bold mb-1" id="label-color-1">Color 1</span>
+                                <input type="color" id="prop-shape-color1" value="#000000" class="block w-full h-8 p-0 border-0 rounded cursor-pointer mb-1" />
+                                <input type="range" id="prop-shape-color1-opacity" min="0" max="100" value="100" class="w-full accent-indigo-600 h-1" />
+                            </div>
+                            <div class="flex flex-col items-center flex-1" id="prop-shape-color2-container" style="display: none;">
+                                <span class="text-[10px] text-gray-500 uppercase font-bold mb-1">Color 2</span>
+                                <input type="color" id="prop-shape-color2" value="#ffffff" class="block w-full h-8 p-0 border-0 rounded cursor-pointer mb-1" />
+                                <input type="range" id="prop-shape-color2-opacity" min="0" max="100" value="100" class="w-full accent-indigo-600 h-1" />
+                            </div>
+                        </div>
+
+                        <div id="prop-shape-angle-container" style="display: none;">
+                            <label class="block text-[10px] font-semibold text-gray-500 uppercase mb-1 mt-2">Ángulo (°)</label>
+                            <input type="number" id="prop-shape-angle" value="90" min="0" max="360" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500" />
+                        </div>
+                    </div>
                 </div>
             </div>
         </aside>
@@ -406,9 +450,12 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
                 <button id="add-image-layer-btn" class="w-full bg-white border border-gray-300 text-gray-700 py-1.5 rounded text-xs font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-1 shadow-sm">
                     <i class="fa-regular fa-image"></i> Imagen
                 </button>
+                <button id="add-shape-layer-btn" class="w-full bg-white border border-gray-300 text-gray-700 py-1.5 rounded text-xs font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-1 shadow-sm">
+                    <i class="fa-solid fa-shapes"></i> Forma
+                </button>
             </div>
 
-            <div id="layers-list" class="flex-1 overflow-y-auto bg-gray-50 flex flex-col-reverse justify-end p-2 gap-1">
+            <div id="layers-list" class="flex-1 overflow-y-auto bg-gray-50 flex flex-col p-2 gap-1">
                 <!-- Layers will be rendered here via JS -->
             </div>
         </aside>
@@ -419,6 +466,7 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
     <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-media.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-layers.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-save.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-export.js?v=' . time() ); ?>"></script>
     <?php wp_footer(); ?>
 </body>
 </html>

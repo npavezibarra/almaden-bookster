@@ -77,9 +77,26 @@ function openChapterSettingsModal() {
         normalContainer.classList.remove('hidden');
         tocContainer.classList.add('hidden');
         
+        // Reset a la pestaña General por defecto
+        if (typeof switchChapterTab === 'function') {
+            switchChapterTab('tab-general');
+        }
+
+        // Poblar tipografía del subtítulo si no se ha hecho
+        const subtitleFontSelect = document.getElementById('chapter_subtitle_font_family');
+        if (subtitleFontSelect && subtitleFontSelect.options.length <= 1 && bookState.installedFonts) {
+            bookState.installedFonts.forEach(font => {
+                const opt = document.createElement('option');
+                opt.value = font.family;
+                opt.textContent = font.family;
+                subtitleFontSelect.appendChild(opt);
+            });
+        }
         // Cargar valores Normales
-    document.getElementById('chapter_hide_title').checked = activeChapter.hide_title === '1';
-    document.getElementById('chapter_custom_running_header').value = activeChapter.custom_running_header || '';
+        document.getElementById('chapter_hide_title').checked = activeChapter.hide_title === '1';
+        document.getElementById('chapter_exclude_from_numbering').checked = activeChapter.exclude_from_numbering === '1';
+        document.getElementById('chapter_hide_all_headers_footers').checked = activeChapter.hide_all_headers_footers === '1';
+        document.getElementById('chapter_custom_running_header').value = activeChapter.custom_running_header || '';
     document.getElementById('chapter_drop_cap_enabled').checked = activeChapter.drop_cap_enabled === '1';
     document.getElementById('chapter_disable_hyphenation').checked = activeChapter.disable_hyphenation === '1';
     document.getElementById('chapter_page_one_vertical').value = activeChapter.page_one_vertical || 'top';
@@ -90,6 +107,18 @@ function openChapterSettingsModal() {
     document.getElementById('chapter_parity_image_mode').value = activeChapter.parity_image_mode || 'content';
     document.getElementById('chapter_parity_image_width').value = activeChapter.parity_image_width || '';
     document.getElementById('chapter_parity_image_height').value = activeChapter.parity_image_height || '';
+    
+    // Valores del Subtítulo
+    document.getElementById('chapter_subtitle_text').value = activeChapter.subtitle_text || '';
+    document.getElementById('chapter_subtitle_font_family').value = activeChapter.subtitle_font_family || '';
+    document.getElementById('chapter_subtitle_align').value = activeChapter.subtitle_align || 'center';
+    document.getElementById('chapter_subtitle_font_size').value = activeChapter.subtitle_font_size || '';
+    document.getElementById('chapter_subtitle_letter_spacing').value = activeChapter.subtitle_letter_spacing || '';
+    document.getElementById('chapter_subtitle_font_style').value = activeChapter.subtitle_font_style || 'normal';
+    document.getElementById('chapter_subtitle_text_transform').value = activeChapter.subtitle_text_transform || 'none';
+    document.getElementById('chapter_subtitle_font_weight').value = activeChapter.subtitle_font_weight || 'normal';
+    document.getElementById('chapter_subtitle_margin_top').value = activeChapter.subtitle_margin_top || '';
+    document.getElementById('chapter_subtitle_margin_bottom').value = activeChapter.subtitle_margin_bottom || '';
 
     }
 
@@ -164,6 +193,8 @@ function saveChapterSettings() {
     } else {
         // Leer valores del formulario
         activeChapter.hide_title = document.getElementById('chapter_hide_title').checked ? '1' : '0';
+        activeChapter.exclude_from_numbering = document.getElementById('chapter_exclude_from_numbering').checked ? '1' : '0';
+        activeChapter.hide_all_headers_footers = document.getElementById('chapter_hide_all_headers_footers').checked ? '1' : '0';
         activeChapter.custom_running_header = document.getElementById('chapter_custom_running_header').value.trim();
         activeChapter.drop_cap_enabled = document.getElementById('chapter_drop_cap_enabled').checked ? '1' : '0';
         activeChapter.disable_hyphenation = document.getElementById('chapter_disable_hyphenation').checked ? '1' : '0';
@@ -175,6 +206,18 @@ function saveChapterSettings() {
         activeChapter.parity_image_mode = document.getElementById('chapter_parity_image_mode').value;
         activeChapter.parity_image_width = document.getElementById('chapter_parity_image_width').value;
         activeChapter.parity_image_height = document.getElementById('chapter_parity_image_height').value;
+        
+        // Valores del subtítulo
+        activeChapter.subtitle_text = document.getElementById('chapter_subtitle_text').value;
+        activeChapter.subtitle_font_family = document.getElementById('chapter_subtitle_font_family').value;
+        activeChapter.subtitle_align = document.getElementById('chapter_subtitle_align').value;
+        activeChapter.subtitle_font_size = document.getElementById('chapter_subtitle_font_size').value;
+        activeChapter.subtitle_letter_spacing = document.getElementById('chapter_subtitle_letter_spacing').value;
+        activeChapter.subtitle_font_style = document.getElementById('chapter_subtitle_font_style').value;
+        activeChapter.subtitle_text_transform = document.getElementById('chapter_subtitle_text_transform').value;
+        activeChapter.subtitle_font_weight = document.getElementById('chapter_subtitle_font_weight').value;
+        activeChapter.subtitle_margin_top = document.getElementById('chapter_subtitle_margin_top').value;
+        activeChapter.subtitle_margin_bottom = document.getElementById('chapter_subtitle_margin_bottom').value;
     }
 
     // Cerrar modal
@@ -186,8 +229,8 @@ function saveChapterSettings() {
     }
 
     // Marcar como pendiente de guardado y forzar actualización del PDF
-    if (typeof markPendingChanges === 'function') {
-        markPendingChanges();
+    if (typeof saveStateToLocalStorage === 'function') {
+        saveStateToLocalStorage();
     }
     
     // Si la función está disponible (debería), compilar para reflejar cambios
@@ -227,5 +270,34 @@ function toggleParityImageSizeInputs() {
     } else {
         wrapper.classList.add('hidden');
         wrapper.classList.remove('grid');
+    }
+}
+
+function switchChapterTab(tabId) {
+    // Esconder todos los contenidos
+    const contents = document.querySelectorAll('.chapter-tab-content');
+    contents.forEach(el => {
+        el.classList.add('hidden');
+        el.classList.remove('block');
+    });
+
+    // Desactivar todos los botones
+    const btns = document.querySelectorAll('.chapter-tab-btn');
+    btns.forEach(btn => {
+        btn.classList.remove('border-indigo-500', 'text-indigo-600');
+        btn.classList.add('border-transparent', 'text-[var(--text-muted)]');
+    });
+
+    // Activar el contenido y botón seleccionado
+    const tabEl = document.getElementById(tabId);
+    if (tabEl) {
+        tabEl.classList.remove('hidden');
+        tabEl.classList.add('block');
+    }
+    
+    const activeBtn = document.getElementById('btn-' + tabId);
+    if (activeBtn) {
+        activeBtn.classList.remove('border-transparent', 'text-[var(--text-muted)]');
+        activeBtn.classList.add('border-indigo-500', 'text-indigo-600');
     }
 }

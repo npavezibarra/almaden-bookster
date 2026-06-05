@@ -54,7 +54,22 @@ function almaden_bookster_save_book_ajax() {
 		// Meta-datos locales
 		$parity_image          = isset( $chapter['parity_image'] ) ? sanitize_text_field( $chapter['parity_image'] ) : '';
 		$hide_title            = isset( $chapter['hide_title'] ) ? sanitize_text_field( $chapter['hide_title'] ) : '0';
+		$hide_all_headers_footers = isset( $chapter['hide_all_headers_footers'] ) ? sanitize_text_field( $chapter['hide_all_headers_footers'] ) : '0';
+		$exclude_from_numbering= isset( $chapter['exclude_from_numbering'] ) ? sanitize_text_field( $chapter['exclude_from_numbering'] ) : '0';
 		$custom_running_header = isset( $chapter['custom_running_header'] ) ? sanitize_text_field( $chapter['custom_running_header'] ) : '';
+		
+		// Valores del subtítulo
+		$subtitle_text          = isset( $chapter['subtitle_text'] ) ? sanitize_textarea_field( $chapter['subtitle_text'] ) : '';
+		$subtitle_font_family   = isset( $chapter['subtitle_font_family'] ) ? sanitize_text_field( $chapter['subtitle_font_family'] ) : '';
+		$subtitle_align         = isset( $chapter['subtitle_align'] ) ? sanitize_text_field( $chapter['subtitle_align'] ) : '';
+		$subtitle_font_size     = isset( $chapter['subtitle_font_size'] ) ? sanitize_text_field( $chapter['subtitle_font_size'] ) : '';
+		$subtitle_letter_spacing = isset( $chapter['subtitle_letter_spacing'] ) ? sanitize_text_field( $chapter['subtitle_letter_spacing'] ) : '';
+		$subtitle_font_style    = isset( $chapter['subtitle_font_style'] ) ? sanitize_text_field( $chapter['subtitle_font_style'] ) : '';
+		$subtitle_text_transform = isset( $chapter['subtitle_text_transform'] ) ? sanitize_text_field( $chapter['subtitle_text_transform'] ) : '';
+		$subtitle_font_weight   = isset( $chapter['subtitle_font_weight'] ) ? sanitize_text_field( $chapter['subtitle_font_weight'] ) : '';
+		$subtitle_margin_top    = isset( $chapter['subtitle_margin_top'] ) ? sanitize_text_field( $chapter['subtitle_margin_top'] ) : '';
+		$subtitle_margin_bottom = isset( $chapter['subtitle_margin_bottom'] ) ? sanitize_text_field( $chapter['subtitle_margin_bottom'] ) : '';
+		
 		$drop_cap_enabled      = isset( $chapter['drop_cap_enabled'] ) ? sanitize_text_field( $chapter['drop_cap_enabled'] ) : '0';
 		$disable_hyphenation   = isset( $chapter['disable_hyphenation'] ) ? sanitize_text_field( $chapter['disable_hyphenation'] ) : '0';
 		$page_one_vertical     = isset( $chapter['page_one_vertical'] ) ? sanitize_text_field( $chapter['page_one_vertical'] ) : 'top';
@@ -120,7 +135,22 @@ function almaden_bookster_save_book_ajax() {
 			// Guardar meta-datos
 			update_post_meta( $post_id, '_parity_image', $parity_image );
 			update_post_meta( $post_id, '_hide_title', $hide_title );
+			update_post_meta( $post_id, '_hide_all_headers_footers', $hide_all_headers_footers );
+			update_post_meta( $post_id, '_exclude_from_numbering', $exclude_from_numbering );
 			update_post_meta( $post_id, '_custom_running_header', $custom_running_header );
+			
+			// Guardar meta-datos del subtítulo
+			update_post_meta( $post_id, '_subtitle_text', $subtitle_text );
+			update_post_meta( $post_id, '_subtitle_font_family', $subtitle_font_family );
+			update_post_meta( $post_id, '_subtitle_align', $subtitle_align );
+			update_post_meta( $post_id, '_subtitle_font_size', $subtitle_font_size );
+			update_post_meta( $post_id, '_subtitle_letter_spacing', $subtitle_letter_spacing );
+			update_post_meta( $post_id, '_subtitle_font_style', $subtitle_font_style );
+			update_post_meta( $post_id, '_subtitle_text_transform', $subtitle_text_transform );
+			update_post_meta( $post_id, '_subtitle_font_weight', $subtitle_font_weight );
+			update_post_meta( $post_id, '_subtitle_margin_top', $subtitle_margin_top );
+			update_post_meta( $post_id, '_subtitle_margin_bottom', $subtitle_margin_bottom );
+			
 			update_post_meta( $post_id, '_drop_cap_enabled', $drop_cap_enabled );
 			update_post_meta( $post_id, '_disable_hyphenation', $disable_hyphenation );
 			update_post_meta( $post_id, '_page_one_vertical', $page_one_vertical );
@@ -165,7 +195,21 @@ function almaden_bookster_save_book_ajax() {
 				'content'               => $chapter_content,
 				'parity_image'          => $parity_image,
 				'hide_title'            => $hide_title,
+				'hide_all_headers_footers' => $hide_all_headers_footers,
+				'exclude_from_numbering'=> $exclude_from_numbering,
 				'custom_running_header' => $custom_running_header,
+				
+				'subtitle_text'          => $subtitle_text,
+				'subtitle_font_family'   => $subtitle_font_family,
+				'subtitle_align'         => $subtitle_align,
+				'subtitle_font_size'     => $subtitle_font_size,
+				'subtitle_letter_spacing' => $subtitle_letter_spacing,
+				'subtitle_font_style'    => $subtitle_font_style,
+				'subtitle_text_transform' => $subtitle_text_transform,
+				'subtitle_font_weight'   => $subtitle_font_weight,
+				'subtitle_margin_top'    => $subtitle_margin_top,
+				'subtitle_margin_bottom' => $subtitle_margin_bottom,
+				
 				'drop_cap_enabled'      => $drop_cap_enabled,
 				'disable_hyphenation'   => $disable_hyphenation,
 				'page_one_vertical'     => $page_one_vertical,

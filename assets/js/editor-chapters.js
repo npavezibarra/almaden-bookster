@@ -31,6 +31,8 @@ function renderSidebar() {
     if (!listContainer) return;
     listContainer.innerHTML = '';
 
+    let chapterDisplayNumber = 1;
+
     bookState.chapters.forEach((chapter, index) => {
         const isActive = chapter.id === bookState.activeChapterId;
         
@@ -47,9 +49,16 @@ function renderSidebar() {
             chapterPagesStr = `<span class="text-[9px] text-indigo-400 font-medium whitespace-nowrap"><i class="fa-regular fa-file-lines mr-0.5"></i> ${window.bookChapterLengths[chapter.id]} p.</span>`;
         }
 
+        // Determinar número a mostrar en sidebar
+        let displayStr = '-';
+        if (chapter.is_toc !== '1' && chapter.exclude_from_numbering !== '1') {
+            displayStr = chapterDisplayNumber;
+            chapterDisplayNumber++;
+        }
+
         chapterEl.innerHTML = `
             <div class="flex items-center gap-3 overflow-hidden w-full">
-                <span class="text-xs font-bold text-indigo-500/80 dark:text-indigo-400/80 group-hover:scale-110 transition-transform">${index + 1}</span>
+                <span class="text-xs font-bold text-indigo-500/80 dark:text-indigo-400/80 group-hover:scale-110 transition-transform">${displayStr}</span>
                 <div class="truncate flex-1">
                     <div class="flex items-center justify-between gap-2">
                         <h4 class="text-sm font-semibold truncate ${isActive ? 'text-indigo-700 dark:text-indigo-400' : 'text-[var(--text-main)]'}">

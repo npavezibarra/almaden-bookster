@@ -7,9 +7,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const textsIcon = document.getElementById('texts-section-icon');
     const addTextLayerBtn = document.getElementById('add-text-layer-btn');
     const addImageLayerBtn = document.getElementById('add-image-layer-btn');
+    const addShapeLayerBtn = document.getElementById('add-shape-layer-btn');
     const deleteTextBtn = document.getElementById('delete-text-btn');
 
     const textOnlyProps = document.querySelectorAll('.text-only-prop');
+    const shapeOnlyProps = document.querySelectorAll('.shape-only-prop');
+
+    // Shape properties inputs
+    const propShapeType = document.getElementById('prop-shape-type');
+    const propShapeOpacity = document.getElementById('prop-shape-opacity');
+    const propShapeOpacityVal = document.getElementById('prop-shape-opacity-val');
+    const propShapeIsGradient = document.getElementById('prop-shape-is-gradient');
+    const propShapeColor1 = document.getElementById('prop-shape-color1');
+    const propShapeColor1Opacity = document.getElementById('prop-shape-color1-opacity');
+    const propShapeColor2 = document.getElementById('prop-shape-color2');
+    const propShapeColor2Opacity = document.getElementById('prop-shape-color2-opacity');
+    const propShapeColor2Container = document.getElementById('prop-shape-color2-container');
+    const propShapeAngle = document.getElementById('prop-shape-angle');
+    const propShapeAngleContainer = document.getElementById('prop-shape-angle-container');
 
     // Text properties inputs
     const propTextContent = document.getElementById('prop-text-content');
@@ -38,6 +53,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.random().toString(36).substr(2, 9);
     }
 
+    function hexToRgba(hex, opacity) {
+        let r = 0, g = 0, b = 0;
+        if (hex.length === 4) {
+            r = parseInt(hex[1] + hex[1], 16);
+            g = parseInt(hex[2] + hex[2], 16);
+            b = parseInt(hex[3] + hex[3], 16);
+        } else if (hex.length === 7) {
+            r = parseInt(hex.substring(1, 3), 16);
+            g = parseInt(hex.substring(3, 5), 16);
+            b = parseInt(hex.substring(5, 7), 16);
+        }
+        return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
+    }
+
     function renderTextLayers() {
         const existingLayers = el.coverSpread.querySelectorAll('.text-layer');
         existingLayers.forEach(layer => layer.remove());
@@ -48,9 +77,9 @@ document.addEventListener('DOMContentLoaded', () => {
             div.dataset.id = layer.id;
             
             if (s.activeLayerId === layer.id) {
-                div.classList.add('border-2', 'border-indigo-500', 'bg-indigo-50', 'bg-opacity-10');
+                div.classList.add('outline', 'outline-2', 'outline-indigo-500', 'bg-indigo-50', 'bg-opacity-10');
             } else {
-                div.classList.add('border', 'border-transparent', 'hover:border-dashed', 'hover:border-gray-400');
+                div.classList.add('outline', 'outline-1', 'outline-transparent', 'hover:outline-dashed', 'hover:outline-gray-400');
             }
 
             div.style.left = `${layer.x}%`;
@@ -65,6 +94,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 div.style.backgroundPosition = 'center';
                 if (!layer.width) div.style.width = '200px';
                 if (!layer.height) div.style.height = '200px';
+            } else if (layer.type === 'shape') {
+                div.style.opacity = (layer.opacity !== undefined ? layer.opacity : 100) / 100;
+                if (layer.shapeType === 'circle') div.style.borderRadius = '50%';
+                else div.style.borderRadius = '0';
+                
+                const c1 = hexToRgba(layer.color1 || '#000000', layer.color1Opacity !== undefined ? layer.color1Opacity : 100);
+                const c2 = hexToRgba(layer.color2 || '#ffffff', layer.color2Opacity !== undefined ? layer.color2Opacity : 100);
+
+                if (layer.isGradient) {
+                    div.style.background = `linear-gradient(${layer.gradientAngle || 90}deg, ${c1}, ${c2})`;
+                } else {
+                    div.style.background = c1;
+                }
+                if (!layer.width) div.style.width = '150px';
+                if (!layer.height) div.style.height = '150px';
             } else {
                 div.style.fontFamily = layer.fontFamily;
                 div.style.fontSize = `${layer.fontSize}px`;
@@ -121,8 +165,31 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (layer.type === 'image') {
                 textOnlyProps.forEach(el => el.classList.add('hidden'));
+                shapeOnlyProps.forEach(el => el.classList.add('hidden'));
+            } else if (layer.type === 'shape') {
+                textOnlyProps.forEach(el => el.classList.add('hidden'));
+                shapeOnlyProps.forEach(el => el.classList.remove('hidden'));
+                
+                propShapeType.value = layer.shapeType || 'rectangle';
+                propShapeOpacity.value = layer.opacity !== undefined ? layer.opacity : 100;
+                propShapeOpacityVal.textContent = propShapeOpacity.value + '%';
+                propShapeIsGradient.checked = !!layer.isGradient;
+                propShapeColor1.value = layer.color1 || '#000000';
+                propShapeColor1Opacity.value = layer.color1Opacity !== undefined ? layer.color1Opacity : 100;
+                propShapeColor2.value = layer.color2 || '#ffffff';
+                propShapeColor2Opacity.value = layer.color2Opacity !== undefined ? layer.color2Opacity : 100;
+                propShapeAngle.value = layer.gradientAngle || 90;
+                
+                if (layer.isGradient) {
+                    propShapeColor2Container.style.display = 'flex';
+                    propShapeAngleContainer.style.display = 'block';
+                } else {
+                    propShapeColor2Container.style.display = 'none';
+                    propShapeAngleContainer.style.display = 'none';
+                }
             } else {
                 textOnlyProps.forEach(el => el.classList.remove('hidden'));
+                shapeOnlyProps.forEach(el => el.classList.add('hidden'));
                 propTextContent.value = layer.text || '';
                 propFontFamily.value = layer.fontFamily || (coverData.installedFonts && coverData.installedFonts[0] ? coverData.installedFonts[0].family : 'Inter');
                 propFontSize.value = layer.fontSize;
@@ -162,20 +229,71 @@ document.addEventListener('DOMContentLoaded', () => {
         const sortedLayers = [...s.textLayers].sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0));
 
         sortedLayers.forEach(layer => {
-            const btn = document.createElement('button');
-            btn.className = `w-full text-left px-3 py-2 text-xs rounded border transition flex items-center gap-2 ${
+            const btn = document.createElement('div');
+            btn.className = `w-full text-left px-3 py-2 text-xs rounded border transition flex items-center gap-2 cursor-move ${
                 s.activeLayerId === layer.id 
                     ? 'bg-indigo-50 border-indigo-200 text-indigo-800 font-semibold' 
                     : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-100'
             }`;
+            btn.draggable = true;
+            btn.dataset.layerId = layer.id;
             
             btn.innerHTML = `
-                <i class="fa-${layer.type === 'image' ? 'regular fa-image' : 'solid fa-t'} text-gray-400"></i>
-                <span class="truncate flex-1">${layer.type === 'image' ? 'Imagen' : (layer.text || 'Texto vacío')}</span>
+                <i class="fa-${layer.type === 'image' ? 'regular fa-image' : (layer.type === 'shape' ? (layer.shapeType === 'circle' ? 'solid fa-circle' : 'solid fa-square') : 'solid fa-t')} text-gray-400"></i>
+                <span class="truncate flex-1 pointer-events-none">${layer.type === 'image' ? 'Imagen' : (layer.type === 'shape' ? 'Forma' : (layer.text || 'Texto vacío'))}</span>
+                <i class="fa-solid fa-grip-vertical text-gray-300 ml-auto pointer-events-none"></i>
             `;
 
             btn.addEventListener('click', () => {
                 selectLayer(layer.id);
+            });
+
+            // Drag and drop logic
+            btn.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', layer.id);
+                btn.classList.add('opacity-50');
+            });
+
+            btn.addEventListener('dragend', () => {
+                btn.classList.remove('opacity-50');
+                const placeholders = el.layersList.querySelectorAll('.border-t-2');
+                placeholders.forEach(p => p.classList.remove('border-t-2', 'border-indigo-500'));
+            });
+
+            btn.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                btn.classList.add('border-t-2', 'border-indigo-500');
+            });
+
+            btn.addEventListener('dragleave', () => {
+                btn.classList.remove('border-t-2', 'border-indigo-500');
+            });
+
+            btn.addEventListener('drop', (e) => {
+                e.preventDefault();
+                btn.classList.remove('border-t-2', 'border-indigo-500');
+                const draggedId = e.dataTransfer.getData('text/plain');
+                if (!draggedId || draggedId === layer.id) return;
+
+                // Sort textLayers by zIndex ascending so we have a reliable order
+                s.textLayers.sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+                
+                const draggedIndex = s.textLayers.findIndex(l => l.id === draggedId);
+                const targetIndex = s.textLayers.findIndex(l => l.id === layer.id);
+                
+                if (draggedIndex > -1 && targetIndex > -1) {
+                    const [draggedLayer] = s.textLayers.splice(draggedIndex, 1);
+                    // Insert at target index
+                    s.textLayers.splice(targetIndex, 0, draggedLayer);
+                    
+                    // Reassign z-indexes sequentially
+                    s.textLayers.forEach((l, i) => {
+                        l.zIndex = 30 + i;
+                    });
+                    
+                    renderTextLayers();
+                    renderLayersPanel();
+                }
             });
 
             el.layersList.appendChild(btn);
@@ -265,6 +383,33 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (addShapeLayerBtn) {
+        addShapeLayerBtn.addEventListener('click', () => {
+            const newLayer = {
+                id: generateId(),
+                type: 'shape',
+                shapeType: 'rectangle',
+                color1: '#cccccc',
+                color1Opacity: 100,
+                color2: '#999999',
+                color2Opacity: 100,
+                isGradient: false,
+                gradientAngle: 90,
+                opacity: 100,
+                x: 50,
+                y: 50,
+                rotation: 0,
+                width: 150,
+                height: 150,
+                zIndex: 30 + s.textLayers.length
+            };
+            s.textLayers.push(newLayer);
+            renderTextLayers();
+            renderLayersPanel();
+            selectLayer(newLayer.id);
+        });
+    }
+
     deleteTextBtn.addEventListener('click', () => {
         if (!s.activeLayerId) return;
         s.textLayers = s.textLayers.filter(l => l.id !== s.activeLayerId);
@@ -327,6 +472,63 @@ document.addEventListener('DOMContentLoaded', () => {
         const layer = s.textLayers.find(l => l.id === s.activeLayerId);
         if (layer) { layer.hyphens = e.target.checked; renderTextLayers(); }
     });
+
+    // Shape Binding Inputs
+    if (propShapeType) {
+        propShapeType.addEventListener('change', (e) => {
+            const layer = s.textLayers.find(l => l.id === s.activeLayerId);
+            if (layer && layer.type === 'shape') { layer.shapeType = e.target.value; renderTextLayers(); renderLayersPanel(); }
+        });
+    }
+    if (propShapeOpacity) {
+        propShapeOpacity.addEventListener('input', (e) => {
+            const layer = s.textLayers.find(l => l.id === s.activeLayerId);
+            if (layer && layer.type === 'shape') { 
+                layer.opacity = parseInt(e.target.value) || 0; 
+                propShapeOpacityVal.textContent = layer.opacity + '%';
+                renderTextLayers(); 
+            }
+        });
+    }
+    if (propShapeIsGradient) {
+        propShapeIsGradient.addEventListener('change', (e) => {
+            const layer = s.textLayers.find(l => l.id === s.activeLayerId);
+            if (layer && layer.type === 'shape') { 
+                layer.isGradient = e.target.checked; 
+                selectLayer(s.activeLayerId); // Re-run selectLayer to show/hide gradient controls
+            }
+        });
+    }
+    if (propShapeColor1) {
+        propShapeColor1.addEventListener('input', (e) => {
+            const layer = s.textLayers.find(l => l.id === s.activeLayerId);
+            if (layer && layer.type === 'shape') { layer.color1 = e.target.value; renderTextLayers(); }
+        });
+    }
+    if (propShapeColor1Opacity) {
+        propShapeColor1Opacity.addEventListener('input', (e) => {
+            const layer = s.textLayers.find(l => l.id === s.activeLayerId);
+            if (layer && layer.type === 'shape') { layer.color1Opacity = parseInt(e.target.value) || 0; renderTextLayers(); }
+        });
+    }
+    if (propShapeColor2) {
+        propShapeColor2.addEventListener('input', (e) => {
+            const layer = s.textLayers.find(l => l.id === s.activeLayerId);
+            if (layer && layer.type === 'shape') { layer.color2 = e.target.value; renderTextLayers(); }
+        });
+    }
+    if (propShapeColor2Opacity) {
+        propShapeColor2Opacity.addEventListener('input', (e) => {
+            const layer = s.textLayers.find(l => l.id === s.activeLayerId);
+            if (layer && layer.type === 'shape') { layer.color2Opacity = parseInt(e.target.value) || 0; renderTextLayers(); }
+        });
+    }
+    if (propShapeAngle) {
+        propShapeAngle.addEventListener('input', (e) => {
+            const layer = s.textLayers.find(l => l.id === s.activeLayerId);
+            if (layer && layer.type === 'shape') { layer.gradientAngle = parseInt(e.target.value) || 0; renderTextLayers(); }
+        });
+    }
 
     // Exports
     window.CoverEditor.actions.renderTextLayers = renderTextLayers;

@@ -25,7 +25,7 @@
                             </label>
                         </div>
                         <div>
-                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Texto (usa {N} para el número)</label>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Texto (usa {N} para número, {R} para romano)</label>
                             <input id="setting-chapter-prefix-template" type="text" value="Capítulo {N}" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
                     </div>
@@ -154,17 +154,25 @@
                             </select>
                         </div>
                     </div>
-                    <div class="grid grid-cols-3 gap-2">
+                    <div class="grid grid-cols-5 gap-2">
                         <div>
-                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Padding Arriba (cm)</label>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Padd. Arriba (cm)</label>
                             <input id="setting-chapter-title-padding-top" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
                         <div>
-                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Padding Abajo (cm)</label>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Padd. Abajo (cm)</label>
                             <input id="setting-chapter-title-padding-bottom" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
                         <div>
-                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Altura de Línea</label>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Padd. Izq. (cm)</label>
+                            <input id="setting-chapter-title-padding-left" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Padd. Der. (cm)</label>
+                            <input id="setting-chapter-title-padding-right" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Altura Línea</label>
                             <input id="setting-chapter-title-line-height" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
                     </div>

@@ -92,6 +92,9 @@ window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter
     if (chapter && chapter.is_toc == '1') {
         headerType = 'blank';
     }
+    if (chapter && chapter.hide_all_headers_footers === '1') {
+        headerType = 'blank';
+    }
     
     if (headerType !== 'blank') {
         if (headerType === 'book_title') {
@@ -110,7 +113,11 @@ window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter
 
     // Footer Content
     let footerHtml = '&nbsp;';
-    const footerType = isFirstPageOfChapter ? firstPageFooterType : (isEven ? (settings.footer_even_type || 'page_number') : (settings.footer_odd_type || 'page_number'));
+    let footerType = isFirstPageOfChapter ? firstPageFooterType : (isEven ? (settings.footer_even_type || 'page_number') : (settings.footer_odd_type || 'page_number'));
+    
+    if (chapter && chapter.hide_all_headers_footers === '1') {
+        footerType = 'blank';
+    }
     
     if (footerType !== 'blank') {
         if (footerType === 'page_number') {

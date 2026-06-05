@@ -181,6 +181,8 @@ function toggleSettingsModal(show) {
         document.getElementById('setting-chapter-title-text-transform').value = settings.chapter_title_text_transform || 'none';
         document.getElementById('setting-chapter-title-padding-top').value = settings.chapter_title_padding_top ?? 0;
         document.getElementById('setting-chapter-title-padding-bottom').value = settings.chapter_title_padding_bottom ?? 1.5;
+        document.getElementById('setting-chapter-title-padding-left').value = settings.chapter_title_padding_left ?? 0;
+        document.getElementById('setting-chapter-title-padding-right').value = settings.chapter_title_padding_right ?? 0;
         document.getElementById('setting-chapter-title-line-height').value = settings.chapter_title_line_height ?? 1.2;
 
         document.getElementById('setting-chapter-prefix-show').checked = settings.chapter_prefix_show == 1;
@@ -325,6 +327,8 @@ function savePDFSettings() {
     data.append('chapter_title_text_transform', document.getElementById('setting-chapter-title-text-transform').value);
     data.append('chapter_title_padding_top', getCleanVal('setting-chapter-title-padding-top'));
     data.append('chapter_title_padding_bottom', getCleanVal('setting-chapter-title-padding-bottom'));
+    data.append('chapter_title_padding_left', getCleanVal('setting-chapter-title-padding-left'));
+    data.append('chapter_title_padding_right', getCleanVal('setting-chapter-title-padding-right'));
     data.append('chapter_title_line_height', getCleanVal('setting-chapter-title-line-height'));
 
     data.append('chapter_prefix_show', document.getElementById('setting-chapter-prefix-show').checked ? 1 : 0);
@@ -427,6 +431,8 @@ function savePDFSettings() {
                 chapter_title_text_transform: document.getElementById('setting-chapter-title-text-transform').value,
                 chapter_title_padding_top: parseVal('setting-chapter-title-padding-top', 0),
                 chapter_title_padding_bottom: parseVal('setting-chapter-title-padding-bottom', 1.5),
+                chapter_title_padding_left: parseVal('setting-chapter-title-padding-left', 0),
+                chapter_title_padding_right: parseVal('setting-chapter-title-padding-right', 0),
                 chapter_title_line_height: parseVal('setting-chapter-title-line-height', 1.2),
 
                 chapter_prefix_show: document.getElementById('setting-chapter-prefix-show').checked ? 1 : 0,

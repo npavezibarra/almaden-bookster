@@ -36,16 +36,48 @@
 
                 <!-- Ajustes normales de capítulo -->
                 <div id="normal-chapter-settings" class="space-y-6">
+                    <!-- TABS NAVIGATION -->
+                    <div class="border-b border-[var(--border-color)] mb-4">
+                        <nav class="-mb-px flex gap-6" aria-label="Tabs">
+                            <button type="button" onclick="switchChapterTab('tab-general')" id="btn-tab-general" class="chapter-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600">General</button>
+                            <button type="button" onclick="switchChapterTab('tab-subtitle')" id="btn-tab-subtitle" class="chapter-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-gray-300">Subtítulo / Meta</button>
+                            <button type="button" onclick="switchChapterTab('tab-design')" id="btn-tab-design" class="chapter-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-gray-300">Imágenes y Diseño</button>
+                        </nav>
+                    </div>
+
+                    <!-- TAB CONTENT: General -->
+                    <div id="tab-general" class="chapter-tab-content space-y-6 block">
                 <!-- Ocultar Título -->
                 <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
                     <div>
                         <label class="font-semibold block mb-1">Ocultar Título del Capítulo</label>
                         <span class="text-xs text-[var(--text-muted)]">No muestra el título en el PDF. Ideal para prólogos o continuaciones.</span>
                     </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="chapter_hide_title" name="hide_chapter_title" class="sr-only peer">
-                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
-                    </label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <div class="relative flex items-center">
+                                <input type="checkbox" id="chapter_hide_title" name="hide_chapter_title" class="sr-only peer">
+                                <div class="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                            </div>
+                            <span class="text-[11px] font-medium text-[var(--text-main)] group-hover:text-indigo-600 transition-colors">Ocultar título en PDF</span>
+                        </label>
+                        
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <div class="relative flex items-center">
+                                <input type="checkbox" id="chapter_exclude_from_numbering" name="exclude_from_numbering" class="sr-only peer">
+                                <div class="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                            </div>
+                            <span class="text-[11px] font-medium text-[var(--text-main)] group-hover:text-indigo-600 transition-colors">Excluir de numeración</span>
+                        </label>
+
+                        <label class="flex items-center gap-2 cursor-pointer group col-span-2">
+                            <div class="relative flex items-center">
+                                <input type="checkbox" id="chapter_hide_all_headers_footers" name="hide_all_headers_footers" class="sr-only peer">
+                                <div class="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                            </div>
+                            <span class="text-[11px] font-medium text-[var(--text-main)] group-hover:text-indigo-600 transition-colors">Sin cabecera ni pie en todo el capítulo</span>
+                        </label>
+                    </div>
                 </div>
 
                 <!-- Cabecera Personalizada -->
@@ -95,6 +127,82 @@
                 </div>
 
 
+                    </div><!-- End tab-general -->
+
+                    <!-- TAB CONTENT: Subtitle -->
+                    <div id="tab-subtitle" class="chapter-tab-content space-y-6 hidden">
+                        <div class="grid grid-cols-1 gap-4">
+                            <div>
+                                <label class="block font-semibold mb-1">Subtítulo / Metadata</label>
+                                <p class="text-xs text-[var(--text-muted)] mb-2">Se mostrará debajo del título del capítulo.</p>
+                                <textarea id="chapter_subtitle_text" rows="2" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-[var(--text-main)] focus:outline-none focus:border-indigo-500" placeholder="Ej: Las memorias perdidas..."></textarea>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Tipografía</label>
+                                <select id="chapter_subtitle_font_family" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="">Usar Global</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Alineación</label>
+                                <select id="chapter_subtitle_align" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="center">Centro</option>
+                                    <option value="left">Izquierda</option>
+                                    <option value="right">Derecha</option>
+                                    <option value="justify">Justificado</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Tamaño (pt)</label>
+                                <input type="number" step="0.5" id="chapter_subtitle_font_size" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ej: 12">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Espaciado de Letras (px)</label>
+                                <input type="number" step="0.1" id="chapter_subtitle_letter_spacing" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ej: 1.5">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Estilo</label>
+                                <select id="chapter_subtitle_font_style" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="normal">Normal</option>
+                                    <option value="italic">Cursiva</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Transformación</label>
+                                <select id="chapter_subtitle_text_transform" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="none">Normal</option>
+                                    <option value="uppercase">MAYÚSCULAS</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Peso</label>
+                                <select id="chapter_subtitle_font_weight" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="normal">Normal (400)</option>
+                                    <option value="bold">Bold (700)</option>
+                                    <option value="300">Light (300)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Margen Arriba (cm)</label>
+                                <input type="number" step="0.1" id="chapter_subtitle_margin_top" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ej: 0.5">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Margen Abajo (cm)</label>
+                                <input type="number" step="0.1" id="chapter_subtitle_margin_bottom" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ej: 1.0">
+                            </div>
+                        </div>
+                    </div><!-- End tab-subtitle -->
+
+                    <!-- TAB CONTENT: Design -->
+                    <div id="tab-design" class="chapter-tab-content space-y-6 hidden">
                 
                 <!-- Mostrar cabecera y pie en página 1 -->
                 <div class="p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
@@ -162,6 +270,7 @@
                         </div>
                     </div>
                 </div>
+                    </div><!-- End tab-design -->
                 </div><!-- End normal-chapter-settings -->
 
                 <!-- Ajustes exclusivos para la Tabla de Contenidos -->

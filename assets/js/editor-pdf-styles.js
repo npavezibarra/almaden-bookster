@@ -28,6 +28,8 @@ function applyDynamicPDFStyles() {
         titleAlign: tocChapter.toc_title_align || settings.chapter_title_align || 'center',
         titlePaddingTop: tocChapter.toc_title_padding_top ? parseFloat(tocChapter.toc_title_padding_top) : parseFloat(settings.chapter_title_padding_top || 0.0),
         titlePaddingBottom: tocChapter.toc_title_padding_bottom ? parseFloat(tocChapter.toc_title_padding_bottom) : parseFloat(settings.chapter_title_padding_bottom || 1.5),
+        titlePaddingLeft: tocChapter.toc_title_padding_left ? parseFloat(tocChapter.toc_title_padding_left) : parseFloat(settings.chapter_title_padding_left || 0.0),
+        titlePaddingRight: tocChapter.toc_title_padding_right ? parseFloat(tocChapter.toc_title_padding_right) : parseFloat(settings.chapter_title_padding_right || 0.0),
         titleLineHeight: tocChapter.toc_title_line_height ? parseFloat(tocChapter.toc_title_line_height) : parseFloat(settings.chapter_title_line_height || 1.2)
     } : {
         fontFamily: settings.font_family_content || 'Merriweather',
@@ -47,6 +49,8 @@ function applyDynamicPDFStyles() {
         titleAlign: settings.chapter_title_align || 'center',
         titlePaddingTop: parseFloat(settings.chapter_title_padding_top || 0.0),
         titlePaddingBottom: parseFloat(settings.chapter_title_padding_bottom || 1.5),
+        titlePaddingLeft: parseFloat(settings.chapter_title_padding_left || 0.0),
+        titlePaddingRight: parseFloat(settings.chapter_title_padding_right || 0.0),
         titleLineHeight: parseFloat(settings.chapter_title_line_height || 1.2)
     };
 
@@ -318,6 +322,8 @@ function applyDynamicPDFStyles() {
             text-align: ${settings.chapter_title_align || 'center'} !important;
             padding-top: ${toPx(settings.chapter_title_padding_top || 0.0)}px !important;
             padding-bottom: ${toPx(settings.chapter_title_padding_bottom || 1.5)}px !important;
+            padding-left: ${toPx(settings.chapter_title_padding_left || 0.0)}px !important;
+            padding-right: ${toPx(settings.chapter_title_padding_right || 0.0)}px !important;
             line-height: ${settings.chapter_title_line_height || 1.2} !important;
             margin: 0 !important;
             page-break-after: avoid;
@@ -334,6 +340,8 @@ function applyDynamicPDFStyles() {
             text-align: ${tocSettings.titleAlign} !important;
             padding-top: ${toPx(tocSettings.titlePaddingTop)}px !important;
             padding-bottom: ${toPx(tocSettings.titlePaddingBottom)}px !important;
+            padding-left: ${toPx(tocSettings.titlePaddingLeft)}px !important;
+            padding-right: ${toPx(tocSettings.titlePaddingRight)}px !important;
             line-height: ${tocSettings.titleLineHeight} !important;
             margin: 0 !important;
             page-break-after: avoid;
