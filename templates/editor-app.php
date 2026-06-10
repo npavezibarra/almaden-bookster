@@ -83,7 +83,7 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
                 <button onclick="toggleSettingsModal(true)" class="p-2 border border-[var(--border-color)] hover:bg-[var(--bg-app)] rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] transition" title="Configuración de Maquetación del PDF">
                     <i class="fa-solid fa-gear"></i>
                 </button>
-                <button onclick="triggerPrint()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-lg transition flex items-center gap-2">
+                <button id="btn-export-pdf" onclick="triggerPrint()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-lg transition flex items-center gap-2">
                     <i class="fa-solid fa-file-pdf"></i>
                     <span class="hidden sm:inline">Imprimir PDF</span>
                 </button>
@@ -305,11 +305,7 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
                         <i class="fa-solid fa-magnifying-glass-doc text-xs text-indigo-500"></i> Vista Previa
                     </span>
                     <div class="flex items-center gap-3">
-                        <select id="preview-mode-select" onchange="changePreviewMode(this.value)" class="bg-transparent border border-[var(--border-color)] rounded px-1 py-0.5 text-[10px] sm:text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                            <option value="active">Solo Cap. Actual (Rápido)</option>
-                            <option value="full">Libro Completo (Lento)</option>
-                        </select>
-                        <div class="h-4 w-px bg-[var(--border-color)]"></div>
+
                         <button id="btn-toggle-spread" class="text-[var(--text-muted)] hover:text-indigo-500 transition-colors" title="Alternar Vista a Doble Página">
                             <i class="fa-solid fa-file-lines"></i>
                         </button>
@@ -364,6 +360,7 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-markdown.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-dom.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-pagination.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-html.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-compiler.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-export.js?v='   . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-styles.js?v='   . time(), __FILE__ ) ); ?>"></script>

@@ -15,6 +15,14 @@
                             <option value="Custom">Personalizado</option>
                         </select>
                     </div>
+                    <div>
+                        <label class="block text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">Color de Impresión</label>
+                        <label class="relative inline-flex items-center cursor-pointer mt-1">
+                            <input type="checkbox" id="setting-export-grayscale" class="sr-only peer">
+                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                            <span class="ml-2 text-xs font-semibold text-[var(--text-main)]">Forzar Blanco y Negro</span>
+                        </label>
+                    </div>
                 </div>
 
                 <div id="custom-page-dimensions" class="grid grid-cols-2 gap-4 hidden">

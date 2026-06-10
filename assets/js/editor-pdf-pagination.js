@@ -152,5 +152,26 @@ window.splitParagraphAcrossPages = function(pNode, innerContainer, footnotesHeig
     pNode.classList.add('split-paragraph-start');
     secondHalfNode.classList.add('split-paragraph-continuation');
     
+    // Find the deepmost element that was actually split so we only justify that one
+    function markDeepmostSplitElement(node) {
+        let lastElement = null;
+        for (let i = node.childNodes.length - 1; i >= 0; i--) {
+            const child = node.childNodes[i];
+            if (child.nodeType === Node.ELEMENT_NODE) {
+                lastElement = child;
+                break;
+            } else if (child.nodeType === Node.TEXT_NODE && child.textContent.trim() !== '') {
+                node.classList.add('deep-split-start');
+                return;
+            }
+        }
+        if (lastElement) {
+            markDeepmostSplitElement(lastElement);
+        } else {
+            if (node.classList) node.classList.add('deep-split-start');
+        }
+    }
+    markDeepmostSplitElement(pNode);
+    
     return secondHalfNode;
 };

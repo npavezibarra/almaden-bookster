@@ -23,25 +23,30 @@ function getPageDimensions() {
 }
 
 async function triggerPrint() {
-    // Si estaba en modo rápido, forzamos compilación completa para poder imprimir el libro entero
-    const previousMode = window.currentPreviewMode;
-    if (window.currentPreviewMode !== 'full') {
-        const scroller = document.getElementById('pdf-scroller');
-        if (scroller) {
-            scroller.innerHTML = '<div class="flex items-center justify-center h-full w-full text-indigo-500 gap-2"><i class="fa-solid fa-spinner fa-spin"></i> Preparando libro completo para imprimir...</div>';
-        }
-        window.currentPreviewMode = 'full';
-        
-        // Esperar a que el navegador dibuje el loading
-        await new Promise(resolve => setTimeout(resolve, 50));
-        await compilePDFPreview();
-        
-        // Update select UI
-        const select = document.getElementById('preview-mode-select');
-        if (select) select.value = 'full';
-    } else {
-        await compilePDFPreview();
+    // Bloquear botón
+    const btnPrint = document.getElementById('btn-export-pdf');
+    if (btnPrint) {
+        btnPrint.disabled = true;
+        btnPrint.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Preparando...';
     }
+
+    // 1. Desactivar virtualización para asegurar que todas las páginas existan en el DOM real
+    window.isPrintingPDF = true;
+    if (window.pdfVirtualObserver) {
+        window.pdfVirtualObserver.disconnect();
+    }
+
+    // Forzamos compilación completa para poder imprimir el libro entero
+    const scroller = document.getElementById('pdf-scroller');
+    if (scroller) {
+        scroller.innerHTML = '<div class="flex flex-col items-center justify-center h-full w-full text-indigo-500 gap-4"><i class="fa-solid fa-spinner fa-spin text-4xl"></i><span class="text-lg">Compilando libro completo para impresión...</span></div>';
+    }
+    
+    // Esperar a que el navegador dibuje el loading
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
+    // Llamar al compilador forzando el modo full
+    await compilePDFPreview(false, 'pdf-scroller', true);
 
     const { width, height, unit } = getPageDimensions();
 
@@ -82,16 +87,17 @@ async function triggerPrint() {
                 position: static !important;
                 transform: none !important;
             }
-            @page {
-                size: ${width + (unit === 'cm' ? 0.5 : 0.5/2.54)}${unit} ${height + (unit === 'cm' ? 1.0 : 1.0/2.54)}${unit};
-                margin: 0px;
-            }
+            /* Eliminamos @page duplicado, editor-pdf-styles.js ya tiene el correcto con sangrías (bleeding) */
             .pdf-page {
                 margin: 0 !important; /* Ensure it sticks to top-left of the @page */
+                box-sizing: border-box !important;
+                overflow: hidden !important;
                 box-shadow: none !important;
                 border: none !important;
-                page-break-after: always !important;
-                break-after: page !important;
+                page-break-after: auto !important;
+                page-break-inside: avoid !important;
+                break-after: auto !important;
+                break-inside: avoid !important;
                 transform: none !important;
             }
             .pdf-page:last-child {
@@ -104,8 +110,37 @@ async function triggerPrint() {
         }
     `;
 
+    // Forzar actualización del Índice en el DOM físico justo antes de imprimir
+    const scrollerForPrint = document.getElementById('pdf-scroller');
+    if (scrollerForPrint && window.bookChapterPages) {
+        const tocItems = scrollerForPrint.querySelectorAll('.toc-item');
+        tocItems.forEach(item => {
+            const targetId = item.getAttribute('data-target-id');
+            const pageSpan = item.querySelector('.toc-page');
+            if (targetId && pageSpan && window.bookChapterPages[targetId]) {
+                pageSpan.textContent = window.bookChapterPages[targetId];
+            }
+        });
+    }
+
     // Pequeño delay para permitir que el navegador aplique los estilos antes de abrir el diálogo
     setTimeout(() => {
         window.print();
+        
+        // Terminado el print, volver al modo 'active' para no saturar memoria
+        window.isPrintingPDF = false;
+        
+        // Renderizar solo el capítulo actual de nuevo
+        if (scroller) {
+            scroller.innerHTML = '<div class="flex flex-col items-center justify-center h-full w-full text-indigo-500 gap-4"><i class="fa-solid fa-spinner fa-spin text-4xl"></i><span class="text-lg">Restaurando vista...</span></div>';
+        }
+        setTimeout(async () => {
+            await compilePDFPreview(); // Automáticamente usará 'active'
+            
+            if (btnPrint) {
+                btnPrint.disabled = false;
+                btnPrint.innerHTML = '<i class="fa-solid fa-file-pdf"></i> Imprimir PDF';
+            }
+        }, 50);
     }, 300);
 }

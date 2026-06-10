@@ -139,7 +139,15 @@ function applyDynamicPDFStyles() {
             box-sizing: border-box !important;
             background-color: white !important;
             color: #1e293b !important;
+            ${settings.export_grayscale == 1 ? 'filter: grayscale(100%) !important; -webkit-filter: grayscale(100%) !important;' : ''}
         }
+        
+        ${settings.export_grayscale == 1 ? `
+        .pdf-page *, .pdf-page img, .pdf-page svg {
+            filter: grayscale(100%) !important;
+            -webkit-filter: grayscale(100%) !important;
+        }
+        ` : ''}
 
         .pdf-page.page-even {
             padding: ${globalBleedPx}px 0 ${globalBleedPx}px ${globalBleedPx}px !important;
@@ -239,33 +247,32 @@ function applyDynamicPDFStyles() {
             text-indent: ${toPx(settings.content_paragraph_indent !== undefined ? settings.content_paragraph_indent : 0.0, true)}px !important;
         }
 
-        .pdf-content .almaden-align-center, .pdf-content .almaden-align-center p {
+        .pdf-content .almaden-align-center, .pdf-content .almaden-align-center * {
             text-align: center !important;
             text-indent: 0 !important;
         }
         
-        .pdf-content .almaden-align-left, .pdf-content .almaden-align-left p {
+        .pdf-content .almaden-align-left, .pdf-content .almaden-align-left * {
             text-align: left !important;
             text-indent: 0 !important;
         }
 
-        .pdf-content .almaden-align-right, .pdf-content .almaden-align-right p {
+        .pdf-content .almaden-align-right, .pdf-content .almaden-align-right * {
             text-align: right !important;
             text-indent: 0 !important;
         }
 
-        .pdf-content .almaden-align-justify, .pdf-content .almaden-align-justify p {
+        .pdf-content .almaden-align-justify, .pdf-content .almaden-align-justify * {
             text-align: justify !important;
             text-indent: ${toPx(settings.content_paragraph_indent !== undefined ? settings.content_paragraph_indent : 0.0, true)}px !important;
         }
 
-        .pdf-content p.split-paragraph-start,
-        .pdf-content ul.split-paragraph-start,
-        .pdf-content ol.split-paragraph-start,
-        .pdf-content div.split-paragraph-start,
-        .pdf-content blockquote.split-paragraph-start {
+        .pdf-content .split-paragraph-start {
             margin-bottom: 0px !important;
             padding-bottom: 0px !important;
+        }
+
+        .pdf-content .deep-split-start {
             text-align-last: justify !important;
         } 
 

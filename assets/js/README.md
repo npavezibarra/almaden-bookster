@@ -23,11 +23,14 @@ Este directorio contiene todo el código del lado del cliente que da vida a la a
 
 ## Motor de Renderizado PDF (Virtual Pagination Engine)
 
-El motor PDF es el componente más complejo de la aplicación, encargado de simular con exactitud cómo se verá el libro impreso físicamente, con sus saltos de página y partición silábica. Para mantenerlo modular, está dividido en 4 archivos:
+El motor PDF es el componente más complejo de la aplicación, encargado de simular con exactitud cómo se verá el libro impreso físicamente, con sus saltos de página y partición silábica. Para mantener el rendimiento, **el visor interactivo del editor siempre compila únicamente el Capítulo Actual (`active` mode)**. La compilación del libro completo (`full` mode) está reservada estrictamente para el momento de imprimir o exportar, realizándose de forma sincrónica para evitar sobrecargar el navegador.
 
 - **`editor-pdf-compiler.js`**:
   El "Orquestador Principal". Es el encargado del bucle que itera sobre los capítulos y va encolando nodos para pintarlos en pantalla.
   
+- **`editor-pdf-html.js`**:
+  El "Generador Estructural". Se encarga de procesar el objeto del capítulo (y sus ajustes) y convertir el contenido a un HTML preliminar. Inyecta los títulos, subtítulos, letra capitular, sufijos/prefijos de capítulo y la estructura base de la Tabla de Contenidos.
+
 - **`editor-pdf-dom.js`**:
   Un módulo auxiliar dedicado puramente a generar el "esqueleto" HTML virtual de una hoja (encabezados, pies de página, notas al pie, layout flexbox).
 
@@ -35,23 +38,18 @@ El motor PDF es el componente más complejo de la aplicación, encargado de simu
   Contiene los algoritmos matemáticos complejos encargados de la paginación fina. Es decir, calcular la altura en píxeles de los bloques y dividir los párrafos a la mitad cuando no caben en la página actual (haciendo tracking a nivel de línea y palabra).
 
 - **`editor-pdf-styles.js`**:
-  Se encarga de leer los ajustes (Settings) configurados por el usuario y construir dinámicamente un bloque `<style>` de CSS que se inyecta en el DOM para aplicar márgenes, fuentes, e interlineado exacto en la vista previa del libro.
+  Se encarga de leer los ajustes configurados por el usuario y construir dinámicamente un bloque `<style>` de CSS que se inyecta en el DOM para aplicar márgenes, fuentes, e interlineado exacto en la vista previa del libro.
 
-### Editor y Vista Previa PDF (`editor-pdf-compiler.js`, `editor-pdf-styles.js`, `editor-pdf-pagination.js`)
+### Características del Renderizador y Problemas de Imprimir (`window.print()`)
 
-**Motor de Renderizado PDF**: 
-El corazón del plugin es el mecanismo que transforma HTML fluido en páginas físicas virtuales (tamaño fijo, con sangrías y márgenes configurables).
-- Se utiliza un contenedor oculto con las dimensiones exactas del área de contenido para medir dinámicamente cómo reflye el texto.
-- `splitParagraphAcrossPages` es responsable de dividir párrafos, listas y otros nodos cuando exceden la altura disponible en la página actual. Implementa lógica para respetar cortes de sílabas y evitar palabras huérfanas/viudas.
-- **Bug de Flexbox en Chrome Print:** Cuando Chrome imprime (`window.print()`), su motor de cálculo de `@media print` suele fallar al evaluar contenedores que usan `flex: 1` para llenar espacio. Esto causa que el texto se "desborde" y se imprima sobre el pie de página u otros elementos. 
+- **Virtualización Completa:** El editor previsualiza un solo capítulo a la vez para mantener la interfaz ligera. Al compilar para la impresión final, se forzan todas las páginas del libro.
+- **Bug de Flexbox en Chrome Print:** Cuando Chrome imprime (`window.print()`), su motor de cálculo de `@media print` suele fallar al evaluar contenedores que usan `flex: 1` para llenar espacio. Esto causa que el texto se "desborde" y se imprima sobre el pie de página. 
   - *Solución implementada:* Una vez que una página se llena de contenido y se completan las notas al pie, el script "congela" su altura (`pdfContent.style.flex = 'none'; pdfContent.style.height = clientHeight + 'px'`). Al usar un height fijo, Chrome Print renderiza los bloques de forma predecible sin depender del flex recalculado.
-
-### Manejo del DOM (`editor-pdf-dom.js`)
 
 ## Exportación Física
 
 - **`editor-pdf-export.js`**:
-  Prepara el DOM para imprimir invocando el diálogo de sistema `window.print()`, limpiando la interfaz para que el navegador genere correctamente el PDF nativo final.
+  Controla el flujo de exportación. Al hacer clic en "Imprimir PDF", se bloquea el botón y se fuerza la compilación del libro completo (`compilePDFPreview(..., true)`). Prepara el DOM desactivando temporalmente la virtualización (para que existan en el DOM real todas las páginas) e invoca el diálogo de sistema `window.print()`.
 
 ## Panel de Administración
 
@@ -60,7 +58,7 @@ El corazón del plugin es el mecanismo que transforma HTML fluido en páginas f�
 
 ## Problemas Conocidos y Correcciones Críticas
 
-Para futuros mantenedores, documentamos las soluciones a dos problemas complejos de renderizado que surgieron durante el desarrollo del motor PDF:
+Para futuros mantenedores, documentamos las soluciones a problemas complejos de renderizado que surgieron durante el desarrollo del motor PDF:
 
 ### 1. Letras "decapitadas" (Clipping Horizontal)
 - **El Problema:** La primera o última línea de la página se veía cortada horizontalmente (especialmente los trazos altos y bajos como la tilde o la cola de la "p").
@@ -71,3 +69,8 @@ Para futuros mantenedores, documentamos las soluciones a dos problemas complejos
 - **El Problema:** La última línea de texto de una página, antes de continuar en la siguiente, no se justificaba hacia la derecha (quedaba alineada a la izquierda o irregular).
 - **La Causa:** Había un conflicto de especificidad CSS en `editor-pdf-styles.js`. La regla `.pdf-content p:last-child { text-align-last: auto !important; }` sobrescribía a `.pdf-content p.split-paragraph-start { text-align-last: justify !important; }`. 
 - **La Solución:** Se protegió la especificidad agregando una pseudo-clase de negación: `.pdf-content p:last-child:not(.split-paragraph-start)`. Esto asegura que los párrafos partidos siempre se justifiquen perfectamente antes del salto de página.
+
+### 3. Congelamiento al Compilar e Imprimir ("Stuck there forever")
+- **El Problema:** Al compilar el libro completo, el proceso se quedaba colgado infinitamente mostrando el spinner de carga y resultaba en un PDF incompleto de un solo capítulo.
+- **La Causa:** Al medir dinámicamente las imágenes en el contenedor oculto (`tempContainer`), WordPress por defecto incluye el atributo `loading="lazy"`. Al estar fuera de pantalla y oculto, Chrome nunca disparaba los eventos `onload` ni `onerror`, por lo que la promesa (`Promise.all(imagePromises)`) jamás se resolvía.
+- **La Solución:** En `editor-pdf-compiler.js` se forzó la eliminación del atributo `loading` (`img.removeAttribute('loading')`) antes de crear las promesas, obligando al navegador a descargar las imágenes sin importar su visibilidad.

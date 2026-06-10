@@ -8,9 +8,32 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
     const idMap = {};
     let refCounter = 1;
 
+    const parseInlineMarkdown = (text) => {
+        let t = text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+            
+        t = t.replace(/&lt;u&gt;/g, "<u>").replace(/&lt;\/u&gt;/g, "</u>");
+        t = t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        t = t.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        t = t.replace(/\[lang:([a-zA-Z]{2})\]([\s\S]*?)\[\/lang\]/g, '<span lang="$1"><em>$2</em></span>');
+        
+        t = t.replace(/\[size=([0-9]+(?:\.[0-9]+)?)(px|pt|em|rem)?\]([\s\S]*?)\[\/size\]/gi, (match, val, unit, content) => {
+            const u = unit || 'px';
+            return `<span style="font-size: ${val}${u};">${content}</span>`;
+        });
+        
+        t = t.replace(/\[font=(?:&quot;|&#039;|"|')([^\]]+?)(?:&quot;|&#039;|"|')\]([\s\S]*?)\[\/font\]/gi, (match, fontName, content) => {
+            return `<span style="font-family: '${fontName}', serif;">${content}</span>`;
+        });
+        
+        return t;
+    };
+
     // Limpiar definiciones del markdown y guardarlas
     let cleanMarkdown = markdownText.replace(/(?:^|\n)\[\^([^\]]+)\]:\s*([^\n]+)/g, (match, id, text) => {
-        footnoteDefs[id] = text.trim();
+        footnoteDefs[id] = parseInlineMarkdown(text.trim());
         return '';
     });
 
@@ -91,35 +114,8 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
         return key;
     });
 
-    // Escapar etiquetas HTML para evitar rotura del DOM
-    let html = cleanMarkdown
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-
-    // Volver a habilitar etiquetas básicas controladas para visualización limpia
-    html = html.replace(/&lt;u&gt;/g, "<u>").replace(/&lt;\/u&gt;/g, "</u>");
-
-    // Convertir negritas: **texto**
-    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-
-    // Convertir itálicas: *texto*
-    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-
-    // Convertir etiquetas de idioma: [lang:en]Word[/lang]
-    html = html.replace(/\[lang:([a-zA-Z]{2})\]([\s\S]*?)\[\/lang\]/g, '<span lang="$1"><em>$2</em></span>');
-
-    // Inline shortcodes: [size=24]texto[/size]
-    html = html.replace(/\[size=([0-9]+(?:\.[0-9]+)?)(px|pt|em|rem)?\]([\s\S]*?)\[\/size\]/gi, (match, val, unit, content) => {
-        const u = unit || 'px'; // Default a px si no se especifica unidad
-        return `<span style="font-size: ${val}${u};">${content}</span>`;
-    });
-
-    // Inline shortcodes: [font="Roboto"]texto[/font]
-    // Consideramos posibles escapes de comillas que hace la línea anterior: &quot; o &#039;
-    html = html.replace(/\[font=(?:&quot;|&#039;|"|')([^\]]+?)(?:&quot;|&#039;|"|')\]([\s\S]*?)\[\/font\]/gi, (match, fontName, content) => {
-        return `<span style="font-family: '${fontName}', serif;">${content}</span>`;
-    });
+    // Aplicar parseo inline al cuerpo principal
+    let html = parseInlineMarkdown(cleanMarkdown);
 
     // Reemplazar referencias inline de notas al pie
     html = html.replace(/\[\^([^\]]+)\]/g, (match, id) => {

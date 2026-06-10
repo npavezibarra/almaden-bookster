@@ -118,7 +118,10 @@ function toggleSettingsModal(show) {
         document.getElementById('setting-padding-bottom').value = settings.padding_bottom;
         document.getElementById('setting-padding-left').value = settings.padding_left;
         document.getElementById('setting-padding-right').value = settings.padding_right;
-        document.getElementById('setting-bleeding').value = settings.bleeding;
+        document.getElementById('setting-bleeding').value = settings.bleeding !== undefined ? settings.bleeding : 0.5;
+
+        // Grayscale Setting
+        document.getElementById('setting-export-grayscale').checked = settings.export_grayscale == 1;
 
         // Pestaña Tipografía
         document.getElementById('setting-font-family-content').value = settings.font_family_content || 'Merriweather';
@@ -172,7 +175,7 @@ function toggleSettingsModal(show) {
         document.getElementById('setting-chapter-start-parity').value = settings.chapter_start_parity || 'any';
 
         document.getElementById('setting-chapter-page-one-align').value = settings.chapter_page_one_align || 'center';
-        document.getElementById('setting-chapter-page-one-vertical').value = settings.chapter_page_one_vertical || 'top';
+        document.getElementById('setting-chapter-page-one-vertical').value = settings.chapter_chapter_page_one_vertical || 'top';
         document.getElementById('setting-chapter-title-font-family').value = settings.chapter_title_font_family || 'Playfair Display';
         document.getElementById('setting-chapter-title-font-size').value = settings.chapter_title_font_size || 24;
         document.getElementById('setting-chapter-title-font-weight').value = settings.chapter_title_font_weight || 'bold';
@@ -263,8 +266,9 @@ function savePDFSettings() {
     data.append('padding_top', getCleanVal('setting-padding-top'));
     data.append('padding_bottom', getCleanVal('setting-padding-bottom'));
     data.append('padding_left', getCleanVal('setting-padding-left'));
-    data.append('padding_right', getCleanVal('setting-padding-right'));
-    data.append('bleeding', getCleanVal('setting-bleeding'));
+    data.append('padding_right', document.getElementById('setting-padding-right').value);
+    data.append('bleeding', document.getElementById('setting-bleeding').value);
+    data.append('export_grayscale', document.getElementById('setting-export-grayscale').checked ? 1 : 0);
 
     // Tipografía
     data.append('font_family_content', document.getElementById('setting-font-family-content').value);
@@ -369,9 +373,10 @@ function savePDFSettings() {
                 margin_right: parseVal('setting-margin-right-odd', 2.0),
                 padding_top: parseVal('setting-padding-top', 0),
                 padding_bottom: parseVal('setting-padding-bottom', 0),
-                padding_left: parseVal('setting-padding-left', 0),
-                padding_right: parseVal('setting-padding-right', 0),
-                bleeding: parseVal('setting-bleeding', 0),
+                padding_left: parseVal('setting-padding-left', 1.0),
+                padding_right: parseVal('setting-padding-right', 1.0),
+                bleeding: parseVal('setting-bleeding', 0.5),
+                export_grayscale: document.getElementById('setting-export-grayscale').checked ? 1 : 0,
 
                 font_family_content: document.getElementById('setting-font-family-content').value,
                 font_size_content: parseVal('setting-font-size-content', 11.5),

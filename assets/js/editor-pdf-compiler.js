@@ -70,6 +70,20 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
     if (forceFull || window.currentPreviewMode === 'full') {
         window.bookChapterPages = {};
         window.bookChapterPreParityPages = {};
+        window.pdfPagesCache = {}; // Inicializamos el caché de páginas virtuales (como objeto para indexar por pageNum)
+    }
+
+    // Helper para virtualizar páginas y ahorrar memoria
+    function virtualizePage(pageEl, pageNum) {
+        if (window.currentPreviewMode === 'full' && targetScrollerId === 'pdf-scroller') {
+            window.pdfPagesCache[pageNum] = pageEl.innerHTML;
+            pageEl.setAttribute('data-virtual-page', pageNum);
+            
+            if (!window.isPrintingPDF) {
+                pageEl.innerHTML = '<div class="virtual-placeholder" style="display:flex; height:100%; align-items:center; justify-content:center; color:#e2e8f0; font-size:14px;"><i class="fa-solid fa-file-lines fa-3x mb-2"></i></div>';
+                pageEl.classList.add('is-virtualized');
+            }
+        }
     }
 
     for (let index = 0; index < bookState.chapters.length; index++) {
@@ -78,6 +92,12 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
         // Optimización: Si estamos en modo "active" (Capítulo Actual), omitimos los demás
         if (!forceFull && window.currentPreviewMode === 'active' && chapter.id !== bookState.activeChapterId) {
             continue;
+        }
+
+        // --- YIELD AL MAIN THREAD ---
+        // Evita que el navegador colapse al procesar el libro completo
+        if (window.currentPreviewMode === 'full') {
+            await new Promise(r => setTimeout(r, 0)); 
         }
         
         // Si estamos en modo active, recuperamos el número de página real ANTES de aplicar paridad
@@ -99,22 +119,26 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
                     const blankPage = window.createNewPageElement(currentPageNumber, chapter, false, true);
                     blankPage.setAttribute('data-chapter-id', chapter.id);
                     scroller.appendChild(blankPage);
+                    virtualizePage(blankPage, currentPageNumber);
                     currentPageNumber++;
                 } else {
                     const pureBlankPage = window.createNewPageElement(currentPageNumber, { ...chapter, parity_image: null }, false, true);
                     pureBlankPage.setAttribute('data-chapter-id', chapter.id);
                     scroller.appendChild(pureBlankPage);
+                    virtualizePage(pureBlankPage, currentPageNumber);
                     currentPageNumber++;
 
                     const parityPage = window.createNewPageElement(currentPageNumber, chapter, false, true);
                     parityPage.setAttribute('data-chapter-id', chapter.id);
                     scroller.appendChild(parityPage);
+                    virtualizePage(parityPage, currentPageNumber);
                     currentPageNumber++;
                 }
             } else if (chapterStartParity === 'even' && isOdd) {
                 const blankPage = window.createNewPageElement(currentPageNumber, chapter, false, true);
                 blankPage.setAttribute('data-chapter-id', chapter.id);
                 scroller.appendChild(blankPage);
+                virtualizePage(blankPage, currentPageNumber);
                 currentPageNumber++;
             }
         }
@@ -130,135 +154,13 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
             return '';
         });
 
-        let compiledHtml = '';
-        if (chapter.is_toc == '1') {
-            let tocHtml = '<div class="toc-spacer" style="height: 20px;"></div>';
-            let tocChapterCount = 0;
-            const enumerateType = chapter.toc_enumerate || 'none';
-            
-            function toRoman(num) {
-                const roman = {M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1};
-                let str = '';
-                for (let i of Object.keys(roman)) {
-                    let q = Math.floor(num / roman[i]);
-                    num -= q * roman[i];
-                    str += i.repeat(q);
-                }
-                return str;
-            }
-
-            bookState.chapters.forEach((c) => {
-                if (c.is_toc != '1' && c.exclude_from_numbering !== '1') {
-                    tocChapterCount++;
-                    let prefix = '';
-                    if (enumerateType === 'decimal') {
-                        prefix = `${tocChapterCount}. `;
-                    } else if (enumerateType === 'roman') {
-                        prefix = `${toRoman(tocChapterCount)}. `;
-                    } else if (enumerateType === 'bullet') {
-                        prefix = `• `;
-                    }
-                    
-                    tocHtml += `<div class="toc-item" data-target-id="${c.id}">
-                        <div class="toc-title-wrapper"><span class="toc-title">${prefix}${c.title || 'Capítulo'}</span></div>
-                        <span class="toc-page">000</span>
-                    </div>`;
-                }
-            });
-            compiledHtml = tocHtml;
-        } else {
-            compiledHtml = compileMarkdownToHTML(chapter.content);
-        }
-        
-        // Letra Capitular (Drop Cap)
-        if (chapter.drop_cap_enabled === '1') {
-            // Reemplazar la primera p para agregar la clase drop-cap
-            compiledHtml = compiledHtml.replace(/<p>/, '<p class="drop-cap">');
-        }
-
-        if (chapter.title && chapter.title.trim() !== '' && chapter.hide_title !== '1') {
-            const titleClass = chapter.is_toc == '1' ? 'toc-main-title' : 'chapter-main-title';
-            const hasSubtitle = chapter.subtitle_text && chapter.subtitle_text.trim() !== '' && chapter.is_toc !== '1';
-            let extraTitleStyle = hasSubtitle ? 'padding-bottom: 0 !important;' : '';
-            let titleHtml = `<div class="${titleClass}" style="${extraTitleStyle}">${chapter.title.trim()}</div>`;
-            
-            // Lógica de prefijo de capítulo
-            if (settings.chapter_prefix_show == 1 && chapter.is_toc != '1' && chapter.exclude_from_numbering !== '1') {
-                
-                // Calcular el chapterNumber real (ignorando los excluidos)
-                let chapterNumber = 0;
-                for (let i = 0; i <= index; i++) {
-                    const c = bookState.chapters[i];
-                    if (c.is_toc !== '1' && c.exclude_from_numbering !== '1') {
-                        chapterNumber++;
-                    }
-                }
-                
-                let prefixText = settings.chapter_prefix_template || 'Capítulo {N}';
-                prefixText = prefixText.replace('{N}', chapterNumber);
-                
-                if (prefixText.includes('{R}')) {
-                    const toRoman = (num) => {
-                        const roman = {M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1};
-                        let str = '';
-                        for (let i of Object.keys(roman)) {
-                            let q = Math.floor(num / roman[i]);
-                            num -= q * roman[i];
-                            str += i.repeat(q);
-                        }
-                        return str;
-                    };
-                    prefixText = prefixText.replace('{R}', toRoman(chapterNumber));
-                }
-                
-                let ornamentHtml = '';
-                if (settings.chapter_prefix_ornament === 'line_below') {
-                    ornamentHtml = '<div class="chapter-prefix-line"></div>';
-                } else if (settings.chapter_prefix_ornament === 'line_above_below') {
-                    ornamentHtml = '<div class="chapter-prefix-line"></div>'; // Usaremos CSS para el before/after
-                } else if (settings.chapter_prefix_ornament === 'asterisks') {
-                    ornamentHtml = '<div class="chapter-prefix-asterisks">***</div>';
-                }
-
-                const prefixHtml = `
-                    <div class="chapter-prefix-wrapper" data-ornament="${settings.chapter_prefix_ornament}">
-                        <div class="chapter-prefix-text">${prefixText}</div>
-                        ${ornamentHtml}
-                    </div>
-                `;
-
-                if (settings.chapter_prefix_position === 'below') {
-                    titleHtml = titleHtml + prefixHtml;
-                } else {
-                    titleHtml = prefixHtml + titleHtml;
-                }
-            }
-            
-            // Subtitle Logic
-            if (chapter.subtitle_text && chapter.subtitle_text.trim() !== '' && chapter.is_toc !== '1') {
-                const subText = chapter.subtitle_text.trim().replace(/\n/g, '<br>');
-                const subStyles = [];
-                if (chapter.subtitle_font_family) subStyles.push(`font-family: '${chapter.subtitle_font_family}', serif`);
-                if (chapter.subtitle_font_size) subStyles.push(`font-size: ${chapter.subtitle_font_size}pt`);
-                if (chapter.subtitle_align) subStyles.push(`text-align: ${chapter.subtitle_align}`);
-                if (chapter.subtitle_font_style) subStyles.push(`font-style: ${chapter.subtitle_font_style}`);
-                if (chapter.subtitle_font_weight) subStyles.push(`font-weight: ${chapter.subtitle_font_weight}`);
-                if (chapter.subtitle_text_transform) subStyles.push(`text-transform: ${chapter.subtitle_text_transform}`);
-                if (chapter.subtitle_letter_spacing) subStyles.push(`letter-spacing: ${chapter.subtitle_letter_spacing}px`);
-                if (chapter.subtitle_margin_top) subStyles.push(`margin-top: ${chapter.subtitle_margin_top}cm`);
-                if (chapter.subtitle_margin_bottom) subStyles.push(`margin-bottom: ${chapter.subtitle_margin_bottom}cm`);
-                
-                const subtitleHtml = `<div class="chapter-subtitle" style="line-height: 1.4; width: 100%; ${subStyles.join('; ')}">${subText}</div>`;
-                titleHtml = titleHtml + subtitleHtml;
-            }
-
-            compiledHtml = titleHtml + `\n\n` + compiledHtml;
-        }
+        let compiledHtml = window.buildChapterHTML(chapter, index, settings, bookState);
         tempContainer.innerHTML = compiledHtml;
 
         // Esperar a que las imágenes se carguen para poder medir su altura real
         const images = Array.from(tempContainer.querySelectorAll('img'));
         const imagePromises = images.map(img => {
+            img.removeAttribute('loading'); // FORCE LOAD EVEN IF OFF-SCREEN
             if (img.complete) return Promise.resolve();
             return new Promise(resolve => {
                 img.onload = resolve;
@@ -311,6 +213,7 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
         // y está definido en editor-pdf-pagination.js
         // Iterar usando un while para poder inyectar partes remanentes
         while (childNodes.length > 0) {
+            let wasSplit = false;
             const node = childNodes.shift();
             const clonedNode = node.cloneNode(true);
             currentInnerContainer.appendChild(clonedNode);
@@ -330,8 +233,7 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
                     }
                     
                     // Ignorar P/DIV vacíos que solo son saltos de línea y no tienen imágenes
-                    // Excepción: las cajas (.almaden-box) siempre se consideran contenido real, incluso si están vacías
-                    if ((child.tagName === 'P' || child.tagName === 'DIV') && !child.classList.contains('almaden-box') && child.textContent.trim() === '' && child.querySelectorAll('img, svg, canvas, iframe, video').length === 0) {
+                    if ((child.tagName === 'P' || child.tagName === 'DIV') && child.textContent.trim() === '' && child.querySelectorAll('img, svg, canvas, iframe, video').length === 0) {
                         continue;
                     }
                     if (child.tagName === 'BR') {
@@ -438,6 +340,7 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
                 } else if (remainderNode && remainderNode.textContent.trim() !== '') {
                     // Se dividió. remainderNode tiene la segunda mitad.
                     childNodes.unshift(remainderNode);
+                    wasSplit = true;
 
                     // --- NUEVA LÓGICA: Prevención de viuda de encabezado + 1 sola línea ---
                     if (remainderNode && remainderNode !== true) {
@@ -468,6 +371,9 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
                 });
                 window.renderPageFootnotes(currentFootnotesContainer, activePageFootnotes);
 
+                // --- VIRTUALIZATION ---
+                virtualizePage(currentPageEl, currentPageNumber);
+
                 // Crear nueva página
                 currentPageNumber++;
                 isFirstPageOfChapter = false;
@@ -483,7 +389,7 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
             // --- SALTO DE PÁGINA DESPUÉS DE UN BOX ---
             // Si este elemento era un box y hay más elementos reales por procesar, forzamos que el siguiente elemento
             // caiga en una nueva página inyectando un page-break en la cola.
-            if (isBox) {
+            if (isBox && !wasSplit) {
                 // Asegurar que las páginas generadas por [box] sigan los ajustes de cabecera y pie de la 'Primera Página'
                 // Solo modificamos la cabecera/pie actual si realmente queremos que este box se comporte como primera página.
                 // Sin embargo, las cabeceras y pies ya fueron renderizados correctamente al crear la página.
@@ -495,7 +401,7 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
                 for (let i = 0; i < childNodes.length; i++) {
                     const child = childNodes[i];
                     if (child.nodeType === Node.ELEMENT_NODE) {
-                        if ((child.tagName === 'P' || child.tagName === 'DIV') && !child.classList.contains('almaden-box') && child.textContent.trim() === '' && child.querySelectorAll('img, svg, canvas, iframe, video').length === 0) {
+                        if ((child.tagName === 'P' || child.tagName === 'DIV') && child.textContent.trim() === '' && child.querySelectorAll('img, svg, canvas, iframe, video').length === 0) {
                             continue;
                         }
                         if (child.tagName === 'BR') {
@@ -516,20 +422,14 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
             }
         }
 
+        // --- VIRTUALIZATION (Última página del capítulo) ---
+        virtualizePage(currentPageEl, currentPageNumber);
+
         currentPageNumber++;
     }
 
     // Segunda pasada: Rellenar la Tabla de Contenidos (Índice) si existe
-    const tocItems = scroller.querySelectorAll('.toc-item');
-    tocItems.forEach(item => {
-        const targetId = item.getAttribute('data-target-id');
-        const pageSpan = item.querySelector('.toc-page');
-        if (targetId && pageSpan && window.bookChapterPages[targetId]) {
-            pageSpan.textContent = window.bookChapterPages[targetId];
-        } else if (pageSpan) {
-            pageSpan.textContent = '-';
-        }
-    });
+    window.updateTOCPagesInCache(scroller, bookState);
 
     // Calcular la cantidad de páginas de cada capítulo
     window.bookChapterLengths = window.bookChapterLengths || {};
@@ -568,6 +468,11 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
         const indicator = document.getElementById('pdf-page-indicator');
         let displayedPages = scroller.querySelectorAll('.pdf-page').length;
         if (indicator) indicator.textContent = `${displayedPages} ${displayedPages === 1 ? 'Página' : 'Páginas'}`;
+        
+        // --- INICIAR VIRTUALIZACIÓN ---
+        if (window.currentPreviewMode === 'full' && typeof window.initPDFVirtualization === 'function') {
+            window.initPDFVirtualization(scroller);
+        }
     }
 
         if (targetScrollerId === 'pdf-scroller') {
