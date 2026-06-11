@@ -3,6 +3,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+require_once dirname( __FILE__ ) . '/../includes/cover-thumbnail.php';
+
 // Fetch all books
 $args = array(
     'post_type'      => 'almaden-books',
@@ -23,7 +25,7 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BookCraft - Mis Libros</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="<?php echo esc_url( almaden_get_thumbnail_fonts_url() ); ?>" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -141,15 +143,22 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
                         'posts_per_page' => -1
                     ) );
                     $chapter_count = count($chapter_count_query);
+                    // Obtener configuración de la portada
+                    $cover_thumbnail_html = almaden_get_cover_thumbnail_html( get_the_ID() );
                 ?>
                     <div class="book-card bg-white overflow-hidden border border-gray-200 rounded-xl flex flex-col h-full group relative">
+                        <?php if ( ! empty( $cover_thumbnail_html ) ) : ?>
+                            <?php echo $cover_thumbnail_html; ?>
+                        <?php else : ?>
+                            <div class="w-full h-48 bg-gray-50 flex items-center justify-center text-gray-400 border-b border-gray-200">
+                                <svg class="h-12 w-12 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                </svg>
+                            </div>
+                        <?php endif; ?>
+                        
                         <div class="p-6 flex-1 flex flex-col">
-                            <div class="flex items-start justify-between mb-4">
-                                <div class="inline-flex items-center justify-center p-2 bg-gray-50 rounded-lg text-gray-400 group-hover:text-black group-hover:bg-gray-100 transition-colors">
-                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                    </svg>
-                                </div>
+                            <div class="flex items-start justify-end mb-4">
                                 <div class="flex items-center gap-2">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                                         <?php echo $chapter_count; ?> cap.
@@ -179,11 +188,11 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
                                 <?php echo $content_preview ? esc_html($content_preview) : '<span class="italic text-gray-400">Sin descripción...</span>'; ?>
                             </p>
 
-                            <div class="mt-2 flex gap-2">
-                                <a href="<?php echo esc_url( $editor_url ); ?>" class="flex-1 inline-flex justify-center items-center py-2 px-3 bg-black text-white text-xs font-semibold rounded-md hover:bg-gray-800 transition-colors">
+                            <div class="mt-2 flex flex-col gap-2">
+                                <a href="<?php echo esc_url( $editor_url ); ?>" class="w-full inline-flex justify-center items-center py-2 px-3 bg-black text-white text-xs font-semibold rounded-md hover:bg-gray-800 transition-colors">
                                     EDIT CONTENT
                                 </a>
-                                <a href="<?php echo esc_url( home_url( '/almaden-book-cover/?book_id=' . get_the_ID() ) ); ?>" class="flex-1 inline-flex justify-center items-center py-2 px-3 bg-white text-gray-700 border border-gray-300 text-xs font-semibold rounded-md hover:bg-gray-50 transition-colors">
+                                <a href="<?php echo esc_url( home_url( '/almaden-book-cover/?book_id=' . get_the_ID() ) ); ?>" class="w-full inline-flex justify-center items-center py-2 px-3 bg-white text-gray-700 border border-gray-300 text-xs font-semibold rounded-md hover:bg-gray-50 transition-colors">
                                     EDIT BOOK COVER
                                 </a>
                             </div>
@@ -286,18 +295,19 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
     </div>
 
     <script>
+        // Modal functions
         const modal = document.getElementById('create-modal');
         const modalPanel = document.getElementById('modal-panel');
         const openBtn = document.getElementById('open-modal-btn');
         const closeBtn = document.getElementById('close-modal-btn');
         const cancelBtn = document.getElementById('cancel-modal-btn');
-
+        
         function openModal() {
             modal.classList.remove('hidden');
-            // Trigger reflow
-            void modal.offsetWidth;
-            modalPanel.classList.remove('opacity-0', 'scale-95');
-            modalPanel.classList.add('opacity-100', 'scale-100');
+            setTimeout(() => {
+                modalPanel.classList.remove('opacity-0', 'scale-95');
+                modalPanel.classList.add('opacity-100', 'scale-100');
+            }, 10);
             document.getElementById('book_title').focus();
         }
 
@@ -306,19 +316,39 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
             modalPanel.classList.add('opacity-0', 'scale-95');
             setTimeout(() => {
                 modal.classList.add('hidden');
-            }, 200); // Wait for transition
+            }, 300);
         }
 
         if (openBtn) openBtn.addEventListener('click', openModal);
         if (closeBtn) closeBtn.addEventListener('click', closeModal);
         if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
 
-        // Close on escape key
+        // Close modal on escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
                 closeModal();
             }
         });
+
+        // Scale Cover Thumbnails
+        function scaleThumbnails() {
+            document.querySelectorAll('.cover-thumbnail-wrapper').forEach(wrapper => {
+                const targetWidth = wrapper.clientWidth;
+                const frontCoverPx = parseFloat(wrapper.getAttribute('data-front-cover-px'));
+                const startPx = parseFloat(wrapper.getAttribute('data-start-px'));
+                if (frontCoverPx > 0) {
+                    const scale = targetWidth / frontCoverPx;
+                    const spread = wrapper.querySelector('.cover-spread-container');
+                    if (spread) {
+                        spread.style.transform = `scale(${scale}) translateX(${-startPx}px)`;
+                    }
+                }
+            });
+        }
+        window.addEventListener('resize', scaleThumbnails);
+        // Call twice: once immediately, once on full load
+        scaleThumbnails();
+        window.addEventListener('load', scaleThumbnails);
     </script>
 </body>
 </html>

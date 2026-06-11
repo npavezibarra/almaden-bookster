@@ -4,6 +4,35 @@
 // partición de párrafos para el salto de página exacto.
 // ============================================================
 
+// Heurística básica para partición de sílabas en español
+window.isValidSpanishHyphenation = function(word, index) {
+    if (index < 2 || index > word.length - 2) return false;
+    
+    // Evitar separar ch, ll, rr
+    const pair = word.substring(index - 1, index + 1).toLowerCase();
+    if (pair === 'ch' || pair === 'll' || pair === 'rr') return false;
+    
+    // Evitar separar grupos consonánticos inseparables
+    const inseparableConsonants = ['pr','pl','br','bl','fr','fl','tr','dr','cr','cl','gr','gl'];
+    if (inseparableConsonants.includes(pair)) return false;
+    
+    // Evitar dejar una sola vocal aislada
+    const part1 = word.substring(0, index);
+    const part2 = word.substring(index);
+    const vowels = /[aeiouáéíóúüAEIOUÁÉÍÓÚÜ]/;
+    if (!vowels.test(part1) || !vowels.test(part2)) return false;
+
+    // Intentar cortar preferiblemente entre consonantes o vocal-consonante.
+    // Evitar cortar C-V porque en español la consonante suele ir con la vocal siguiente (ej. ca-sa).
+    const charBefore = word[index - 1].toLowerCase();
+    const charAfter = word[index].toLowerCase();
+    const isVowelBefore = vowels.test(charBefore);
+    const isVowelAfter = vowels.test(charAfter);
+    if (!isVowelBefore && isVowelAfter) return false;
+    
+    return true;
+};
+
 // Helper para dividir párrafos entre páginas
 window.splitParagraphAcrossPages = function(pNode, innerContainer, footnotesHeight, maxTotalHeight) {
     if (!['P', 'UL', 'OL', 'DIV', 'BLOCKQUOTE'].includes(pNode.tagName)) return null;
@@ -47,56 +76,33 @@ window.splitParagraphAcrossPages = function(pNode, innerContainer, footnotesHeig
                         textNode1.data = prevText;
                         const word = words[i];
 
-                        // Intentar división usando la capacidad nativa del navegador para respetar sílabas
-                        let wrappedIndex = -1;
+                        // Intentar división mediante prueba activa de altura (búsqueda lineal/binaria)
+                        let splitSuccessfully = false;
                         const isHyphenable = useHyphenation && word.trim().length >= 4 && !word.includes('-');
                         
                         if (isHyphenable && prevText.trim().length > 0) {
-                            // Restauramos word para que el navegador lo renderice y nos diga dónde lo cortó
-                            textNode1.data = prevText + word;
-                            const range = document.createRange();
+                            let bestBreak = -1;
                             
-                            // 1. Ubicar la coordenada "Y" de la línea actual (usando el último caracter de prevText)
-                            let baseTop = 0;
-                            for (let k = prevText.length - 1; k >= 0; k--) {
-                                if (prevText[k].trim().length > 0) {
-                                    range.setStart(textNode1, k);
-                                    range.setEnd(textNode1, k + 1);
-                                    baseTop = range.getBoundingClientRect().top;
-                                    break;
-                                }
-                            }
-                            
-                            // 2. Buscar en qué caracter de 'word' ocurre el salto de línea visual
-                            if (baseTop > 0) {
-                                const wordStart = prevText.length;
-                                for (let c = 0; c < word.length; c++) {
-                                    if (word[c].trim().length > 0) {
-                                        range.setStart(textNode1, wordStart + c);
-                                        range.setEnd(textNode1, wordStart + c + 1);
-                                        const charRect = range.getBoundingClientRect();
-                                        if (charRect.top > baseTop + 5) { // +5 tolerancia
-                                            wrappedIndex = c;
-                                            break;
-                                        }
+                            // Probamos cortes activos, desde la letra 2 hasta la penúltima
+                            for (let c = 2; c < word.length - 1; c++) {
+                                if (window.isValidSpanishHyphenation(word, c)) {
+                                    textNode1.data = prevText + word.substring(0, c) + '-';
+                                    if (getEffectiveHeight() + footnotesHeight <= maxTotalHeight) {
+                                        bestBreak = c;
+                                    } else {
+                                        // Si ya excedimos la altura con este corte, cortes más largos también lo harán
+                                        break;
                                     }
                                 }
                             }
-                        }
-
-                        let splitSuccessfully = false;
-                        
-                        if (wrappedIndex > 1) { // Asegurar al menos 2 caracteres en la página actual
-                            const part1 = word.substring(0, wrappedIndex);
-                            const part2 = word.substring(wrappedIndex);
                             
-                            const cleanRemainder = part2.replace(/[.,;:¡!¿?'"”"»]/g, '');
-                            if (cleanRemainder.length >= 2) { // Al menos 2 caracteres en la sgte pág
-                                // Aplicar la división: primera parte con guión normal en pág actual
-                                textNode1.data = prevText + part1 + '-';
+                            if (bestBreak > 1) {
+                                const part1 = word.substring(0, bestBreak);
+                                const part2 = word.substring(bestBreak);
                                 
-                                // Verificar que el guión explícito no rompa la altura máxima
-                                if (getEffectiveHeight() + footnotesHeight <= maxTotalHeight) {
+                                const cleanRemainder = part2.replace(/[.,;:¡!¿?'"”"»]/g, '');
+                                if (cleanRemainder.length >= 2) {
+                                    textNode1.data = prevText + part1 + '-';
                                     remainderText += part2;
                                     splitSuccessfully = true;
                                 }
@@ -104,7 +110,7 @@ window.splitParagraphAcrossPages = function(pNode, innerContainer, footnotesHeig
                         }
                         
                         if (!splitSuccessfully) {
-                            // No se pudo dividir (o la regla de sílabas impidió hacerlo bien): mover toda la palabra
+                            // No se pudo dividir ortográficamente o no cupo ni un pedazo: mover toda la palabra
                             // FIX: remover el espacio en blanco colgante al final de la línea
                             const trailingSpaceMatch = prevText.match(/\s+$/);
                             if (trailingSpaceMatch) {
@@ -155,9 +161,15 @@ window.splitParagraphAcrossPages = function(pNode, innerContainer, footnotesHeig
     // Find the deepmost element that was actually split so we only justify that one
     function markDeepmostSplitElement(node) {
         let lastElement = null;
+        const inlineTags = ['EM', 'STRONG', 'SPAN', 'A', 'I', 'B', 'U', 'S', 'CODE', 'MARK'];
+        
         for (let i = node.childNodes.length - 1; i >= 0; i--) {
             const child = node.childNodes[i];
             if (child.nodeType === Node.ELEMENT_NODE) {
+                if (inlineTags.includes(child.tagName)) {
+                    if (node.classList) node.classList.add('deep-split-start');
+                    return;
+                }
                 lastElement = child;
                 break;
             } else if (child.nodeType === Node.TEXT_NODE && child.textContent.trim() !== '') {
@@ -172,6 +184,26 @@ window.splitParagraphAcrossPages = function(pNode, innerContainer, footnotesHeig
         }
     }
     markDeepmostSplitElement(pNode);
+    
+    // FIX: Remove trailing space from the absolute last text node of the split paragraph.
+    // When a node spans across inline elements (like <em>), the trailing space of the previous node
+    // gets left behind, preventing text-align-last: justify from reaching the margin.
+    function removeGlobalTrailingSpace(node) {
+        for (let i = node.childNodes.length - 1; i >= 0; i--) {
+            const child = node.childNodes[i];
+            if (child.nodeType === Node.TEXT_NODE && child.textContent.length > 0) {
+                const match = child.textContent.match(/\s+$/);
+                if (match) {
+                    child.textContent = child.textContent.substring(0, child.textContent.length - match[0].length);
+                }
+                if (child.textContent.trim() !== '') return true; // Stop searching once we found real text
+            } else if (child.nodeType === Node.ELEMENT_NODE) {
+                if (removeGlobalTrailingSpace(child)) return true;
+            }
+        }
+        return false;
+    }
+    removeGlobalTrailingSpace(pNode);
     
     return secondHalfNode;
 };
