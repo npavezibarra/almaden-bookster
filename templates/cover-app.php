@@ -26,12 +26,12 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
             background-color: #f3f4f6;
             color: #111;
         }
         .serif {
-            font-family: 'Playfair Display', serif;
+            font-family: inherit;
         }
         
         /* Contenedor del workspace con scroll y centrado */
