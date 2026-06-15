@@ -451,8 +451,8 @@ function savePDFSettings() {
                 chapter_prefix_ornament: document.getElementById('setting-chapter-prefix-ornament').value
             };
 
-            applyDynamicPDFStyles();
-            compilePDFPreview(); // RECOMPILAR PDF con los nuevos márgenes/anchos
+            if (typeof applyDynamicPDFStyles === 'function') applyDynamicPDFStyles();
+            if (typeof compilePDFPreview === 'function') compilePDFPreview(); // RECOMPILAR PDF con los nuevos márgenes/anchos
             if (typeof updateParityButtonVisibility === 'function') updateParityButtonVisibility();
             toggleSettingsModal(false);
             showToast("Configuración del PDF guardada", "fa-solid fa-circle-check");

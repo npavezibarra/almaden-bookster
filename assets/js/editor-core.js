@@ -81,6 +81,14 @@ window.onload = function() {
         initSpreadView();
     }
     
+    // Check if URL has open_settings flag
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('open_settings') === '1') {
+        if (typeof toggleSettingsModal === 'function') {
+            setTimeout(() => toggleSettingsModal(true), 500);
+        }
+    }
+    
     showToast("¡Bienvenido de vuelta a tu manuscrito!", "fa-solid fa-book-open");
 };
 

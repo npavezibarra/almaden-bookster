@@ -7,22 +7,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // 1. Crear la página física automáticamente si no existe
 function almaden_bookster_create_page() {
-	$page_slug = 'almaden-booklist';
-	$page = get_page_by_path( $page_slug );
-	
-	if ( ! $page ) {
-		wp_insert_post( array(
-			'post_title'     => 'Almaden Booklist',
-			'post_name'      => $page_slug,
-			'post_status'    => 'publish',
-			'post_type'      => 'page',
-			'post_content'   => '<!-- El contenido de esta página es generado dinámicamente por el plugin AlmadenBookster -->',
-		) );
+	$pages_to_create = [
+		'almaden-booklist' => 'Almaden Booklist',
+		'bookshelf'        => 'Bookshelf',
+	];
+
+	foreach ( $pages_to_create as $page_slug => $page_title ) {
+		$page = get_page_by_path( $page_slug );
+		if ( ! $page ) {
+			wp_insert_post( array(
+				'post_title'     => $page_title,
+				'post_name'      => $page_slug,
+				'post_status'    => 'publish',
+				'post_type'      => 'page',
+				'post_content'   => '<!-- El contenido de esta página es generado dinámicamente por el plugin AlmadenBookster -->',
+			) );
+		}
 	}
 }
 add_action( 'init', 'almaden_bookster_create_page' );
 
-// 2. Interceptar la página almaden-booklist y cargar nuestra app independiente
+// 2. Interceptar la página almaden-booklist y bookshelf para cargar nuestra app independiente
 function almaden_bookster_load_booklist() {
 	if ( is_page( 'almaden-booklist' ) && is_main_query() ) {
 		// Ocultar barra de administración de WordPress
@@ -34,6 +39,18 @@ function almaden_bookster_load_booklist() {
 			exit;
 		} else {
 			wp_die( 'Plantilla del booklist no encontrada.' );
+		}
+	}
+
+	if ( is_page( 'bookshelf' ) && is_main_query() ) {
+		show_admin_bar( false );
+		
+		$template_path = dirname( __FILE__ ) . '/../templates/bookshelf-app.php';
+		if ( file_exists( $template_path ) ) {
+			require_once $template_path;
+			exit;
+		} else {
+			wp_die( 'Plantilla del bookshelf no encontrada.' );
 		}
 	}
 }
@@ -93,17 +110,6 @@ function almaden_bookster_handle_delete_book() {
 		wp_die( 'ID de libro inválido.' );
 	}
 
-	// Eliminar capítulos asociados
-	$chapters = get_posts( array(
-		'post_type'      => 'book_chapter',
-		'post_parent'    => $book_id,
-		'posts_per_page' => -1,
-		'fields'         => 'ids',
-	) );
-	foreach ( $chapters as $chapter_id ) {
-		wp_delete_post( $chapter_id, true );
-	}
-
 	// Eliminar configuración de la tabla
 	global $wpdb;
 	$table_name = $wpdb->prefix . 'almaden_book_settings';
@@ -119,6 +125,70 @@ function almaden_bookster_handle_delete_book() {
 }
 add_action( 'admin_post_almaden_delete_book', 'almaden_bookster_handle_delete_book' );
 add_action( 'admin_post_nopriv_almaden_delete_book', 'almaden_bookster_handle_delete_book' );
+
+// --- Duplicar Libro ---
+function almaden_bookster_handle_duplicate_book() {
+	if ( ! isset( $_POST['almaden_duplicate_nonce'] ) || ! wp_verify_nonce( $_POST['almaden_duplicate_nonce'], 'almaden_duplicate_book_nonce' ) ) {
+		wp_die( 'Validación de seguridad fallida.' );
+	}
+
+	$book_id = isset( $_POST['book_id'] ) ? intval( $_POST['book_id'] ) : 0;
+	if ( $book_id <= 0 ) {
+		wp_die( 'ID de libro inválido.' );
+	}
+
+	$original_book = get_post( $book_id );
+	if ( ! $original_book || $original_book->post_type !== 'almaden-books' ) {
+		wp_die( 'Libro no encontrado.' );
+	}
+
+	// Determine the real source book ID. If the original book is already a duplicate, use its source.
+	$source_book_id = get_post_meta( $book_id, '_almaden_source_book_id', true );
+	if ( empty( $source_book_id ) ) {
+		$source_book_id = $book_id;
+	}
+
+	// Crear el nuevo post
+	$new_title = $original_book->post_title . ' (Copia)';
+	$post_data = array(
+		'post_title'   => $new_title,
+		'post_content' => $original_book->post_content,
+		'post_status'  => 'publish',
+		'post_type'    => 'almaden-books',
+		'meta_input'   => array(
+			'book_author' => get_post_meta( $book_id, 'book_author', true ),
+			'_almaden_source_book_id' => $source_book_id,
+		),
+	);
+
+	$new_book_id = wp_insert_post( $post_data );
+
+	if ( ! is_wp_error( $new_book_id ) ) {
+		// Copiar portada
+		$cover_settings = get_post_meta( $book_id, '_almaden_cover_settings', true );
+		if ( $cover_settings ) {
+			update_post_meta( $new_book_id, '_almaden_cover_settings', $cover_settings );
+		}
+		
+		// Copiar ajustes PDF
+		global $wpdb;
+		$settings_table = $wpdb->prefix . 'almaden_book_settings';
+		$db_settings = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $settings_table WHERE book_id = %d", $book_id ), ARRAY_A );
+		if ( $db_settings ) {
+			$db_settings['book_id'] = $new_book_id;
+			unset( $db_settings['id'] ); // Remueve primary key para insertar nuevo
+			$wpdb->insert( $settings_table, $db_settings );
+		}
+
+		$redirect_url = home_url( '/almaden-booklist/?book_duplicated=1' );
+		wp_safe_redirect( $redirect_url );
+		exit;
+	} else {
+		wp_die( 'Hubo un error al duplicar el libro.' );
+	}
+}
+add_action( 'admin_post_almaden_duplicate_book', 'almaden_bookster_handle_duplicate_book' );
+add_action( 'admin_post_nopriv_almaden_duplicate_book', 'almaden_bookster_handle_duplicate_book' );
 
 // --- Editor BookCraft a Pantalla Completa ---
 

@@ -26,6 +26,12 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/frontend.php';
 // --- Manejadores AJAX ---
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax-handlers.php';
 
+// --- Configuraciones Generales y Seguridad ---
+require_once plugin_dir_path( __FILE__ ) . 'includes/crypto.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/admin-settings.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/gdrive-client.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/epub-export.php';
+
 // --- Crear Tabla Especial de Ajustes de PDF ---
 
 function almaden_bookster_create_settings_table() {

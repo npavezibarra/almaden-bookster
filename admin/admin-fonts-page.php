@@ -29,8 +29,8 @@ function almaden_bookster_admin_menu() {
 
 	add_submenu_page(
 		'almaden-bookster',
-		'Google Fonts',
-		'Google Fonts',
+		'Google APIs',
+		'Google APIs',
 		'manage_options',
 		'almaden-bookster',
 		'almaden_bookster_fonts_page_render'
@@ -76,14 +76,18 @@ add_action( 'admin_enqueue_scripts', 'almaden_bookster_admin_enqueue' );
 function almaden_bookster_fonts_page_render() {
 	$api_key         = get_option( 'almaden_google_fonts_api_key', '' );
 	$installed_fonts = almaden_bookster_get_installed_fonts_list();
+
+	$gdrive_client_email = get_option( 'bookcraft_gdrive_client_email', '' );
+	$gdrive_has_private_key = get_option( 'bookcraft_gdrive_private_key' ) ? true : false;
+	$gdrive_folder_id = get_option( 'bookcraft_gdrive_folder_id', '' );
 	?>
 	<div class="wrap almaden-fonts-wrap">
 		<div class="almaden-fonts-header">
 			<div class="almaden-fonts-header-title">
-				<span class="dashicons dashicons-editor-textcolor"></span>
-				<h1>Google Fonts — AlmadenBookster</h1>
+				<span class="dashicons dashicons-google"></span>
+				<h1>Google APIs — AlmadenBookster</h1>
 			</div>
-			<p class="almaden-fonts-subtitle">Busca, previsualiza e instala tipografías de Google Fonts para usar en la maquetación PDF de tus libros.</p>
+			<p class="almaden-fonts-subtitle">Gestiona las conexiones a los servicios de Google (Drive para exportación de PDFs y Fonts para tipografías).</p>
 		</div>
 
 		<!-- API KEY SECTION -->
@@ -97,6 +101,52 @@ function almaden_bookster_fonts_page_render() {
 				</button>
 			</div>
 			<div id="almaden-api-key-status"></div>
+		</div>
+
+		<!-- GOOGLE DRIVE SECTION -->
+		<div class="almaden-fonts-card almaden-api-key-card" style="margin-top: 20px;">
+			<h2><span class="dashicons dashicons-cloud-saved"></span> Google Drive Service Account</h2>
+			<p class="description">Configura aquí tu Service Account para permitir que BookCraft guarde automáticamente los PDFs en tu Google Drive.</p>
+			
+			<form id="almaden-gdrive-settings-form" style="margin-top: 15px;">
+				<?php wp_nonce_field( 'almaden_gdrive_settings', 'almaden_gdrive_nonce' ); ?>
+				
+				<table class="form-table" style="margin-bottom: 20px;">
+					<tr>
+						<th scope="row"><label for="gdrive_client_email">Client Email</label></th>
+						<td>
+							<input type="email" name="gdrive_client_email" id="gdrive_client_email" value="<?php echo esc_attr( $gdrive_client_email ); ?>" class="regular-text" style="width:100%;" placeholder="e.g. bookcraft@my-project.iam.gserviceaccount.com">
+							<p class="description" style="font-size: 13px;">El correo electrónico de tu Service Account de Google Cloud.</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="gdrive_private_key">Private Key</label></th>
+						<td>
+							<textarea name="gdrive_private_key" id="gdrive_private_key" rows="5" class="large-text code" style="width:100%;" placeholder="-----BEGIN PRIVATE KEY-----..."><?php echo $gdrive_has_private_key ? '***PROTECTED***' : ''; ?></textarea>
+							<p class="description" style="font-size: 13px;">Copia y pega toda la llave privada. Por seguridad, no se mostrará después de guardarla.</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="gdrive_folder_id">Folder ID</label></th>
+						<td>
+							<input type="text" name="gdrive_folder_id" id="gdrive_folder_id" value="<?php echo esc_attr( $gdrive_folder_id ); ?>" class="regular-text" style="width:100%;">
+							<p class="description" style="font-size: 13px;">El ID de la carpeta principal de Google Drive compartida con el Client Email.</p>
+						</td>
+					</tr>
+				</table>
+
+				<p class="submit" style="padding: 0; margin: 0;">
+					<button type="submit" class="button button-primary" id="save-gdrive-settings">
+						<span class="dashicons dashicons-saved"></span> Guardar Drive
+					</button>
+					<button type="button" class="button button-secondary" id="test-gdrive-connection" style="margin-left:10px;">
+						<span class="dashicons dashicons-update"></span> Probar Conexión
+					</button>
+					<span class="spinner" id="gdrive-spinner"></span>
+				</p>
+				
+				<div id="gdrive-message" style="margin-top:15px; padding:10px; display:none;"></div>
+			</form>
 		</div>
 
 		<!-- SEARCH & CATALOG SECTION -->
@@ -149,5 +199,59 @@ function almaden_bookster_fonts_page_render() {
 			</div>
 		</div>
 	</div>
+	<script>
+	jQuery(document).ready(function($) {
+		$('#almaden-gdrive-settings-form').on('submit', function(e) {
+			e.preventDefault();
+			$('#gdrive-spinner').addClass('is-active');
+			$('#gdrive-message').hide();
+			
+			var data = {
+				action: 'almaden_save_gdrive_settings',
+				_wpnonce: $('#almaden_gdrive_nonce').val(),
+				gdrive_client_email: $('#gdrive_client_email').val(),
+				gdrive_private_key: $('#gdrive_private_key').val(),
+				gdrive_folder_id: $('#gdrive_folder_id').val()
+			};
+			
+			$.post(ajaxurl, data, function(response) {
+				$('#gdrive-spinner').removeClass('is-active');
+				$('#gdrive-message').show().removeClass('notice-error notice-success');
+				if (response.success) {
+					$('#gdrive-message').addClass('notice notice-success').html('<p>' + response.data + '</p>');
+					if ($('#gdrive_private_key').val() && $('#gdrive_private_key').val() !== '***PROTECTED***') {
+						$('#gdrive_private_key').val('***PROTECTED***');
+					}
+				} else {
+					$('#gdrive-message').addClass('notice notice-error').html('<p>' + response.data + '</p>');
+				}
+			});
+		});
+
+		$('#test-gdrive-connection').on('click', function(e) {
+			e.preventDefault();
+			$('#gdrive-spinner').addClass('is-active');
+			$('#gdrive-message').hide();
+			
+			var data = {
+				action: 'almaden_test_gdrive_connection',
+				_wpnonce: $('#almaden_gdrive_nonce').val()
+			};
+			
+			$.post(ajaxurl, data, function(response) {
+				$('#gdrive-spinner').removeClass('is-active');
+				$('#gdrive-message').show().removeClass('notice-error notice-success');
+				if (response.success) {
+					$('#gdrive-message').addClass('notice notice-success').html('<p><strong>¡Conexión Exitosa!</strong> ' + response.data + '</p>');
+				} else {
+					$('#gdrive-message').addClass('notice notice-error').html('<p><strong>Error de Conexión:</strong> ' + response.data + '</p>');
+				}
+			}).fail(function() {
+				$('#gdrive-spinner').removeClass('is-active');
+				$('#gdrive-message').show().addClass('notice notice-error').html('<p>Error interno del servidor al intentar probar la conexión.</p>');
+			});
+		});
+	});
+	</script>
 	<?php
 }

@@ -26,6 +26,24 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
     <title>BookCraft - Mis Libros</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="<?php echo esc_url( almaden_get_thumbnail_fonts_url() ); ?>" rel="stylesheet">
+    <!-- Font Awesome Icons para UI -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="<?php echo esc_url( plugins_url( '../assets/css/editor-style.css?v=' . time(), __FILE__ ) ); ?>">
+    <script>
+        var ajaxurl = "<?php echo admin_url( 'admin-ajax.php' ); ?>";
+        let bookState = {
+            bookId: 0,
+            settings: {},
+            settingsNonce: '',
+            ajaxUrl: ajaxurl,
+            installedFonts: []
+        };
+
+        // Fallback for missing editor functions
+        function showToast(message, iconClass) {
+            alert(message);
+        }
+    </script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
@@ -69,7 +87,7 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
         .animate-fade-in-down { animation: fadeInDown 0.4s ease-out; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col theme-light">
 
     <!-- Top Navigation -->
     <nav class="border-b border-gray-200 bg-white">
@@ -136,9 +154,13 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
                     $editor_url = home_url( '/almaden-book-editor/?book_id=' . get_the_ID() );
                     
                     // Contar capítulos
+                    $source_book_id = get_post_meta( get_the_ID(), '_almaden_source_book_id', true );
+                    if ( empty( $source_book_id ) ) {
+                        $source_book_id = get_the_ID();
+                    }
                     $chapter_count_query = get_posts( array(
                         'post_type' => 'book_chapter',
-                        'post_parent' => get_the_ID(),
+                        'post_parent' => $source_book_id,
                         'fields' => 'ids',
                         'posts_per_page' => -1
                     ) );
@@ -150,18 +172,31 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
                     
                     // Obtener configuración de la portada
                     $cover_thumbnail_html = almaden_get_cover_thumbnail_html( get_the_ID() );
+                    
+                    // Estado de publicación
+                    $is_published = get_post_meta( get_the_ID(), '_almaden_is_published', true ) === '1';
                 ?>
                     <div class="book-card bg-white overflow-hidden border border-gray-200 rounded-xl flex flex-col sm:flex-row h-full group relative">
                         <div class="w-full sm:w-2/5 flex-shrink-0 border-b sm:border-b-0 sm:border-r border-gray-200 bg-gray-50 flex items-center justify-center">
                             <?php if ( ! empty( $cover_thumbnail_html ) ) : ?>
-                                <div class="w-full h-full flex items-center">
+                                <div class="w-full h-full flex items-center relative">
                                     <?php echo str_replace('border-b', '', $cover_thumbnail_html); ?>
+                                    <?php if ( $is_published ) : ?>
+                                        <div class="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded shadow-sm">
+                                            Publicado
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             <?php else : ?>
-                                <div class="w-full h-48 sm:h-full flex items-center justify-center text-gray-400">
+                                <div class="w-full h-48 sm:h-full flex items-center justify-center text-gray-400 relative">
                                     <svg class="h-12 w-12 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                     </svg>
+                                    <?php if ( $is_published ) : ?>
+                                        <div class="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded shadow-sm">
+                                            Publicado
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -178,16 +213,45 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                                             <?php echo $chapter_count; ?> cap.
                                         </span>
-                                        <form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este libro? Esta acción borrará el libro de forma permanente.');" class="relative z-10">
-                                            <input type="hidden" name="action" value="almaden_delete_book">
-                                            <input type="hidden" name="book_id" value="<?php echo get_the_ID(); ?>">
-                                            <?php wp_nonce_field( 'almaden_delete_book_nonce', 'almaden_delete_nonce' ); ?>
-                                            <button type="submit" class="text-gray-400 hover:text-red-600 transition-colors bg-white rounded p-1 border border-transparent hover:border-red-100 hover:bg-red-50" title="Eliminar Libro">
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        <div class="relative z-10 dropdown-container">
+                                            <button type="button" onclick="this.nextElementSibling.classList.toggle('hidden');" class="text-gray-400 hover:text-gray-600 transition-colors bg-white rounded p-1 border border-transparent hover:border-gray-200 hover:bg-gray-50" title="Opciones">
+                                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                                                 </svg>
                                             </button>
-                                        </form>
+                                            <div class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none">
+                                                <div class="py-1">
+                                                    <a href="#" onclick="openBookSettings(<?php echo get_the_ID(); ?>, '<?php echo wp_create_nonce('almaden_save_settings_nonce_' . get_the_ID()); ?>'); event.preventDefault();" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center"><span class="settings-text-<?php echo get_the_ID(); ?>">Settings</span><i class="fa-solid fa-spinner fa-spin hidden settings-spinner-<?php echo get_the_ID(); ?>"></i></a>
+                                                    
+                                                    <a href="#" onclick="togglePublishBook(<?php echo get_the_ID(); ?>, <?php echo $is_published ? 'true' : 'false'; ?>); event.preventDefault();" class="block px-4 py-2 text-sm <?php echo $is_published ? 'text-orange-600 hover:bg-orange-50' : 'text-green-600 hover:bg-green-50'; ?> flex justify-between items-center">
+                                                        <span class="publish-text-<?php echo get_the_ID(); ?>"><?php echo $is_published ? 'Unpublish ebook' : 'Publish ebook'; ?></span>
+                                                        <i class="fa-solid fa-spinner fa-spin hidden publish-spinner-<?php echo get_the_ID(); ?>"></i>
+                                                    </a>
+
+                                                    <form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="POST">
+                                                        <input type="hidden" name="action" value="almaden_duplicate_book">
+                                                        <input type="hidden" name="book_id" value="<?php echo get_the_ID(); ?>">
+                                                        <?php wp_nonce_field( 'almaden_duplicate_book_nonce', 'almaden_duplicate_nonce' ); ?>
+                                                        <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Duplicar</button>
+                                                    </form>
+                                                    <form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="POST">
+                                                        <input type="hidden" name="action" value="almaden_export_epub">
+                                                        <input type="hidden" name="book_id" value="<?php echo get_the_ID(); ?>">
+                                                        <?php wp_nonce_field( 'almaden_export_epub_nonce', 'almaden_epub_nonce' ); ?>
+                                                        <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Export ePub</button>
+                                                    </form>
+                                                    <a href="#" onclick="uploadBookToDrive(<?php echo get_the_ID(); ?>); event.preventDefault();" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center"><span class="drive-text-<?php echo get_the_ID(); ?>">Subir a Google Drive</span><i class="fa-solid fa-spinner fa-spin hidden drive-spinner-<?php echo get_the_ID(); ?>"></i></a>
+                                                </div>
+                                                <div class="py-1">
+                                                    <form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este libro? Esta acción borrará el libro de forma permanente.');">
+                                                        <input type="hidden" name="action" value="almaden_delete_book">
+                                                        <input type="hidden" name="book_id" value="<?php echo get_the_ID(); ?>">
+                                                        <?php wp_nonce_field( 'almaden_delete_book_nonce', 'almaden_delete_nonce' ); ?>
+                                                        <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50">Eliminar</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -365,6 +429,143 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
         // Call twice: once immediately, once on full load
         scaleThumbnails();
         window.addEventListener('load', scaleThumbnails);
+
+        function closeAddModal() {
+            document.getElementById('add-book-modal').classList.add('hidden');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            var isClickInside = false;
+            document.querySelectorAll('.dropdown-container').forEach(function(container) {
+                if (container.contains(event.target)) {
+                    isClickInside = true;
+                } else {
+                    var dropdown = container.querySelector('.hidden.absolute');
+                    if(dropdown && !dropdown.classList.contains('hidden')){
+                        dropdown.classList.add('hidden');
+                    }
+                }
+            });
+            if(isClickInside) {
+                // If a button was clicked, ensure others are closed
+                var targetBtn = event.target.closest('button');
+                if(targetBtn) {
+                    var targetContainer = targetBtn.closest('.dropdown-container');
+                    document.querySelectorAll('.dropdown-container').forEach(function(container) {
+                        if(container !== targetContainer) {
+                            var dropdown = container.querySelector('.hidden.absolute');
+                            if(dropdown && !dropdown.classList.contains('hidden')){
+                                dropdown.classList.add('hidden');
+                            }
+                        }
+                    });
+                }
+            }
+        });
+
+        // Function to load and open settings
+        function openBookSettings(bookId, nonce) {
+            const spinner = document.querySelector('.settings-spinner-' + bookId);
+            if (spinner) spinner.classList.remove('hidden');
+            
+            const formData = new FormData();
+            formData.append('action', 'almaden_get_book_settings');
+            formData.append('book_id', bookId);
+            formData.append('nonce', nonce);
+
+            fetch(ajaxurl, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (spinner) spinner.classList.add('hidden');
+                if (data.success) {
+                    bookState.bookId = bookId;
+                    bookState.settings = data.data.settings;
+                    bookState.settingsNonce = nonce;
+                    toggleSettingsModal(true);
+                } else {
+                    alert('Error cargando los ajustes.');
+                }
+            })
+            .catch(err => {
+                if (spinner) spinner.classList.add('hidden');
+                alert('Error de conexión.');
+            });
+        }
+
+        // Function to export book to Google Drive
+        function uploadBookToDrive(bookId) {
+            const spinner = document.querySelector('.drive-spinner-' + bookId);
+            const textSpan = document.querySelector('.drive-text-' + bookId);
+            
+            if (spinner) spinner.classList.remove('hidden');
+            if (textSpan) textSpan.textContent = 'Subiendo...';
+            
+            const formData = new FormData();
+            formData.append('action', 'almaden_export_book_to_drive');
+            formData.append('book_id', bookId);
+            // Reusing the general admin-ajax architecture. We can rely on user capabilities in backend.
+
+            fetch(ajaxurl, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (spinner) spinner.classList.add('hidden');
+                if (textSpan) textSpan.textContent = 'Subir a Google Drive';
+                
+                if (data.success) {
+                    alert('¡Éxito! ' + data.data);
+                } else {
+                    alert('Error: ' + data.data);
+                }
+            })
+            .catch(err => {
+                if (spinner) spinner.classList.add('hidden');
+                if (textSpan) textSpan.textContent = 'Subir a Google Drive';
+                alert('Error de red al intentar subir a Google Drive.');
+            });
+        }
+
+        // Function to toggle publish status
+        function togglePublishBook(bookId, isPublished) {
+            const spinner = document.querySelector('.publish-spinner-' + bookId);
+            const textSpan = document.querySelector('.publish-text-' + bookId);
+            
+            if (spinner) spinner.classList.remove('hidden');
+            
+            const action = isPublished ? 'unpublish' : 'publish';
+            const formData = new FormData();
+            formData.append('action', 'almaden_toggle_publish_book');
+            formData.append('book_id', bookId);
+            formData.append('publish_action', action);
+
+            fetch(ajaxurl, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload(); // Reload to show updated status UI
+                } else {
+                    if (spinner) spinner.classList.add('hidden');
+                    alert('Error: ' + data.data);
+                }
+            })
+            .catch(err => {
+                if (spinner) spinner.classList.add('hidden');
+                alert('Error de red.');
+            });
+        }
     </script>
+    
+    <!-- Include the Settings Modal and JS -->
+    <?php include plugin_dir_path( __FILE__ ) . 'editor-settings-modal.php'; ?>
+    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-settings.js?v=' . time(), __FILE__ ) ); ?>"></script>
 </body>
 </html>
