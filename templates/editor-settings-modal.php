@@ -4,13 +4,21 @@
     <div class="bg-[var(--bg-sidebar)] border border-[var(--border-color)] text-[var(--text-main)] w-full max-w-xl rounded-2xl shadow-2xl p-6 relative transform scale-95 transition-transform duration-300">
         <!-- Header Modal -->
         <div class="flex items-center justify-between pb-3 border-b border-[var(--border-color)]">
-            <h3 class="text-md font-bold flex items-center gap-2">
-                <i class="fa-solid fa-sliders text-indigo-500"></i> Ajustes de Maquetación del PDF
-            </h3>
+            <div class="flex items-center gap-6">
+                <h3 class="text-md font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-indigo-500"></i> Ajustes del Libro
+                </h3>
+                <div class="flex bg-[var(--bg-app)] rounded-lg p-1 border border-[var(--border-color)]">
+                    <button type="button" onclick="switchFormatTab('pdf')" id="btn-format-pdf" class="px-4 py-1 rounded-md bg-[var(--bg-sidebar)] shadow-sm border border-[var(--border-color)] text-xs font-bold text-indigo-600 transition-colors">PDF</button>
+                    <button type="button" onclick="switchFormatTab('ebook')" id="btn-format-ebook" class="px-4 py-1 rounded-md text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">EBOOK</button>
+                </div>
+            </div>
             <button onclick="toggleSettingsModal(false)" class="text-[var(--text-muted)] hover:text-[var(--text-main)] transition">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
+
+        <div id="format-pdf-section">
 
         <!-- Navigation Tabs -->
         <div class="flex border-b border-[var(--border-color)] mb-4 -mx-6 px-6 overflow-x-auto gap-4 scrollbar-none">
@@ -247,6 +255,74 @@
             <!-- PESTAÑA 4: COMPORTAMIENTO DE CAPÍTULOS -->
             <?php include plugin_dir_path( __FILE__ ) . 'settings-tabs/tab-chapters.php'; ?>
 
+        </div> <!-- Fin de scrollable area -->
+        </div> <!-- Fin de format-pdf-section -->
+
+        <div id="format-ebook-section" class="hidden space-y-4 max-h-[55vh] overflow-y-auto pr-1">
+            <div class="border border-[var(--border-color)] rounded-xl p-4 bg-[var(--bg-app)] space-y-3 shadow-sm">
+                <h4 class="text-xs font-bold text-indigo-500 uppercase tracking-wider flex items-center gap-1.5 border-b border-[var(--border-color)] pb-2 mb-1">
+                    <i class="fa-solid fa-palette text-[10px]"></i> Apariencia del Lector Web (Ebook)
+                </h4>
+                
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Tipo de Fondo</label>
+                        <select id="setting-ebook-bg-type" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" onchange="toggleEbookBgType()">
+                            <option value="color">Color</option>
+                            <option value="image">Imagen</option>
+                        </select>
+                    </div>
+
+                    <div id="ebook-bg-color-wrap">
+                        <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Color de Fondo</label>
+                        <div class="flex items-center gap-2">
+                            <input type="color" id="setting-ebook-bg-color" value="#ffffff" class="w-8 h-8 rounded cursor-pointer border border-[var(--border-color)] p-0.5">
+                            <input type="text" id="setting-ebook-bg-color-text" value="#ffffff" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase" oninput="document.getElementById('setting-ebook-bg-color').value = this.value">
+                        </div>
+                    </div>
+
+                    <div id="ebook-bg-image-wrap" class="hidden">
+                        <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Imagen / Textura de Fondo</label>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="setting-ebook-bg-image" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="URL de la imagen">
+                            <button type="button" class="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold rounded-lg transition" onclick="openMediaUploaderEbookBg()">
+                                <i class="fa-solid fa-upload"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <h4 class="text-xs font-bold text-indigo-500 uppercase tracking-wider flex items-center gap-1.5 border-b border-[var(--border-color)] pb-2 mb-1 mt-4">
+                    <i class="fa-solid fa-image text-[10px]"></i> Fondo del Panel de Portada
+                </h4>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Tipo de Fondo</label>
+                        <select id="setting-ebook-cover-panel-bg-type" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" onchange="toggleCoverPanelBgType()">
+                            <option value="image">Imagen</option>
+                            <option value="color">Color</option>
+                        </select>
+                    </div>
+                    
+                    <div id="ebook-cover-panel-color-wrap" class="hidden">
+                        <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Color de Fondo</label>
+                        <div class="flex items-center gap-2">
+                            <input type="color" id="setting-ebook-cover-panel-bg-color" value="#transparent" class="w-8 h-8 rounded cursor-pointer border border-[var(--border-color)] p-0.5">
+                            <input type="text" id="setting-ebook-cover-panel-bg-color-text" value="transparent" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase" oninput="document.getElementById('setting-ebook-cover-panel-bg-color').value = this.value">
+                        </div>
+                    </div>
+
+                    <div id="ebook-cover-panel-image-wrap">
+                        <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Imagen de Fondo</label>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="setting-ebook-cover-panel-bg-image" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="URL de la imagen o vacío para usar portada">
+                            <button type="button" class="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold rounded-lg transition" onclick="openMediaUploaderCoverPanel()">
+                                <i class="fa-solid fa-upload"></i>
+                            </button>
+                        </div>
+                        <p class="text-[9px] text-gray-400 mt-1">Déjalo vacío para usar la portada del libro por defecto.</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Footer Modal -->

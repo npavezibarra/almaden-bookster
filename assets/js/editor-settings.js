@@ -1,4 +1,29 @@
 // Manejo de pestañas del modal de ajustes
+window.switchFormatTab = function(format) {
+    const btnPdf = document.getElementById('btn-format-pdf');
+    const btnEbook = document.getElementById('btn-format-ebook');
+    const secPdf = document.getElementById('format-pdf-section');
+    const secEbook = document.getElementById('format-ebook-section');
+
+    if (format === 'pdf') {
+        btnPdf.classList.add('bg-[var(--bg-sidebar)]', 'shadow-sm', 'border-[var(--border-color)]', 'text-indigo-600');
+        btnPdf.classList.remove('border-transparent', 'text-[var(--text-muted)]');
+        btnEbook.classList.remove('bg-[var(--bg-sidebar)]', 'shadow-sm', 'border-[var(--border-color)]', 'text-indigo-600');
+        btnEbook.classList.add('border-transparent', 'text-[var(--text-muted)]');
+        
+        secPdf.classList.remove('hidden');
+        secEbook.classList.add('hidden');
+    } else {
+        btnEbook.classList.add('bg-[var(--bg-sidebar)]', 'shadow-sm', 'border-[var(--border-color)]', 'text-indigo-600');
+        btnEbook.classList.remove('border-transparent', 'text-[var(--text-muted)]');
+        btnPdf.classList.remove('bg-[var(--bg-sidebar)]', 'shadow-sm', 'border-[var(--border-color)]', 'text-indigo-600');
+        btnPdf.classList.add('border-transparent', 'text-[var(--text-muted)]');
+        
+        secEbook.classList.remove('hidden');
+        secPdf.classList.add('hidden');
+    }
+}
+
 function switchSettingTab(tabId) {
     // Ocultar todos los contenidos de pestaña
     document.querySelectorAll('.setting-tab-content').forEach(el => {
@@ -122,6 +147,15 @@ function toggleSettingsModal(show) {
 
         // Grayscale Setting
         document.getElementById('setting-export-grayscale').checked = settings.export_grayscale == 1;
+
+        if (document.getElementById('setting-ebook-bg-type')) document.getElementById('setting-ebook-bg-type').value = settings.ebook_bg_type || 'color';
+        if (document.getElementById('setting-ebook-bg-color')) document.getElementById('setting-ebook-bg-color').value = settings.ebook_bg_color || '#ffffff';
+        if (document.getElementById('setting-ebook-bg-color-text')) document.getElementById('setting-ebook-bg-color-text').value = (settings.ebook_bg_color || '#ffffff').toUpperCase();
+        if (document.getElementById('setting-ebook-bg-image')) document.getElementById('setting-ebook-bg-image').value = settings.ebook_bg_image || '';
+        if (document.getElementById('setting-ebook-cover-panel-bg-type')) document.getElementById('setting-ebook-cover-panel-bg-type').value = settings.ebook_cover_panel_bg_type || 'image';
+        if (document.getElementById('setting-ebook-cover-panel-bg-color')) document.getElementById('setting-ebook-cover-panel-bg-color').value = settings.ebook_cover_panel_bg_color || 'transparent';
+        if (document.getElementById('setting-ebook-cover-panel-bg-color-text')) document.getElementById('setting-ebook-cover-panel-bg-color-text').value = (settings.ebook_cover_panel_bg_color || 'transparent').toUpperCase();
+        if (document.getElementById('setting-ebook-cover-panel-bg-image')) document.getElementById('setting-ebook-cover-panel-bg-image').value = settings.ebook_cover_panel_bg_image || '';
 
         // Pestaña Tipografía
         document.getElementById('setting-font-family-content').value = settings.font_family_content || 'Merriweather';
@@ -269,6 +303,12 @@ function savePDFSettings() {
     data.append('padding_right', document.getElementById('setting-padding-right').value);
     data.append('bleeding', document.getElementById('setting-bleeding').value);
     data.append('export_grayscale', document.getElementById('setting-export-grayscale').checked ? 1 : 0);
+    data.append('ebook_bg_type', document.getElementById('setting-ebook-bg-type').value);
+    data.append('ebook_bg_color', document.getElementById('setting-ebook-bg-color').value);
+    data.append('ebook_bg_image', document.getElementById('setting-ebook-bg-image').value);
+    data.append('ebook_cover_panel_bg_type', document.getElementById('setting-ebook-cover-panel-bg-type').value);
+    data.append('ebook_cover_panel_bg_color', document.getElementById('setting-ebook-cover-panel-bg-color').value);
+    data.append('ebook_cover_panel_bg_image', document.getElementById('setting-ebook-cover-panel-bg-image').value);
 
     // Tipografía
     data.append('font_family_content', document.getElementById('setting-font-family-content').value);
@@ -377,6 +417,12 @@ function savePDFSettings() {
                 padding_right: parseVal('setting-padding-right', 1.0),
                 bleeding: parseVal('setting-bleeding', 0.5),
                 export_grayscale: document.getElementById('setting-export-grayscale').checked ? 1 : 0,
+                ebook_bg_type: document.getElementById('setting-ebook-bg-type').value,
+                ebook_bg_color: document.getElementById('setting-ebook-bg-color').value,
+                ebook_bg_image: document.getElementById('setting-ebook-bg-image').value,
+                ebook_cover_panel_bg_type: document.getElementById('setting-ebook-cover-panel-bg-type').value,
+                ebook_cover_panel_bg_color: document.getElementById('setting-ebook-cover-panel-bg-color').value,
+                ebook_cover_panel_bg_image: document.getElementById('setting-ebook-cover-panel-bg-image').value,
 
                 font_family_content: document.getElementById('setting-font-family-content').value,
                 font_size_content: parseVal('setting-font-size-content', 11.5),
@@ -471,4 +517,89 @@ function savePDFSettings() {
             statusIndicator.className = 'flex items-center gap-1 font-semibold text-rose-600';
         }
     });
+}
+
+// Event Listeners for Color Inputs
+document.addEventListener('DOMContentLoaded', () => {
+    const ebookBgColor = document.getElementById('setting-ebook-bg-color');
+    if (ebookBgColor) {
+        ebookBgColor.addEventListener('input', function(e) {
+            document.getElementById('setting-ebook-bg-color-text').value = e.target.value.toUpperCase();
+        });
+    }
+
+    const coverPanelBgColor = document.getElementById('setting-ebook-cover-panel-bg-color');
+    if (coverPanelBgColor) {
+        coverPanelBgColor.addEventListener('input', function(e) {
+            document.getElementById('setting-ebook-cover-panel-bg-color-text').value = e.target.value.toUpperCase();
+        });
+    }
+});
+
+window.toggleEbookBgType = function() {
+    const type = document.getElementById('setting-ebook-bg-type').value;
+    if (type === 'color') {
+        document.getElementById('ebook-bg-color-wrap').classList.remove('hidden');
+        document.getElementById('ebook-bg-image-wrap').classList.add('hidden');
+    } else {
+        document.getElementById('ebook-bg-color-wrap').classList.add('hidden');
+        document.getElementById('ebook-bg-image-wrap').classList.remove('hidden');
+    }
+}
+
+let mediaUploaderEbookBg;
+window.openMediaUploaderEbookBg = function() {
+    if (typeof wp === 'undefined' || !wp.media) {
+        alert('El mecanismo de Media de WordPress no está disponible en esta pantalla. Asegúrate de guardar y recargar la página.');
+        return;
+    }
+    if (mediaUploaderEbookBg) {
+        mediaUploaderEbookBg.open();
+        return;
+    }
+    mediaUploaderEbookBg = wp.media({
+        title: 'Seleccionar Imagen de Fondo General',
+        button: { text: 'Usar esta imagen' },
+        multiple: false,
+        library: { type: 'image' }
+    });
+    mediaUploaderEbookBg.on('select', function() {
+        let attachment = mediaUploaderEbookBg.state().get('selection').first().toJSON();
+        document.getElementById('setting-ebook-bg-image').value = attachment.url;
+    });
+    mediaUploaderEbookBg.open();
+}
+
+window.toggleCoverPanelBgType = function() {
+    const type = document.getElementById('setting-ebook-cover-panel-bg-type').value;
+    if (type === 'color') {
+        document.getElementById('ebook-cover-panel-color-wrap').classList.remove('hidden');
+        document.getElementById('ebook-cover-panel-image-wrap').classList.add('hidden');
+    } else {
+        document.getElementById('ebook-cover-panel-color-wrap').classList.add('hidden');
+        document.getElementById('ebook-cover-panel-image-wrap').classList.remove('hidden');
+    }
+}
+
+let mediaUploaderCoverPanel;
+window.openMediaUploaderCoverPanel = function() {
+    if (typeof wp === 'undefined' || !wp.media) {
+        alert('El mecanismo de Media de WordPress no está disponible en esta pantalla. Asegúrate de guardar y recargar la página.');
+        return;
+    }
+    if (mediaUploaderCoverPanel) {
+        mediaUploaderCoverPanel.open();
+        return;
+    }
+    mediaUploaderCoverPanel = wp.media({
+        title: 'Seleccionar Imagen de Fondo',
+        button: { text: 'Usar esta imagen' },
+        multiple: false,
+        library: { type: 'image' }
+    });
+    mediaUploaderCoverPanel.on('select', function() {
+        let attachment = mediaUploaderCoverPanel.state().get('selection').first().toJSON();
+        document.getElementById('setting-ebook-cover-panel-bg-image').value = attachment.url;
+    });
+    mediaUploaderCoverPanel.open();
 }

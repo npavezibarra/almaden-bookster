@@ -27,12 +27,20 @@ function almaden_bookster_create_page() {
 }
 add_action( 'init', 'almaden_bookster_create_page' );
 
-// 2. Interceptar la página almaden-booklist y bookshelf para cargar nuestra app independiente
+// 2. Interceptar la página almaden-booklist para cargar nuestra app independiente
 function almaden_bookster_load_booklist() {
 	if ( is_page( 'almaden-booklist' ) && is_main_query() ) {
 		// Ocultar barra de administración de WordPress
 		show_admin_bar( false );
 		
+		if ( ! defined( 'DOING_AJAX' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/media.php';
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+		}
+		
+		wp_enqueue_media();
+
 		$template_path = dirname( __FILE__ ) . '/../templates/booklist-app.php';
 		if ( file_exists( $template_path ) ) {
 			require_once $template_path;
@@ -41,20 +49,36 @@ function almaden_bookster_load_booklist() {
 			wp_die( 'Plantilla del booklist no encontrada.' );
 		}
 	}
+}
+add_action( 'template_redirect', 'almaden_bookster_load_booklist', 5 );
 
-	if ( is_page( 'bookshelf' ) && is_main_query() ) {
-		show_admin_bar( false );
-		
+// 3. Renderizar el Bookshelf dentro del contenido de la página para respetar el Theme
+function almaden_bookster_render_bookshelf( $content ) {
+	if ( is_page( 'bookshelf' ) && in_the_loop() && is_main_query() ) {
+		ob_start();
 		$template_path = dirname( __FILE__ ) . '/../templates/bookshelf-app.php';
 		if ( file_exists( $template_path ) ) {
 			require_once $template_path;
-			exit;
-		} else {
-			wp_die( 'Plantilla del bookshelf no encontrada.' );
+		}
+		return ob_get_clean();
+	}
+	return $content;
+}
+add_filter( 'the_content', 'almaden_bookster_render_bookshelf' );
+
+// 4. Interceptar la vista individual de un libro publicado para cargar el Reader App
+function almaden_bookster_load_reader( $template ) {
+	if ( is_singular( 'almaden-books' ) ) {
+		// Ocultar barra de administración de WordPress
+		show_admin_bar( false );
+		$new_template = dirname( __FILE__ ) . '/../templates/reader-app.php';
+		if ( file_exists( $new_template ) ) {
+			return $new_template;
 		}
 	}
+	return $template;
 }
-add_action( 'template_redirect', 'almaden_bookster_load_booklist', 5 );
+add_filter( 'single_template', 'almaden_bookster_load_reader' );
 
 
 // --- Procesar Formulario de Creación ---
@@ -213,25 +237,7 @@ function almaden_bookster_load_editor() {
 			require_once ABSPATH . 'wp-admin/includes/image.php';
 		}
 		
-		add_action('wp_enqueue_scripts', function() use ($book_id) {
-			// Limpiar estilos y scripts del tema, preservando el core
-			global $wp_styles, $wp_scripts;
-			if (isset($wp_styles->queue)) {
-				foreach ($wp_styles->queue as $handle) {
-					if (strpos($handle, 'wp-') === false && strpos($handle, 'dashicons') === false) {
-						wp_dequeue_style($handle);
-					}
-				}
-			}
-			if (isset($wp_scripts->queue)) {
-				foreach ($wp_scripts->queue as $handle) {
-					if (strpos($handle, 'wp-') === false && strpos($handle, 'media-') === false && strpos($handle, 'jquery') === false) {
-						wp_dequeue_script($handle);
-					}
-				}
-			}
-			wp_enqueue_media( array( 'post' => $book_id ) );
-		}, 9999);
+		wp_enqueue_media( array( 'post' => $book_id ) );
 
 		$template_path = dirname( __FILE__ ) . '/../templates/editor-app.php';
 		if ( file_exists( $template_path ) ) {
@@ -267,24 +273,7 @@ function almaden_bookster_load_cover_editor() {
 			require_once ABSPATH . 'wp-admin/includes/image.php';
 		}
 		
-		add_action('wp_enqueue_scripts', function() use ($book_id) {
-			global $wp_styles, $wp_scripts;
-			if (isset($wp_styles->queue)) {
-				foreach ($wp_styles->queue as $handle) {
-					if (strpos($handle, 'wp-') === false && strpos($handle, 'dashicons') === false) {
-						wp_dequeue_style($handle);
-					}
-				}
-			}
-			if (isset($wp_scripts->queue)) {
-				foreach ($wp_scripts->queue as $handle) {
-					if (strpos($handle, 'wp-') === false && strpos($handle, 'media-') === false && strpos($handle, 'jquery') === false) {
-						wp_dequeue_script($handle);
-					}
-				}
-			}
-			wp_enqueue_media( array( 'post' => $book_id ) );
-		}, 9999);
+		wp_enqueue_media( array( 'post' => $book_id ) );
 
 		$cover_settings = get_post_meta( $book_id, '_almaden_cover_settings', true );
 		if ( ! is_array( $cover_settings ) ) {

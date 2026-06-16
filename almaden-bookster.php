@@ -24,7 +24,10 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/cpt.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/frontend.php';
 
 // --- Manejadores AJAX ---
-require_once plugin_dir_path( __FILE__ ) . 'includes/ajax-handlers.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-save-book.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-publish.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-settings.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-cover.php';
 
 // --- Configuraciones Generales y Seguridad ---
 require_once plugin_dir_path( __FILE__ ) . 'includes/crypto.php';
@@ -62,6 +65,12 @@ function almaden_bookster_create_settings_table() {
 			padding_right float DEFAULT 0.0 NOT NULL,
 			bleeding float DEFAULT 0.0 NOT NULL,
 			export_grayscale tinyint(1) DEFAULT 0 NOT NULL,
+			ebook_bg_type varchar(20) DEFAULT 'color' NOT NULL,
+			ebook_bg_color varchar(20) DEFAULT '#ffffff' NOT NULL,
+			ebook_bg_image varchar(255) DEFAULT '' NOT NULL,
+			ebook_cover_panel_bg_type varchar(20) DEFAULT 'image' NOT NULL,
+			ebook_cover_panel_bg_color varchar(20) DEFAULT 'transparent' NOT NULL,
+			ebook_cover_panel_bg_image varchar(255) DEFAULT '' NOT NULL,
 			font_family_content varchar(50) DEFAULT 'Merriweather' NOT NULL,
 			font_size_content float DEFAULT 11.5 NOT NULL,
 			line_height_content float DEFAULT 1.65 NOT NULL,
@@ -191,7 +200,13 @@ add_action('init', function() {
 		'chapter_prefix_letter_spacing' => 'float DEFAULT 0.0 NOT NULL',
 		'chapter_prefix_ornament' => "varchar(20) DEFAULT 'none' NOT NULL",
 		'chapter_title_line_height' => 'float DEFAULT 1.2 NOT NULL',
-		'chapter_title_text_transform' => "varchar(20) DEFAULT 'none' NOT NULL"
+		'chapter_title_text_transform' => "varchar(20) DEFAULT 'none' NOT NULL",
+		'ebook_bg_type' => "varchar(20) DEFAULT 'color' NOT NULL",
+		'ebook_bg_color' => "varchar(20) DEFAULT '#ffffff' NOT NULL",
+		'ebook_bg_image' => "varchar(255) DEFAULT '' NOT NULL",
+		'ebook_cover_panel_bg_type' => "varchar(20) DEFAULT 'image' NOT NULL",
+		'ebook_cover_panel_bg_color' => "varchar(20) DEFAULT 'transparent' NOT NULL",
+		'ebook_cover_panel_bg_image' => "varchar(255) DEFAULT '' NOT NULL"
 	];
 	foreach ($needed_columns as $col => $def) {
 		if (!empty($columns) && !in_array($col, $columns)) {

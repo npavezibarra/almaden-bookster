@@ -86,6 +86,7 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
         }
         .animate-fade-in-down { animation: fadeInDown 0.4s ease-out; }
     </style>
+    <?php wp_head(); ?>
 </head>
 <body class="min-h-screen flex flex-col theme-light">
 
@@ -192,11 +193,6 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
                                     <svg class="h-12 w-12 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                     </svg>
-                                    <?php if ( $is_published ) : ?>
-                                        <div class="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded shadow-sm">
-                                            Publicado
-                                        </div>
-                                    <?php endif; ?>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -205,15 +201,15 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
                             <div class="p-6 flex-1 flex flex-col">
                                 <div class="flex items-start justify-end mb-4">
                                     <div class="flex items-center gap-2">
-                                        <?php if ( $pages_count > 0 ) : ?>
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                                <?php echo $pages_count; ?> págs.
-                                            </span>
-                                        <?php endif; ?>
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                            <?php echo $chapter_count; ?> cap.
-                                        </span>
-                                        <div class="relative z-10 dropdown-container">
+                                        <!-- Píldoras de info movidas al área de descripción -->
+                                        <label class="relative inline-flex items-center cursor-pointer ml-2" title="Publicar en Bookshelf">
+                                            <input type="checkbox" class="sr-only peer" onchange="togglePublishBook(<?php echo get_the_ID(); ?>, !this.checked)" <?php checked( $is_published, true ); ?>>
+                                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
+                                            <span class="ml-2 text-xs font-semibold <?php echo $is_published ? 'text-green-600' : 'text-gray-500'; ?> publish-text-<?php echo get_the_ID(); ?>"><?php echo $is_published ? 'Publicado' : 'Ebook Store'; ?></span>
+                                            <i class="ml-2 fa-solid fa-spinner fa-spin hidden text-gray-500 publish-spinner-<?php echo get_the_ID(); ?>"></i>
+                                        </label>
+
+                                        <div class="relative z-10 dropdown-container ml-1">
                                             <button type="button" onclick="this.nextElementSibling.classList.toggle('hidden');" class="text-gray-400 hover:text-gray-600 transition-colors bg-white rounded p-1 border border-transparent hover:border-gray-200 hover:bg-gray-50" title="Opciones">
                                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
@@ -223,11 +219,6 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
                                                 <div class="py-1">
                                                     <a href="#" onclick="openBookSettings(<?php echo get_the_ID(); ?>, '<?php echo wp_create_nonce('almaden_save_settings_nonce_' . get_the_ID()); ?>'); event.preventDefault();" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center"><span class="settings-text-<?php echo get_the_ID(); ?>">Settings</span><i class="fa-solid fa-spinner fa-spin hidden settings-spinner-<?php echo get_the_ID(); ?>"></i></a>
                                                     
-                                                    <a href="#" onclick="togglePublishBook(<?php echo get_the_ID(); ?>, <?php echo $is_published ? 'true' : 'false'; ?>); event.preventDefault();" class="block px-4 py-2 text-sm <?php echo $is_published ? 'text-orange-600 hover:bg-orange-50' : 'text-green-600 hover:bg-green-50'; ?> flex justify-between items-center">
-                                                        <span class="publish-text-<?php echo get_the_ID(); ?>"><?php echo $is_published ? 'Unpublish ebook' : 'Publish ebook'; ?></span>
-                                                        <i class="fa-solid fa-spinner fa-spin hidden publish-spinner-<?php echo get_the_ID(); ?>"></i>
-                                                    </a>
-
                                                     <form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="POST">
                                                         <input type="hidden" name="action" value="almaden_duplicate_book">
                                                         <input type="hidden" name="book_id" value="<?php echo get_the_ID(); ?>">
@@ -263,9 +254,24 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
                                     <p class="text-sm font-medium text-gray-500 mb-3">por <?php echo esc_html( $author ); ?></p>
                                 <?php endif; ?>
                                 
-                                <p class="text-sm text-gray-600 line-clamp-3 mb-4 flex-1">
-                                    <?php echo $content_preview ? esc_html($content_preview) : '<span class="italic text-gray-400">Sin descripción...</span>'; ?>
-                                </p>
+                                <div class="flex-1 flex flex-col">
+                                    <p class="text-sm text-gray-600 line-clamp-3 mb-4">
+                                        <?php echo $content_preview ? esc_html($content_preview) : '<span class="italic text-gray-400">Sin descripción...</span>'; ?>
+                                    </p>
+                                    
+                                    <div class="flex items-center gap-3 mt-auto mb-4">
+                                        <?php if ( $pages_count > 0 ) : ?>
+                                            <div class="inline-flex flex-col px-4 py-2 rounded-2xl bg-gray-100 text-slate-800 leading-none">
+                                                <span class="text-base font-semibold mb-1"><?php echo $pages_count; ?></span>
+                                                <span class="text-xs font-medium">págs.</span>
+                                            </div>
+                                        <?php endif; ?>
+                                        <div class="inline-flex flex-col px-4 py-2 rounded-2xl bg-gray-100 text-slate-800 leading-none">
+                                            <span class="text-base font-semibold mb-1"><?php echo $chapter_count; ?></span>
+                                            <span class="text-xs font-medium">cap.</span>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <div class="mt-2 flex flex-col gap-2">
                                     <a href="<?php echo esc_url( $editor_url ); ?>" class="w-full inline-flex justify-center items-center py-2 px-3 bg-black text-white text-xs font-semibold rounded-md hover:bg-gray-800 transition-colors">
@@ -567,5 +573,6 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
     <!-- Include the Settings Modal and JS -->
     <?php include plugin_dir_path( __FILE__ ) . 'editor-settings-modal.php'; ?>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-settings.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <?php wp_footer(); ?>
 </body>
 </html>
