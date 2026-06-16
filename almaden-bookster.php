@@ -71,6 +71,14 @@ function almaden_bookster_create_settings_table() {
 			ebook_cover_panel_bg_type varchar(20) DEFAULT 'image' NOT NULL,
 			ebook_cover_panel_bg_color varchar(20) DEFAULT 'transparent' NOT NULL,
 			ebook_cover_panel_bg_image varchar(255) DEFAULT '' NOT NULL,
+			ebook_font_family_content varchar(50) DEFAULT 'Merriweather' NOT NULL,
+			ebook_font_size_content float DEFAULT 18.0 NOT NULL,
+			ebook_font_weight_content varchar(20) DEFAULT 'normal' NOT NULL,
+			ebook_line_height_content float DEFAULT 1.8 NOT NULL,
+			ebook_font_family_headings varchar(50) DEFAULT 'Playfair Display' NOT NULL,
+			ebook_font_size_headings float DEFAULT 32.0 NOT NULL,
+			ebook_font_weight_headings varchar(20) DEFAULT 'bold' NOT NULL,
+			ebook_line_height_headings float DEFAULT 1.3 NOT NULL,
 			font_family_content varchar(50) DEFAULT 'Merriweather' NOT NULL,
 			font_size_content float DEFAULT 11.5 NOT NULL,
 			line_height_content float DEFAULT 1.65 NOT NULL,
@@ -206,7 +214,15 @@ add_action('init', function() {
 		'ebook_bg_image' => "varchar(255) DEFAULT '' NOT NULL",
 		'ebook_cover_panel_bg_type' => "varchar(20) DEFAULT 'image' NOT NULL",
 		'ebook_cover_panel_bg_color' => "varchar(20) DEFAULT 'transparent' NOT NULL",
-		'ebook_cover_panel_bg_image' => "varchar(255) DEFAULT '' NOT NULL"
+		'ebook_cover_panel_bg_image' => "varchar(255) DEFAULT '' NOT NULL",
+		'ebook_font_family_content' => "varchar(50) DEFAULT 'Merriweather' NOT NULL",
+		'ebook_font_size_content' => "float DEFAULT 18.0 NOT NULL",
+		'ebook_font_weight_content' => "varchar(20) DEFAULT 'normal' NOT NULL",
+		'ebook_line_height_content' => "float DEFAULT 1.8 NOT NULL",
+		'ebook_font_family_headings' => "varchar(50) DEFAULT 'Playfair Display' NOT NULL",
+		'ebook_font_size_headings' => "float DEFAULT 32.0 NOT NULL",
+		'ebook_font_weight_headings' => "varchar(20) DEFAULT 'bold' NOT NULL",
+		'ebook_line_height_headings' => "float DEFAULT 1.3 NOT NULL"
 	];
 	foreach ($needed_columns as $col => $def) {
 		if (!empty($columns) && !in_array($col, $columns)) {

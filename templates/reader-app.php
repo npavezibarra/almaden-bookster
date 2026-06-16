@@ -313,20 +313,33 @@ $book_data_json = wp_json_encode( array(
 
             css += `
                 .reader-chapter-title {
-                    font-family: '${settings.chapter_title_font_family || 'Playfair Display'}', serif;
-                    font-size: ${settings.chapter_title_font_size || 24.0}pt;
-                    font-weight: ${settings.chapter_title_font_weight || 'bold'};
-                    font-style: ${settings.chapter_title_font_style || 'normal'};
+                    font-family: '${settings.ebook_font_family_headings || 'Playfair Display'}', serif !important;
+                    font-size: ${settings.ebook_font_size_headings || 32.0}px !important;
+                    font-weight: ${settings.ebook_font_weight_headings || 'bold'} !important;
+                    line-height: ${settings.ebook_line_height_headings || 1.3} !important;
                     text-transform: ${settings.chapter_title_text_transform || 'none'};
                     text-align: ${settings.chapter_title_align || 'center'};
                     padding-top: ${settings.chapter_title_padding_top || 0.0}cm;
                     padding-bottom: ${settings.chapter_title_padding_bottom || 1.5}cm;
                     padding-left: ${settings.chapter_title_padding_left || 0.0}cm;
                     padding-right: ${settings.chapter_title_padding_right || 0.0}cm;
-                    line-height: ${settings.chapter_title_line_height || 1.2};
                     margin: 0;
                     width: 100%;
                     color: #111;
+                }
+            `;
+            css += `
+                .prose {
+                    font-family: '${settings.ebook_font_family_content || 'Merriweather'}', Georgia, serif !important;
+                    font-size: ${settings.ebook_font_size_content || 18.0}px !important;
+                    font-weight: ${settings.ebook_font_weight_content || 'normal'} !important;
+                    line-height: ${settings.ebook_line_height_content || 1.8} !important;
+                }
+                .prose h1, .prose h2, .prose h3 {
+                    font-family: '${settings.ebook_font_family_headings || 'Playfair Display'}', 'Inter', sans-serif !important;
+                    font-size: ${settings.ebook_font_size_headings || 32.0}px !important;
+                    font-weight: ${settings.ebook_font_weight_headings || 'bold'} !important;
+                    line-height: ${settings.ebook_line_height_headings || 1.3} !important;
                 }
             `;
             

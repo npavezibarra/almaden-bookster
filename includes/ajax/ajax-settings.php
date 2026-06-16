@@ -40,6 +40,14 @@ function almaden_bookster_save_settings_ajax() {
 		'ebook_cover_panel_bg_type'  => isset($_POST['ebook_cover_panel_bg_type']) ? sanitize_text_field($_POST['ebook_cover_panel_bg_type']) : 'image',
 		'ebook_cover_panel_bg_color' => isset($_POST['ebook_cover_panel_bg_color']) ? sanitize_text_field($_POST['ebook_cover_panel_bg_color']) : 'transparent',
 		'ebook_cover_panel_bg_image' => isset($_POST['ebook_cover_panel_bg_image']) ? esc_url_raw($_POST['ebook_cover_panel_bg_image']) : '',
+		'ebook_font_family_content'  => isset($_POST['ebook_font_family_content']) ? sanitize_text_field($_POST['ebook_font_family_content']) : 'Merriweather',
+		'ebook_font_size_content'    => isset($_POST['ebook_font_size_content']) ? floatval(str_replace(',', '.', $_POST['ebook_font_size_content'])) : 18.0,
+		'ebook_font_weight_content'  => isset($_POST['ebook_font_weight_content']) ? sanitize_text_field($_POST['ebook_font_weight_content']) : 'normal',
+		'ebook_line_height_content'  => isset($_POST['ebook_line_height_content']) ? floatval(str_replace(',', '.', $_POST['ebook_line_height_content'])) : 1.8,
+		'ebook_font_family_headings' => isset($_POST['ebook_font_family_headings']) ? sanitize_text_field($_POST['ebook_font_family_headings']) : 'Playfair Display',
+		'ebook_font_size_headings'   => isset($_POST['ebook_font_size_headings']) ? floatval(str_replace(',', '.', $_POST['ebook_font_size_headings'])) : 32.0,
+		'ebook_font_weight_headings' => isset($_POST['ebook_font_weight_headings']) ? sanitize_text_field($_POST['ebook_font_weight_headings']) : 'bold',
+		'ebook_line_height_headings' => isset($_POST['ebook_line_height_headings']) ? floatval(str_replace(',', '.', $_POST['ebook_line_height_headings'])) : 1.3,
 		'font_family_content'        => sanitize_text_field( $_POST['font_family_content'] ),
 		'font_size_content'          => floatval( str_replace( ',', '.', $_POST['font_size_content'] ) ),
 		'line_height_content'        => floatval( str_replace( ',', '.', $_POST['line_height_content'] ) ),
@@ -112,6 +120,9 @@ function almaden_bookster_save_settings_ajax() {
 
 	$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_name WHERE book_id = %d", $book_id ) );
 
+	error_log( "ALMADEN_DEBUG_POST: " . print_r( $_POST, true ) );
+	error_log( "ALMADEN_DEBUG_DATA: " . print_r( $data, true ) );
+
 	if ( $exists ) {
 		$result = $wpdb->update( $table_name, $data, array( 'book_id' => $book_id ) );
 	} else {
@@ -161,6 +172,14 @@ function almaden_get_book_pdf_settings( $book_id ) {
 		'ebook_cover_panel_bg_type'  => 'image',
 		'ebook_cover_panel_bg_color' => 'transparent',
 		'ebook_cover_panel_bg_image' => '',
+		'ebook_font_family_content'  => 'Merriweather',
+		'ebook_font_size_content'    => 18.0,
+		'ebook_font_weight_content'  => 'normal',
+		'ebook_line_height_content'  => 1.8,
+		'ebook_font_family_headings' => 'Playfair Display',
+		'ebook_font_size_headings'   => 32.0,
+		'ebook_font_weight_headings' => 'bold',
+		'ebook_line_height_headings' => 1.3,
 		'font_family_content'        => 'Merriweather',
 		'font_size_content'          => 11.5,
 		'line_height_content'        => 1.65,
