@@ -290,7 +290,7 @@
                                 <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Color de Fondo</label>
                                 <div class="flex items-center gap-2">
                                     <input type="color" id="setting-ebook-bg-color" value="#ffffff" class="w-8 h-8 rounded cursor-pointer border border-[var(--border-color)] p-0.5">
-                                    <input type="text" id="setting-ebook-bg-color-text" value="#ffffff" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase" oninput="document.getElementById('setting-ebook-bg-color').value = this.value">
+                                    <input type="text" id="setting-ebook-bg-color-text" value="#ffffff" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase" oninput="try { document.getElementById('setting-ebook-bg-color').value = this.value.toLowerCase(); } catch(e){}">
                                 </div>
                             </div>
 
@@ -319,8 +319,8 @@
                             <div id="ebook-cover-panel-color-wrap" class="hidden">
                                 <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Color de Fondo</label>
                                 <div class="flex items-center gap-2">
-                                    <input type="color" id="setting-ebook-cover-panel-bg-color" value="#transparent" class="w-8 h-8 rounded cursor-pointer border border-[var(--border-color)] p-0.5">
-                                    <input type="text" id="setting-ebook-cover-panel-bg-color-text" value="transparent" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase" oninput="document.getElementById('setting-ebook-cover-panel-bg-color').value = this.value">
+                                    <input type="color" id="setting-ebook-cover-panel-bg-color" value="#ffffff" class="w-8 h-8 rounded cursor-pointer border border-[var(--border-color)] p-0.5">
+                                    <input type="text" id="setting-ebook-cover-panel-bg-color-text" value="transparent" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase" oninput="try { document.getElementById('setting-ebook-cover-panel-bg-color').value = this.value.toLowerCase(); } catch(e){}">
                                 </div>
                             </div>
 
@@ -371,6 +371,16 @@
                             <div>
                                 <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Interlineado (line-height)</label>
                                 <input id="setting-ebook-line-height-content" type="number" step="0.05" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 pt-2">
+                            <div class="flex items-center gap-2">
+                                <input id="setting-ebook-text-align-justify" type="checkbox" class="rounded border-[var(--border-color)] text-indigo-600 focus:ring-indigo-500 bg-[var(--bg-sidebar)] h-4 w-4">
+                                <label for="setting-ebook-text-align-justify" class="text-xs font-semibold text-[var(--text-muted)] cursor-pointer">Justificar texto</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input id="setting-ebook-hyphenation" type="checkbox" class="rounded border-[var(--border-color)] text-indigo-600 focus:ring-indigo-500 bg-[var(--bg-sidebar)] h-4 w-4">
+                                <label for="setting-ebook-hyphenation" class="text-xs font-semibold text-[var(--text-muted)] cursor-pointer">Separación silábica (Guiones)</label>
                             </div>
                         </div>
                     </div>

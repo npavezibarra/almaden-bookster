@@ -66,93 +66,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
     }
-
-    function renderTextLayers() {
-        const existingLayers = el.coverSpread.querySelectorAll('.text-layer');
-        existingLayers.forEach(layer => layer.remove());
-
-        s.textLayers.forEach(layer => {
-            const div = document.createElement('div');
-            div.className = 'text-layer absolute cursor-move';
-            div.dataset.id = layer.id;
-            
-            if (s.activeLayerId === layer.id) {
-                div.classList.add('outline', 'outline-2', 'outline-indigo-500', 'bg-indigo-50', 'bg-opacity-10');
-            } else {
-                div.classList.add('outline', 'outline-1', 'outline-transparent', 'hover:outline-dashed', 'hover:outline-gray-400');
-            }
-
-            div.style.left = `${layer.x}%`;
-            div.style.top = `${layer.y}%`;
-            div.style.transform = `rotate(${layer.rotation || 0}deg)`;
-            div.style.zIndex = layer.zIndex || 30;
-            
-            if (layer.type === 'image') {
-                div.style.backgroundImage = `url(${layer.url})`;
-                div.style.backgroundSize = 'contain';
-                div.style.backgroundRepeat = 'no-repeat';
-                div.style.backgroundPosition = 'center';
-                if (!layer.width) div.style.width = '200px';
-                if (!layer.height) div.style.height = '200px';
-            } else if (layer.type === 'shape') {
-                div.style.opacity = (layer.opacity !== undefined ? layer.opacity : 100) / 100;
-                if (layer.shapeType === 'circle') div.style.borderRadius = '50%';
-                else div.style.borderRadius = '0';
-                
-                const c1 = hexToRgba(layer.color1 || '#000000', layer.color1Opacity !== undefined ? layer.color1Opacity : 100);
-                const c2 = hexToRgba(layer.color2 || '#ffffff', layer.color2Opacity !== undefined ? layer.color2Opacity : 100);
-
-                if (layer.isGradient) {
-                    div.style.background = `linear-gradient(${layer.gradientAngle || 90}deg, ${c1}, ${c2})`;
-                } else {
-                    div.style.background = c1;
-                }
-                if (!layer.width) div.style.width = '150px';
-                if (!layer.height) div.style.height = '150px';
-            } else {
-                div.style.fontFamily = layer.fontFamily;
-                div.style.fontSize = `${layer.fontSize}px`;
-                div.style.color = layer.color;
-                div.style.textAlign = layer.textAlign;
-                div.style.whiteSpace = 'pre-wrap';
-                div.style.lineHeight = '1.2';
-                
-                if (layer.hyphens) {
-                    div.style.hyphens = 'auto';
-                    div.style.webkitHyphens = 'auto';
-                    div.lang = 'es';
-                } else {
-                    div.style.hyphens = 'none';
-                    div.style.webkitHyphens = 'none';
-                }
-                
-                div.textContent = layer.text;
-            }
-            
-            if (layer.width) div.style.width = `${layer.width}px`;
-            else if (layer.type !== 'image') div.style.width = 'auto';
-
-            if (layer.height) div.style.height = `${layer.height}px`;
-            else if (layer.type !== 'image') div.style.height = 'auto';
-
-            div.addEventListener('mousedown', (e) => {
-                if (e.target !== div) return; 
-                selectLayer(layer.id);
-                s.isDragging = true;
-                s.dragStartX = e.clientX;
-                s.dragStartY = e.clientY;
-                s.layerStartX = layer.x;
-                s.layerStartY = layer.y;
-                e.stopPropagation();
-            });
-
-            el.coverSpread.appendChild(div);
-        });
-    }
-
-    function selectLayer(id) {
+    window.CoverEditor.actions.selectLayer = function(id) {
         s.activeLayerId = id;
-        renderTextLayers();
+        if (window.CoverEditor.actions.renderTextLayers) {
+            window.CoverEditor.actions.renderTextLayers();
+        }
 
         if (id) {
             const layer = s.textLayers.find(l => l.id === id);
@@ -216,89 +134,10 @@ document.addEventListener('DOMContentLoaded', () => {
             el.textPropertiesPanel.classList.add('hidden');
         }
 
-        renderLayersPanel();
-    }
-
-    function renderLayersPanel() {
-        el.layersList.innerHTML = '';
-        if (s.textLayers.length === 0) {
-            el.layersList.innerHTML = '<div class="text-xs text-gray-400 text-center py-4">No hay capas</div>';
-            return;
+        if (window.CoverEditor.actions.renderLayersPanel) {
+            window.CoverEditor.actions.renderLayersPanel();
         }
-
-        const sortedLayers = [...s.textLayers].sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0));
-
-        sortedLayers.forEach(layer => {
-            const btn = document.createElement('div');
-            btn.className = `w-full text-left px-3 py-2 text-xs rounded border transition flex items-center gap-2 cursor-move ${
-                s.activeLayerId === layer.id 
-                    ? 'bg-indigo-50 border-indigo-200 text-indigo-800 font-semibold' 
-                    : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-100'
-            }`;
-            btn.draggable = true;
-            btn.dataset.layerId = layer.id;
-            
-            btn.innerHTML = `
-                <i class="fa-${layer.type === 'image' ? 'regular fa-image' : (layer.type === 'shape' ? (layer.shapeType === 'circle' ? 'solid fa-circle' : 'solid fa-square') : 'solid fa-t')} text-gray-400"></i>
-                <span class="truncate flex-1 pointer-events-none">${layer.type === 'image' ? 'Imagen' : (layer.type === 'shape' ? 'Forma' : (layer.text || 'Texto vacío'))}</span>
-                <i class="fa-solid fa-grip-vertical text-gray-300 ml-auto pointer-events-none"></i>
-            `;
-
-            btn.addEventListener('click', () => {
-                selectLayer(layer.id);
-            });
-
-            // Drag and drop logic
-            btn.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData('text/plain', layer.id);
-                btn.classList.add('opacity-50');
-            });
-
-            btn.addEventListener('dragend', () => {
-                btn.classList.remove('opacity-50');
-                const placeholders = el.layersList.querySelectorAll('.border-t-2');
-                placeholders.forEach(p => p.classList.remove('border-t-2', 'border-indigo-500'));
-            });
-
-            btn.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                btn.classList.add('border-t-2', 'border-indigo-500');
-            });
-
-            btn.addEventListener('dragleave', () => {
-                btn.classList.remove('border-t-2', 'border-indigo-500');
-            });
-
-            btn.addEventListener('drop', (e) => {
-                e.preventDefault();
-                btn.classList.remove('border-t-2', 'border-indigo-500');
-                const draggedId = e.dataTransfer.getData('text/plain');
-                if (!draggedId || draggedId === layer.id) return;
-
-                // Sort textLayers by zIndex ascending so we have a reliable order
-                s.textLayers.sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
-                
-                const draggedIndex = s.textLayers.findIndex(l => l.id === draggedId);
-                const targetIndex = s.textLayers.findIndex(l => l.id === layer.id);
-                
-                if (draggedIndex > -1 && targetIndex > -1) {
-                    const [draggedLayer] = s.textLayers.splice(draggedIndex, 1);
-                    // Insert at target index
-                    s.textLayers.splice(targetIndex, 0, draggedLayer);
-                    
-                    // Reassign z-indexes sequentially
-                    s.textLayers.forEach((l, i) => {
-                        l.zIndex = 30 + i;
-                    });
-                    
-                    renderTextLayers();
-                    renderLayersPanel();
-                }
-            });
-
-            el.layersList.appendChild(btn);
-        });
-    }
+    };
 
     // Drag Logic
     document.addEventListener('mousemove', (e) => {
@@ -315,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             layer.x = s.layerStartX + (dx / s.zoomLevel / spreadWidthPx) * 100;
             layer.y = s.layerStartY + (dy / s.zoomLevel / spreadHeightPx) * 100;
-            renderTextLayers();
+            window.CoverEditor.actions.renderTextLayers();
         }
     });
 
@@ -325,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     el.workspaceContainer.addEventListener('mousedown', (e) => {
         if (e.target === el.workspaceContainer || e.target === el.coverScaler || e.target === el.coverSpread || e.target.classList.contains('cover-part')) {
-            selectLayer(null);
+            window.CoverEditor.actions.selectLayer(null);
         }
     });
 
@@ -354,9 +193,9 @@ document.addEventListener('DOMContentLoaded', () => {
             zIndex: 30 + s.textLayers.length
         };
         s.textLayers.push(newLayer);
-        renderTextLayers();
-        renderLayersPanel();
-        selectLayer(newLayer.id);
+        window.CoverEditor.actions.renderTextLayers();
+        window.CoverEditor.actions.renderLayersPanel();
+        window.CoverEditor.actions.selectLayer(newLayer.id);
     });
 
     if (addImageLayerBtn) {
@@ -375,9 +214,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         zIndex: 30 + s.textLayers.length
                     };
                     s.textLayers.push(newLayer);
-                    renderTextLayers();
-                    renderLayersPanel();
-                    selectLayer(newLayer.id);
+                    window.CoverEditor.actions.renderTextLayers();
+                    window.CoverEditor.actions.renderLayersPanel();
+                    window.CoverEditor.actions.selectLayer(newLayer.id);
                 });
             }
         });
@@ -404,49 +243,49 @@ document.addEventListener('DOMContentLoaded', () => {
                 zIndex: 30 + s.textLayers.length
             };
             s.textLayers.push(newLayer);
-            renderTextLayers();
-            renderLayersPanel();
-            selectLayer(newLayer.id);
+            window.CoverEditor.actions.renderTextLayers();
+            window.CoverEditor.actions.renderLayersPanel();
+            window.CoverEditor.actions.selectLayer(newLayer.id);
         });
     }
 
     deleteTextBtn.addEventListener('click', () => {
         if (!s.activeLayerId) return;
         s.textLayers = s.textLayers.filter(l => l.id !== s.activeLayerId);
-        selectLayer(null);
+        window.CoverEditor.actions.selectLayer(null);
     });
 
     // Binding Inputs
     propTextContent.addEventListener('input', (e) => {
         const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-        if (layer) { layer.text = e.target.value; renderTextLayers(); renderLayersPanel(); }
+        if (layer) { layer.text = e.target.value; window.CoverEditor.actions.renderTextLayers(); window.CoverEditor.actions.renderLayersPanel(); }
     });
     propFontFamily.addEventListener('change', (e) => {
         const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-        if (layer) { layer.fontFamily = e.target.value; renderTextLayers(); }
+        if (layer) { layer.fontFamily = e.target.value; window.CoverEditor.actions.renderTextLayers(); }
     });
     propFontSize.addEventListener('input', (e) => {
         const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-        if (layer) { layer.fontSize = parseInt(e.target.value) || 12; renderTextLayers(); }
+        if (layer) { layer.fontSize = parseInt(e.target.value) || 12; window.CoverEditor.actions.renderTextLayers(); }
     });
     propRotation.addEventListener('input', (e) => {
         const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-        if (layer) { layer.rotation = parseFloat(e.target.value) || 0; renderTextLayers(); }
+        if (layer) { layer.rotation = parseFloat(e.target.value) || 0; window.CoverEditor.actions.renderTextLayers(); }
     });
     propWidth.addEventListener('input', (e) => {
         const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-        if (layer) { layer.width = parseInt(e.target.value) || null; renderTextLayers(); }
+        if (layer) { layer.width = parseInt(e.target.value) || null; window.CoverEditor.actions.renderTextLayers(); }
     });
     propHeight.addEventListener('input', (e) => {
         const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-        if (layer) { layer.height = parseInt(e.target.value) || null; renderTextLayers(); }
+        if (layer) { layer.height = parseInt(e.target.value) || null; window.CoverEditor.actions.renderTextLayers(); }
     });
     propTextColor.addEventListener('input', (e) => {
         const layer = s.textLayers.find(l => l.id === s.activeLayerId);
         if (layer) { 
             layer.color = e.target.value; 
             propTextColorHex.value = e.target.value;
-            renderTextLayers(); 
+            window.CoverEditor.actions.renderTextLayers(); 
         }
     });
     propTextColorHex.addEventListener('input', (e) => {
@@ -454,7 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (layer) { 
             layer.color = e.target.value; 
             propTextColor.value = e.target.value;
-            renderTextLayers(); 
+            window.CoverEditor.actions.renderTextLayers(); 
         }
     });
     propAlignBtns.forEach(btn => {
@@ -462,22 +301,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const layer = s.textLayers.find(l => l.id === s.activeLayerId);
             if (layer) {
                 layer.textAlign = e.currentTarget.dataset.align;
-                renderTextLayers();
-                selectLayer(s.activeLayerId);
+                window.CoverEditor.actions.renderTextLayers();
+                window.CoverEditor.actions.selectLayer(s.activeLayerId);
             }
         });
     });
 
     propHyphens.addEventListener('change', (e) => {
         const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-        if (layer) { layer.hyphens = e.target.checked; renderTextLayers(); }
+        if (layer) { layer.hyphens = e.target.checked; window.CoverEditor.actions.renderTextLayers(); }
     });
 
     // Shape Binding Inputs
     if (propShapeType) {
         propShapeType.addEventListener('change', (e) => {
             const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-            if (layer && layer.type === 'shape') { layer.shapeType = e.target.value; renderTextLayers(); renderLayersPanel(); }
+            if (layer && layer.type === 'shape') { layer.shapeType = e.target.value; window.CoverEditor.actions.renderTextLayers(); window.CoverEditor.actions.renderLayersPanel(); }
         });
     }
     if (propShapeOpacity) {
@@ -486,7 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (layer && layer.type === 'shape') { 
                 layer.opacity = parseInt(e.target.value) || 0; 
                 propShapeOpacityVal.textContent = layer.opacity + '%';
-                renderTextLayers(); 
+                window.CoverEditor.actions.renderTextLayers(); 
             }
         });
     }
@@ -495,38 +334,38 @@ document.addEventListener('DOMContentLoaded', () => {
             const layer = s.textLayers.find(l => l.id === s.activeLayerId);
             if (layer && layer.type === 'shape') { 
                 layer.isGradient = e.target.checked; 
-                selectLayer(s.activeLayerId); // Re-run selectLayer to show/hide gradient controls
+                window.CoverEditor.actions.selectLayer(s.activeLayerId); // Re-run selectLayer to show/hide gradient controls
             }
         });
     }
     if (propShapeColor1) {
         propShapeColor1.addEventListener('input', (e) => {
             const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-            if (layer && layer.type === 'shape') { layer.color1 = e.target.value; renderTextLayers(); }
+            if (layer && layer.type === 'shape') { layer.color1 = e.target.value; window.CoverEditor.actions.renderTextLayers(); }
         });
     }
     if (propShapeColor1Opacity) {
         propShapeColor1Opacity.addEventListener('input', (e) => {
             const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-            if (layer && layer.type === 'shape') { layer.color1Opacity = parseInt(e.target.value) || 0; renderTextLayers(); }
+            if (layer && layer.type === 'shape') { layer.color1Opacity = parseInt(e.target.value) || 0; window.CoverEditor.actions.renderTextLayers(); }
         });
     }
     if (propShapeColor2) {
         propShapeColor2.addEventListener('input', (e) => {
             const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-            if (layer && layer.type === 'shape') { layer.color2 = e.target.value; renderTextLayers(); }
+            if (layer && layer.type === 'shape') { layer.color2 = e.target.value; window.CoverEditor.actions.renderTextLayers(); }
         });
     }
     if (propShapeColor2Opacity) {
         propShapeColor2Opacity.addEventListener('input', (e) => {
             const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-            if (layer && layer.type === 'shape') { layer.color2Opacity = parseInt(e.target.value) || 0; renderTextLayers(); }
+            if (layer && layer.type === 'shape') { layer.color2Opacity = parseInt(e.target.value) || 0; window.CoverEditor.actions.renderTextLayers(); }
         });
     }
     if (propShapeAngle) {
         propShapeAngle.addEventListener('input', (e) => {
             const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-            if (layer && layer.type === 'shape') { layer.gradientAngle = parseInt(e.target.value) || 0; renderTextLayers(); }
+            if (layer && layer.type === 'shape') { layer.gradientAngle = parseInt(e.target.value) || 0; window.CoverEditor.actions.renderTextLayers(); }
         });
     }
 

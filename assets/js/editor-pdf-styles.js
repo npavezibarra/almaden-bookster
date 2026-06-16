@@ -225,12 +225,14 @@ function applyDynamicPDFStyles() {
             margin-right: 0px !important;
             font-family: '${settings.font_family_content || 'Merriweather'}', serif !important;
             font-size: ${toPx(settings.font_size_content || 11.5, true)}px !important;
+            font-weight: ${settings.font_weight_content || 'normal'} !important;
             line-height: ${settings.line_height_content || 1.65} !important;
             overflow: visible !important;
         }
         .pdf-content p, .pdf-content ul, .pdf-content ol {
             font-family: '${settings.font_family_content || 'Merriweather'}', serif !important;
             font-size: ${toPx(settings.font_size_content || 11.5, true)}px !important;
+            font-weight: ${settings.font_weight_content || 'normal'} !important;
             line-height: ${settings.line_height_content || 1.65} !important;
             text-align: ${settings.content_text_align || 'justify'} !important;
             hyphens: auto !important;

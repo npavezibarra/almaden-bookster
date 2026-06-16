@@ -95,11 +95,20 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
-                    <div class="flex-shrink-0 flex items-center gap-3">
-                        <svg class="h-8 w-8 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div class="flex-shrink-0 flex items-center text-black">
+                        <svg class="h-8 w-8 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                         </svg>
                         <span class="font-semibold text-xl tracking-tight serif">BookCraft</span>
+                    </div>
+                    
+                    <div class="hidden sm:ml-8 sm:flex sm:space-x-6 items-center">
+                        <a href="<?php echo esc_url( home_url('/almaden-booklist/') ); ?>" class="border-b-2 border-black text-black px-1 pt-1 text-sm font-medium h-full flex items-center">
+                            Mis Libros
+                        </a>
+                        <a href="<?php echo esc_url( home_url('/bookshelf/') ); ?>" class="border-b-2 border-transparent text-gray-500 hover:text-black hover:border-gray-300 px-1 pt-1 text-sm font-medium h-full flex items-center transition-colors" target="_blank">
+                            Bookshelf
+                        </a>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -259,16 +268,16 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
                                         <?php echo $content_preview ? esc_html($content_preview) : '<span class="italic text-gray-400">Sin descripción...</span>'; ?>
                                     </p>
                                     
-                                    <div class="flex items-center gap-3 mt-auto mb-4">
+                                    <div class="flex items-center gap-2 mt-auto mb-4">
                                         <?php if ( $pages_count > 0 ) : ?>
-                                            <div class="inline-flex flex-col px-4 py-2 rounded-2xl bg-gray-100 text-slate-800 leading-none">
-                                                <span class="text-base font-semibold mb-1"><?php echo $pages_count; ?></span>
-                                                <span class="text-xs font-medium">págs.</span>
+                                            <div class="inline-flex items-baseline gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-slate-800 leading-none">
+                                                <span class="text-sm font-bold"><?php echo $pages_count; ?></span>
+                                                <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-500">págs.</span>
                                             </div>
                                         <?php endif; ?>
-                                        <div class="inline-flex flex-col px-4 py-2 rounded-2xl bg-gray-100 text-slate-800 leading-none">
-                                            <span class="text-base font-semibold mb-1"><?php echo $chapter_count; ?></span>
-                                            <span class="text-xs font-medium">cap.</span>
+                                        <div class="inline-flex items-baseline gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-slate-800 leading-none">
+                                            <span class="text-sm font-bold"><?php echo $chapter_count; ?></span>
+                                            <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-500">cap.</span>
                                         </div>
                                     </div>
                                 </div>

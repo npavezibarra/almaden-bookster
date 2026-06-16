@@ -465,6 +465,8 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
     <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-dimensions.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-media.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-layers.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-layers-canvas.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-layers-panel.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-save.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-export.js?v=' . time() ); ?>"></script>
     <?php wp_footer(); ?>

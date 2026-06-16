@@ -28,6 +28,7 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-save-book.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-publish.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-settings.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-cover.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-user-prefs.php';
 
 // --- Configuraciones Generales y Seguridad ---
 require_once plugin_dir_path( __FILE__ ) . 'includes/crypto.php';
@@ -79,6 +80,8 @@ function almaden_bookster_create_settings_table() {
 			ebook_font_size_headings float DEFAULT 32.0 NOT NULL,
 			ebook_font_weight_headings varchar(20) DEFAULT 'bold' NOT NULL,
 			ebook_line_height_headings float DEFAULT 1.3 NOT NULL,
+			ebook_text_align_justify tinyint(1) DEFAULT 0 NOT NULL,
+			ebook_hyphenation tinyint(1) DEFAULT 0 NOT NULL,
 			font_family_content varchar(50) DEFAULT 'Merriweather' NOT NULL,
 			font_size_content float DEFAULT 11.5 NOT NULL,
 			line_height_content float DEFAULT 1.65 NOT NULL,
@@ -138,6 +141,22 @@ function almaden_bookster_create_settings_table() {
 			first_page_header_custom varchar(255) DEFAULT '' NOT NULL,
 			first_page_footer_type varchar(50) DEFAULT 'page_number' NOT NULL,
 			first_page_footer_custom varchar(255) DEFAULT '' NOT NULL,
+			ebook_bg_type varchar(50) DEFAULT 'color' NOT NULL,
+			ebook_bg_color varchar(50) DEFAULT '#ffffff' NOT NULL,
+			ebook_bg_image varchar(255) DEFAULT '' NOT NULL,
+			ebook_cover_panel_bg_type varchar(50) DEFAULT 'image' NOT NULL,
+			ebook_cover_panel_bg_color varchar(50) DEFAULT 'transparent' NOT NULL,
+			ebook_cover_panel_bg_image varchar(255) DEFAULT '' NOT NULL,
+			ebook_font_family_content varchar(50) DEFAULT 'Merriweather' NOT NULL,
+			ebook_font_size_content float DEFAULT 18.0 NOT NULL,
+			ebook_font_weight_content varchar(50) DEFAULT 'normal' NOT NULL,
+			ebook_line_height_content float DEFAULT 1.8 NOT NULL,
+			ebook_font_family_headings varchar(50) DEFAULT 'Playfair Display' NOT NULL,
+			ebook_font_size_headings float DEFAULT 32.0 NOT NULL,
+			ebook_font_weight_headings varchar(50) DEFAULT 'bold' NOT NULL,
+			ebook_line_height_headings float DEFAULT 1.3 NOT NULL,
+			ebook_text_align_justify tinyint(1) DEFAULT 0 NOT NULL,
+			ebook_hyphenation tinyint(1) DEFAULT 0 NOT NULL,
 			chapter_start_parity varchar(20) DEFAULT 'any' NOT NULL,
 			parity_image_mode varchar(20) DEFAULT 'content' NOT NULL,
 			chapter_page_one_align varchar(20) DEFAULT 'center' NOT NULL,
@@ -169,7 +188,7 @@ function almaden_bookster_create_settings_table() {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 
-		update_option( 'almaden_bookster_db_version', '1.8.8' );
+		update_option( 'almaden_bookster_db_version', '1.8.9' );
 	}
 }
 add_action( 'init', 'almaden_bookster_create_settings_table' );
@@ -222,7 +241,9 @@ add_action('init', function() {
 		'ebook_font_family_headings' => "varchar(50) DEFAULT 'Playfair Display' NOT NULL",
 		'ebook_font_size_headings' => "float DEFAULT 32.0 NOT NULL",
 		'ebook_font_weight_headings' => "varchar(20) DEFAULT 'bold' NOT NULL",
-		'ebook_line_height_headings' => "float DEFAULT 1.3 NOT NULL"
+		'ebook_line_height_headings' => "float DEFAULT 1.3 NOT NULL",
+		'ebook_text_align_justify' => "tinyint(1) DEFAULT 0 NOT NULL",
+		'ebook_hyphenation' => "tinyint(1) DEFAULT 0 NOT NULL"
 	];
 	foreach ($needed_columns as $col => $def) {
 		if (!empty($columns) && !in_array($col, $columns)) {

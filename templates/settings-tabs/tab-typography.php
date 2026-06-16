@@ -2,7 +2,7 @@
                 <div>
                     <h4 class="text-[10px] font-bold uppercase tracking-wider text-indigo-500 mb-2 border-b border-[var(--border-color)] pb-1">Tipografía del Cuerpo</h4>
                     <div class="grid grid-cols-3 gap-2">
-                        <div class="col-span-2">
+                        <div>
                             <label class="block text-[9px] text-[var(--text-muted)] mb-1">Familia de Fuente</label>
                             <select id="setting-font-family-content" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                 <?php almaden_render_font_options( $default_fonts, $selector_fonts ); ?>
@@ -11,6 +11,20 @@
                         <div>
                             <label class="block text-[9px] text-[var(--text-muted)] mb-1">Tamaño (pt)</label>
                             <input id="setting-font-size-content" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] text-[var(--text-muted)] mb-1">Peso</label>
+                            <select id="setting-font-weight-content" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="100">100 - Fino</option>
+                                <option value="200">200 - Extra Ligero</option>
+                                <option value="300">300 - Ligero</option>
+                                <option value="normal">400 - Normal</option>
+                                <option value="500">500 - Medio</option>
+                                <option value="600">600 - Semi Negrita</option>
+                                <option value="bold">700 - Negrita</option>
+                                <option value="800">800 - Extra Negrita</option>
+                                <option value="900">900 - Negro</option>
+                            </select>
                         </div>
                     </div>
                     <div class="grid grid-cols-4 gap-2 mt-2">

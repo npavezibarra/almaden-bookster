@@ -172,11 +172,23 @@ function toggleSettingsModal(show) {
         document.getElementById('setting-export-grayscale').checked = settings.export_grayscale == 1;
 
         if (document.getElementById('setting-ebook-bg-type')) document.getElementById('setting-ebook-bg-type').value = settings.ebook_bg_type || 'color';
-        if (document.getElementById('setting-ebook-bg-color')) document.getElementById('setting-ebook-bg-color').value = settings.ebook_bg_color || '#ffffff';
+        if (document.getElementById('setting-ebook-bg-color')) {
+            const rawColor = settings.ebook_bg_color || '#ffffff';
+            // Color inputs require lowercase 6-digit hex
+            if (rawColor.startsWith('#') && rawColor.length === 7) {
+                document.getElementById('setting-ebook-bg-color').value = rawColor.toLowerCase();
+            }
+        }
         if (document.getElementById('setting-ebook-bg-color-text')) document.getElementById('setting-ebook-bg-color-text').value = (settings.ebook_bg_color || '#ffffff').toUpperCase();
         if (document.getElementById('setting-ebook-bg-image')) document.getElementById('setting-ebook-bg-image').value = settings.ebook_bg_image || '';
         if (document.getElementById('setting-ebook-cover-panel-bg-type')) document.getElementById('setting-ebook-cover-panel-bg-type').value = settings.ebook_cover_panel_bg_type || 'image';
-        if (document.getElementById('setting-ebook-cover-panel-bg-color')) document.getElementById('setting-ebook-cover-panel-bg-color').value = settings.ebook_cover_panel_bg_color || 'transparent';
+        
+        if (document.getElementById('setting-ebook-cover-panel-bg-color')) {
+            const rawCovColor = settings.ebook_cover_panel_bg_color || 'transparent';
+            if (rawCovColor !== 'transparent' && rawCovColor.startsWith('#') && rawCovColor.length === 7) {
+                document.getElementById('setting-ebook-cover-panel-bg-color').value = rawCovColor.toLowerCase();
+            }
+        }
         if (document.getElementById('setting-ebook-cover-panel-bg-color-text')) document.getElementById('setting-ebook-cover-panel-bg-color-text').value = (settings.ebook_cover_panel_bg_color || 'transparent').toUpperCase();
         if (document.getElementById('setting-ebook-cover-panel-bg-image')) document.getElementById('setting-ebook-cover-panel-bg-image').value = settings.ebook_cover_panel_bg_image || '';
 
@@ -189,12 +201,15 @@ function toggleSettingsModal(show) {
         if (document.getElementById('setting-ebook-font-size-headings')) document.getElementById('setting-ebook-font-size-headings').value = settings.ebook_font_size_headings || 32.0;
         if (document.getElementById('setting-ebook-font-weight-headings')) document.getElementById('setting-ebook-font-weight-headings').value = settings.ebook_font_weight_headings || 'bold';
         if (document.getElementById('setting-ebook-line-height-headings')) document.getElementById('setting-ebook-line-height-headings').value = settings.ebook_line_height_headings || 1.3;
+        if (document.getElementById('setting-ebook-text-align-justify')) document.getElementById('setting-ebook-text-align-justify').checked = settings.ebook_text_align_justify == 1;
+        if (document.getElementById('setting-ebook-hyphenation')) document.getElementById('setting-ebook-hyphenation').checked = settings.ebook_hyphenation == 1;
 
         switchEbookSettingTab('tab-ebook-theme');
 
         // Pestaña Tipografía
         document.getElementById('setting-font-family-content').value = settings.font_family_content || 'Merriweather';
         document.getElementById('setting-font-size-content').value = settings.font_size_content || 11.5;
+        document.getElementById('setting-font-weight-content').value = settings.font_weight_content || 'normal';
         document.getElementById('setting-line-height-content').value = settings.line_height_content || 1.65;
         document.getElementById('setting-content-text-align').value = settings.content_text_align || 'justify';
         document.getElementById('setting-content-hyphenation').value = settings.content_hyphenation !== undefined ? settings.content_hyphenation : 1;
@@ -339,10 +354,10 @@ function savePDFSettings() {
     data.append('bleeding', document.getElementById('setting-bleeding').value);
     data.append('export_grayscale', document.getElementById('setting-export-grayscale').checked ? 1 : 0);
     data.append('ebook_bg_type', document.getElementById('setting-ebook-bg-type').value);
-    data.append('ebook_bg_color', document.getElementById('setting-ebook-bg-color').value);
+    data.append('ebook_bg_color', document.getElementById('setting-ebook-bg-color-text').value);
     data.append('ebook_bg_image', document.getElementById('setting-ebook-bg-image').value);
     data.append('ebook_cover_panel_bg_type', document.getElementById('setting-ebook-cover-panel-bg-type').value);
-    data.append('ebook_cover_panel_bg_color', document.getElementById('setting-ebook-cover-panel-bg-color').value);
+    data.append('ebook_cover_panel_bg_color', document.getElementById('setting-ebook-cover-panel-bg-color-text').value);
     data.append('ebook_cover_panel_bg_image', document.getElementById('setting-ebook-cover-panel-bg-image').value);
     data.append('ebook_font_family_content', document.getElementById('setting-ebook-font-family-content').value);
     data.append('ebook_font_size_content', getCleanVal('setting-ebook-font-size-content'));
@@ -352,10 +367,13 @@ function savePDFSettings() {
     data.append('ebook_font_size_headings', getCleanVal('setting-ebook-font-size-headings'));
     data.append('ebook_font_weight_headings', document.getElementById('setting-ebook-font-weight-headings').value);
     data.append('ebook_line_height_headings', getCleanVal('setting-ebook-line-height-headings'));
+    data.append('ebook_text_align_justify', document.getElementById('setting-ebook-text-align-justify').checked ? 1 : 0);
+    data.append('ebook_hyphenation', document.getElementById('setting-ebook-hyphenation').checked ? 1 : 0);
 
     // Tipografía
     data.append('font_family_content', document.getElementById('setting-font-family-content').value);
     data.append('font_size_content', getCleanVal('setting-font-size-content'));
+    data.append('font_weight_content', getCleanVal('setting-font-weight-content'));
     data.append('line_height_content', getCleanVal('setting-line-height-content'));
     data.append('content_text_align', document.getElementById('setting-content-text-align').value);
     data.append('content_hyphenation', document.getElementById('setting-content-hyphenation').value);
@@ -461,10 +479,10 @@ function savePDFSettings() {
                 bleeding: parseVal('setting-bleeding', 0.5),
                 export_grayscale: document.getElementById('setting-export-grayscale').checked ? 1 : 0,
                 ebook_bg_type: document.getElementById('setting-ebook-bg-type').value,
-                ebook_bg_color: document.getElementById('setting-ebook-bg-color').value,
+                ebook_bg_color: document.getElementById('setting-ebook-bg-color-text').value,
                 ebook_bg_image: document.getElementById('setting-ebook-bg-image').value,
                 ebook_cover_panel_bg_type: document.getElementById('setting-ebook-cover-panel-bg-type').value,
-                ebook_cover_panel_bg_color: document.getElementById('setting-ebook-cover-panel-bg-color').value,
+                ebook_cover_panel_bg_color: document.getElementById('setting-ebook-cover-panel-bg-color-text').value,
                 ebook_cover_panel_bg_image: document.getElementById('setting-ebook-cover-panel-bg-image').value,
                 ebook_font_family_content: document.getElementById('setting-ebook-font-family-content').value,
                 ebook_font_size_content: parseVal('setting-ebook-font-size-content', 18.0),
@@ -474,9 +492,12 @@ function savePDFSettings() {
                 ebook_font_size_headings: parseVal('setting-ebook-font-size-headings', 32.0),
                 ebook_font_weight_headings: document.getElementById('setting-ebook-font-weight-headings').value,
                 ebook_line_height_headings: parseVal('setting-ebook-line-height-headings', 1.3),
+                ebook_text_align_justify: document.getElementById('setting-ebook-text-align-justify').checked ? 1 : 0,
+                ebook_hyphenation: document.getElementById('setting-ebook-hyphenation').checked ? 1 : 0,
 
                 font_family_content: document.getElementById('setting-font-family-content').value,
                 font_size_content: parseVal('setting-font-size-content', 11.5),
+                font_weight_content: document.getElementById('setting-font-weight-content').value,
                 line_height_content: parseVal('setting-line-height-content', 1.65),
                 content_text_align: document.getElementById('setting-content-text-align').value,
                 content_hyphenation: parseInt(document.getElementById('setting-content-hyphenation').value),

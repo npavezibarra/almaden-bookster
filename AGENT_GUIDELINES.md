@@ -14,13 +14,14 @@ La modularidad extrema es la prioridad de este proyecto. Si la implementación d
 2. **Funciones Pequeñas y Específicas:** Unifica y simplifica las funciones. Cada función debe tener un único propósito bien definido. Evita los bloques condicionales gigantescos y el código procedimental extenso.
 3. **Refactorización Continua:** Si ves un archivo con 400 líneas, considéralo en estado crítico. Comienza a planificar su división en componentes más pequeños.
 4. **Componentización:** Para interfaces de usuario o plantillas, utiliza archivos separados. No incluyas HTML extenso o scripts inline masivos dentro de los archivos PHP de lógica; cárgalos desde archivos parciales o encola los assets adecuadamente.
+5. **IDs en Elementos Principales:** Siempre que se cree un nuevo template o página, los elementos HTML principales deben tener un ID especial o identificador único para poder referirnos correctamente a ellos con CSS, JavaScript u otros scripts.
 
 *Cualquier código que incumpla estas reglas será considerado como un fallo en la implementación de la arquitectura.*
 
 ## Contexto Obligatorio (READMEs)
 
-**Antes de crear o modificar cualquier archivo dentro de una carpeta específica, el Agente AI DEBE buscar y leer el archivo `README.md` de ese directorio (si existe).**
-Este archivo contendrá la información arquitectónica de las responsabilidades de los archivos dentro del módulo. Modificar código sin entender la arquitectura descrita en el `README.md` está estrictamente prohibido.
+**Antes de crear o modificar cualquier código, el Agente AI DEBE buscar y leer los archivos `README.md` empezando desde el root folder (directorio raíz) hacia las subcarpetas.**
+Esto permite hacer más eficiente la modificación o creación de archivos, ya que cada `README` indicará qué hace cada archivo dentro de la carpeta sin tener que escanear todo el código. Modificar código sin entender la arquitectura descrita en los `README.md` correspondientes está estrictamente prohibido.
 
 ## Conexión a Base de Datos (Local by Flywheel)
 

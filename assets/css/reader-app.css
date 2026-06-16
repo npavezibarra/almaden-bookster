@@ -1,0 +1,101 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #ffffff;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Cover CSS requirements */
+.cover-thumbnail-wrapper {
+    width: 100%;
+    background-color: #ffffff;
+    overflow: hidden;
+    position: relative;
+}
+.cover-spread-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.cover-spread-container .absolute { position: absolute; }
+.cover-spread-container .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+.cover-spread-container .top-0 { top: 0; }
+.cover-spread-container .bottom-0 { bottom: 0; }
+.cover-spread-container .bg-cover { background-size: cover; }
+.cover-spread-container .bg-center { background-position: center; }
+
+/* Typography for Reader Content */
+.prose {
+    font-family: Georgia, serif;
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: #333;
+    max-width: 700px;
+    margin: 0 auto;
+}
+.prose h1, .prose h2, .prose h3 {
+    font-family: 'Inter', sans-serif;
+    color: #111;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+.prose p {
+    margin-bottom: 1.5rem;
+}
+.prose blockquote {
+    border-left: 4px solid #ccc;
+    padding-left: 1rem;
+    color: #555;
+    font-style: italic;
+}
+
+/* Transitions */
+.fade-enter {
+    opacity: 0;
+    transform: translateY(10px);
+}
+.fade-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 300ms ease, transform 300ms ease;
+}
+
+/* Hide scrollbar */
+#chapter-scroll-area::-webkit-scrollbar {
+    display: none;
+}
+#chapter-scroll-area {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Flip Mode CSS */
+.mode-flip #chapter-scroll-area {
+    overflow: hidden !important;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+.mode-flip #chapter-content {
+    height: calc(100vh - 12rem) !important;
+    column-width: calc(50vw - 6rem) !important;
+    column-gap: 6rem !important;
+    column-fill: auto !important;
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.mode-flip .prose h1, .mode-flip .prose h2, .mode-flip .prose h3 {
+    break-after: avoid;
+}
+
+@media (max-width: 768px) {
+    .mode-flip #chapter-content {
+        column-width: calc(100vw - 3rem) !important;
+        column-gap: 3rem !important;
+    }
+}

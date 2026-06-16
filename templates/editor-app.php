@@ -354,6 +354,9 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
         };
     </script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-core.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-toolbar.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-virtualization.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-chapters.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-settings.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-chapter-settings.js?v=' . time(), __FILE__ ) ); ?>"></script>
