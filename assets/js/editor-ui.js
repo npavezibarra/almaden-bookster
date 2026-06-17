@@ -127,11 +127,22 @@ function toggleLangDropdown() {
     if (dropdown) dropdown.classList.toggle('hidden');
 }
 
+function toggleAddChapterDropdown() {
+    const dropdown = document.getElementById('add-chapter-dropdown');
+    if (dropdown) dropdown.classList.toggle('hidden');
+}
+
 // Cierra el dropdown si se hace click fuera
 document.addEventListener('click', function(event) {
-    const wrapper = document.getElementById('lang-selector-wrapper');
-    const dropdown = document.getElementById('lang-dropdown');
-    if (wrapper && dropdown && !wrapper.contains(event.target)) {
-        dropdown.classList.add('hidden');
+    const langWrapper = document.getElementById('lang-selector-wrapper');
+    const langDropdown = document.getElementById('lang-dropdown');
+    if (langWrapper && langDropdown && !langWrapper.contains(event.target)) {
+        langDropdown.classList.add('hidden');
+    }
+
+    const addChapterWrapper = document.getElementById('add-chapter-dropdown-wrapper');
+    const addChapterDropdown = document.getElementById('add-chapter-dropdown');
+    if (addChapterWrapper && addChapterDropdown && !addChapterWrapper.contains(event.target)) {
+        addChapterDropdown.classList.add('hidden');
     }
 });

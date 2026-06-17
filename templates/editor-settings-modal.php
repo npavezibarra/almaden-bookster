@@ -34,6 +34,9 @@
             <button type="button" onclick="switchSettingTab('tab-chapters')" class="setting-tab-btn py-2 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-chapters">
                 Capítulos
             </button>
+            <button type="button" onclick="switchSettingTab('tab-credits')" class="setting-tab-btn py-2 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-credits">
+                Créditos
+            </button>
         </div>
 
         <!-- Formulario Ajustes -->
@@ -254,6 +257,9 @@
 
             <!-- PESTAÑA 4: COMPORTAMIENTO DE CAPÍTULOS -->
             <?php include plugin_dir_path( __FILE__ ) . 'settings-tabs/tab-chapters.php'; ?>
+
+            <!-- PESTAÑA 5: CRÉDITOS -->
+            <?php include plugin_dir_path( __FILE__ ) . 'settings-tabs/tab-credits.php'; ?>
 
         </div> <!-- Fin de scrollable area -->
         </div> <!-- Fin de format-pdf-section -->

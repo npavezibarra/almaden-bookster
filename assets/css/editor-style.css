@@ -1,6 +1,10 @@
 /* Estilos generales de tipografía e interfaz */
-body {
-    font-family: 'Inter', sans-serif;
+h1, h2, h3, h4, h5, h6, .font-sans {
+    font-family: 'Urbanist', sans-serif !important;
+}
+
+body, html {
+    font-family: 'Urbanist', sans-serif !important;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 

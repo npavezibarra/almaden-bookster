@@ -40,6 +40,17 @@
                 <!-- Ajustes exclusivos para la Tabla de Contenidos -->
                 <?php include plugin_dir_path( __FILE__ ) . 'chapter-settings-toc.php'; ?>
 
+                <!-- Ajustes para Créditos -->
+                <div id="credits-chapter-settings" class="hidden">
+                    <div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-4 flex gap-3">
+                        <i class="fa-solid fa-circle-info mt-0.5 text-amber-500"></i>
+                        <div class="text-sm">
+                            <p class="font-bold mb-1">Página de Créditos</p>
+                            <p>El contenido de esta página se genera automáticamente utilizando los datos configurados en los <strong>Ajustes Globales > Créditos</strong>.</p>
+                            <p class="mt-2">Puedes elegir en qué lado de la página debe iniciar utilizando el selector de arriba.</p>
+                        </div>
+                    </div>
+                </div>
             </form>
         </div>
 

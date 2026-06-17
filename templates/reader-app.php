@@ -33,6 +33,7 @@ if ( $chapters_query->have_posts() ) {
 			'content'    => get_the_content(),
 			'page'       => $page_counter,
 			'hide_title' => get_post_meta( get_the_ID(), '_almaden_chapter_hide_title', true ),
+			'is_toc'     => get_post_meta( get_the_ID(), '_is_toc', true ),
 		);
 		$page_counter++;
 	}
@@ -81,7 +82,19 @@ $book_data_json = wp_json_encode( array(
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo esc_html( $book_title ); ?> - Reader</title>
     
-    <!-- Tailwind CSS -->
+    <!-- Tailwind Config -->
+    <script>
+        window.tailwind = window.tailwind || {};
+        window.tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Urbanist"', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -89,8 +102,8 @@ $book_data_json = wp_json_encode( array(
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="<?php echo esc_url($fonts_url); ?>" rel="stylesheet">
-    <!-- Inter Font for UI -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Urbanist Font for UI -->
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&amp;display=swap" rel="stylesheet">
     <!-- Markdown Parser -->
     <script src="https://cdn.jsdelivr.net/npm/markdown-it@13.0.1/dist/markdown-it.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/markdown-it-footnote@3.0.3/dist/markdown-it-footnote.min.js"></script>

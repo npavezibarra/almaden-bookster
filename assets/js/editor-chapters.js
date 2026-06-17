@@ -51,7 +51,7 @@ function renderSidebar() {
 
         // Determinar número a mostrar en sidebar
         let displayStr = '-';
-        if (chapter.is_toc !== '1' && chapter.exclude_from_numbering !== '1') {
+        if (chapter.is_toc !== '1' && chapter.is_credits !== '1' && chapter.exclude_from_numbering !== '1') {
             displayStr = chapterDisplayNumber;
             chapterDisplayNumber++;
         }
@@ -62,7 +62,7 @@ function renderSidebar() {
                 <div class="truncate flex-1">
                     <div class="flex items-center justify-between gap-2">
                         <h4 class="text-sm font-semibold truncate ${isActive ? 'text-indigo-700 dark:text-indigo-400' : 'text-[var(--text-main)]'}">
-                            ${chapter.is_toc == '1' ? '<i class="fa-solid fa-list-ol mr-1"></i> ' : ''}${chapter.title || 'Capítulo sin título'}
+                            ${chapter.is_toc == '1' ? '<i class="fa-solid fa-list-ol mr-1"></i> ' : ''}${chapter.is_credits == '1' ? '<i class="fa-solid fa-copyright mr-1"></i> ' : ''}${chapter.title || 'Capítulo sin título'}
                         </h4>
                         ${chapterPagesStr}
                     </div>
@@ -160,7 +160,16 @@ function loadActiveChapter() {
 
     if (chapter) {
         if (titleInput) titleInput.value = chapter.title;
-        if (textInput) textInput.value = chapter.content;
+        if (textInput) {
+            textInput.value = chapter.content;
+            if (chapter.is_toc === '1' || chapter.is_credits === '1') {
+                textInput.readOnly = true;
+                textInput.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                textInput.readOnly = false;
+                textInput.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
         updateWordCounts();
         compilePDFPreview(true);
     } else if (bookState.chapters.length > 0) {
@@ -186,10 +195,15 @@ function selectChapter(id) {
 }
 
 // Crea un nuevo capítulo
-function createNewChapter(isToc = false) {
+function createNewChapter(isToc = false, isCredits = false) {
     // Si ya existe un TOC, no permitir otro
     if (isToc && bookState.chapters.some(c => c.is_toc == '1')) {
         showToast("Ya existe un Índice", "fa-solid fa-circle-exclamation");
+        return;
+    }
+
+    if (isCredits && bookState.chapters.some(c => c.is_credits == '1')) {
+        showToast("Ya existe una página de Créditos", "fa-solid fa-circle-exclamation");
         return;
     }
 
@@ -197,9 +211,10 @@ function createNewChapter(isToc = false) {
     const newId = `cap-${Date.now()}`;
     const newChapter = {
         id: newId,
-        title: isToc ? 'Índice' : `Capítulo ${newIndex}: Título Nuevo`,
-        content: isToc ? `En este capítulo se generará automáticamente el Índice de contenidos.` : `# Capítulo ${newIndex}\n## Título Nuevo\n\nComienza a escribir la historia de este capítulo aquí...`,
-        is_toc: isToc ? '1' : '0'
+        title: isToc ? 'Índice' : (isCredits ? 'Créditos' : `Capítulo ${newIndex}: Título Nuevo`),
+        content: isToc ? `En este capítulo se generará automáticamente el Índice de contenidos.` : (isCredits ? `En este capítulo se generará automáticamente la página de Créditos.` : `# Capítulo ${newIndex}\n## Título Nuevo\n\nComienza a escribir la historia de este capítulo aquí...`),
+        is_toc: isToc ? '1' : '0',
+        is_credits: isCredits ? '1' : '0'
     };
 
     bookState.chapters.push(newChapter);

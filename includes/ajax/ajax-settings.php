@@ -133,6 +133,17 @@ function almaden_bookster_save_settings_ajax() {
 	}
 
 	if ( false !== $result ) {
+		// Guardar campos de créditos en post_meta para no alterar el esquema de la tabla
+		update_post_meta( $book_id, '_almaden_credits_edition', sanitize_text_field( $_POST['credits_edition'] ?? '' ) );
+		update_post_meta( $book_id, '_almaden_credits_date', sanitize_text_field( $_POST['credits_date'] ?? '' ) );
+		update_post_meta( $book_id, '_almaden_credits_copyright', sanitize_textarea_field( wp_unslash($_POST['credits_copyright'] ?? '') ) );
+		update_post_meta( $book_id, '_almaden_credits_printer', sanitize_text_field( $_POST['credits_printer'] ?? '' ) );
+		update_post_meta( $book_id, '_almaden_credits_blank_before', intval( $_POST['credits_blank_before'] ?? 0 ) );
+		update_post_meta( $book_id, '_almaden_credits_blank_after', intval( $_POST['credits_blank_after'] ?? 0 ) );
+		
+		$custom_credits = isset($_POST['credits_custom']) ? json_decode(wp_unslash($_POST['credits_custom']), true) : [];
+		update_post_meta( $book_id, '_almaden_credits_custom', wp_json_encode($custom_credits) );
+
 		wp_send_json_success( array( 'message' => 'Configuración de maquetación guardada con éxito.' ) );
 	} else {
 		wp_send_json_error( 'Error al guardar la configuración.' );
@@ -276,6 +287,15 @@ function almaden_get_book_pdf_settings( $book_id ) {
 		$pdf_settings['margin_left_even'] = $pdf_settings['margin_left'];
 		$pdf_settings['margin_right_even'] = $pdf_settings['margin_right'];
 	}
+
+	// Cargar créditos desde post_meta
+	$pdf_settings['credits_edition'] = get_post_meta( $book_id, '_almaden_credits_edition', true );
+	$pdf_settings['credits_date'] = get_post_meta( $book_id, '_almaden_credits_date', true );
+	$pdf_settings['credits_copyright'] = get_post_meta( $book_id, '_almaden_credits_copyright', true ) ?: 'Queda rigurosamente prohibida, sin la autorización escrita de los titulares del "copyright", bajo las sanciones establecidas en las leyes, la reproducción parcial o total de esta obra por cualquier medio o procedimiento.';
+	$pdf_settings['credits_printer'] = get_post_meta( $book_id, '_almaden_credits_printer', true );
+	$pdf_settings['credits_blank_before'] = (int) get_post_meta( $book_id, '_almaden_credits_blank_before', true );
+	$pdf_settings['credits_blank_after'] = (int) get_post_meta( $book_id, '_almaden_credits_blank_after', true );
+	$pdf_settings['credits_custom'] = get_post_meta( $book_id, '_almaden_credits_custom', true ) ?: '[]';
 
 	return $pdf_settings;
 }

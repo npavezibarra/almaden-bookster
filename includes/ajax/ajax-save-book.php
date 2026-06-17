@@ -71,6 +71,7 @@ function almaden_bookster_save_book_ajax() {
 		$parity_image_width    = isset( $chapter['parity_image_width'] ) ? sanitize_text_field( $chapter['parity_image_width'] ) : '';
 		$parity_image_height   = isset( $chapter['parity_image_height'] ) ? sanitize_text_field( $chapter['parity_image_height'] ) : '';
 		$is_toc                = isset( $chapter['is_toc'] ) ? sanitize_text_field( $chapter['is_toc'] ) : '0';
+		$is_credits            = isset( $chapter['is_credits'] ) ? sanitize_text_field( $chapter['is_credits'] ) : '0';
 		
 		// TOC metadata
 		$toc_font_family       = isset( $chapter['toc_font_family'] ) ? sanitize_text_field( $chapter['toc_font_family'] ) : '';
@@ -153,6 +154,7 @@ function almaden_bookster_save_book_ajax() {
 			update_post_meta( $post_id, '_parity_image_width', $parity_image_width );
 			update_post_meta( $post_id, '_parity_image_height', $parity_image_height );
 			update_post_meta( $post_id, '_is_toc', $is_toc );
+			update_post_meta( $post_id, '_is_credits', $is_credits );
 			
 			// TOC metadata
 			update_post_meta( $post_id, '_toc_font_family', $toc_font_family );
@@ -213,6 +215,7 @@ function almaden_bookster_save_book_ajax() {
 				'parity_image_width'    => $parity_image_width,
 				'parity_image_height'   => $parity_image_height,
 				'is_toc'                => $is_toc,
+				'is_credits'            => $is_credits,
 				'toc_font_family'       => $toc_font_family,
 				'toc_font_size'         => $toc_font_size,
 				'toc_enumerate'         => $toc_enumerate,

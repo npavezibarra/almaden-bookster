@@ -19,16 +19,30 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BookCover Editor - <?php echo esc_attr( $book_title ); ?></title>
+    <script>
+        window.tailwind = window.tailwind || {};
+        window.tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Urbanist"', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="<?php echo esc_url( $google_fonts_url ); ?>" rel="stylesheet">
+    <link href="<?php echo esc_url($fonts_url); ?>" rel="stylesheet">
+    <!-- Urbanist Font for UI -->
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-            background-color: #f3f4f6;
-            color: #111;
+            font-family: "Urbanist", sans-serif;
+            background-color: #0f172a;
+            color: white;
         }
         .serif {
             font-family: inherit;

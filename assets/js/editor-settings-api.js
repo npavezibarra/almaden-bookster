@@ -135,6 +135,15 @@ function savePDFSettings() {
     data.append('chapter_prefix_letter_spacing', getCleanVal('setting-chapter-prefix-letter-spacing'));
     data.append('chapter_prefix_ornament', document.getElementById('setting-chapter-prefix-ornament').value);
 
+    // Créditos
+    data.append('credits_edition', document.getElementById('setting-credits-edition').value);
+    data.append('credits_date', document.getElementById('setting-credits-date').value);
+    data.append('credits_copyright', document.getElementById('setting-credits-copyright').value);
+    data.append('credits_printer', document.getElementById('setting-credits-printer').value);
+    data.append('credits_blank_before', getCleanVal('setting-credits-blank-before'));
+    data.append('credits_blank_after', getCleanVal('setting-credits-blank-after'));
+    data.append('credits_custom', getCustomCreditsJSON());
+
     fetch(bookState.ajaxUrl, {
         method: 'POST',
         body: data
@@ -255,7 +264,15 @@ function savePDFSettings() {
                 chapter_prefix_font_weight: document.getElementById('setting-chapter-prefix-font-weight').value,
                 chapter_prefix_font_style: document.getElementById('setting-chapter-prefix-font-style').value,
                 chapter_prefix_letter_spacing: parseVal('setting-chapter-prefix-letter-spacing', 0),
-                chapter_prefix_ornament: document.getElementById('setting-chapter-prefix-ornament').value
+                chapter_prefix_ornament: document.getElementById('setting-chapter-prefix-ornament').value,
+
+                credits_edition: document.getElementById('setting-credits-edition').value,
+                credits_date: document.getElementById('setting-credits-date').value,
+                credits_copyright: document.getElementById('setting-credits-copyright').value,
+                credits_printer: document.getElementById('setting-credits-printer').value,
+                credits_blank_before: parseVal('setting-credits-blank-before', 0),
+                credits_blank_after: parseVal('setting-credits-blank-after', 0),
+                credits_custom: getCustomCreditsJSON()
             };
 
             if (typeof applyDynamicPDFStyles === 'function') applyDynamicPDFStyles();

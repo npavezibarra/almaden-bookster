@@ -57,6 +57,7 @@ if ( $chapter_posts ) {
 			'parity_image_width'       => get_post_meta( $cp->ID, '_parity_image_width', true ),
 			'parity_image_height'      => get_post_meta( $cp->ID, '_parity_image_height', true ),
 			'is_toc'                   => get_post_meta( $cp->ID, '_is_toc', true ),
+			'is_credits'               => get_post_meta( $cp->ID, '_is_credits', true ),
 			'toc_font_family'          => get_post_meta( $cp->ID, '_toc_font_family', true ),
 			'toc_font_size'            => get_post_meta( $cp->ID, '_toc_font_size', true ),
 			'toc_enumerate'            => get_post_meta( $cp->ID, '_toc_enumerate', true ),

@@ -25,6 +25,19 @@ $published_books = new WP_Query( $args );
 <?php $fonts_url = almaden_get_thumbnail_fonts_url(); ?>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script>
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    sans: ['"Urbanist"', 'sans-serif']
+                }
+            }
+        }
+    };
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
 <link href="<?php echo esc_url($fonts_url); ?>" rel="stylesheet">
 
 <div class="almaden-bookshelf-wrapper">
@@ -42,7 +55,7 @@ $published_books = new WP_Query( $args );
 			max-width: 1200px;
 			margin: 0 auto;
 			padding: 2rem 1rem;
-			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+			font-family: "Urbanist", sans-serif;
 			color: #1e293b;
 		}
 		.almaden-bookshelf-grid {

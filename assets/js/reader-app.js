@@ -61,6 +61,8 @@ function renderIndex() {
     }
 
     bookData.chapters.forEach((chapter, index) => {
+        if (chapter.is_toc === '1' || chapter.is_credits === '1') return; // Skip TOC and Credits chapter in Ebook
+
         const item = document.createElement('div');
         item.className = 'flex justify-between items-center py-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors group px-4 -mx-4 rounded-md';
         item.onclick = () => {

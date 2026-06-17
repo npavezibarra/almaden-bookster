@@ -248,13 +248,23 @@ function showChapterView(index) {
     const btnPrev = document.getElementById('btn-prev-chapter');
     const btnNext = document.getElementById('btn-next-chapter');
     
-    if (index > 0) {
+    let prevIndex = index - 1;
+    while (prevIndex >= 0 && (bookData.chapters[prevIndex].is_toc === '1' || bookData.chapters[prevIndex].is_credits === '1')) {
+        prevIndex--;
+    }
+
+    if (prevIndex >= 0) {
         btnPrev.classList.remove('hidden');
     } else {
         btnPrev.classList.add('hidden');
     }
 
-    if (index < bookData.chapters.length - 1) {
+    let nextIndex = index + 1;
+    while (nextIndex < bookData.chapters.length && (bookData.chapters[nextIndex].is_toc === '1' || bookData.chapters[nextIndex].is_credits === '1')) {
+        nextIndex++;
+    }
+
+    if (nextIndex < bookData.chapters.length) {
         btnNext.classList.remove('hidden');
     } else {
         btnNext.classList.add('hidden');
@@ -269,13 +279,21 @@ function showChapterView(index) {
 }
 
 function goToNextChapter() {
-    if (currentChapterIndex < bookData.chapters.length - 1) {
-        showChapterView(currentChapterIndex + 1);
+    let nextIndex = currentChapterIndex + 1;
+    while (nextIndex < bookData.chapters.length && (bookData.chapters[nextIndex].is_toc === '1' || bookData.chapters[nextIndex].is_credits === '1')) {
+        nextIndex++;
+    }
+    if (nextIndex < bookData.chapters.length) {
+        showChapterView(nextIndex);
     }
 }
 
 function goToPrevChapter() {
-    if (currentChapterIndex > 0) {
-        showChapterView(currentChapterIndex - 1);
+    let prevIndex = currentChapterIndex - 1;
+    while (prevIndex >= 0 && (bookData.chapters[prevIndex].is_toc === '1' || bookData.chapters[prevIndex].is_credits === '1')) {
+        prevIndex--;
+    }
+    if (prevIndex >= 0) {
+        showChapterView(prevIndex);
     }
 }

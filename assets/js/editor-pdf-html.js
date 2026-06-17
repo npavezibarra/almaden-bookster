@@ -24,7 +24,7 @@ window.buildChapterHTML = function(chapter, index, settings, bookState) {
         }
 
         bookState.chapters.forEach((c) => {
-            if (c.is_toc != '1' && c.exclude_from_numbering !== '1') {
+            if (c.is_toc != '1' && c.is_credits != '1' && c.exclude_from_numbering !== '1') {
                 tocChapterCount++;
                 let prefix = '';
                 if (enumerateType === 'decimal') {
@@ -50,6 +50,45 @@ window.buildChapterHTML = function(chapter, index, settings, bookState) {
         });
         tocHtml += '</div>'; // Cierra .toc-container
         compiledHtml = tocHtml;
+    } else if (chapter.is_credits == '1') {
+        let creditsHtml = '<div class="credits-page-content" style="margin-top: auto; margin-bottom: 2cm; font-size: 0.85em; line-height: 1.4;">';
+        
+        if (settings.credits_edition) {
+            creditsHtml += `<p><strong>Número de edición:</strong> ${settings.credits_edition}</p>`;
+        }
+        if (settings.credits_date) {
+            creditsHtml += `<p><strong>Fecha de publicación:</strong> ${settings.credits_date}</p>`;
+        }
+        
+        let customCredits = [];
+        try {
+            if (typeof settings.credits_custom === 'string') {
+                customCredits = JSON.parse(settings.credits_custom);
+            } else if (Array.isArray(settings.credits_custom)) {
+                customCredits = settings.credits_custom;
+            }
+        } catch(e) {}
+        
+        if (customCredits && customCredits.length > 0) {
+            creditsHtml += '<div class="credits-custom-list" style="margin-top: 1em; margin-bottom: 1em;">';
+            customCredits.forEach(c => {
+                if (c.role && c.name) {
+                    creditsHtml += `<p><strong>${c.role}:</strong> ${c.name}</p>`;
+                }
+            });
+            creditsHtml += '</div>';
+        }
+        
+        if (settings.credits_copyright) {
+            creditsHtml += `<div class="credits-copyright" style="margin-top: 2em; margin-bottom: 2em; text-align: justify;"><p>${settings.credits_copyright.replace(/\\n/g, '<br>')}</p></div>`;
+        }
+        
+        if (settings.credits_printer) {
+            creditsHtml += `<div class="credits-printer" style="margin-top: 2em; text-align: center; font-size: 0.9em; opacity: 0.8;"><p>Impreso por ${settings.credits_printer}</p></div>`;
+        }
+        
+        creditsHtml += '</div>';
+        compiledHtml = creditsHtml;
     } else {
         compiledHtml = compileMarkdownToHTML(chapter.content);
     }
@@ -60,7 +99,7 @@ window.buildChapterHTML = function(chapter, index, settings, bookState) {
         compiledHtml = compiledHtml.replace(/<p>/, '<p class="drop-cap">');
     }
 
-    if (chapter.title && chapter.title.trim() !== '' && chapter.hide_title !== '1') {
+    if (chapter.title && chapter.title.trim() !== '' && chapter.hide_title !== '1' && chapter.is_credits !== '1') {
         const titleClass = chapter.is_toc == '1' ? 'toc-main-title' : 'chapter-main-title';
         const hasSubtitle = chapter.subtitle_text && chapter.subtitle_text.trim() !== '' && chapter.is_toc !== '1';
         let extraTitleStyle = hasSubtitle ? 'padding-bottom: 0 !important;' : '';
@@ -73,7 +112,7 @@ window.buildChapterHTML = function(chapter, index, settings, bookState) {
             let chapterNumber = 0;
             for (let i = 0; i <= index; i++) {
                 const c = bookState.chapters[i];
-                if (c.is_toc !== '1' && c.exclude_from_numbering !== '1') {
+                if (c.is_toc !== '1' && c.is_credits !== '1' && c.exclude_from_numbering !== '1') {
                     chapterNumber++;
                 }
             }

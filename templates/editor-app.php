@@ -8,6 +8,18 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BookCraft - Editor de Libros Profesional</title>
     <!-- Tailwind CSS -->
+    <script>
+        window.tailwind = window.tailwind || {};
+        window.tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Urbanist"', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Librería para exportar PDF directamente -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -15,6 +27,8 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="<?php echo esc_url( $google_fonts_url ); ?>" rel="stylesheet">
+    <!-- Urbanist Font for UI -->
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&amp;display=swap" rel="stylesheet">
     <!-- Font Awesome Icons para UI -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -96,15 +110,34 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
 
         <!-- BARRA LATERAL IZQUIERDA -->
         <aside id="sidebar" class="w-80 border-r border-[var(--border-color)] bg-[var(--bg-sidebar)] flex flex-col justify-between transition-all z-20 no-print h-full">
-            <div class="p-4 shrink-0 pb-2 flex gap-2">
-                <button onclick="createNewChapter(false)" class="flex-1 py-3 px-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1 text-sm">
-                    <i class="fa-solid fa-plus-circle"></i>
-                    Capítulo
+            <div class="p-4 shrink-0 pb-2 relative" id="add-chapter-dropdown-wrapper">
+                <button onclick="toggleAddChapterDropdown()" class="w-full py-3 px-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-plus"></i>
+                    Añadir
+                    <i class="fa-solid fa-chevron-down text-[10px] ml-1 opacity-80"></i>
                 </button>
-                <button onclick="createNewChapter(true)" class="flex-1 py-3 px-2 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1 text-sm" title="Crear Índice">
-                    <i class="fa-solid fa-list-ol"></i>
-                    Índice
-                </button>
+                
+                <!-- Dropdown Menú -->
+                <div id="add-chapter-dropdown" class="hidden absolute top-full left-4 right-4 mt-1 bg-[var(--bg-app)] border border-[var(--border-color)] rounded-xl shadow-xl z-50 overflow-hidden text-sm">
+                    <button onclick="createNewChapter(false); toggleAddChapterDropdown()" class="w-full text-left px-4 py-3 hover:bg-[var(--bg-sidebar)] transition flex items-center gap-3 text-[var(--text-main)] font-medium border-b border-[var(--border-color)]">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 flex items-center justify-center">
+                            <i class="fa-solid fa-file-lines"></i>
+                        </div>
+                        Nuevo Capítulo
+                    </button>
+                    <button onclick="createNewChapter(true, false); toggleAddChapterDropdown()" class="w-full text-left px-4 py-3 hover:bg-[var(--bg-sidebar)] transition flex items-center gap-3 text-[var(--text-main)] font-medium border-b border-[var(--border-color)]">
+                        <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 flex items-center justify-center">
+                            <i class="fa-solid fa-list-ol"></i>
+                        </div>
+                        Página de Índice
+                    </button>
+                    <button onclick="createNewChapter(false, true); toggleAddChapterDropdown()" class="w-full text-left px-4 py-3 hover:bg-[var(--bg-sidebar)] transition flex items-center gap-3 text-[var(--text-main)] font-medium">
+                        <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 flex items-center justify-center">
+                            <i class="fa-solid fa-copyright"></i>
+                        </div>
+                        Página de Créditos
+                    </button>
+                </div>
             </div>
 
             <div class="px-4 pb-4 flex flex-col flex-1 overflow-y-auto">
@@ -153,67 +186,69 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
             <section id="editor-pane" class="flex-1 flex flex-col border-r border-[var(--border-color)] bg-[var(--bg-editor)] overflow-hidden transition-all">
                 <!-- Barra de Herramientas de Edición -->
                 <div class="h-12 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] px-4 flex items-center justify-between text-[var(--text-muted)]">
-                    <div class="flex items-center gap-1 sm:gap-2">
-                        <button onclick="wrapText('**', '**')" class="p-1.5 hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Negrita">
-                            <i class="fa-solid fa-bold"></i>
+                    <div class="flex items-center gap-0.5 sm:gap-1">
+                        <button onclick="wrapText('**', '**')" class="w-7 h-7 flex items-center justify-center hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Negrita">
+                            <i class="fa-solid fa-bold text-[13px]"></i>
                         </button>
-                        <button onclick="wrapText('*', '*')" class="p-1.5 hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Itálica">
-                            <i class="fa-solid fa-italic"></i>
+                        <button onclick="wrapText('*', '*')" class="w-7 h-7 flex items-center justify-center hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Itálica">
+                            <i class="fa-solid fa-italic text-[13px]"></i>
                         </button>
-                        <button onclick="wrapText('<u>', '</u>')" class="p-1.5 hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Subrayado">
-                            <i class="fa-solid fa-underline"></i>
+                        <button onclick="wrapText('<u>', '</u>')" class="w-7 h-7 flex items-center justify-center hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Subrayado">
+                            <i class="fa-solid fa-underline text-[13px]"></i>
                         </button>
-                        <button onclick="openMediaUploader()" class="p-1.5 hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Insertar Imagen">
-                            <i class="fa-regular fa-image"></i>
+                        <button onclick="openMediaUploader()" class="w-7 h-7 flex items-center justify-center hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Insertar Imagen">
+                            <i class="fa-regular fa-image text-[13px]"></i>
                         </button>
+                        
                         <div class="h-4 w-px bg-[var(--border-color)] mx-1"></div>
-                        <button onclick="addPrefix('# ')" class="p-1.5 hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Título Principal">
-                            <span class="font-bold text-xs">H1</span>
+                        
+                        <button onclick="addPrefix('# ')" class="w-7 h-7 flex items-center justify-center hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Título Principal">
+                            <span class="font-bold text-[11px]">H1</span>
                         </button>
-                        <button onclick="addPrefix('## ')" class="p-1.5 hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Subtítulo">
-                            <span class="font-bold text-xs text-[10px]">H2</span>
+                        <button onclick="addPrefix('## ')" class="w-7 h-7 flex items-center justify-center hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Subtítulo">
+                            <span class="font-bold text-[10px]">H2</span>
                         </button>
-                        <button onclick="addPrefix('> ')" class="p-1.5 hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Cita textual">
-                            <i class="fa-solid fa-quote-left text-xs"></i>
+                        <button onclick="addPrefix('> ')" class="w-7 h-7 flex items-center justify-center hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Cita textual">
+                            <i class="fa-solid fa-quote-left text-[11px]"></i>
                         </button>
-                        <button onclick="addPrefix('- ')" class="p-1.5 hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Lista de viñetas">
-                            <i class="fa-solid fa-list-ul"></i>
+                        <button onclick="addPrefix('- ')" class="w-7 h-7 flex items-center justify-center hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Lista de viñetas">
+                            <i class="fa-solid fa-list-ul text-[12px]"></i>
                         </button>
 
                         <div class="h-4 w-px bg-[var(--border-color)] mx-1"></div>
 
                         <!-- Alineación -->
-                        <div class="flex items-center">
-                            <button onclick="wrapText('\n[align=left]\n', '\n[/align]\n')" class="p-1.5 hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Alinear a la Izquierda">
-                                <i class="fa-solid fa-align-left text-xs"></i>
+                        <div class="flex items-center gap-0.5">
+                            <button onclick="wrapText('\n[align=left]\n', '\n[/align]\n')" class="w-7 h-7 flex items-center justify-center hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Alinear a la Izquierda">
+                                <i class="fa-solid fa-align-left text-[12px]"></i>
                             </button>
-                            <button onclick="wrapText('\n[align=center]\n', '\n[/align]\n')" class="p-1.5 hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Centrar">
-                                <i class="fa-solid fa-align-center text-xs"></i>
+                            <button onclick="wrapText('\n[align=center]\n', '\n[/align]\n')" class="w-7 h-7 flex items-center justify-center hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Centrar">
+                                <i class="fa-solid fa-align-center text-[12px]"></i>
                             </button>
-                            <button onclick="wrapText('\n[align=right]\n', '\n[/align]\n')" class="p-1.5 hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Alinear a la Derecha">
-                                <i class="fa-solid fa-align-right text-xs"></i>
+                            <button onclick="wrapText('\n[align=right]\n', '\n[/align]\n')" class="w-7 h-7 flex items-center justify-center hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Alinear a la Derecha">
+                                <i class="fa-solid fa-align-right text-[12px]"></i>
                             </button>
-                            <button onclick="wrapText('\n[align=justify]\n', '\n[/align]\n')" class="p-1.5 hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Justificar">
-                                <i class="fa-solid fa-align-justify text-xs"></i>
+                            <button onclick="wrapText('\n[align=justify]\n', '\n[/align]\n')" class="w-7 h-7 flex items-center justify-center hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Justificar">
+                                <i class="fa-solid fa-align-justify text-[12px]"></i>
                             </button>
                         </div>
 
                         <div class="h-4 w-px bg-[var(--border-color)] mx-1"></div>
 
                         <!-- Tamaño de Fuente -->
-                        <div class="flex items-center gap-1 bg-[var(--bg-app)] rounded px-1.5 border border-transparent hover:border-[var(--border-color)] transition focus-within:border-indigo-400">
-                            <input type="number" id="toolbar-font-size" value="16" min="8" max="72" class="w-10 bg-transparent text-xs text-center focus:outline-none" title="Tamaño de fuente">
-                            <span class="text-[10px] text-slate-400 font-mono">px</span>
-                            <button onclick="applyFontSize()" class="ml-1 p-0.5 text-indigo-500 hover:text-indigo-600 transition" title="Aplicar tamaño al texto seleccionado">
-                                <i class="fa-solid fa-check text-[10px]"></i>
+                        <div class="flex items-center rounded border border-transparent hover:border-[var(--border-color)] transition focus-within:border-[var(--border-color)] focus-within:bg-[var(--bg-app)] h-7 px-1">
+                            <input type="number" id="toolbar-font-size" value="16" min="8" max="72" class="w-8 bg-transparent text-[11px] text-center focus:outline-none" title="Tamaño de fuente">
+                            <span class="text-[10px] text-slate-400 font-mono mr-1">px</span>
+                            <button onclick="applyFontSize()" class="w-5 h-5 flex items-center justify-center text-indigo-500 hover:bg-indigo-100 hover:text-indigo-600 rounded transition" title="Aplicar tamaño al texto seleccionado">
+                                <i class="fa-solid fa-check text-[9px]"></i>
                             </button>
                         </div>
 
                         <div class="h-4 w-px bg-[var(--border-color)] mx-1"></div>
 
                         <!-- Tipografía -->
-                        <div class="flex items-center bg-[var(--bg-app)] rounded px-1.5 border border-transparent hover:border-[var(--border-color)] transition focus-within:border-indigo-400 max-w-[120px]">
-                            <select id="toolbar-font-family" onchange="applyFontFamily(this.value)" class="w-full bg-transparent text-xs focus:outline-none appearance-none cursor-pointer text-ellipsis" title="Cambiar tipografía al texto seleccionado">
+                        <div class="flex items-center rounded border border-transparent hover:border-[var(--border-color)] transition focus-within:border-[var(--border-color)] focus-within:bg-[var(--bg-app)] h-7 px-1.5 max-w-[100px]">
+                            <select id="toolbar-font-family" onchange="applyFontFamily(this.value)" class="w-full bg-transparent text-[11px] focus:outline-none appearance-none cursor-pointer text-ellipsis font-medium" title="Cambiar tipografía al texto seleccionado">
                                 <option value="" disabled selected>Fuente...</option>
                                 <?php
                                 foreach ( $installed_fonts as $ifont ) {
@@ -228,11 +263,11 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
                         <!-- Selector de idioma para hyphenation específico por frase -->
                         <div class="relative" id="lang-selector-wrapper">
                             <button onclick="toggleLangDropdown()" 
-                                class="flex items-center gap-1 px-2 py-1 text-xs font-mono font-semibold hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition border border-transparent hover:border-[var(--border-color)]"
+                                class="h-7 px-2 flex items-center justify-center gap-1.5 rounded hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] transition text-[11px] font-semibold border border-transparent"
                                 title="Aplicar idioma a texto seleccionado (para hyphenation)">
-                                <i class="fa-solid fa-language text-sm"></i>
+                                <i class="fa-solid fa-language text-[13px]"></i>
                                 <span class="hidden sm:inline">Lang</span>
-                                <i class="fa-solid fa-chevron-down text-[9px] opacity-60"></i>
+                                <i class="fa-solid fa-chevron-down text-[8px] opacity-60"></i>
                             </button>
                             <!-- Dropdown de idiomas -->
                             <div id="lang-dropdown" class="hidden absolute top-full left-0 mt-1 bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg shadow-xl z-50 py-1 min-w-[160px]">

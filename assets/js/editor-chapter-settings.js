@@ -13,10 +13,12 @@ function openChapterSettingsModal() {
 
     // Cargar los valores del capítulo en el formulario
     const isToc = activeChapter.is_toc === '1';
+    const isCredits = activeChapter.is_credits === '1';
     
     // Toggle containers
     const normalContainer = document.getElementById('normal-chapter-settings');
     const tocContainer = document.getElementById('toc-chapter-settings');
+    const creditsContainer = document.getElementById('credits-chapter-settings');
     
     // Shared settings
     document.getElementById('chapter_start_parity').value = activeChapter.start_parity || 'any';
@@ -80,9 +82,14 @@ function openChapterSettingsModal() {
         document.getElementById('chapter_toc_title_padding_top').value = activeChapter.toc_title_padding_top || '';
         document.getElementById('chapter_toc_title_padding_bottom').value = activeChapter.toc_title_padding_bottom || '';
         document.getElementById('chapter_toc_title_line_height').value = activeChapter.toc_title_line_height || '';
+    } else if (isCredits) {
+        normalContainer.classList.add('hidden');
+        tocContainer.classList.add('hidden');
+        creditsContainer.classList.remove('hidden');
     } else {
         normalContainer.classList.remove('hidden');
         tocContainer.classList.add('hidden');
+        creditsContainer.classList.add('hidden');
         
         // Reset a la pestaña General por defecto
         if (typeof switchChapterTab === 'function') {
@@ -170,6 +177,7 @@ function saveChapterSettings() {
     }
 
     const isToc = activeChapter.is_toc === '1';
+    const isCredits = activeChapter.is_credits === '1';
 
     // Shared settings
     activeChapter.start_parity = document.getElementById('chapter_start_parity').value;
@@ -200,6 +208,8 @@ function saveChapterSettings() {
         activeChapter.toc_title_padding_top = document.getElementById('chapter_toc_title_padding_top').value;
         activeChapter.toc_title_padding_bottom = document.getElementById('chapter_toc_title_padding_bottom').value;
         activeChapter.toc_title_line_height = document.getElementById('chapter_toc_title_line_height').value;
+    } else if (isCredits) {
+        // Nada extra que guardar, usa configuraciones globales
     } else {
         // Leer valores del formulario
         activeChapter.hide_title = document.getElementById('chapter_hide_title').checked ? '1' : '0';

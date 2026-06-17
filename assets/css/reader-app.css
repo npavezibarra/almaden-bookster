@@ -1,5 +1,5 @@
-body {
-    font-family: 'Inter', sans-serif;
+body, html {
+    font-family: 'Urbanist', sans-serif !important;
     background-color: #ffffff;
     margin: 0;
     padding: 0;
@@ -36,7 +36,7 @@ body {
     margin: 0 auto;
 }
 .prose h1, .prose h2, .prose h3 {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Urbanist', sans-serif;
     color: #111;
     margin-top: 2rem;
     margin-bottom: 1rem;
