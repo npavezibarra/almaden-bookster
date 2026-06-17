@@ -100,17 +100,51 @@ body {
 }
 
 .pdf-content ul {
-    list-style-type: disc;
+    list-style-type: none;
     margin-left: 25px;
     margin-bottom: 14pt;
     text-align: left;
 }
 
+.pdf-content ul > li {
+    position: relative;
+}
+
+.pdf-content ul > li::before {
+    content: "•";
+    position: absolute;
+    left: -15px;
+}
+.pdf-content ul > li.split-paragraph-continuation::before {
+    display: none;
+    content: none;
+}
+
 .pdf-content ol {
-    list-style-type: decimal;
+    list-style-type: none;
     margin-left: 25px;
     margin-bottom: 14pt;
     text-align: left;
+    counter-reset: pdf-ol-counter;
+}
+
+.pdf-content ol > li {
+    position: relative;
+    counter-increment: pdf-ol-counter;
+}
+/* If an ordered list item splits, don't increment the counter on the second half */
+.pdf-content ol > li.split-paragraph-continuation {
+    counter-increment: none;
+}
+
+.pdf-content ol > li::before {
+    content: counter(pdf-ol-counter) ".";
+    position: absolute;
+    left: -20px;
+}
+.pdf-content ol > li.split-paragraph-continuation::before {
+    display: none;
+    content: none;
 }
 
 /* Encabezados y pies de página dinámicos del PDF */
@@ -179,4 +213,19 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
+}
+
+/* Indicador visual de otro idioma en la vista previa (no imprimir) */
+@media screen {
+    .pdf-content span[lang],
+    .pdf-content span[lang] em,
+    .pdf-content span[lang] * {
+        color: #b91c1c !important; /* Leve color rojizo (Tailwind red-700) */
+    }
+}
+
+@media print {
+    .pdf-content span[lang] {
+        color: inherit !important;
+    }
 }

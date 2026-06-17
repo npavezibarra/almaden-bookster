@@ -25,6 +25,10 @@ function openChapterSettingsModal() {
         normalContainer.classList.add('hidden');
         tocContainer.classList.remove('hidden');
         
+        if (typeof switchTocTab === 'function') {
+            switchTocTab('toc-tab-general');
+        }
+        
         // Poblar las tipografías instaladas si no se ha hecho
         const fontSelect = document.getElementById('chapter_toc_font_family');
         const titleFontSelect = document.getElementById('chapter_toc_title_font_family');
@@ -59,8 +63,11 @@ function openChapterSettingsModal() {
         document.getElementById('chapter_toc_text_transform').value = activeChapter.toc_text_transform || 'none';
         document.getElementById('chapter_toc_letter_spacing').value = activeChapter.toc_letter_spacing || '';
         document.getElementById('chapter_toc_line_height').value = activeChapter.toc_line_height || '';
+        document.getElementById('chapter_toc_item_spacing').value = activeChapter.toc_item_spacing || '';
         document.getElementById('chapter_toc_leader_style').value = activeChapter.toc_leader_style || 'dotted';
         document.getElementById('chapter_toc_leader_position').value = activeChapter.toc_leader_position || 'middle';
+        document.getElementById('chapter_toc_hide_page_numbers').checked = (activeChapter.toc_hide_page_numbers === '1');
+        document.getElementById('chapter_toc_item_align').value = activeChapter.toc_item_align || 'left';
         
         // TOC Title Formats
         document.getElementById('chapter_toc_title_align').value = activeChapter.toc_title_align || '';
@@ -176,8 +183,11 @@ function saveChapterSettings() {
         activeChapter.toc_text_transform = document.getElementById('chapter_toc_text_transform').value;
         activeChapter.toc_letter_spacing = document.getElementById('chapter_toc_letter_spacing').value;
         activeChapter.toc_line_height = document.getElementById('chapter_toc_line_height').value;
+        activeChapter.toc_item_spacing = document.getElementById('chapter_toc_item_spacing').value;
         activeChapter.toc_leader_style = document.getElementById('chapter_toc_leader_style').value;
         activeChapter.toc_leader_position = document.getElementById('chapter_toc_leader_position').value;
+        activeChapter.toc_hide_page_numbers = document.getElementById('chapter_toc_hide_page_numbers').checked ? '1' : '0';
+        activeChapter.toc_item_align = document.getElementById('chapter_toc_item_align').value;
         
         // TOC Title formats
         activeChapter.toc_title_align = document.getElementById('chapter_toc_title_align').value;
@@ -283,6 +293,35 @@ function switchChapterTab(tabId) {
 
     // Desactivar todos los botones
     const btns = document.querySelectorAll('.chapter-tab-btn');
+    btns.forEach(btn => {
+        btn.classList.remove('border-indigo-500', 'text-indigo-600');
+        btn.classList.add('border-transparent', 'text-[var(--text-muted)]');
+    });
+
+    // Activar el contenido y botón seleccionado
+    const tabEl = document.getElementById(tabId);
+    if (tabEl) {
+        tabEl.classList.remove('hidden');
+        tabEl.classList.add('block');
+    }
+    
+    const activeBtn = document.getElementById('btn-' + tabId);
+    if (activeBtn) {
+        activeBtn.classList.remove('border-transparent', 'text-[var(--text-muted)]');
+        activeBtn.classList.add('border-indigo-500', 'text-indigo-600');
+    }
+}
+
+function switchTocTab(tabId) {
+    // Esconder todos los contenidos
+    const contents = document.querySelectorAll('.toc-tab-content');
+    contents.forEach(el => {
+        el.classList.add('hidden');
+        el.classList.remove('block');
+    });
+
+    // Desactivar todos los botones
+    const btns = document.querySelectorAll('.toc-tab-btn');
     btns.forEach(btn => {
         btn.classList.remove('border-indigo-500', 'text-indigo-600');
         btn.classList.add('border-transparent', 'text-[var(--text-muted)]');

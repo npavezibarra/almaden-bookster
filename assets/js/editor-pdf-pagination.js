@@ -53,7 +53,7 @@ window.splitParagraphAcrossPages = function(pNode, innerContainer, footnotesHeig
         return innerContainer.offsetHeight;
     }
 
-    function processChild(child, target1, target2) {
+    function processChild(child, target1, target2, currentLang = 'es') {
         if (overflowed) {
             target2.appendChild(child.cloneNode(true));
             return;
@@ -78,7 +78,8 @@ window.splitParagraphAcrossPages = function(pNode, innerContainer, footnotesHeig
 
                         // Intentar división mediante prueba activa de altura (búsqueda lineal/binaria)
                         let splitSuccessfully = false;
-                        const isHyphenable = useHyphenation && word.trim().length >= 4 && !word.includes('-');
+                        const isSpanish = currentLang.toLowerCase().startsWith('es');
+                        const isHyphenable = useHyphenation && isSpanish && word.trim().length >= 4 && !word.includes('-');
                         
                         if (isHyphenable && prevText.trim().length > 0) {
                             let bestBreak = -1;
@@ -126,23 +127,43 @@ window.splitParagraphAcrossPages = function(pNode, innerContainer, footnotesHeig
             }
             if (remainderText) target2.appendChild(document.createTextNode(remainderText));
         } else if (child.nodeType === Node.ELEMENT_NODE) {
+            const elLang = child.getAttribute ? child.getAttribute('lang') : null;
+            const newLang = elLang || currentLang;
+
             target1.appendChild(child);
             if (getEffectiveHeight() + footnotesHeight > maxTotalHeight) {
                 target1.removeChild(child);
+                
+                // Never split LI across pages if we already have content on the current page (push whole LI to next page)
+                if (child.tagName === 'LI' && target1.childNodes.length > 0) {
+                    overflowed = true;
+                    target2.appendChild(child.cloneNode(true));
+                    return;
+                }
+
                 const part1 = child.cloneNode(false);
                 const part2 = child.cloneNode(false);
                 target1.appendChild(part1);
                 target2.appendChild(part2);
                 
-                Array.from(child.childNodes).forEach(sub => processChild(sub, part1, part2));
+                Array.from(child.childNodes).forEach(sub => processChild(sub, part1, part2, newLang));
                 
-                if (part1.childNodes.length === 0) target1.removeChild(part1);
+                if (part1.childNodes.length === 0) {
+                    target1.removeChild(part1);
+                } else if (part2.childNodes.length > 0) {
+                    // Both part1 and part2 have content: this child was split!
+                    if (part2.classList) {
+                        part2.classList.add('split-paragraph-continuation');
+                    }
+                }
+                
                 if (part2.childNodes.length === 0) target2.removeChild(part2);
             }
         }
     }
 
-    originalChildNodes.forEach(child => processChild(child, pNode, secondHalfNode));
+    const rootLang = pNode.getAttribute ? (pNode.getAttribute('lang') || 'es') : 'es';
+    originalChildNodes.forEach(child => processChild(child, pNode, secondHalfNode, rootLang));
     if (pNode.textContent.trim() === '') return null;
     
     // Si la segunda mitad no tiene texto, significa que el párrafo completo cupo

@@ -80,7 +80,7 @@ body {
 }
 .mode-flip #chapter-content {
     height: calc(100vh - 12rem) !important;
-    column-width: calc(50vw - 6rem) !important;
+    column-count: 2 !important;
     column-gap: 6rem !important;
     column-fill: auto !important;
     max-width: none !important;
@@ -95,7 +95,7 @@ body {
 
 @media (max-width: 768px) {
     .mode-flip #chapter-content {
-        column-width: calc(100vw - 3rem) !important;
+        column-count: 1 !important;
         column-gap: 3rem !important;
     }
 }

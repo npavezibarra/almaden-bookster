@@ -8,7 +8,7 @@ window.buildChapterHTML = function(chapter, index, settings, bookState) {
     let compiledHtml = '';
     
     if (chapter.is_toc == '1') {
-        let tocHtml = '<div class="toc-spacer" style="height: 20px;"></div>';
+        let tocHtml = '<div class="toc-spacer" style="height: 20px;"></div><div class="toc-container">';
         let tocChapterCount = 0;
         const enumerateType = chapter.toc_enumerate || 'none';
         
@@ -35,12 +35,20 @@ window.buildChapterHTML = function(chapter, index, settings, bookState) {
                     prefix = `• `;
                 }
                 
+                let titleHtml = c.title || 'Capítulo';
+                
                 tocHtml += `<div class="toc-item" data-target-id="${c.id}">
-                    <div class="toc-title-wrapper"><span class="toc-title">${prefix}${c.title || 'Capítulo'}</span></div>
-                    <span class="toc-page">000</span>
+                    <div class="toc-number">${prefix}</div>
+                    <div class="toc-title-wrapper">
+                        <div class="toc-spacer-left"></div>
+                        <div class="toc-title">${titleHtml}</div>
+                        <div class="toc-spacer-right"></div>
+                    </div>
+                    <div class="toc-page">000</div>
                 </div>`;
             }
         });
+        tocHtml += '</div>'; // Cierra .toc-container
         compiledHtml = tocHtml;
     } else {
         compiledHtml = compileMarkdownToHTML(chapter.content);

@@ -18,8 +18,10 @@ function applyDynamicPDFStyles() {
         textTransform: tocChapter.toc_text_transform || 'none',
         letterSpacing: tocChapter.toc_letter_spacing ? parseFloat(tocChapter.toc_letter_spacing) : 0,
         lineHeight: tocChapter.toc_line_height ? parseFloat(tocChapter.toc_line_height) : 1.8,
+        itemSpacing: tocChapter.toc_item_spacing ? parseFloat(tocChapter.toc_item_spacing) : 8,
         leaderStyle: tocChapter.toc_leader_style || 'dotted',
         leaderPosition: tocChapter.toc_leader_position || 'middle',
+        itemAlign: tocChapter.toc_item_align || 'left',
         titleFontFamily: tocChapter.toc_title_font_family || settings.chapter_title_font_family || 'Playfair Display',
         titleFontSize: tocChapter.toc_title_font_size ? parseFloat(tocChapter.toc_title_font_size) : parseFloat(settings.chapter_title_font_size || 24.0),
         titleFontStyle: tocChapter.toc_title_font_style || settings.chapter_title_font_style || 'normal',
@@ -100,6 +102,27 @@ function applyDynamicPDFStyles() {
             width: 100%;
             height: 100%;
         }
+
+        /* ── Language Highlighting ── */
+        .pdf-content span[lang],
+        .pdf-content span[lang] em,
+        .pdf-content span[lang] i,
+        .pdf-content span[lang] b,
+        .pdf-content span[lang] strong,
+        .pdf-content span[lang] * {
+            color: #ff0000 !important; /* Rojo puro e inconfundible */
+            background-color: rgba(255, 0, 0, 0.08) !important; /* Fondo rojo ultra-sutil */
+        }
+        
+        @media print {
+            .pdf-content span[lang],
+            .pdf-content span[lang] em,
+            .pdf-content span[lang] * {
+                color: inherit !important;
+                background-color: transparent !important;
+            }
+        }
+
         .pdf-page.page-odd .parity-bleed-container {
             top: 0;
             bottom: 0;
@@ -374,11 +397,13 @@ function applyDynamicPDFStyles() {
         }
 
         /* ── Tabla de Contenidos (TOC) ── */
-        .toc-item {
-            display: flex;
-            align-items: flex-end;
+        .toc-container {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            column-gap: 6px;
+            row-gap: ${tocSettings.itemSpacing * 3.779527559}px;
+            align-items: end;
             width: 100%;
-            margin-bottom: 8px;
             font-family: '${tocSettings.fontFamily}', serif !important;
             font-size: ${toPx(tocSettings.fontSize, true)}px !important;
             font-style: ${tocSettings.fontStyle} !important;
@@ -388,32 +413,42 @@ function applyDynamicPDFStyles() {
             line-height: ${tocSettings.lineHeight} !important;
             hyphens: none !important;
         }
-        .toc-title-wrapper {
-            flex: 1;
-            position: relative;
-            text-align: left;
-            margin-right: 5px;
+        .toc-item {
+            display: contents;
         }
-        .toc-title-wrapper::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: ${tocSettings.leaderPosition === 'bottom' ? '0' : '4px'};
+        .toc-number {
+            white-space: nowrap;
+            text-align: left;
+            justify-self: start;
+        }
+        .toc-title-wrapper {
+            display: grid;
+            ${tocSettings.itemAlign === 'left' ? 'grid-template-columns: 0 auto 1fr;' : ''}
+            ${tocSettings.itemAlign === 'center' ? 'grid-template-columns: 1fr auto 1fr;' : ''}
+            ${tocSettings.itemAlign === 'right' ? 'grid-template-columns: 1fr auto 0;' : ''}
+            align-items: flex-end;
+            width: 100%;
+            position: relative;
+        }
+        .toc-spacer-left {
+            /* Spacer izquierdo no lleva puntos */
+        }
+        .toc-spacer-right {
             border-bottom: ${tocSettings.leaderStyle === 'none' ? 'none' : '1.5px ' + tocSettings.leaderStyle + ' #a0aec0'};
-            z-index: 0;
+            position: relative;
+            bottom: ${tocSettings.leaderPosition === 'bottom' ? '0' : '4px'};
+            min-width: 5px; /* Pequeño margen para los puntos */
         }
         .toc-title {
-            display: inline;
-            background-color: white;
+            padding-left: ${tocSettings.itemAlign !== 'left' ? '5px' : '0'};
             padding-right: 5px;
-            position: relative;
-            z-index: 1;
+            text-align: ${tocSettings.itemAlign};
+            /* Background no longer strictly needed to mask dots, but good for safety */
         }
         .toc-page {
-            flex-shrink: 0;
-            margin-left: 5px;
+            white-space: nowrap;
             font-variant-numeric: tabular-nums;
+            text-align: right;
         }
 
         .pdf-content .chapter-prefix-line {

@@ -119,6 +119,10 @@ window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter
         footerType = 'blank';
     }
     
+    if (chapter && chapter.is_toc == '1' && chapter.toc_hide_page_numbers === '1') {
+        footerType = 'blank';
+    }
+    
     if (footerType !== 'blank') {
         if (footerType === 'page_number') {
             footerHtml = `<span>${pageNumber}</span>`;

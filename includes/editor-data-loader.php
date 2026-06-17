@@ -65,6 +65,7 @@ if ( $chapter_posts ) {
 			'toc_text_transform'       => get_post_meta( $cp->ID, '_toc_text_transform', true ),
 			'toc_letter_spacing'       => get_post_meta( $cp->ID, '_toc_letter_spacing', true ),
 			'toc_line_height'          => get_post_meta( $cp->ID, '_toc_line_height', true ),
+			'toc_item_spacing'         => get_post_meta( $cp->ID, '_toc_item_spacing', true ),
 			'toc_leader_style'         => get_post_meta( $cp->ID, '_toc_leader_style', true ),
 			'toc_leader_position'      => get_post_meta( $cp->ID, '_toc_leader_position', true ),
 			'toc_title_align'          => get_post_meta( $cp->ID, '_toc_title_align', true ),

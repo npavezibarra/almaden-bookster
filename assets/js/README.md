@@ -19,8 +19,11 @@ Este directorio contiene todo el código del lado del cliente que da vida a la a
 - **`editor-chapters.js`**:
   Controla el panel lateral izquierdo. Maneja la creación, eliminación, reordenamiento (drag and drop) de capítulos, y el cambio del capítulo "activo".
 
-- **`editor-settings.js`**:
-  Controla el Modal global de *Ajustes de Maquetación*. Lee, escribe y envía (AJAX) las configuraciones de formato del libro (márgenes, tipografías, encabezados, etc.).
+- **`editor-settings-ui.js`**:
+  Controla de forma exclusiva la lógica visual de la interfaz del modal global de *Ajustes de Maquetación*. Maneja el cambio de pestañas, la manipulación del DOM para mostrar u ocultar paneles condicionales, los *color pickers* y los uploaders de Media de WordPress.
+
+- **`editor-settings-api.js`**:
+  Encargado puramente de la comunicación y estado. Recolecta todos los inputs de la interfaz, construye el objeto para la petición AJAX, guarda las configuraciones en la base de datos de WordPress y actualiza el objeto global `bookState`.
 
 - **`editor-chapter-settings.js`**:
   Controla el modal de ajustes individuales a nivel de capítulo (permitiendo sobreescribir configuraciones globales, forzar saltos de página a páginas pares o impares, asignar imágenes de paridad, etc.).
