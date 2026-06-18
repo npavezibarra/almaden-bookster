@@ -1,5 +1,5 @@
 <?php
-require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
+require_once plugin_dir_path( dirname( __DIR__ ) ) . 'includes/editor-data-loader.php';
 ?>
 <!DOCTYPE html>
 <html lang="es" class="h-full">
@@ -32,7 +32,7 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
     <!-- Font Awesome Icons para UI -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <link rel="stylesheet" href="<?php echo esc_url( plugins_url( '../assets/css/editor-style.css?v=' . time(), __FILE__ ) ); ?>">
+    <link rel="stylesheet" href="<?php echo esc_url( plugins_url( '../../assets/css/editor-style.css?v=' . time(), __FILE__ ) ); ?>">
     <!-- Estilos dinámicos de maquetación del PDF -->
     <style id="dynamic-pdf-settings"></style>
     <style>
@@ -66,18 +66,7 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
 
         <!-- Opciones de Vista & Configuración -->
         <div class="flex items-center gap-4">
-            <!-- Selector de Temas Visuales -->
-            <div class="flex bg-[var(--bg-app)] rounded-lg p-1 border border-[var(--border-color)] gap-1">
-                <button onclick="changeTheme('light')" class="w-8 h-8 rounded-md flex items-center justify-center text-sm hover:bg-white dark:hover:bg-slate-700 transition" title="Modo Claro">
-                    <i class="fa-solid fa-sun text-amber-500"></i>
-                </button>
-                <button onclick="changeTheme('sepia')" class="w-8 h-8 rounded-md flex items-center justify-center text-sm hover:bg-amber-100/50 transition" title="Modo Sepia">
-                    <i class="fa-solid fa-feather text-amber-800"></i>
-                </button>
-                <button onclick="changeTheme('dark')" class="w-8 h-8 rounded-md flex items-center justify-center text-sm hover:bg-slate-800 transition" title="Modo Oscuro">
-                    <i class="fa-solid fa-moon text-neutral-400"></i>
-                </button>
-            </div>
+
 
             <!-- Toggles de Visualización -->
             <div class="hidden md:flex bg-[var(--bg-app)] rounded-lg p-1 border border-[var(--border-color)] text-xs font-semibold">
@@ -388,24 +377,26 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
             installedFonts: <?php echo json_encode( $installed_fonts ); ?>
         };
     </script>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-core.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-toolbar.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-virtualization.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-chapters.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-settings-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-settings-api.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-chapter-settings.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/almaden-shortcodes.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-markdown.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-dom.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-pagination.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-html.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-compiler.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-export.js?v='   . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-styles-base.js?v='   . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-styles-typography.js?v='   . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-styles.js?v='   . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-core.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-toolbar.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-virtualization.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-chapters.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-api.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-chapter-settings.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/almaden-shortcodes.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-markdown.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/editor-pdf-dom.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/editor-pdf-pagination.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/editor-pdf-html.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/editor-pdf-compiler-dimensions.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/editor-pdf-compiler-parity.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/editor-pdf-compiler.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/editor-pdf-export.js?v='   . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/editor-pdf-styles-base.js?v='   . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/editor-pdf-styles-typography.js?v='   . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/editor-pdf-styles.js?v='   . time(), __FILE__ ) ); ?>"></script>
     <?php wp_footer(); ?>
 </body>
 </html>

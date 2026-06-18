@@ -14,7 +14,7 @@ if ( empty( $source_book_id ) ) {
 }
 
 // Get the cover HTML
-require_once dirname( __FILE__ ) . '/../includes/cover-thumbnail.php';
+require_once dirname( __FILE__ ) . '/../../includes/cover-thumbnail.php';
 $cover_html = almaden_get_cover_thumbnail_html( $book_id );
 $fonts_url = almaden_get_thumbnail_fonts_url();
 
@@ -125,7 +125,7 @@ $book_data_json = wp_json_encode( array(
     <script src="https://cdn.jsdelivr.net/npm/markdown-it@13.0.1/dist/markdown-it.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/markdown-it-footnote@3.0.3/dist/markdown-it-footnote.min.js"></script>
 
-    <link rel="stylesheet" href="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) . 'assets/css/reader-app.css' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../assets/css/reader-app.css' ); ?>">
+    <link rel="stylesheet" href="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/css/reader-app.css' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/css/reader-app.css' ); ?>">
     <style>
         
         /* User Requested Constraints */
@@ -254,10 +254,10 @@ $book_data_json = wp_json_encode( array(
         <div class="absolute w-3 h-3 bg-white border-b border-r border-gray-200 transform rotate-45 left-1/2 -ml-1.5 -bottom-1.5"></div>
     </div>
 
-    <script src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) . 'assets/js/reader-prefs.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../assets/js/reader-prefs.js' ); ?>"></script>
-    <script src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) . 'assets/js/reader-styles.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../assets/js/reader-styles.js' ); ?>"></script>
-    <script src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) . 'assets/js/almaden-shortcodes.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../assets/js/almaden-shortcodes.js' ); ?>"></script>
-    <script src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) . 'assets/js/reader-navigation.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../assets/js/reader-navigation.js' ); ?>"></script>
-    <script src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) . 'assets/js/reader-app.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../assets/js/reader-app.js' ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-prefs.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-prefs.js' ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-styles.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-styles.js' ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/almaden-shortcodes.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/almaden-shortcodes.js' ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-navigation.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-navigation.js' ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-app.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-app.js' ); ?>"></script>
 </body>
 </html>

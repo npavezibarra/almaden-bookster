@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-require_once dirname( __FILE__ ) . '/../includes/editor-data-loader.php';
+require_once dirname( __FILE__ ) . '/../../includes/editor-data-loader.php';
 
 // At this point $book, $book_title, $pdf_settings are available.
 $page_width = $pdf_settings['page_width'];
@@ -475,14 +475,14 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
         </aside>
     </div>
 
-    <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-state.js?v=' . time() ); ?>"></script>
-    <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-dimensions.js?v=' . time() ); ?>"></script>
-    <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-media.js?v=' . time() ); ?>"></script>
-    <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-layers.js?v=' . time() ); ?>"></script>
-    <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-layers-canvas.js?v=' . time() ); ?>"></script>
-    <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-layers-panel.js?v=' . time() ); ?>"></script>
-    <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-save.js?v=' . time() ); ?>"></script>
-    <script src="<?php echo esc_url( plugin_dir_url( dirname(__FILE__) ) . 'assets/js/cover/cover-export.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-state.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-dimensions.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-media.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-layers.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-layers-canvas.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-layers-panel.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-save.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-export.js?v=' . time() ); ?>"></script>
     <?php wp_footer(); ?>
 </body>
 </html>

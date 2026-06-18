@@ -41,7 +41,7 @@ function almaden_bookster_load_booklist() {
 		
 		wp_enqueue_media();
 
-		$template_path = dirname( __FILE__ ) . '/../templates/booklist-app.php';
+		$template_path = dirname( __FILE__ ) . '/../templates/admin/booklist-app.php';
 		if ( file_exists( $template_path ) ) {
 			require_once $template_path;
 			exit;
@@ -58,7 +58,7 @@ function almaden_bookster_load_bookshelf() {
 		// Ocultar barra de administración de WordPress
 		show_admin_bar( false );
 		
-		$template_path = dirname( __FILE__ ) . '/../templates/bookshelf-app.php';
+		$template_path = dirname( __FILE__ ) . '/../templates/bookshelf/bookshelf-app.php';
 		if ( file_exists( $template_path ) ) {
 			require_once $template_path;
 			exit;
@@ -74,7 +74,7 @@ function almaden_bookster_load_reader( $template ) {
 	if ( is_singular( 'almaden-books' ) ) {
 		// Ocultar barra de administración de WordPress
 		show_admin_bar( false );
-		$new_template = dirname( __FILE__ ) . '/../templates/reader-app.php';
+		$new_template = dirname( __FILE__ ) . '/../templates/reader/reader-app.php';
 		if ( file_exists( $new_template ) ) {
 			return $new_template;
 		}
@@ -289,7 +289,7 @@ function almaden_bookster_load_editor() {
 		
 		wp_enqueue_media( array( 'post' => $book_id ) );
 
-		$template_path = dirname( __FILE__ ) . '/../templates/editor-app.php';
+		$template_path = dirname( __FILE__ ) . '/../templates/editor/editor-app.php';
 		if ( file_exists( $template_path ) ) {
 			require_once $template_path;
 			exit;
@@ -342,7 +342,7 @@ function almaden_bookster_load_cover_editor() {
 		$total_pages = get_post_meta( $book_id, '_almaden_total_pages', true );
 		if ( empty( $total_pages ) ) $total_pages = 0;
 		
-		$template_path = dirname( __FILE__ ) . '/../templates/cover-app.php';
+		$template_path = dirname( __FILE__ ) . '/../templates/cover/cover-app.php';
 		if ( file_exists( $template_path ) ) {
 			require_once $template_path;
 			exit;

@@ -1,15 +1,47 @@
-# Almaden Bookster - Plugin Architecture Guidelines
+# Almaden Bookster — Plugin Architecture
 
-## Cómo crear páginas públicas integradas con el Tema Activo (Ej. Bookshelf)
+Este plugin proporciona una suite completa para la creación, maquetación, visualización (eBook Reader) y exportación a PDF de libros directamente en WordPress.
+
+---
+
+## 📂 Estructura General del Plugin
+
+El proyecto se rige por un principio de **Modularidad Extrema**, dividiendo la lógica en componentes específicos para garantizar la mantenibilidad y archivos con un límite estricto de **menos de 500 líneas de código**.
+
+```
+almaden-bookster/
+├── admin/                 # Controladores del panel de administración (ej. Google Fonts)
+├── assets/
+│   ├── css/               # Hojas de estilo del editor, admin y vistas
+│   └── js/                # Scripts de interactividad cliente (ver subcarpetas)
+│       ├── admin/         # Controladores de administración y booklist
+│       ├── editor/        # Lógica de la interfaz del editor
+│       ├── pdf/           # Motor de paginación virtual y exportación PDF
+│       ├── reader/        # Experiencia de lectura de eBooks
+│       └── cover/         # Diseñador de portadas de libros
+├── includes/              # Lógica de negocio de WordPress (AJAX, taxonomías, CPTs, exportaciones)
+├── templates/             # Vistas y maquetación HTML de las aplicaciones
+│   ├── admin/             # Plantilla del taller
+│   ├── editor/            # Plantilla del editor de contenidos y modales de ajustes
+│   ├── reader/            # Plantilla del visor de eBooks
+│   ├── bookshelf/         # Plantilla del catálogo público
+│   └── cover/             # Plantilla del editor de portadas
+├── AGENT_GUIDELINES.md    # Directrices de desarrollo estrictas para Agentes AI
+└── README.md              # Documentación principal de arquitectura
+```
+
+---
+
+## 🛠️ Directrices para Crear Páginas Públicas Integradas con el Tema
 
 Al crear nuevas páginas front-end públicas (como el `Bookshelf`) que deben verse integradas dentro del sitio del usuario (manteniendo el encabezado, menú, pie de página y los contenedores del tema activo, incluyendo los de FSE/Block Themes como Twenty Twenty-Four), **NUNCA** se debe interceptar la página completa con `template_redirect` y reemplazarla por una vista estática independiente.
 
-Hacerlo rompe los contenedores estándar del tema y causa que el contenido se desborde o se vea "horrible".
+Hacerlo rompe los contenedores estándar del tema y causa que el contenido se desborde o se rompa visualmente.
 
-### La técnica correcta (Filter `the_content`):
+### La técnica correcta (Filtro `the_content`):
 
-**1. Registrar la página físicamente en la BD (si no existe)**
-Enganchar a `init` y usar `wp_insert_post` para asegurar que el slug existe en la base de datos de WordPress como una página real vacía.
+**1. Registrar la página físicamente en la base de datos**
+Enganchar a `init` y usar `wp_insert_post` para asegurar que la página existe:
 
 ```php
 function almaden_bookster_create_page() {
@@ -28,7 +60,7 @@ add_action( 'init', 'almaden_bookster_create_page' );
 ```
 
 **2. Inyectar el contenido usando el filtro `the_content`**
-En lugar de secuestrar la página, enganchamos nuestro template *dentro* del flujo normal de contenido del tema. Así, el tema envolverá nuestro código con las etiquetas de layout correctas (`<main>`, contenedores de bloque, wrappers, etc).
+En lugar de secuestrar la página con `template_redirect`, enganchamos nuestro template *dentro* del flujo normal de contenido del tema para que este lo envuelva con las etiquetas de layout correctas del tema (`<main>`, contenedores de bloque, wrappers, etc.).
 
 ```php
 function almaden_render_mi_pagina( $content ) {
@@ -46,10 +78,10 @@ add_filter( 'the_content', 'almaden_render_mi_pagina' );
 ```
 
 **3. El archivo del Template (`templates/mi-pagina-app.php`)**
-* **NO** debe incluir `get_header()`, `get_footer()`, ni tags `<html>` o `<body>`. El tema ya se encargó de eso.
+* **NO** debe incluir `get_header()`, `get_footer()`, ni tags `<html>` o `<body>`. El tema de WordPress ya se encarga de ello.
 * **SÍ** debe incluir todo el HTML del widget/app empaquetado en un div contenedor único (ej. `<div class="almaden-mi-app-wrapper">`).
 * **SÍ** debe utilizar estilos CSS "scoped" (con nombres de clase únicos prefijados con `almaden-`) para evitar conflictos bidireccionales con el tema del usuario.
-* **NO** debe cargar frameworks masivos como Tailwind CDN genérico en el frontend público a menos que esté estrictamente segmentado (preflight desactivado/prefixado), ya que reseteará los estilos globales del tema del usuario. Es preferible CSS nativo y semántico.
+* **NO** debe cargar frameworks masivos como Tailwind CDN genérico en el frontend público a menos que esté estrictamente segmentado (preflight desactivado o prefijado), ya que reseteará los estilos globales del tema del usuario.
 
 ### Excepciones: Aplicaciones de Escritorio / Dashboards Internos
-Para páginas que actúan como aplicaciones web *standalone* (como el panel de edición `Almaden Booklist`), **SÍ** se usa la técnica de `template_redirect` para ocultar todo el tema de WordPress (`exit;` después de cargar el template) y renderizar un entorno HTML limpio desde cero con `cdn.tailwindcss.com`.
+Para páginas que actúan como aplicaciones web *standalone* (como el editor visual `Almaden Booklist` o `Almaden Book Editor`), **SÍ** se usa la técnica de `template_redirect` para omitir por completo el tema de WordPress (`exit;` después de cargar el template) y renderizar un entorno HTML limpio desde cero con Tailwind.

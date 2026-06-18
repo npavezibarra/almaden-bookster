@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-require_once dirname( __FILE__ ) . '/../includes/cover-thumbnail.php';
+require_once dirname( __FILE__ ) . '/../../includes/cover-thumbnail.php';
 
 // Fetch all books
 $args = array(
@@ -44,7 +44,7 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
     <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&amp;display=swap" rel="stylesheet">
     <!-- Font Awesome Icons para UI -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo esc_url( plugins_url( '../assets/css/editor-style.css?v=' . time(), __FILE__ ) ); ?>">
+    <link rel="stylesheet" href="<?php echo esc_url( plugins_url( '../../assets/css/editor-style.css?v=' . time(), __FILE__ ) ); ?>">
     <script>
         var ajaxurl = "<?php echo admin_url( 'admin-ajax.php' ); ?>";
         let bookState = {
@@ -345,12 +345,12 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
     <!-- Modal Form (Hidden by default) -->
     <?php include plugin_dir_path( __FILE__ ) . 'booklist-create-modal.php'; ?>
 
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/booklist-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/admin/booklist-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
     
     <!-- Include the Settings Modal and JS -->
-    <?php include plugin_dir_path( __FILE__ ) . 'editor-settings-modal.php'; ?>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-settings-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-settings-api.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <?php include plugin_dir_path( __FILE__ ) . '../editor/editor-settings-modal.php'; ?>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-api.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <?php wp_footer(); ?>
 </body>
 </html>

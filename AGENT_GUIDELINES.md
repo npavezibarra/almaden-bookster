@@ -48,41 +48,52 @@ This file serves as a guide for AI agents (and developers) working on the Almade
 
 ## 📂 JavaScript (`assets/js/`)
 
-The frontend editor logic is broken down into specific modular files to avoid massive files and maintain clean architecture.
+The frontend JavaScript logic is organized into subfolders by domain to maintain clean modularity:
 
-- **`editor-core.js`**: 
-  The brain of the application. Handles initialization, global state management (`bookState`), fetching book data on load, autosaving, and managing global event listeners.
-- **`editor-chapters.js`**: 
-  Handles everything related to chapter management in the left sidebar. This includes creating new chapters, deleting chapters, reordering chapters, and selecting an active chapter.
-- **`editor-markdown.js`**: 
-  Responsible for parsing the raw text input and converting it into structured HTML elements (paragraphs, headers, lists) before they are sent to the compiler.
-- **`editor-pdf-compiler.js`**: 
-  The most complex file. Takes the HTML elements and handles the **pagination logic**. It measures heights, applies page breaks, manages "flow-root" margins, and splits paragraphs across pages when they overflow the physical boundaries of a page.
-- **`editor-pdf-styles.js`**: 
-  Takes the user's saved settings (margins, typography, line height, etc.) and dynamically constructs a `<style>` block. This CSS is injected into the DOM to style the compiled PDF preview pages accurately.
-- **`editor-pdf-export.js`**: 
-  Contains the logic to trigger the actual browser print dialog (`window.print()`) for exporting the compiled pages to a physical PDF file.
-- **`editor-settings.js`**: 
-  Manages the behavior of the Settings Modal. It handles opening/closing the modal, reading current values into the UI fields, updating UI logic (like toggling custom unit fields), and sending the `FormData` via AJAX to save the settings in the database.
-- **`admin-fonts-page.js`**: 
-  *Note:* This does not run in the editor. It runs in the WordPress wp-admin dashboard to handle the custom font upload and management interface.
+### 1. Editor Components (`assets/js/editor/`)
+- **`editor-core.js`**: Application brain, global state (`bookState`), autosaving, and core initialization.
+- **`editor-ui.js`**: UI theme switching, layout configurations, and sidebar chapters controls.
+- **`editor-toolbar.js`**: Markdown format injection, media library attachment, and parity-image toggling.
+- **`editor-chapters.js`**: Chapter CRUD (creation, sorting, selecting active chapters).
+- **`editor-virtualization.js`**: Performance optimization for massive documents using IntersectionObserver.
+- **`editor-settings-ui.js`** & **`editor-settings-api.js`**: Controller logic and AJAX communication for the layout Settings Modal.
+- **`editor-chapter-settings.js`**: Specific chapter overrides and target page parity properties.
+- **`editor-markdown.js`**: Conversion of raw markdown into HTML.
+
+### 2. PDF Rendering (`assets/js/pdf/`)
+- **`editor-pdf-compiler.js`**: Core pagination orchestration loop.
+- **`editor-pdf-compiler-dimensions.js`**: Document physical dimensions calculations.
+- **`editor-pdf-compiler-parity.js`**: Layout rules and parity assignment.
+- **`editor-pdf-dom.js`**: HTML elements factory (headers, footers, footnote containers).
+- **`editor-pdf-pagination.js`**: Pixel measuring and block-level paragraph split routines.
+- **`editor-pdf-styles.js`** / **`editor-pdf-styles-base.js`** / **`editor-pdf-styles-typography.js`**: Dynamic CSS stylesheet builders.
+- **`editor-pdf-export.js`**: Prep for browser print layouts and execution.
+
+### 3. Reader & Admin (`assets/js/reader/` & `assets/js/admin/`)
+- **`reader/reader-app.js`**, **`reader-navigation.js`**, **`reader-prefs.js`**, **`reader-styles.js`**: Visor engine for reading web-based EPUB/Ebooks.
+- **`admin/admin-fonts-page.js`**: Google Font downloads and setup console in wp-admin.
+- **`admin/booklist-ui.js`**: Control logic for the WordPress templates dashboard workshop list.
 
 ---
 
 ## 📂 Templates (`templates/`)
 
-These files define the HTML structure and PHP rendering for the BookCraft application shell.
+These files define the HTML structure and PHP rendering for the BookCraft application shells. They are organized into functional subfolders matching their respective contexts:
 
-- **`editor-app.php`**: 
-  The main entry point for the editor application. It renders the entire application shell: the left sidebar (chapters), the top toolbar, the main content area (text input), and the right preview area (PDF visualizer). It also enqueues the necessary scripts and styles.
-- **`editor-settings-modal.php`**: 
-  The shell container for the PDF Layout Settings modal. To adhere to file length limits (< 500 lines), this file is strictly a wrapper that includes the individual tabs from the `settings-tabs` directory.
+### 1. Editor Components (`templates/editor/`)
+- **`editor-app.php`**: The main entry point for the editor application (left sidebar, top toolbar, text input, and right preview virtualizer).
+- **`editor-settings-modal.php`**: Wrapper layout Settings Modal including tabs from `settings-tabs/` subdirectory.
+- **`chapter-settings-modal.php`**, `chapter-settings-normal.php`, `chapter-settings-toc.php`: Options and layouts at the individual chapter level.
+- **`settings-tabs/`**:
+  - **`functions.php`**: Font arrays helper.
+  - **`tab-page.php`**, `tab-typography.php`, `tab-header-footer.php`, `tab-chapters.php`, `tab-credits.php`, `tab-ebook-chapters.php`: Custom pages settings tabs.
 
-### `templates/settings-tabs/`
-Contains the modularized components of the Settings Modal:
+### 2. Admin & Lists (`templates/admin/`)
+- **`booklist-app.php`**: Taller / workshop list of books.
+- **`booklist-create-modal.php`**: New book creation dialog.
 
-- **`functions.php`**: Contains PHP arrays defining the default available font families and utility functions for rendering `<select>` options.
-- **`tab-page.php`**: The HTML UI for configuring physical page dimensions, margins, bleed, and units.
-- **`tab-typography.php`**: The HTML UI for configuring global content typography, headers (H1/H2/H3), paragraph spacing, and hyphenation.
-- **`tab-header-footer.php`**: The HTML UI for configuring the content, typography, and margins of the running headers and footers across pages.
-- **`tab-chapters.php`**: The HTML UI for configuring how chapters behave (e.g., forcing them to start on odd pages) and the styling/spacing of the main Chapter Titles.
+### 3. Other Apps (`templates/reader/`, `templates/bookshelf/`, `templates/cover/`)
+- **`reader/reader-app.php`**: Ebook Reader page shell.
+- **`bookshelf/bookshelf-app.php`**: Public Ebook store / bookshelf template.
+- **`cover/cover-app.php`**: Page shell layout for the Book Cover editor.
+

@@ -57,7 +57,7 @@ function almaden_bookster_admin_enqueue( $hook ) {
 
 	wp_enqueue_script(
 		'almaden-fonts-admin-js',
-		$plugin_url . 'assets/js/admin-fonts-page.js',
+		$plugin_url . 'assets/js/admin/admin-fonts-page.js',
 		array( 'jquery' ),
 		'1.0.0',
 		true
