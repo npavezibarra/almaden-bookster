@@ -72,7 +72,7 @@ function renderIndex() {
         };
 
         item.innerHTML = `
-            <span class="text-gray-800 font-bold group-hover:text-black text-lg transition-colors">${chapter.title}</span>
+            <span class="text-gray-800 font-medium group-hover:text-black text-lg transition-colors">${chapter.title}</span>
             <span class="text-gray-400 font-medium">${chapter.page || ''}</span>
         `;
         listContainer.appendChild(item);

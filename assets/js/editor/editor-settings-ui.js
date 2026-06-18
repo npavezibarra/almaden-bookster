@@ -246,6 +246,18 @@ function toggleSettingsModal(show) {
         if (document.getElementById('setting-ebook-cover-panel-bg-color-text')) document.getElementById('setting-ebook-cover-panel-bg-color-text').value = (settings.ebook_cover_panel_bg_color || 'transparent').toUpperCase();
         if (document.getElementById('setting-ebook-cover-panel-bg-image')) document.getElementById('setting-ebook-cover-panel-bg-image').value = settings.ebook_cover_panel_bg_image || '';
 
+        // Opacity
+        if (document.getElementById('setting-ebook-bg-opacity')) {
+            const opacity = settings.ebook_bg_opacity !== undefined ? settings.ebook_bg_opacity : 1.0;
+            document.getElementById('setting-ebook-bg-opacity').value = opacity;
+            document.getElementById('ebook-bg-opacity-val').innerText = Math.round(opacity * 100) + '%';
+        }
+        if (document.getElementById('setting-ebook-cover-panel-bg-opacity')) {
+            const opacity = settings.ebook_cover_panel_bg_opacity !== undefined ? settings.ebook_cover_panel_bg_opacity : 1.0;
+            document.getElementById('setting-ebook-cover-panel-bg-opacity').value = opacity;
+            document.getElementById('ebook-cover-panel-bg-opacity-val').innerText = Math.round(opacity * 100) + '%';
+        }
+
         // Ebook Fonts
         if (document.getElementById('setting-ebook-font-family-content')) document.getElementById('setting-ebook-font-family-content').value = settings.ebook_font_family_content || 'Merriweather';
         if (document.getElementById('setting-ebook-font-size-content')) document.getElementById('setting-ebook-font-size-content').value = settings.ebook_font_size_content || 18.0;
@@ -390,6 +402,8 @@ function toggleSettingsModal(show) {
         toggleCustomFirstPageHeader();
         toggleCustomFirstPageFooter();
         toggleParityImageMode();
+        if (typeof toggleEbookBgType === 'function') toggleEbookBgType();
+        if (typeof toggleCoverPanelBgType === 'function') toggleCoverPanelBgType();
 
         modal.classList.remove('hidden');
         setTimeout(() => {

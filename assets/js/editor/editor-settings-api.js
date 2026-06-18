@@ -47,9 +47,11 @@ function savePDFSettings() {
     data.append('ebook_bg_type', document.getElementById('setting-ebook-bg-type').value);
     data.append('ebook_bg_color', document.getElementById('setting-ebook-bg-color-text').value);
     data.append('ebook_bg_image', document.getElementById('setting-ebook-bg-image').value);
+    data.append('ebook_bg_opacity', getCleanVal('setting-ebook-bg-opacity'));
     data.append('ebook_cover_panel_bg_type', document.getElementById('setting-ebook-cover-panel-bg-type').value);
     data.append('ebook_cover_panel_bg_color', document.getElementById('setting-ebook-cover-panel-bg-color-text').value);
     data.append('ebook_cover_panel_bg_image', document.getElementById('setting-ebook-cover-panel-bg-image').value);
+    data.append('ebook_cover_panel_bg_opacity', getCleanVal('setting-ebook-cover-panel-bg-opacity'));
     data.append('ebook_font_family_content', document.getElementById('setting-ebook-font-family-content').value);
     data.append('ebook_font_size_content', getCleanVal('setting-ebook-font-size-content'));
     data.append('ebook_font_weight_content', document.getElementById('setting-ebook-font-weight-content').value);
@@ -233,9 +235,11 @@ function savePDFSettings() {
                 ebook_bg_type: document.getElementById('setting-ebook-bg-type').value,
                 ebook_bg_color: document.getElementById('setting-ebook-bg-color-text').value,
                 ebook_bg_image: document.getElementById('setting-ebook-bg-image').value,
+                ebook_bg_opacity: parseVal('setting-ebook-bg-opacity', 1.0),
                 ebook_cover_panel_bg_type: document.getElementById('setting-ebook-cover-panel-bg-type').value,
                 ebook_cover_panel_bg_color: document.getElementById('setting-ebook-cover-panel-bg-color-text').value,
                 ebook_cover_panel_bg_image: document.getElementById('setting-ebook-cover-panel-bg-image').value,
+                ebook_cover_panel_bg_opacity: parseVal('setting-ebook-cover-panel-bg-opacity', 1.0),
                 ebook_font_family_content: document.getElementById('setting-ebook-font-family-content').value,
                 ebook_font_size_content: parseVal('setting-ebook-font-size-content', 18.0),
                 ebook_font_weight_content: document.getElementById('setting-ebook-font-weight-content').value,

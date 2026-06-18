@@ -20,10 +20,32 @@ function generateDynamicStyles() {
     // 2. Landing Page (Index View) Global Styles from Admin Settings
     const bodyBgType = settings.ebook_bg_type || 'color';
     let bodyBgCSS = '';
+    const bodyBgOpacity = settings.ebook_bg_opacity !== undefined ? settings.ebook_bg_opacity : 1.0;
+
+    const hexToRgba = (hex, opacity) => {
+        if (!hex || typeof hex !== 'string' || !hex.startsWith('#')) return hex;
+        let c = hex.replace('#', '');
+        if (c.length === 3) c = c.split('').map(ch => ch + ch).join('');
+        const r = parseInt(c.substring(0,2), 16) || 0;
+        const g = parseInt(c.substring(2,4), 16) || 0;
+        const b = parseInt(c.substring(4,6), 16) || 0;
+        return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    };
+
     if (bodyBgType === 'color') {
-        bodyBgCSS = `background-color: ${settings.ebook_bg_color || '#ffffff'} !important;`;
+        const color = settings.ebook_bg_color || '#ffffff';
+        bodyBgCSS = `background-color: ${hexToRgba(color, bodyBgOpacity)} !important;`;
     } else if (bodyBgType === 'image' && settings.ebook_bg_image) {
-        bodyBgCSS = `background-image: url('${settings.ebook_bg_image}') !important; background-size: cover !important; background-attachment: fixed !important; background-position: center !important; background-repeat: no-repeat !important;`;
+        // En lugar de ::before, usamos un linear-gradient para oscurecer/aclarar la imagen según la opacidad.
+        // Por defecto oscurecemos (negro) para que el texto sea legible.
+        const overlayAlpha = 1.0 - bodyBgOpacity;
+        const overlayColor = `rgba(0, 0, 0, ${overlayAlpha})`;
+        
+        bodyBgCSS = `background-image: linear-gradient(${overlayColor}, ${overlayColor}), url('${settings.ebook_bg_image}') !important;
+                     background-size: cover !important;
+                     background-attachment: fixed !important;
+                     background-position: center !important;
+                     background-repeat: no-repeat !important;`;
     }
     
     css += `
@@ -49,18 +71,22 @@ function generateDynamicStyles() {
 
     // ... Cover styling ...
     const coverBgType = settings.ebook_cover_panel_bg_type || 'image';
+    const coverBgOpacity = settings.ebook_cover_panel_bg_opacity !== undefined ? settings.ebook_cover_panel_bg_opacity : 1.0;
+
     if (coverBgType === 'color') {
         const coverColor = settings.ebook_cover_panel_bg_color || 'transparent';
         css += `
         #reader-cover-panel {
-            background-color: ${coverColor} !important;
+            background-color: ${hexToRgba(coverColor, coverBgOpacity)} !important;
         }`;
     } else {
         const coverImage = settings.ebook_cover_panel_bg_image || bookData.cover_url || '';
         if (coverImage) {
+            const overlayAlpha = 1.0 - coverBgOpacity;
+            const overlayColor = `rgba(0, 0, 0, ${overlayAlpha})`;
             css += `
             #reader-cover-panel {
-                background-image: url('${coverImage}') !important;
+                background-image: linear-gradient(${overlayColor}, ${overlayColor}), url('${coverImage}') !important;
                 background-size: cover !important;
                 background-position: center !important;
                 background-repeat: no-repeat !important;

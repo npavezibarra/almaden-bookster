@@ -312,6 +312,13 @@
                                     </button>
                                 </div>
                             </div>
+                            <div class="mt-2">
+                                <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Opacidad del Fondo</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="range" id="setting-ebook-bg-opacity" min="0" max="1" step="0.05" value="1" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer" oninput="document.getElementById('ebook-bg-opacity-val').innerText = Math.round(this.value * 100) + '%'">
+                                    <span id="ebook-bg-opacity-val" class="text-[10px] text-gray-500 w-8 text-right font-medium">100%</span>
+                                </div>
+                            </div>
                         </div>
                         <h4 class="text-xs font-bold text-black dark:text-white uppercase tracking-wider flex items-center gap-1.5 border-b border-[var(--border-color)] pb-2 mb-1 mt-4">
                             <i class="fa-solid fa-image text-[10px]"></i> Fondo del Panel de Portada
@@ -342,6 +349,13 @@
                                     </button>
                                 </div>
                                 <p class="text-[9px] text-gray-400 mt-1">Déjalo vacío para usar la portada del libro por defecto.</p>
+                            </div>
+                            <div class="mt-2">
+                                <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Opacidad del Fondo</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="range" id="setting-ebook-cover-panel-bg-opacity" min="0" max="1" step="0.05" value="1" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer" oninput="document.getElementById('ebook-cover-panel-bg-opacity-val').innerText = Math.round(this.value * 100) + '%'">
+                                    <span id="ebook-cover-panel-bg-opacity-val" class="text-[10px] text-gray-500 w-8 text-right font-medium">100%</span>
+                                </div>
                             </div>
                         </div>
                     </div>
