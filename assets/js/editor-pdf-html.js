@@ -23,6 +23,26 @@ window.buildChapterHTML = function(chapter, index, settings, bookState) {
             return str;
         }
 
+        // Calculate max prefix length to ensure uniform column width for the numbers
+        let tempCount = 0;
+        let maxPrefixLen = 0;
+        bookState.chapters.forEach((c) => {
+            if (c.is_toc != '1' && c.is_credits != '1' && c.exclude_from_numbering !== '1') {
+                tempCount++;
+                let prefix = '';
+                if (enumerateType === 'decimal') {
+                    prefix = `${tempCount}. `;
+                } else if (enumerateType === 'roman') {
+                    prefix = `${toRoman(tempCount)}. `;
+                } else if (enumerateType === 'bullet') {
+                    prefix = `• `;
+                }
+                if (prefix.length > maxPrefixLen) {
+                    maxPrefixLen = prefix.length;
+                }
+            }
+        });
+
         bookState.chapters.forEach((c) => {
             if (c.is_toc != '1' && c.is_credits != '1' && c.exclude_from_numbering !== '1') {
                 tocChapterCount++;
@@ -36,9 +56,10 @@ window.buildChapterHTML = function(chapter, index, settings, bookState) {
                 }
                 
                 let titleHtml = c.title || 'Capítulo';
+                let numberStyle = maxPrefixLen > 0 ? `style="width: ${maxPrefixLen}ch; display: inline-block; text-align: left; flex-shrink: 0;"` : '';
                 
-                tocHtml += `<div class="toc-item" data-target-id="${c.id}">
-                    <div class="toc-number">${prefix}</div>
+                tocHtml += `<div class="toc-item toc-item-h1" data-target-id="${c.id}">
+                    <div class="toc-number" ${numberStyle}>${prefix}</div>
                     <div class="toc-title-wrapper">
                         <div class="toc-spacer-left"></div>
                         <div class="toc-title">${titleHtml}</div>

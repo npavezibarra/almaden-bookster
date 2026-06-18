@@ -135,6 +135,29 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             box-sizing: border-box;
         }
 
+        /* ── Título del Índice (TOC) ── */
+        .pdf-content .toc-main-title {
+            font-family: '${tocSettings.titleFontFamily || 'Playfair Display'}', serif !important;
+            font-size: ${toPx(tocSettings.titleFontSize || 24.0, true)}px !important;
+            font-weight: ${tocSettings.titleFontWeight || 'bold'} !important;
+            font-style: ${tocSettings.titleFontStyle || 'normal'} !important;
+            text-transform: ${tocSettings.titleTextTransform || 'none'} !important;
+            text-align: ${tocSettings.titleAlign || 'center'} !important;
+            line-height: ${tocSettings.titleLineHeight || 1.2} !important;
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+            padding-top: ${toPx(tocSettings.titlePaddingTop !== undefined ? tocSettings.titlePaddingTop : 0.0, false)}px !important;
+            padding-bottom: ${toPx(tocSettings.titlePaddingBottom !== undefined ? tocSettings.titlePaddingBottom : 1.5, false)}px !important;
+            padding-left: ${toPx(tocSettings.titlePaddingLeft !== undefined ? tocSettings.titlePaddingLeft : 0.0, false)}px !important;
+            padding-right: ${toPx(tocSettings.titlePaddingRight !== undefined ? tocSettings.titlePaddingRight : 0.0, false)}px !important;
+            color: #000 !important;
+            text-indent: 0 !important;
+            page-break-after: avoid;
+            break-after: avoid;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
         /* ── Bloque TOC y Listas ── */
         .toc-list-block {
             margin: 0;
@@ -144,6 +167,13 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
         }
 
         /* ── Estilos TOC por nivel ── */
+        .toc-item {
+            display: flex !important;
+            align-items: baseline !important;
+            width: 100% !important;
+            hyphens: none !important;
+        }
+
         .toc-item-h1 {
             font-family: '${tocSettings.fontFamily}', serif !important;
             font-size: ${toPx(tocSettings.fontSize, true)}px !important;
@@ -154,9 +184,6 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             line-height: ${tocSettings.lineHeight} !important;
             margin-bottom: ${toPx(tocSettings.itemSpacing, true)}px !important;
             padding-left: 0;
-            display: flex;
-            align-items: baseline;
-            width: 100%;
             position: relative;
         }
 
@@ -170,9 +197,6 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             line-height: ${tocSettings.lineHeight} !important;
             margin-bottom: ${toPx(tocSettings.itemSpacing * 0.8, true)}px !important;
             padding-left: 20px;
-            display: flex;
-            align-items: baseline;
-            width: 100%;
             position: relative;
         }
 
@@ -186,31 +210,54 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             line-height: ${tocSettings.lineHeight} !important;
             margin-bottom: ${toPx(tocSettings.itemSpacing * 0.6, true)}px !important;
             padding-left: 40px;
-            display: flex;
-            align-items: baseline;
-            width: 100%;
             position: relative;
+        }
+
+        .toc-number {
+            flex-shrink: 0 !important;
+            margin-right: 4px !important;
+            text-align: left !important;
+        }
+        
+        .toc-title-wrapper {
+            display: flex !important;
+            align-items: baseline !important;
+            flex-grow: 1 !important;
+            min-width: 0 !important;
+            position: relative !important;
         }
         
         .toc-spacer-left {
-            /* Spacer izquierdo no lleva puntos */
+            flex-grow: ${tocSettings.itemAlign === 'center' ? '1' : '0'} !important;
+            min-width: 0 !important;
         }
+        
         .toc-spacer-right {
-            border-bottom: ${tocSettings.leaderStyle === 'none' ? 'none' : '1.5px ' + tocSettings.leaderStyle + ' #a0aec0'};
-            position: relative;
-            bottom: ${tocSettings.leaderPosition === 'bottom' ? '0' : '4px'};
-            min-width: 5px; /* Pequeño margen para los puntos */
+            flex-grow: 1 !important;
+            border-bottom: ${tocSettings.leaderStyle === 'none' ? 'none' : '1.5px ' + tocSettings.leaderStyle + ' #a0aec0'} !important;
+            position: relative !important;
+            bottom: ${tocSettings.leaderPosition === 'bottom' ? '0' : '4px'} !important;
+            min-width: 10px !important;
+            margin-left: 5px !important;
         }
+        
         .toc-title {
-            padding-left: ${tocSettings.itemAlign !== 'left' ? '5px' : '0'};
-            padding-right: 5px;
-            text-align: ${tocSettings.itemAlign};
-            /* Background no longer strictly needed to mask dots, but good for safety */
+            flex-shrink: 0 !important;
+            padding-left: ${tocSettings.itemAlign !== 'left' ? '5px' : '0'} !important;
+            padding-right: 5px !important;
+            text-align: ${tocSettings.itemAlign} !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            max-width: 100% !important;
         }
+        
         .toc-page {
-            white-space: nowrap;
-            font-variant-numeric: tabular-nums;
-            text-align: right;
+            flex-shrink: 0 !important;
+            white-space: nowrap !important;
+            font-variant-numeric: tabular-nums !important;
+            text-align: right !important;
+            margin-left: 5px !important;
         }
 
         .pdf-content .chapter-prefix-line {

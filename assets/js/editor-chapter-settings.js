@@ -182,16 +182,21 @@ function saveChapterSettings() {
     // Shared settings
     activeChapter.start_parity = document.getElementById('chapter_start_parity').value;
 
+    const cleanFloat = (id) => {
+        const el = document.getElementById(id);
+        return el ? el.value.replace(',', '.') : '';
+    };
+
     if (isToc) {
-        activeChapter.toc_font_size = document.getElementById('chapter_toc_font_size').value;
+        activeChapter.toc_font_size = cleanFloat('chapter_toc_font_size');
         activeChapter.toc_enumerate = document.getElementById('chapter_toc_enumerate').value;
         activeChapter.toc_font_family = document.getElementById('chapter_toc_font_family').value;
         activeChapter.toc_font_style = document.getElementById('chapter_toc_font_style').value;
         activeChapter.toc_font_weight = document.getElementById('chapter_toc_font_weight').value;
         activeChapter.toc_text_transform = document.getElementById('chapter_toc_text_transform').value;
-        activeChapter.toc_letter_spacing = document.getElementById('chapter_toc_letter_spacing').value;
-        activeChapter.toc_line_height = document.getElementById('chapter_toc_line_height').value;
-        activeChapter.toc_item_spacing = document.getElementById('chapter_toc_item_spacing').value;
+        activeChapter.toc_letter_spacing = cleanFloat('chapter_toc_letter_spacing');
+        activeChapter.toc_line_height = cleanFloat('chapter_toc_line_height');
+        activeChapter.toc_item_spacing = cleanFloat('chapter_toc_item_spacing');
         activeChapter.toc_leader_style = document.getElementById('chapter_toc_leader_style').value;
         activeChapter.toc_leader_position = document.getElementById('chapter_toc_leader_position').value;
         activeChapter.toc_hide_page_numbers = document.getElementById('chapter_toc_hide_page_numbers').checked ? '1' : '0';
@@ -201,13 +206,13 @@ function saveChapterSettings() {
         activeChapter.toc_title_align = document.getElementById('chapter_toc_title_align').value;
         activeChapter.toc_page_one_vertical = document.getElementById('chapter_toc_page_one_vertical').value;
         activeChapter.toc_title_font_family = document.getElementById('chapter_toc_title_font_family').value;
-        activeChapter.toc_title_font_size = document.getElementById('chapter_toc_title_font_size').value;
+        activeChapter.toc_title_font_size = cleanFloat('chapter_toc_title_font_size');
         activeChapter.toc_title_font_style = document.getElementById('chapter_toc_title_font_style').value;
         activeChapter.toc_title_text_transform = document.getElementById('chapter_toc_title_text_transform').value;
         activeChapter.toc_title_font_weight = document.getElementById('chapter_toc_title_font_weight').value;
-        activeChapter.toc_title_padding_top = document.getElementById('chapter_toc_title_padding_top').value;
-        activeChapter.toc_title_padding_bottom = document.getElementById('chapter_toc_title_padding_bottom').value;
-        activeChapter.toc_title_line_height = document.getElementById('chapter_toc_title_line_height').value;
+        activeChapter.toc_title_padding_top = cleanFloat('chapter_toc_title_padding_top');
+        activeChapter.toc_title_padding_bottom = cleanFloat('chapter_toc_title_padding_bottom');
+        activeChapter.toc_title_line_height = cleanFloat('chapter_toc_title_line_height');
     } else if (isCredits) {
         // Nada extra que guardar, usa configuraciones globales
     } else {
@@ -275,7 +280,7 @@ function saveChapterSettings() {
 
             // Marcar como pendiente de guardado y forzar actualización del PDF
             if (typeof saveStateToLocalStorage === 'function') {
-                saveStateToLocalStorage();
+                saveStateToLocalStorage(true);
             }
             
             // Si la función está disponible (debería), compilar para reflejar cambios

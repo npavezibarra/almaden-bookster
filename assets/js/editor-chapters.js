@@ -344,6 +344,27 @@ function saveStateToLocalStorage(immediate = false) {
                     statusIndicator.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-xs mr-1"></i> Guardado';
                     statusIndicator.className = 'flex items-center gap-1 font-semibold text-emerald-600';
                 }
+                
+                // Update temporary chapter IDs with real database IDs to prevent metadata loss
+                if (res.chapters && Array.isArray(res.chapters)) {
+                    let stateChanged = false;
+                    res.chapters.forEach(serverCh => {
+                        if (serverCh.old_id) {
+                            const localCh = bookState.chapters.find(c => c.id === serverCh.old_id);
+                            if (localCh) {
+                                localCh.id = serverCh.id;
+                                if (bookState.activeChapterId === serverCh.old_id) {
+                                    bookState.activeChapterId = serverCh.id;
+                                    localStorage.setItem(`almaden_active_chapter_${bookState.bookId}`, serverCh.id);
+                                }
+                                stateChanged = true;
+                            }
+                        }
+                    });
+                    if (stateChanged) {
+                        renderSidebar();
+                    }
+                }
             } else {
                 if (statusIndicator) {
                     statusIndicator.innerHTML = '<i class="fa-solid fa-circle-exclamation text-xs mr-1"></i> Error';
