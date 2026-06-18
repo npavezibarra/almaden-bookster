@@ -270,8 +270,11 @@
                 <button type="button" onclick="switchEbookSettingTab('tab-ebook-theme')" class="ebook-setting-tab-btn py-2 border-b-2 border-indigo-500 text-indigo-500 font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-ebook-theme">
                     Theme
                 </button>
-                <button type="button" onclick="switchEbookSettingTab('tab-ebook-fonts')" class="ebook-setting-tab-btn py-2 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-ebook-fonts">
-                    Fonts
+                <button type="button" onclick="switchEbookSettingTab('tab-ebook-typography')" class="ebook-setting-tab-btn py-2 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-ebook-typography">
+                    Tipografía
+                </button>
+                <button type="button" onclick="switchEbookSettingTab('tab-ebook-chapters')" class="ebook-setting-tab-btn py-2 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-ebook-chapters">
+                    Capítulos
                 </button>
             </div>
             
@@ -344,8 +347,8 @@
                     </div>
                 </div>
 
-                <!-- Ebook Fonts Tab Content -->
-                <div id="tab-ebook-fonts" class="ebook-setting-tab-content space-y-4 hidden">
+                <!-- Ebook Typography Tab Content -->
+                <div id="tab-ebook-typography" class="ebook-setting-tab-content space-y-4 hidden">
                     <div class="border border-[var(--border-color)] rounded-xl p-4 bg-[var(--bg-app)] space-y-3 shadow-sm">
                         <h4 class="text-xs font-bold text-indigo-500 uppercase tracking-wider flex items-center gap-1.5 border-b border-[var(--border-color)] pb-2 mb-1">
                             <i class="fa-solid fa-font text-[10px]"></i> Tipografía del Cuerpo (Ebook)
@@ -391,41 +394,10 @@
                         </div>
                     </div>
 
-                    <div class="border border-[var(--border-color)] rounded-xl p-4 bg-[var(--bg-app)] space-y-3 shadow-sm">
-                        <h4 class="text-xs font-bold text-indigo-500 uppercase tracking-wider flex items-center gap-1.5 border-b border-[var(--border-color)] pb-2 mb-1">
-                            <i class="fa-solid fa-heading text-[10px]"></i> Tipografía de Títulos (Ebook)
-                        </h4>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Familia de Fuente</label>
-                                <select id="setting-ebook-font-family-headings" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                    <?php almaden_render_font_options( $heading_default_fonts, $selector_fonts ); ?>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Tamaño de Fuente (px)</label>
-                                <input id="setting-ebook-font-size-headings" type="number" step="0.5" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Peso de Fuente</label>
-                                <select id="setting-ebook-font-weight-headings" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                    <option value="bold">Negrita (Bold)</option>
-                                    <option value="normal">Normal</option>
-                                    <option value="100">100 - Fino</option>
-                                    <option value="300">300 - Ligero</option>
-                                    <option value="500">500 - Medio</option>
-                                    <option value="900">900 - Negro</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Interlineado (line-height)</label>
-                                <input id="setting-ebook-line-height-headings" type="number" step="0.05" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            </div>
-                        </div>
-                    </div>
                 </div>
+
+                <!-- Ebook Chapters Tab Content -->
+                <?php include plugin_dir_path( __FILE__ ) . 'settings-tabs/tab-ebook-chapters.php'; ?>
             </div>
         </div>
 
@@ -434,7 +406,7 @@
             <button onclick="toggleSettingsModal(false)" class="px-4 py-2 border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-app)] text-xs font-semibold rounded-lg transition">
                 Cancelar
             </button>
-            <button onclick="savePDFSettings()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-md hover:shadow-lg transition">
+            <button id="btn-save-settings" onclick="savePDFSettings()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-md hover:shadow-lg transition">
                 Guardar Cambios
             </button>
         </div>

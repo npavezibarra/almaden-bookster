@@ -103,7 +103,7 @@ window.buildChapterHTML = function(chapter, index, settings, bookState) {
         const titleClass = chapter.is_toc == '1' ? 'toc-main-title' : 'chapter-main-title';
         const hasSubtitle = chapter.subtitle_text && chapter.subtitle_text.trim() !== '' && chapter.is_toc !== '1';
         let extraTitleStyle = hasSubtitle ? 'padding-bottom: 0 !important;' : '';
-        let titleHtml = `<div class="${titleClass}" style="${extraTitleStyle}">${chapter.title.trim()}</div>`;
+        let titleHtml = `<h1 class="${titleClass}" style="${extraTitleStyle}">${chapter.title.trim()}</h1>`;
         
         // Lógica de prefijo de capítulo
         if (settings.chapter_prefix_show == 1 && chapter.is_toc != '1' && chapter.exclude_from_numbering !== '1') {
@@ -158,18 +158,37 @@ window.buildChapterHTML = function(chapter, index, settings, bookState) {
         }
         
         // Subtitle Logic
-        if (chapter.subtitle_text && chapter.subtitle_text.trim() !== '' && chapter.is_toc !== '1') {
+        const showGlobalSubtitle = settings.chapter_subtitle_show == 1 || settings.chapter_subtitle_show === undefined;
+        if (chapter.subtitle_text && chapter.subtitle_text.trim() !== '' && chapter.is_toc !== '1' && showGlobalSubtitle) {
             const subText = chapter.subtitle_text.trim().replace(/\n/g, '<br>');
             const subStyles = [];
-            if (chapter.subtitle_font_family) subStyles.push(`font-family: '${chapter.subtitle_font_family}', serif`);
-            if (chapter.subtitle_font_size) subStyles.push(`font-size: ${chapter.subtitle_font_size}pt`);
-            if (chapter.subtitle_align) subStyles.push(`text-align: ${chapter.subtitle_align}`);
-            if (chapter.subtitle_font_style) subStyles.push(`font-style: ${chapter.subtitle_font_style}`);
-            if (chapter.subtitle_font_weight) subStyles.push(`font-weight: ${chapter.subtitle_font_weight}`);
-            if (chapter.subtitle_text_transform) subStyles.push(`text-transform: ${chapter.subtitle_text_transform}`);
-            if (chapter.subtitle_letter_spacing) subStyles.push(`letter-spacing: ${chapter.subtitle_letter_spacing}px`);
-            if (chapter.subtitle_margin_top) subStyles.push(`margin-top: ${chapter.subtitle_margin_top}cm`);
-            if (chapter.subtitle_margin_bottom) subStyles.push(`margin-bottom: ${chapter.subtitle_margin_bottom}cm`);
+            
+            const fontF = chapter.subtitle_font_family || settings.chapter_subtitle_font_family;
+            if (fontF) subStyles.push(`font-family: '${fontF}', serif`);
+            
+            const fontSz = chapter.subtitle_font_size || settings.chapter_subtitle_font_size;
+            if (fontSz) subStyles.push(`font-size: ${fontSz}pt`);
+            
+            const align = chapter.subtitle_align || settings.chapter_subtitle_align;
+            if (align) subStyles.push(`text-align: ${align}`);
+            
+            const fStyle = chapter.subtitle_font_style || settings.chapter_subtitle_font_style;
+            if (fStyle) subStyles.push(`font-style: ${fStyle}`);
+            
+            const fWeight = chapter.subtitle_font_weight || settings.chapter_subtitle_font_weight;
+            if (fWeight) subStyles.push(`font-weight: ${fWeight}`);
+            
+            const tTransform = chapter.subtitle_text_transform || settings.chapter_subtitle_text_transform;
+            if (tTransform) subStyles.push(`text-transform: ${tTransform}`);
+            
+            const lSpacing = chapter.subtitle_letter_spacing || settings.chapter_subtitle_letter_spacing;
+            if (lSpacing) subStyles.push(`letter-spacing: ${lSpacing}px`);
+            
+            const mTop = chapter.subtitle_margin_top !== undefined && chapter.subtitle_margin_top !== '' ? chapter.subtitle_margin_top : settings.chapter_subtitle_margin_top;
+            if (mTop !== undefined && mTop !== '') subStyles.push(`margin-top: ${mTop}cm`);
+            
+            const mBot = chapter.subtitle_margin_bottom !== undefined && chapter.subtitle_margin_bottom !== '' ? chapter.subtitle_margin_bottom : settings.chapter_subtitle_margin_bottom;
+            if (mBot !== undefined && mBot !== '') subStyles.push(`margin-bottom: ${mBot}cm`);
             
             const subtitleHtml = `<div class="chapter-subtitle" style="line-height: 1.4; width: 100%; ${subStyles.join('; ')}">${subText}</div>`;
             titleHtml = titleHtml + subtitleHtml;

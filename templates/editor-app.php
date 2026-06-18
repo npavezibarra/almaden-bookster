@@ -49,7 +49,7 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
     <!-- CABECERA PRINCIPAL -->
     <header class="h-16 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] px-6 flex items-center justify-between z-10 no-print transition-all">
         <div class="flex items-center gap-3">
-            <a href="<?php echo esc_url( home_url( '/almaden-booklist/' ) ); ?>" class="mr-2 text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors flex items-center gap-1.5 text-sm font-semibold" title="Volver a la lista de libros">
+            <a href="<?php echo esc_url( home_url( '/almaden-booklist/' ) ); ?>" class="mr-2 text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors flex items-center gap-1.5 text-sm font-semibold" title="Volver al Taller">
                 <i class="fa-solid fa-arrow-left"></i>
                 <span class="hidden sm:inline">Volver</span>
             </a>
@@ -396,12 +396,15 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-settings-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-settings-api.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-chapter-settings.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../assets/js/almaden-shortcodes.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-markdown.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-dom.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-pagination.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-html.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-compiler.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-export.js?v='   . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-styles-base.js?v='   . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-styles-typography.js?v='   . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../assets/js/editor-pdf-styles.js?v='   . time(), __FILE__ ) ); ?>"></script>
     <?php wp_footer(); ?>
 </body>

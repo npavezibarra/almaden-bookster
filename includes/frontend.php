@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // 1. Crear la página física automáticamente si no existe
 function almaden_bookster_create_page() {
 	$pages_to_create = [
-		'almaden-booklist' => 'Almaden Booklist',
+		'almaden-booklist' => 'Taller',
 		'bookshelf'        => 'Bookshelf',
 	];
 
@@ -52,19 +52,22 @@ function almaden_bookster_load_booklist() {
 }
 add_action( 'template_redirect', 'almaden_bookster_load_booklist', 5 );
 
-// 3. Renderizar el Bookshelf dentro del contenido de la página para respetar el Theme
-function almaden_bookster_render_bookshelf( $content ) {
-	if ( is_page( 'bookshelf' ) && in_the_loop() && is_main_query() ) {
-		ob_start();
+// 3. Interceptar la página bookshelf para cargar nuestra app independiente
+function almaden_bookster_load_bookshelf() {
+	if ( is_page( 'bookshelf' ) && is_main_query() ) {
+		// Ocultar barra de administración de WordPress
+		show_admin_bar( false );
+		
 		$template_path = dirname( __FILE__ ) . '/../templates/bookshelf-app.php';
 		if ( file_exists( $template_path ) ) {
 			require_once $template_path;
+			exit;
+		} else {
+			wp_die( 'Plantilla del bookshelf no encontrada.' );
 		}
-		return ob_get_clean();
 	}
-	return $content;
 }
-add_filter( 'the_content', 'almaden_bookster_render_bookshelf' );
+add_action( 'template_redirect', 'almaden_bookster_load_bookshelf', 5 );
 
 // 4. Interceptar la vista individual de un libro publicado para cargar el Reader App
 function almaden_bookster_load_reader( $template ) {
@@ -108,9 +111,56 @@ function almaden_bookster_handle_create_book() {
 		),
 	);
 
+	// Procesar formatos seleccionados (Ebook, Impreso)
+	if ( isset( $_POST['almaden_book_format'] ) && is_array( $_POST['almaden_book_format'] ) ) {
+		$formats = array_map( 'sanitize_text_field', $_POST['almaden_book_format'] );
+		$post_data['meta_input']['_almaden_formats'] = $formats;
+	}
+
+	// Procesar tamaño de impresión si fue especificado
+	$page_width = null;
+	$page_height = null;
+	
+	if ( isset( $_POST['almaden_book_size'] ) ) {
+		$size = sanitize_text_field( $_POST['almaden_book_size'] );
+		$post_data['meta_input']['_almaden_book_size'] = $size;
+		
+		if ( $size === '14x21' ) {
+			$page_width = 14.0;
+			$page_height = 21.0;
+		} elseif ( $size === '15x23' ) {
+			$page_width = 15.0;
+			$page_height = 23.0;
+		} elseif ( $size === 'custom' ) {
+			if ( isset( $_POST['almaden_custom_width'] ) ) {
+				$page_width = floatval( $_POST['almaden_custom_width'] );
+			}
+			if ( isset( $_POST['almaden_custom_height'] ) ) {
+				$page_height = floatval( $_POST['almaden_custom_height'] );
+			}
+		}
+	}
+
 	$post_id = wp_insert_post( $post_data );
 
 	if ( ! is_wp_error( $post_id ) ) {
+		// Insertar tamaño inicial en almaden_book_settings si es impreso
+		if ( $page_width && $page_height ) {
+			global $wpdb;
+			$table_name = $wpdb->prefix . 'almaden_book_settings';
+			if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) === $table_name ) {
+				$wpdb->insert(
+					$table_name,
+					array(
+						'book_id'     => $post_id,
+						'page_size'   => ( $size === 'custom' ) ? 'Custom' : $size,
+						'page_width'  => $page_width,
+						'page_height' => $page_height,
+					)
+				);
+			}
+		}
+
 		// Redirigir de vuelta con mensaje de éxito
 		$redirect_url = add_query_arg( 'book_created', '1', wp_get_referer() );
 		// Redireccionar al listado con un flag de éxito

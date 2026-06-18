@@ -101,6 +101,7 @@ p:first-of-type { text-indent: 0; }
 		$content = preg_replace( '/\[align=([a-zA-Z]+)\]/is', '<div style="text-align: $1;">', $content );
 		$content = preg_replace( '/\[\/align\]/is', '</div>', $content );
 		$content = preg_replace( '/\[page[-_]?break\]/is', '<div style="page-break-after: always;"></div>', $content );
+		$content = preg_replace( '/\[gap:([0-9]+(?:\.[0-9]+)?)\]/is', '<hr style="height: $1mm; border: none; margin: 0; padding: 0; background: transparent; clear: both;" />', $content );
 		
 		// wpautop converts double line breaks to paragraphs
 		$content = wpautop( $content );

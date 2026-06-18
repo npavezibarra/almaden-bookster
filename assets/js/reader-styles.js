@@ -84,29 +84,55 @@ function generateDynamicStyles() {
     let ffHeading = `'${settings.ebook_font_family_headings || 'Playfair Display'}', serif`;
     let ffContent = `'${settings.ebook_font_family_content || 'Merriweather'}', Georgia, serif`;
     
-    if (userPrefs.fontFamily === 'sans-serif') {
-        ffHeading = "'Inter', sans-serif";
-        ffContent = "'Inter', sans-serif";
-    } else if (userPrefs.fontFamily === 'serif') {
-        ffHeading = "Georgia, serif";
-        ffContent = "Georgia, serif";
-    }
+
 
     css += `
         .reader-chapter-title {
             font-family: ${ffHeading} !important;
             font-size: ${baseSizeHeading}px !important;
             font-weight: ${settings.ebook_font_weight_headings || 'bold'} !important;
-            line-height: ${baseLhHeading} !important;
-            text-transform: ${settings.chapter_title_text_transform || 'none'};
-            text-align: ${settings.chapter_title_align || 'center'};
-            padding-top: ${settings.chapter_title_padding_top || 0.0}cm;
-            padding-bottom: ${settings.chapter_title_padding_bottom || 1.5}cm;
-            padding-left: ${settings.chapter_title_padding_left || 0.0}cm;
-            padding-right: ${settings.chapter_title_padding_right || 0.0}cm;
+            line-height: ${settings.ebook_chapter_title_line_height !== undefined ? settings.ebook_chapter_title_line_height : baseLhHeading} !important;
+            text-transform: ${settings.ebook_chapter_title_text_transform || 'none'} !important;
+            text-align: ${settings.ebook_chapter_title_align || 'center'} !important;
+            padding-top: ${settings.ebook_chapter_title_padding_top !== undefined ? settings.ebook_chapter_title_padding_top : 2}em !important;
+            padding-bottom: ${settings.ebook_chapter_title_padding_bottom !== undefined ? settings.ebook_chapter_title_padding_bottom : 2}em !important;
+            padding-left: ${settings.ebook_chapter_title_padding_left !== undefined ? settings.ebook_chapter_title_padding_left : 0}em !important;
+            padding-right: ${settings.ebook_chapter_title_padding_right !== undefined ? settings.ebook_chapter_title_padding_right : 0}em !important;
             margin: 0;
             width: 100%;
             color: ${readerHeadingColor} !important;
+        }
+
+        .reader-chapter-prefix {
+            font-family: '${settings.ebook_chapter_prefix_font_family || 'Playfair Display'}', serif !important;
+            font-size: ${settings.ebook_chapter_prefix_font_size || 16}px !important;
+            font-weight: ${settings.ebook_chapter_prefix_font_weight || 'normal'} !important;
+            font-style: ${settings.ebook_chapter_prefix_font_style || 'normal'} !important;
+            letter-spacing: ${settings.ebook_chapter_prefix_letter_spacing || 0}px !important;
+            text-align: ${settings.ebook_chapter_title_align || 'center'} !important;
+            margin-bottom: 0.5rem;
+            color: ${readerHeadingColor} !important;
+        }
+        
+        .reader-chapter-prefix.prefix-below {
+            margin-top: 0.5rem;
+            margin-bottom: 0;
+        }
+
+        .reader-chapter-ornament-line {
+            width: 50px;
+            height: 1px;
+            background-color: ${readerHeadingColor} !important;
+            margin: 0.5rem auto;
+            opacity: 0.5;
+        }
+        
+        .reader-chapter-ornament-asterisks {
+            text-align: center;
+            letter-spacing: 0.5em;
+            color: ${readerHeadingColor} !important;
+            margin: 0.5rem 0;
+            opacity: 0.7;
         }
     `;
     const textAlign = (settings.ebook_text_align_justify == 1) ? 'justify' : 'left';
@@ -128,6 +154,18 @@ function generateDynamicStyles() {
             font-size: ${baseSizeHeading}px !important;
             font-weight: ${settings.ebook_font_weight_headings || 'bold'} !important;
             line-height: ${baseLhHeading} !important;
+            color: ${readerHeadingColor} !important;
+        }
+        
+        .prose p.drop-cap::first-letter {
+            float: left;
+            font-size: 3.5em;
+            line-height: 0.85;
+            margin-right: 0.1em;
+            margin-top: 0.05em;
+            margin-bottom: -0.1em;
+            font-weight: bold;
+            font-family: ${ffHeading} !important;
             color: ${readerHeadingColor} !important;
         }
         /* Theme Overrides for Tailwind Utility Classes */
@@ -179,7 +217,7 @@ function generateDynamicStyles() {
             background-color: ${userPrefs.theme === 'black' ? '#333' : (userPrefs.theme === 'beige' ? '#e8e6d9' : '#f3f4f6')} !important;
         }
         
-        #btn-reader-prefs, #btn-mode-scroll, #btn-mode-flip, #chapter-nav-title, #reader-book-title {
+        #btn-reader-prefs, #btn-mode-scroll, #btn-mode-flip, #chapter-nav-title {
             color: ${readerHeadingColor} !important;
         }
 
@@ -193,11 +231,7 @@ function generateDynamicStyles() {
         }
         
         #chapters-list > div:hover {
-            background-color: ${userPrefs.theme === 'black' ? '#222' : (userPrefs.theme === 'beige' ? '#e8e6d9' : '#f9fafb')} !important;
-        }
-        
-        #chapters-list span {
-            color: ${readerTextColor} !important;
+            background-color: #f9fafb !important;
         }
     `;
     

@@ -1,9 +1,11 @@
 // Enviar ajustes vía AJAX a la base de datos de WordPress
 function savePDFSettings() {
-    const statusIndicator = document.getElementById('save-status');
-    if (statusIndicator) {
-        statusIndicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs mr-1"></i> Guardando...';
-        statusIndicator.className = 'flex items-center gap-1 font-semibold text-amber-500';
+    const btn = document.getElementById('btn-save-settings');
+    const originalBtnText = btn ? btn.innerHTML : 'Guardar Cambios';
+    if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Guardando...';
+        btn.disabled = true;
+        btn.classList.add('opacity-75', 'cursor-not-allowed');
     }
 
     const getCleanVal = (id) => {
@@ -52,12 +54,41 @@ function savePDFSettings() {
     data.append('ebook_font_size_content', getCleanVal('setting-ebook-font-size-content'));
     data.append('ebook_font_weight_content', document.getElementById('setting-ebook-font-weight-content').value);
     data.append('ebook_line_height_content', getCleanVal('setting-ebook-line-height-content'));
-    data.append('ebook_font_family_headings', document.getElementById('setting-ebook-font-family-headings').value);
-    data.append('ebook_font_size_headings', getCleanVal('setting-ebook-font-size-headings'));
-    data.append('ebook_font_weight_headings', document.getElementById('setting-ebook-font-weight-headings').value);
-    data.append('ebook_line_height_headings', getCleanVal('setting-ebook-line-height-headings'));
-    data.append('ebook_text_align_justify', document.getElementById('setting-ebook-text-align-justify').checked ? 1 : 0);
-    data.append('ebook_hyphenation', document.getElementById('setting-ebook-hyphenation').checked ? 1 : 0);
+    data.append('ebook_font_family_headings', document.getElementById('setting-ebook-chapter-title-font-family')?.value || '');
+    data.append('ebook_font_size_headings', getCleanVal('setting-ebook-chapter-title-font-size'));
+    data.append('ebook_font_weight_headings', document.getElementById('setting-ebook-chapter-title-font-weight')?.value || '');
+    data.append('ebook_line_height_headings', getCleanVal('setting-ebook-chapter-title-line-height'));
+    
+    data.append('ebook_chapter_title_align', getCleanVal('setting-ebook-chapter-title-align'));
+    data.append('ebook_chapter_title_text_transform', getCleanVal('setting-ebook-chapter-title-text-transform'));
+    data.append('ebook_chapter_title_padding_top', getCleanVal('setting-ebook-chapter-title-padding-top'));
+    data.append('ebook_chapter_title_padding_bottom', getCleanVal('setting-ebook-chapter-title-padding-bottom'));
+    data.append('ebook_chapter_title_padding_left', getCleanVal('setting-ebook-chapter-title-padding-left'));
+    data.append('ebook_chapter_title_padding_right', getCleanVal('setting-ebook-chapter-title-padding-right'));
+
+    data.append('ebook_subtitle_show', document.getElementById('setting-ebook-chapter-subtitle-show')?.checked ? 1 : 0);
+    data.append('ebook_subtitle_font_family', document.getElementById('setting-ebook-chapter-subtitle-font-family')?.value || '');
+    data.append('ebook_subtitle_font_size', getCleanVal('setting-ebook-chapter-subtitle-font-size'));
+    data.append('ebook_subtitle_align', document.getElementById('setting-ebook-chapter-subtitle-align')?.value || '');
+    data.append('ebook_subtitle_font_style', document.getElementById('setting-ebook-chapter-subtitle-font-style')?.value || '');
+    data.append('ebook_subtitle_text_transform', document.getElementById('setting-ebook-chapter-subtitle-text-transform')?.value || '');
+    data.append('ebook_subtitle_font_weight', document.getElementById('setting-ebook-chapter-subtitle-font-weight')?.value || '');
+    data.append('ebook_subtitle_padding_top', getCleanVal('setting-ebook-chapter-subtitle-padding-top'));
+    data.append('ebook_subtitle_padding_bottom', getCleanVal('setting-ebook-chapter-subtitle-padding-bottom'));
+    data.append('ebook_subtitle_letter_spacing', getCleanVal('setting-ebook-chapter-subtitle-letter-spacing'));
+
+    data.append('ebook_chapter_prefix_show', document.getElementById('setting-ebook-chapter-prefix-show')?.checked ? 1 : 0);
+    data.append('ebook_chapter_prefix_template', document.getElementById('setting-ebook-chapter-prefix-template')?.value || '');
+    data.append('ebook_chapter_prefix_position', document.getElementById('setting-ebook-chapter-prefix-position')?.value || 'above');
+    data.append('ebook_chapter_prefix_font_family', document.getElementById('setting-ebook-chapter-prefix-font-family')?.value || 'Playfair Display');
+    data.append('ebook_chapter_prefix_font_size', getCleanVal('setting-ebook-chapter-prefix-font-size'));
+    data.append('ebook_chapter_prefix_font_weight', document.getElementById('setting-ebook-chapter-prefix-font-weight')?.value || 'normal');
+    data.append('ebook_chapter_prefix_font_style', document.getElementById('setting-ebook-chapter-prefix-font-style')?.value || 'normal');
+    data.append('ebook_chapter_prefix_letter_spacing', getCleanVal('setting-ebook-chapter-prefix-letter-spacing'));
+    data.append('ebook_chapter_prefix_ornament', document.getElementById('setting-ebook-chapter-prefix-ornament')?.value || 'none');
+
+    data.append('ebook_text_align_justify', document.getElementById('setting-ebook-text-align-justify')?.checked ? 1 : 0);
+    data.append('ebook_hyphenation', document.getElementById('setting-ebook-hyphenation')?.checked ? 1 : 0);
 
     // Tipografía
     data.append('font_family_content', document.getElementById('setting-font-family-content').value);
@@ -111,7 +142,6 @@ function savePDFSettings() {
     // Capítulos
     data.append('chapter_start_parity', document.getElementById('setting-chapter-start-parity').value);
 
-    data.append('chapter_page_one_align', document.getElementById('setting-chapter-page-one-align').value);
     data.append('chapter_page_one_vertical', document.getElementById('setting-chapter-page-one-vertical').value);
     data.append('chapter_title_font_family', document.getElementById('setting-chapter-title-font-family').value);
     data.append('chapter_title_font_size', getCleanVal('setting-chapter-title-font-size'));
@@ -125,6 +155,17 @@ function savePDFSettings() {
     data.append('chapter_title_padding_right', getCleanVal('setting-chapter-title-padding-right'));
     data.append('chapter_title_line_height', getCleanVal('setting-chapter-title-line-height'));
 
+    data.append('chapter_subtitle_show', document.getElementById('setting-chapter-subtitle-show')?.checked ? 1 : 0);
+    data.append('chapter_subtitle_font_family', document.getElementById('setting-chapter-subtitle-font-family')?.value || '');
+    data.append('chapter_subtitle_font_size', getCleanVal('setting-chapter-subtitle-font-size'));
+    data.append('chapter_subtitle_align', document.getElementById('setting-chapter-subtitle-align')?.value || '');
+    data.append('chapter_subtitle_font_style', document.getElementById('setting-chapter-subtitle-font-style')?.value || '');
+    data.append('chapter_subtitle_text_transform', document.getElementById('setting-chapter-subtitle-text-transform')?.value || '');
+    data.append('chapter_subtitle_font_weight', document.getElementById('setting-chapter-subtitle-font-weight')?.value || '');
+    data.append('chapter_subtitle_margin_top', getCleanVal('setting-chapter-subtitle-margin-top'));
+    data.append('chapter_subtitle_margin_bottom', getCleanVal('setting-chapter-subtitle-margin-bottom'));
+    data.append('chapter_subtitle_letter_spacing', getCleanVal('setting-chapter-subtitle-letter-spacing'));
+
     data.append('chapter_prefix_show', document.getElementById('setting-chapter-prefix-show').checked ? 1 : 0);
     data.append('chapter_prefix_template', document.getElementById('setting-chapter-prefix-template').value);
     data.append('chapter_prefix_position', document.getElementById('setting-chapter-prefix-position').value);
@@ -134,6 +175,18 @@ function savePDFSettings() {
     data.append('chapter_prefix_font_style', document.getElementById('setting-chapter-prefix-font-style').value);
     data.append('chapter_prefix_letter_spacing', getCleanVal('setting-chapter-prefix-letter-spacing'));
     data.append('chapter_prefix_ornament', document.getElementById('setting-chapter-prefix-ornament').value);
+
+    // Ebook Subtitle Settings
+    data.append('ebook_subtitle_show', document.getElementById('setting-ebook-chapter-subtitle-show')?.checked ? 1 : 0);
+    data.append('ebook_subtitle_font_family', document.getElementById('setting-ebook-chapter-subtitle-font-family')?.value || '');
+    data.append('ebook_subtitle_font_size', getCleanVal('setting-ebook-chapter-subtitle-font-size'));
+    data.append('ebook_subtitle_align', document.getElementById('setting-ebook-chapter-subtitle-align')?.value || '');
+    data.append('ebook_subtitle_font_style', document.getElementById('setting-ebook-chapter-subtitle-font-style')?.value || '');
+    data.append('ebook_subtitle_text_transform', document.getElementById('setting-ebook-chapter-subtitle-text-transform')?.value || '');
+    data.append('ebook_subtitle_font_weight', document.getElementById('setting-ebook-chapter-subtitle-font-weight')?.value || '');
+    data.append('ebook_subtitle_padding_top', getCleanVal('setting-ebook-chapter-subtitle-padding-top'));
+    data.append('ebook_subtitle_padding_bottom', getCleanVal('setting-ebook-chapter-subtitle-padding-bottom'));
+    data.append('ebook_subtitle_letter_spacing', getCleanVal('setting-ebook-chapter-subtitle-letter-spacing'));
 
     // Créditos
     data.append('credits_edition', document.getElementById('setting-credits-edition').value);
@@ -151,9 +204,10 @@ function savePDFSettings() {
     .then(response => response.json())
     .then(res => {
         if (res.success) {
-            if (statusIndicator) {
-                statusIndicator.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-xs mr-1"></i> Guardado';
-                statusIndicator.className = 'flex items-center gap-1 font-semibold text-emerald-600';
+            if (btn) {
+                btn.innerHTML = originalBtnText;
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
             }
             
             bookState.settings = {
@@ -186,12 +240,39 @@ function savePDFSettings() {
                 ebook_font_size_content: parseVal('setting-ebook-font-size-content', 18.0),
                 ebook_font_weight_content: document.getElementById('setting-ebook-font-weight-content').value,
                 ebook_line_height_content: parseVal('setting-ebook-line-height-content', 1.8),
-                ebook_font_family_headings: document.getElementById('setting-ebook-font-family-headings').value,
-                ebook_font_size_headings: parseVal('setting-ebook-font-size-headings', 32.0),
-                ebook_font_weight_headings: document.getElementById('setting-ebook-font-weight-headings').value,
-                ebook_line_height_headings: parseVal('setting-ebook-line-height-headings', 1.3),
-                ebook_text_align_justify: document.getElementById('setting-ebook-text-align-justify').checked ? 1 : 0,
-                ebook_hyphenation: document.getElementById('setting-ebook-hyphenation').checked ? 1 : 0,
+                ebook_font_family_headings: document.getElementById('setting-ebook-chapter-title-font-family') ? document.getElementById('setting-ebook-chapter-title-font-family').value : '',
+                ebook_font_size_headings: parseVal('setting-ebook-chapter-title-font-size', 32),
+                ebook_font_weight_headings: document.getElementById('setting-ebook-chapter-title-font-weight') ? document.getElementById('setting-ebook-chapter-title-font-weight').value : 'bold',
+                ebook_line_height_headings: parseVal('setting-ebook-chapter-title-line-height', 1.3),
+                ebook_chapter_title_align: document.getElementById('setting-ebook-chapter-title-align') ? document.getElementById('setting-ebook-chapter-title-align').value : 'center',
+                ebook_chapter_title_text_transform: document.getElementById('setting-ebook-chapter-title-text-transform') ? document.getElementById('setting-ebook-chapter-title-text-transform').value : 'none',
+                ebook_chapter_title_padding_top: parseVal('setting-ebook-chapter-title-padding-top', 2),
+                ebook_chapter_title_padding_bottom: parseVal('setting-ebook-chapter-title-padding-bottom', 2),
+                ebook_chapter_title_padding_left: parseVal('setting-ebook-chapter-title-padding-left', 0),
+                ebook_chapter_title_padding_right: parseVal('setting-ebook-chapter-title-padding-right', 0),
+
+                ebook_subtitle_show: document.getElementById('setting-ebook-chapter-subtitle-show')?.checked ? 1 : 0,
+                ebook_subtitle_font_family: document.getElementById('setting-ebook-chapter-subtitle-font-family')?.value || '',
+                ebook_subtitle_font_size: parseVal('setting-ebook-chapter-subtitle-font-size', 18),
+                ebook_subtitle_align: document.getElementById('setting-ebook-chapter-subtitle-align')?.value || 'center',
+                ebook_subtitle_font_style: document.getElementById('setting-ebook-chapter-subtitle-font-style')?.value || 'normal',
+                ebook_subtitle_text_transform: document.getElementById('setting-ebook-chapter-subtitle-text-transform')?.value || 'none',
+                ebook_subtitle_font_weight: document.getElementById('setting-ebook-chapter-subtitle-font-weight')?.value || 'normal',
+                ebook_subtitle_padding_top: parseVal('setting-ebook-chapter-subtitle-padding-top', 0.5),
+                ebook_subtitle_padding_bottom: parseVal('setting-ebook-chapter-subtitle-padding-bottom', 0.5),
+                ebook_subtitle_letter_spacing: parseVal('setting-ebook-chapter-subtitle-letter-spacing', 0),
+
+                ebook_chapter_prefix_show: document.getElementById('setting-ebook-chapter-prefix-show') && document.getElementById('setting-ebook-chapter-prefix-show').checked ? 1 : 0,
+                ebook_chapter_prefix_template: document.getElementById('setting-ebook-chapter-prefix-template') ? document.getElementById('setting-ebook-chapter-prefix-template').value : 'Capítulo {N}',
+                ebook_chapter_prefix_position: document.getElementById('setting-ebook-chapter-prefix-position') ? document.getElementById('setting-ebook-chapter-prefix-position').value : 'above',
+                ebook_chapter_prefix_font_family: document.getElementById('setting-ebook-chapter-prefix-font-family') ? document.getElementById('setting-ebook-chapter-prefix-font-family').value : 'Playfair Display',
+                ebook_chapter_prefix_font_size: parseVal('setting-ebook-chapter-prefix-font-size', 16),
+                ebook_chapter_prefix_font_weight: document.getElementById('setting-ebook-chapter-prefix-font-weight') ? document.getElementById('setting-ebook-chapter-prefix-font-weight').value : 'normal',
+                ebook_chapter_prefix_font_style: document.getElementById('setting-ebook-chapter-prefix-font-style') ? document.getElementById('setting-ebook-chapter-prefix-font-style').value : 'normal',
+                ebook_chapter_prefix_letter_spacing: parseVal('setting-ebook-chapter-prefix-letter-spacing', 0),
+                ebook_chapter_prefix_ornament: document.getElementById('setting-ebook-chapter-prefix-ornament') ? document.getElementById('setting-ebook-chapter-prefix-ornament').value : 'none',
+                ebook_text_align_justify: document.getElementById('setting-ebook-text-align-justify') && document.getElementById('setting-ebook-text-align-justify').checked ? 1 : 0,
+                ebook_hyphenation: document.getElementById('setting-ebook-hyphenation') && document.getElementById('setting-ebook-hyphenation').checked ? 1 : 0,
 
                 font_family_content: document.getElementById('setting-font-family-content').value,
                 font_size_content: parseVal('setting-font-size-content', 11.5),
@@ -242,7 +323,6 @@ function savePDFSettings() {
 
                 chapter_start_parity: document.getElementById('setting-chapter-start-parity').value,
 
-                chapter_page_one_align: document.getElementById('setting-chapter-page-one-align').value,
                 chapter_page_one_vertical: document.getElementById('setting-chapter-page-one-vertical').value,
                 chapter_title_font_family: document.getElementById('setting-chapter-title-font-family').value,
                 chapter_title_font_size: parseVal('setting-chapter-title-font-size', 24),
@@ -254,7 +334,18 @@ function savePDFSettings() {
                 chapter_title_padding_bottom: parseVal('setting-chapter-title-padding-bottom', 1.5),
                 chapter_title_padding_left: parseVal('setting-chapter-title-padding-left', 0),
                 chapter_title_padding_right: parseVal('setting-chapter-title-padding-right', 0),
-                chapter_title_line_height: parseVal('setting-chapter-title-line-height', 1.2),
+                chapter_title_line_height: parseVal('setting-chapter-title-line-height', 1.3),
+                
+                chapter_subtitle_show: document.getElementById('setting-chapter-subtitle-show')?.checked ? 1 : 0,
+                chapter_subtitle_font_family: document.getElementById('setting-chapter-subtitle-font-family')?.value || '',
+                chapter_subtitle_font_size: parseVal('setting-chapter-subtitle-font-size', 16),
+                chapter_subtitle_align: document.getElementById('setting-chapter-subtitle-align')?.value || 'center',
+                chapter_subtitle_font_style: document.getElementById('setting-chapter-subtitle-font-style')?.value || 'normal',
+                chapter_subtitle_text_transform: document.getElementById('setting-chapter-subtitle-text-transform')?.value || 'none',
+                chapter_subtitle_font_weight: document.getElementById('setting-chapter-subtitle-font-weight')?.value || 'normal',
+                chapter_subtitle_margin_top: parseVal('setting-chapter-subtitle-margin-top', 0.5),
+                chapter_subtitle_margin_bottom: parseVal('setting-chapter-subtitle-margin-bottom', 0.5),
+                chapter_subtitle_letter_spacing: parseVal('setting-chapter-subtitle-letter-spacing', 0),
 
                 chapter_prefix_show: document.getElementById('setting-chapter-prefix-show').checked ? 1 : 0,
                 chapter_prefix_template: document.getElementById('setting-chapter-prefix-template').value,
@@ -278,21 +369,54 @@ function savePDFSettings() {
             if (typeof applyDynamicPDFStyles === 'function') applyDynamicPDFStyles();
             if (typeof compilePDFPreview === 'function') compilePDFPreview(); // RECOMPILAR PDF con los nuevos márgenes/anchos
             if (typeof updateParityButtonVisibility === 'function') updateParityButtonVisibility();
-            toggleSettingsModal(false);
-            showToast("Configuración del PDF guardada", "fa-solid fa-circle-check");
+
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Guardado';
+                btn.classList.replace('bg-indigo-600', 'bg-emerald-600');
+                btn.classList.replace('hover:bg-indigo-700', 'hover:bg-emerald-700');
+            }
+
+            setTimeout(() => {
+                toggleSettingsModal(false);
+                showToast("Configuración del PDF guardada", "fa-solid fa-circle-check");
+
+                if (btn) {
+                    btn.innerHTML = originalBtnText;
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                    btn.classList.replace('bg-emerald-600', 'bg-indigo-600');
+                    btn.classList.replace('hover:bg-emerald-700', 'hover:bg-indigo-700');
+                }
+            }, 800);
         } else {
-            if (statusIndicator) {
-                statusIndicator.innerHTML = '<i class="fa-solid fa-circle-exclamation text-xs mr-1"></i> Error';
-                statusIndicator.className = 'flex items-center gap-1 font-semibold text-rose-600';
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-circle-exclamation mr-1"></i> Error';
+                btn.classList.replace('bg-indigo-600', 'bg-rose-600');
+                btn.classList.replace('hover:bg-indigo-700', 'hover:bg-rose-700');
+                setTimeout(() => {
+                    btn.innerHTML = originalBtnText;
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                    btn.classList.replace('bg-rose-600', 'bg-indigo-600');
+                    btn.classList.replace('hover:bg-rose-700', 'hover:bg-indigo-700');
+                }, 3000);
             }
             alert("Error al guardar: " + res.data);
         }
     })
     .catch(err => {
         console.error(err);
-        if (statusIndicator) {
-            statusIndicator.innerHTML = '<i class="fa-solid fa-wifi text-xs mr-1"></i> Error red';
-            statusIndicator.className = 'flex items-center gap-1 font-semibold text-rose-600';
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-wifi mr-1"></i> Error red';
+            btn.classList.replace('bg-indigo-600', 'bg-rose-600');
+            btn.classList.replace('hover:bg-indigo-700', 'hover:bg-rose-700');
+            setTimeout(() => {
+                btn.innerHTML = originalBtnText;
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                btn.classList.replace('bg-rose-600', 'bg-indigo-600');
+                btn.classList.replace('hover:bg-rose-700', 'hover:bg-indigo-700');
+            }, 3000);
         }
     });
 }

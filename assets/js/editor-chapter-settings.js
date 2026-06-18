@@ -240,27 +240,54 @@ function saveChapterSettings() {
         activeChapter.subtitle_margin_bottom = document.getElementById('chapter_subtitle_margin_bottom').value;
     }
 
-    // Cerrar modal
-    closeChapterSettingsModal();
+    const btn = document.querySelector('#chapter-settings-modal button[onclick="saveChapterSettings()"]');
+    const originalBtnText = btn ? btn.innerHTML : '<i class="fa-solid fa-check"></i> Aplicar al Capítulo';
 
-    // Re-renderizar el PDF para reflejar cambios
-    if (typeof compilePDFPreview === 'function') {
-        compilePDFPreview();
+    if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+        btn.disabled = true;
+        btn.classList.add('opacity-75', 'cursor-not-allowed');
     }
 
-    // Marcar como pendiente de guardado y forzar actualización del PDF
-    if (typeof saveStateToLocalStorage === 'function') {
-        saveStateToLocalStorage();
-    }
-    
-    // Si la función está disponible (debería), compilar para reflejar cambios
-    if (typeof compilePDFPreview === 'function') {
-        compilePDFPreview();
-    }
-    
-    if (typeof showToast === 'function') {
-        showToast("Configuración del capítulo actualizada.", "fa-solid fa-check");
-    }
+    // Cerrar modal después de un pequeño retraso para mostrar el estado
+    setTimeout(() => {
+        if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Guardado';
+            btn.classList.replace('bg-indigo-600', 'bg-emerald-600');
+            btn.classList.replace('hover:bg-indigo-700', 'hover:bg-emerald-700');
+        }
+
+        setTimeout(() => {
+            closeChapterSettingsModal();
+
+            if (btn) {
+                btn.innerHTML = originalBtnText;
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                btn.classList.replace('bg-emerald-600', 'bg-indigo-600');
+                btn.classList.replace('hover:bg-emerald-700', 'hover:bg-indigo-700');
+            }
+
+            // Re-renderizar el PDF para reflejar cambios
+            if (typeof compilePDFPreview === 'function') {
+                compilePDFPreview();
+            }
+
+            // Marcar como pendiente de guardado y forzar actualización del PDF
+            if (typeof saveStateToLocalStorage === 'function') {
+                saveStateToLocalStorage();
+            }
+            
+            // Si la función está disponible (debería), compilar para reflejar cambios
+            if (typeof compilePDFPreview === 'function') {
+                compilePDFPreview();
+            }
+            
+            if (typeof showToast === 'function') {
+                showToast("Configuración del capítulo actualizada.", "fa-solid fa-check");
+            }
+        }, 500);
+    }, 300); // Pequeño retraso simulado ya que es síncrono localmente
 }
 
 function toggleChapterCustomFirstPageHeader() {

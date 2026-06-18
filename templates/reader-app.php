@@ -32,8 +32,20 @@ if ( $chapters_query->have_posts() ) {
 			'title'      => get_the_title(),
 			'content'    => get_the_content(),
 			'page'       => $page_counter,
-			'hide_title' => get_post_meta( get_the_ID(), '_almaden_chapter_hide_title', true ),
+			'hide_title' => get_post_meta( get_the_ID(), '_hide_title', true ),
 			'is_toc'     => get_post_meta( get_the_ID(), '_is_toc', true ),
+			'is_credits' => get_post_meta( get_the_ID(), '_is_credits', true ),
+			'exclude_from_numbering' => get_post_meta( get_the_ID(), '_exclude_from_numbering', true ),
+			'subtitle_text'            => get_post_meta( get_the_ID(), '_subtitle_text', true ),
+			'subtitle_font_family'     => get_post_meta( get_the_ID(), '_subtitle_font_family', true ),
+			'subtitle_align'           => get_post_meta( get_the_ID(), '_subtitle_align', true ),
+			'subtitle_font_size'       => get_post_meta( get_the_ID(), '_subtitle_font_size', true ),
+			'subtitle_letter_spacing'  => get_post_meta( get_the_ID(), '_subtitle_letter_spacing', true ),
+			'subtitle_font_style'      => get_post_meta( get_the_ID(), '_subtitle_font_style', true ),
+			'subtitle_text_transform'  => get_post_meta( get_the_ID(), '_subtitle_text_transform', true ),
+			'subtitle_font_weight'     => get_post_meta( get_the_ID(), '_subtitle_font_weight', true ),
+			'subtitle_margin_top'      => get_post_meta( get_the_ID(), '_subtitle_margin_top', true ),
+			'subtitle_margin_bottom'   => get_post_meta( get_the_ID(), '_subtitle_margin_bottom', true ),
 		);
 		$page_counter++;
 	}
@@ -42,7 +54,7 @@ if ( $chapters_query->have_posts() ) {
 
 // Fetch global book settings
 $source_book_id = get_post_meta( $book_id, '_almaden_source_book_id', true );
-$settings_book_id = !empty($source_book_id) ? $source_book_id : $book_id;
+$settings_book_id = $book_id;
 $book_settings = function_exists('almaden_get_book_pdf_settings') ? almaden_get_book_pdf_settings( $settings_book_id ) : array();
 error_log("ALMADEN_READER_SETTINGS: " . print_r($book_settings, true));
 error_log("ALMADEN_READER_BOOK_ID: " . $book_id);
@@ -175,11 +187,7 @@ $book_data_json = wp_json_encode( array(
                         <div class="w-px h-4 bg-gray-300"></div>
                         <button onclick="changeFontSize(1)" class="flex-1 py-1 text-center hover:bg-white hover:shadow-sm rounded transition-all text-lg font-medium">A+</button>
                     </div>
-                    <div class="flex justify-between items-center bg-gray-100 rounded p-1 text-sm">
-                        <button onclick="changeFontFamily('serif')" class="flex-1 py-1 text-center hover:bg-white hover:shadow-sm rounded transition-all font-serif">Serif</button>
-                        <div class="w-px h-4 bg-gray-300"></div>
-                        <button onclick="changeFontFamily('sans-serif')" class="flex-1 py-1 text-center hover:bg-white hover:shadow-sm rounded transition-all font-sans">Sans</button>
-                    </div>
+
                     <div class="flex justify-between items-center bg-gray-100 rounded p-1 text-sm text-gray-600">
                         <button onclick="changeLineHeight(-0.1)" class="flex-1 py-1 text-center hover:bg-white hover:shadow-sm rounded transition-all" title="Reducir interlineado"><i class="fa-solid fa-compress"></i></button>
                         <div class="w-px h-4 bg-gray-300"></div>
@@ -243,6 +251,7 @@ $book_data_json = wp_json_encode( array(
 
     <script src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) . 'assets/js/reader-prefs.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../assets/js/reader-prefs.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) . 'assets/js/reader-styles.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../assets/js/reader-styles.js' ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) . 'assets/js/almaden-shortcodes.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../assets/js/almaden-shortcodes.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) . 'assets/js/reader-navigation.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../assets/js/reader-navigation.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) . 'assets/js/reader-app.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../assets/js/reader-app.js' ); ?>"></script>
 </body>

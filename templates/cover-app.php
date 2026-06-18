@@ -117,7 +117,7 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
     <!-- Navbar -->
     <nav class="h-16 bg-white border-b border-gray-200 px-4 flex items-center justify-between shrink-0 z-10 relative shadow-sm">
         <div class="flex items-center gap-4">
-            <a href="<?php echo esc_url( home_url( '/almaden-booklist/' ) ); ?>" class="text-gray-500 hover:text-black transition flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100" title="Volver a Mis Libros">
+            <a href="<?php echo esc_url( home_url( '/almaden-booklist/' ) ); ?>" class="text-gray-500 hover:text-black transition flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100" title="Volver a Taller">
                 <i class="fa-solid fa-arrow-left"></i>
             </a>
             <div>

@@ -148,7 +148,7 @@ window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter
     
     if (isFirstPageOfChapter) {
         contentClass += ' chapter-first-page';
-        const align = (isToc && chapter.toc_title_align) ? chapter.toc_title_align : (settings.chapter_page_one_align || 'center');
+        const align = (isToc && chapter.toc_title_align) ? chapter.toc_title_align : (settings.chapter_title_align || 'center');
         contentStyle += ` text-align: ${align};`;
         if (pageOneVertical === 'half' || pageOneVertical === 'center') {
             contentClass += ' flex flex-col justify-center';

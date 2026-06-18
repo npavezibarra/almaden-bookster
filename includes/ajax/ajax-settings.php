@@ -50,6 +50,21 @@ function almaden_bookster_save_settings_ajax() {
 		'ebook_line_height_headings' => isset($_POST['ebook_line_height_headings']) ? floatval(str_replace(',', '.', $_POST['ebook_line_height_headings'])) : 1.3,
 		'ebook_text_align_justify'   => isset($_POST['ebook_text_align_justify']) ? intval($_POST['ebook_text_align_justify']) : 0,
 		'ebook_hyphenation'          => isset($_POST['ebook_hyphenation']) ? intval($_POST['ebook_hyphenation']) : 0,
+		'ebook_chapter_title_align'  => isset($_POST['ebook_chapter_title_align']) ? sanitize_text_field($_POST['ebook_chapter_title_align']) : 'center',
+		'ebook_chapter_title_text_transform' => isset($_POST['ebook_chapter_title_text_transform']) ? sanitize_text_field($_POST['ebook_chapter_title_text_transform']) : 'none',
+		'ebook_chapter_title_padding_top' => isset($_POST['ebook_chapter_title_padding_top']) ? floatval(str_replace(',', '.', $_POST['ebook_chapter_title_padding_top'])) : 2.0,
+		'ebook_chapter_title_padding_bottom' => isset($_POST['ebook_chapter_title_padding_bottom']) ? floatval(str_replace(',', '.', $_POST['ebook_chapter_title_padding_bottom'])) : 2.0,
+		'ebook_chapter_title_padding_left' => isset($_POST['ebook_chapter_title_padding_left']) ? floatval(str_replace(',', '.', $_POST['ebook_chapter_title_padding_left'])) : 0.0,
+		'ebook_chapter_title_padding_right' => isset($_POST['ebook_chapter_title_padding_right']) ? floatval(str_replace(',', '.', $_POST['ebook_chapter_title_padding_right'])) : 0.0,
+		'ebook_chapter_prefix_show'  => isset($_POST['ebook_chapter_prefix_show']) ? intval($_POST['ebook_chapter_prefix_show']) : 0,
+		'ebook_chapter_prefix_template' => isset($_POST['ebook_chapter_prefix_template']) ? sanitize_text_field($_POST['ebook_chapter_prefix_template']) : 'Capítulo {N}',
+		'ebook_chapter_prefix_position' => isset($_POST['ebook_chapter_prefix_position']) ? sanitize_text_field($_POST['ebook_chapter_prefix_position']) : 'above',
+		'ebook_chapter_prefix_font_family' => isset($_POST['ebook_chapter_prefix_font_family']) ? sanitize_text_field($_POST['ebook_chapter_prefix_font_family']) : 'Playfair Display',
+		'ebook_chapter_prefix_font_size' => isset($_POST['ebook_chapter_prefix_font_size']) ? floatval(str_replace(',', '.', $_POST['ebook_chapter_prefix_font_size'])) : 16.0,
+		'ebook_chapter_prefix_font_weight' => isset($_POST['ebook_chapter_prefix_font_weight']) ? sanitize_text_field($_POST['ebook_chapter_prefix_font_weight']) : 'normal',
+		'ebook_chapter_prefix_font_style' => isset($_POST['ebook_chapter_prefix_font_style']) ? sanitize_text_field($_POST['ebook_chapter_prefix_font_style']) : 'normal',
+		'ebook_chapter_prefix_letter_spacing' => isset($_POST['ebook_chapter_prefix_letter_spacing']) ? floatval(str_replace(',', '.', $_POST['ebook_chapter_prefix_letter_spacing'])) : 0.0,
+		'ebook_chapter_prefix_ornament' => isset($_POST['ebook_chapter_prefix_ornament']) ? sanitize_text_field($_POST['ebook_chapter_prefix_ornament']) : 'none',
 		'font_family_content'        => sanitize_text_field( $_POST['font_family_content'] ),
 		'font_size_content'          => floatval( str_replace( ',', '.', $_POST['font_size_content'] ) ),
 		'font_weight_content'        => sanitize_text_field( $_POST['font_weight_content'] ),
@@ -144,6 +159,31 @@ function almaden_bookster_save_settings_ajax() {
 		$custom_credits = isset($_POST['credits_custom']) ? json_decode(wp_unslash($_POST['credits_custom']), true) : [];
 		update_post_meta( $book_id, '_almaden_credits_custom', wp_json_encode($custom_credits) );
 
+		// Guardar configuraciones globales de subtítulo en post_meta para PDF y Ebook
+		$subtitle_fields = [
+			'chapter_subtitle_show', 'chapter_subtitle_font_family', 'chapter_subtitle_font_size',
+			'chapter_subtitle_align', 'chapter_subtitle_font_style', 'chapter_subtitle_text_transform',
+			'chapter_subtitle_font_weight', 'chapter_subtitle_margin_top', 'chapter_subtitle_margin_bottom',
+			'chapter_subtitle_letter_spacing',
+			'ebook_subtitle_show', 'ebook_subtitle_font_family', 'ebook_subtitle_font_size',
+			'ebook_subtitle_align', 'ebook_subtitle_font_style', 'ebook_subtitle_text_transform',
+			'ebook_subtitle_font_weight', 'ebook_subtitle_padding_top', 'ebook_subtitle_padding_bottom',
+			'ebook_subtitle_letter_spacing'
+		];
+		foreach ($subtitle_fields as $field) {
+			if (isset($_POST[$field])) {
+				$val = $_POST[$field];
+				if (in_array($field, ['chapter_subtitle_show', 'ebook_subtitle_show'])) {
+					$val = intval($val);
+				} elseif (strpos($field, '_margin_') !== false || strpos($field, '_padding_') !== false || strpos($field, '_font_size') !== false || strpos($field, '_letter_spacing') !== false) {
+					$val = floatval(str_replace(',', '.', $val));
+				} else {
+					$val = sanitize_text_field($val);
+				}
+				update_post_meta($book_id, '_almaden_' . $field, $val);
+			}
+		}
+
 		wp_send_json_success( array( 'message' => 'Configuración de maquetación guardada con éxito.' ) );
 	} else {
 		wp_send_json_error( 'Error al guardar la configuración.' );
@@ -196,6 +236,21 @@ function almaden_get_book_pdf_settings( $book_id ) {
 		'ebook_line_height_headings' => 1.3,
 		'ebook_text_align_justify'   => 0,
 		'ebook_hyphenation'          => 0,
+		'ebook_chapter_title_align'  => 'center',
+		'ebook_chapter_title_text_transform' => 'none',
+		'ebook_chapter_title_padding_top' => 2.0,
+		'ebook_chapter_title_padding_bottom' => 2.0,
+		'ebook_chapter_title_padding_left' => 0.0,
+		'ebook_chapter_title_padding_right' => 0.0,
+		'ebook_chapter_prefix_show'  => 0,
+		'ebook_chapter_prefix_template' => 'Capítulo {N}',
+		'ebook_chapter_prefix_position' => 'above',
+		'ebook_chapter_prefix_font_family' => 'Playfair Display',
+		'ebook_chapter_prefix_font_size' => 16.0,
+		'ebook_chapter_prefix_font_weight' => 'normal',
+		'ebook_chapter_prefix_font_style' => 'normal',
+		'ebook_chapter_prefix_letter_spacing' => 0.0,
+		'ebook_chapter_prefix_ornament' => 'none',
 		'font_family_content'        => 'Merriweather',
 		'font_size_content'          => 11.5,
 		'font_weight_content'        => 'normal',
@@ -296,6 +351,35 @@ function almaden_get_book_pdf_settings( $book_id ) {
 	$pdf_settings['credits_blank_before'] = (int) get_post_meta( $book_id, '_almaden_credits_blank_before', true );
 	$pdf_settings['credits_blank_after'] = (int) get_post_meta( $book_id, '_almaden_credits_blank_after', true );
 	$pdf_settings['credits_custom'] = get_post_meta( $book_id, '_almaden_credits_custom', true ) ?: '[]';
+
+	// Cargar configuración de subtítulos
+	$pdf_settings['chapter_subtitle_show'] = get_post_meta( $book_id, '_almaden_chapter_subtitle_show', true );
+	if ($pdf_settings['chapter_subtitle_show'] === '') $pdf_settings['chapter_subtitle_show'] = 1;
+	$pdf_settings['chapter_subtitle_font_family'] = get_post_meta( $book_id, '_almaden_chapter_subtitle_font_family', true );
+	$pdf_settings['chapter_subtitle_font_size'] = get_post_meta( $book_id, '_almaden_chapter_subtitle_font_size', true ) ?: 16;
+	$pdf_settings['chapter_subtitle_align'] = get_post_meta( $book_id, '_almaden_chapter_subtitle_align', true ) ?: 'center';
+	$pdf_settings['chapter_subtitle_font_style'] = get_post_meta( $book_id, '_almaden_chapter_subtitle_font_style', true ) ?: 'normal';
+	$pdf_settings['chapter_subtitle_text_transform'] = get_post_meta( $book_id, '_almaden_chapter_subtitle_text_transform', true ) ?: 'none';
+	$pdf_settings['chapter_subtitle_font_weight'] = get_post_meta( $book_id, '_almaden_chapter_subtitle_font_weight', true ) ?: 'normal';
+	$pdf_settings['chapter_subtitle_margin_top'] = get_post_meta( $book_id, '_almaden_chapter_subtitle_margin_top', true );
+	if ($pdf_settings['chapter_subtitle_margin_top'] === '') $pdf_settings['chapter_subtitle_margin_top'] = 0.5;
+	$pdf_settings['chapter_subtitle_margin_bottom'] = get_post_meta( $book_id, '_almaden_chapter_subtitle_margin_bottom', true );
+	if ($pdf_settings['chapter_subtitle_margin_bottom'] === '') $pdf_settings['chapter_subtitle_margin_bottom'] = 0.5;
+	$pdf_settings['chapter_subtitle_letter_spacing'] = get_post_meta( $book_id, '_almaden_chapter_subtitle_letter_spacing', true ) ?: 0;
+
+	$pdf_settings['ebook_subtitle_show'] = get_post_meta( $book_id, '_almaden_ebook_subtitle_show', true );
+	if ($pdf_settings['ebook_subtitle_show'] === '') $pdf_settings['ebook_subtitle_show'] = 1;
+	$pdf_settings['ebook_subtitle_font_family'] = get_post_meta( $book_id, '_almaden_ebook_subtitle_font_family', true );
+	$pdf_settings['ebook_subtitle_font_size'] = get_post_meta( $book_id, '_almaden_ebook_subtitle_font_size', true ) ?: 18;
+	$pdf_settings['ebook_subtitle_align'] = get_post_meta( $book_id, '_almaden_ebook_subtitle_align', true ) ?: 'center';
+	$pdf_settings['ebook_subtitle_font_style'] = get_post_meta( $book_id, '_almaden_ebook_subtitle_font_style', true ) ?: 'normal';
+	$pdf_settings['ebook_subtitle_text_transform'] = get_post_meta( $book_id, '_almaden_ebook_subtitle_text_transform', true ) ?: 'none';
+	$pdf_settings['ebook_subtitle_font_weight'] = get_post_meta( $book_id, '_almaden_ebook_subtitle_font_weight', true ) ?: 'normal';
+	$pdf_settings['ebook_subtitle_padding_top'] = get_post_meta( $book_id, '_almaden_ebook_subtitle_padding_top', true );
+	if ($pdf_settings['ebook_subtitle_padding_top'] === '') $pdf_settings['ebook_subtitle_padding_top'] = 0.5;
+	$pdf_settings['ebook_subtitle_padding_bottom'] = get_post_meta( $book_id, '_almaden_ebook_subtitle_padding_bottom', true );
+	if ($pdf_settings['ebook_subtitle_padding_bottom'] === '') $pdf_settings['ebook_subtitle_padding_bottom'] = 0.5;
+	$pdf_settings['ebook_subtitle_letter_spacing'] = get_post_meta( $book_id, '_almaden_ebook_subtitle_letter_spacing', true ) ?: 0;
 
 	return $pdf_settings;
 }

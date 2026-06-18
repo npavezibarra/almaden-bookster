@@ -17,16 +17,7 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
         t = t.replace(/&lt;u&gt;/g, "<u>").replace(/&lt;\/u&gt;/g, "</u>");
         t = t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         t = t.replace(/\*(.*?)\*/g, '<em>$1</em>');
-        t = t.replace(/\[lang:([a-zA-Z]{2})\]([\s\S]*?)\[\/lang\]/g, '<span lang="$1"><em>$2</em></span>');
-        
-        t = t.replace(/\[size=([0-9]+(?:\.[0-9]+)?)(px|pt|em|rem)?\]([\s\S]*?)\[\/size\]/gi, (match, val, unit, content) => {
-            const u = unit || 'px';
-            return `<span style="font-size: ${val}${u};">${content}</span>`;
-        });
-        
-        t = t.replace(/\[font=(?:&quot;|&#039;|"|')([^\]]+?)(?:&quot;|&#039;|"|')\]([\s\S]*?)\[\/font\]/gi, (match, fontName, content) => {
-            return `<span style="font-family: '${fontName}', serif;">${content}</span>`;
-        });
+        t = window.AlmadenShortcodes.parseInline(t);
         
         return t;
     };
@@ -59,58 +50,10 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
     const shortcodePlaceholders = {};
     let scCounter = 0;
 
-    // [box style="..."] ... [/box]
-    cleanMarkdown = cleanMarkdown.replace(/\[box\s*([^\]]*)\]/gi, (match, attrs) => {
+    // Extraer shortcodes estructurales (box, columns, align, gap, pagebreak)
+    cleanMarkdown = window.AlmadenShortcodes.parseStructural(cleanMarkdown, true, (html) => {
         const key = `%%SC_PLACEHOLDER_${scCounter++}%%`;
-        shortcodePlaceholders[key] = `<div class="almaden-box" ${attrs}>`;
-        return key;
-    });
-    cleanMarkdown = cleanMarkdown.replace(/\[\/box\]/gi, () => {
-        const key = `%%SC_PLACEHOLDER_${scCounter++}%%`;
-        shortcodePlaceholders[key] = `</div>`;
-        return key;
-    });
-
-    // [columns style="..."] ... [/columns]
-    cleanMarkdown = cleanMarkdown.replace(/\[columns\s*([^\]]*)\]/gi, (match, attrs) => {
-        const key = `%%SC_PLACEHOLDER_${scCounter++}%%`;
-        shortcodePlaceholders[key] = `<div class="almaden-columns" style="display:flex; gap: 1rem; width: 100%;" ${attrs}>`;
-        return key;
-    });
-    cleanMarkdown = cleanMarkdown.replace(/\[\/columns\]/gi, () => {
-        const key = `%%SC_PLACEHOLDER_${scCounter++}%%`;
-        shortcodePlaceholders[key] = `</div>`;
-        return key;
-    });
-
-    // [col style="..."] ... [/col]
-    cleanMarkdown = cleanMarkdown.replace(/\[col\s*([^\]]*)\]/gi, (match, attrs) => {
-        const key = `%%SC_PLACEHOLDER_${scCounter++}%%`;
-        shortcodePlaceholders[key] = `<div class="almaden-col" style="flex:1;" ${attrs}>`;
-        return key;
-    });
-    cleanMarkdown = cleanMarkdown.replace(/\[\/col\]/gi, () => {
-        const key = `%%SC_PLACEHOLDER_${scCounter++}%%`;
-        shortcodePlaceholders[key] = `</div>`;
-        return key;
-    });
-
-    // [align=center] ... [/align]
-    cleanMarkdown = cleanMarkdown.replace(/\[align=([a-zA-Z]+)\]/gi, (match, align) => {
-        const key = `%%SC_PLACEHOLDER_${scCounter++}%%`;
-        shortcodePlaceholders[key] = `<div class="almaden-align-${align}" style="text-align: ${align};">`;
-        return key;
-    });
-    cleanMarkdown = cleanMarkdown.replace(/\[\/align\]/gi, () => {
-        const key = `%%SC_PLACEHOLDER_${scCounter++}%%`;
-        shortcodePlaceholders[key] = `</div>`;
-        return key;
-    });
-
-    // [page_break] o [pagebreak]
-    cleanMarkdown = cleanMarkdown.replace(/\[page[-_]?break\]/gi, () => {
-        const key = `%%SC_PLACEHOLDER_${scCounter++}%%`;
-        shortcodePlaceholders[key] = `<div class="pdf-page-break"></div>`;
+        shortcodePlaceholders[key] = html;
         return key;
     });
 

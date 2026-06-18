@@ -171,21 +171,146 @@ function showChapterView(index) {
     // Pre-process shortcodes
     let processedContent = chapter.content;
     
-    // Handle [lang:*]...[/lang] shortcodes -> italics
-    processedContent = processedContent.replace(/\[lang:[^\]]+\](.*?)\[\/lang\]/gs, '<i>$1</i>');
+    // Process all inline shortcodes (lang, font, size, etc.)
+    processedContent = window.AlmadenShortcodes.parseInline(processedContent);
     
-    // Handle [font="..."]...[/font] shortcodes -> span with font-family
-    processedContent = processedContent.replace(/\[font="([^"]+)"\](.*?)\[\/font\]/gs, '<span style="font-family: \'$1\', serif;">$2</span>');
-    
-    // Handle [align=...]...[/align] shortcodes -> div with text-align
-    processedContent = processedContent.replace(/\[align=([a-z]+)\](.*?)\[\/align\]/gs, '<div style="text-align: $1;">$2</div>');
+    // Process all structural shortcodes (align, gap, etc.) directly into HTML
+    processedContent = window.AlmadenShortcodes.parseStructural(processedContent, false);
 
     // Content injection
     document.getElementById('chapter-nav-title').textContent = chapter.title;
     
     let finalHtml = md.render(processedContent);
-    if (chapter.hide_title !== '1') {
-        finalHtml = `<div class="reader-chapter-title">${chapter.title}</div>` + finalHtml;
+    
+    if (chapter.hide_title !== '1' && chapter.is_credits !== '1') {
+        let prefixHtml = '';
+        const settings = bookData.settings || {};
+        
+        if (settings.ebook_chapter_prefix_show == 1 && chapter.is_toc != '1' && chapter.exclude_from_numbering !== '1') {
+            let chapterNumber = 0;
+            for (let i = 0; i <= index; i++) {
+                const c = bookData.chapters[i];
+                if (c.is_toc !== '1' && c.is_credits !== '1' && c.exclude_from_numbering !== '1') {
+                    chapterNumber++;
+                }
+            }
+            
+            let prefixText = settings.ebook_chapter_prefix_template || 'Capítulo {N}';
+            prefixText = prefixText.replace('{N}', chapterNumber);
+            
+            if (prefixText.includes('{R}')) {
+                const toRoman = (num) => {
+                    const roman = {M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1};
+                    let str = '';
+                    for (let i of Object.keys(roman)) {
+                        let q = Math.floor(num / roman[i]);
+                        num -= q * roman[i];
+                        str += i.repeat(q);
+                    }
+                    return str;
+                };
+                prefixText = prefixText.replace('{R}', toRoman(chapterNumber));
+            }
+            
+            let ornamentHtml = '';
+            if (settings.ebook_chapter_prefix_ornament === 'line_below') {
+                ornamentHtml = '<div class="reader-chapter-ornament-line"></div>';
+            } else if (settings.ebook_chapter_prefix_ornament === 'line_above_below') {
+                ornamentHtml = '<div class="reader-chapter-ornament-line"></div>';
+                prefixText = '<div class="reader-chapter-ornament-line"></div>' + prefixText;
+            } else if (settings.ebook_chapter_prefix_ornament === 'asterisks') {
+                ornamentHtml = '<div class="reader-chapter-ornament-asterisks">***</div>';
+            }
+            
+            const position = settings.ebook_chapter_prefix_position || 'above';
+            const extraClass = position === 'below' ? ' prefix-below' : '';
+            
+            prefixHtml = `<div class="reader-chapter-prefix${extraClass}">${prefixText}${ornamentHtml}</div>`;
+            
+            let subtitleHtml = '';
+            const showGlobalSubtitle = settings.ebook_subtitle_show == 1 || settings.ebook_subtitle_show === undefined;
+            if (chapter.subtitle_text && chapter.subtitle_text.trim() !== '' && chapter.is_toc !== '1' && showGlobalSubtitle) {
+                const subText = chapter.subtitle_text.trim().replace(/\n/g, '<br>');
+                let subStyles = [];
+                
+                const fontF = settings.ebook_subtitle_font_family;
+                if (fontF) subStyles.push(`font-family: '${fontF}', serif !important`);
+                
+                const fontSz = settings.ebook_subtitle_font_size;
+                if (fontSz) subStyles.push(`font-size: ${fontSz}pt !important`);
+                
+                const align = settings.ebook_subtitle_align;
+                if (align) subStyles.push(`text-align: ${align} !important`);
+                
+                const fStyle = settings.ebook_subtitle_font_style;
+                if (fStyle) subStyles.push(`font-style: ${fStyle} !important`);
+                
+                const fWeight = settings.ebook_subtitle_font_weight;
+                if (fWeight) subStyles.push(`font-weight: ${fWeight} !important`);
+                
+                const tTransform = settings.ebook_subtitle_text_transform;
+                if (tTransform) subStyles.push(`text-transform: ${tTransform} !important`);
+                
+                const lSpacing = settings.ebook_subtitle_letter_spacing;
+                if (lSpacing) subStyles.push(`letter-spacing: ${lSpacing}px !important`);
+                
+                const mTop = settings.ebook_subtitle_padding_top;
+                if (mTop !== undefined && mTop !== '') subStyles.push(`padding-top: ${mTop}em !important; margin-top:0!important`);
+                
+                const mBot = settings.ebook_subtitle_padding_bottom;
+                if (mBot !== undefined && mBot !== '') subStyles.push(`padding-bottom: ${mBot}em !important; margin-bottom:0!important`);
+                
+                subtitleHtml = `<div class="reader-chapter-subtitle" style="line-height: 1.4; width: 100%; opacity: 0.85; ${subStyles.join('; ')}">${subText}</div>`;
+            }
+            
+            if (position === 'below') {
+                finalHtml = `<div class="reader-chapter-title" ${subtitleHtml ? 'style="padding-bottom:0!important"' : ''}>${chapter.title.trim()}</div>` + subtitleHtml + prefixHtml + finalHtml;
+            } else {
+                finalHtml = prefixHtml + `<div class="reader-chapter-title" ${subtitleHtml ? 'style="padding-bottom:0!important"' : ''}>${chapter.title.trim()}</div>` + subtitleHtml + finalHtml;
+            }
+        } else {
+            let subtitleHtml = '';
+            const showGlobalSubtitle = settings.ebook_subtitle_show == 1 || settings.ebook_subtitle_show === undefined;
+            if (chapter.subtitle_text && chapter.subtitle_text.trim() !== '' && chapter.is_toc !== '1' && showGlobalSubtitle) {
+                const subText = chapter.subtitle_text.trim().replace(/\n/g, '<br>');
+                let subStyles = [];
+                
+                const fontF = settings.ebook_subtitle_font_family;
+                if (fontF) subStyles.push(`font-family: '${fontF}', serif !important`);
+                
+                const fontSz = settings.ebook_subtitle_font_size;
+                if (fontSz) subStyles.push(`font-size: ${fontSz}pt !important`);
+                
+                const align = settings.ebook_subtitle_align;
+                if (align) subStyles.push(`text-align: ${align} !important`);
+                
+                const fStyle = settings.ebook_subtitle_font_style;
+                if (fStyle) subStyles.push(`font-style: ${fStyle} !important`);
+                
+                const fWeight = settings.ebook_subtitle_font_weight;
+                if (fWeight) subStyles.push(`font-weight: ${fWeight} !important`);
+                
+                const tTransform = settings.ebook_subtitle_text_transform;
+                if (tTransform) subStyles.push(`text-transform: ${tTransform} !important`);
+                
+                const lSpacing = settings.ebook_subtitle_letter_spacing;
+                if (lSpacing) subStyles.push(`letter-spacing: ${lSpacing}px !important`);
+                
+                const mTop = settings.ebook_subtitle_padding_top;
+                if (mTop !== undefined && mTop !== '') subStyles.push(`padding-top: ${mTop}em !important; margin-top:0!important`);
+                
+                const mBot = settings.ebook_subtitle_padding_bottom;
+                if (mBot !== undefined && mBot !== '') subStyles.push(`padding-bottom: ${mBot}em !important; margin-bottom:0!important`);
+                
+                subtitleHtml = `<div class="reader-chapter-subtitle" style="line-height: 1.4; width: 100%; opacity: 0.85; ${subStyles.join('; ')}">${subText}</div>`;
+            }
+            finalHtml = `<div class="reader-chapter-title" ${subtitleHtml ? 'style="padding-bottom:0!important"' : ''}>${chapter.title.trim()}</div>` + subtitleHtml + finalHtml;
+        }
+    }
+    
+    // Letra Capitular (Drop Cap)
+    if (chapter.drop_cap_enabled === '1') {
+        finalHtml = finalHtml.replace(/<p>/, '<p class="drop-cap">');
     }
     
     document.getElementById('chapter-content').innerHTML = finalHtml;

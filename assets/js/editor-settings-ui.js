@@ -251,10 +251,39 @@ function toggleSettingsModal(show) {
         if (document.getElementById('setting-ebook-font-size-content')) document.getElementById('setting-ebook-font-size-content').value = settings.ebook_font_size_content || 18.0;
         if (document.getElementById('setting-ebook-font-weight-content')) document.getElementById('setting-ebook-font-weight-content').value = settings.ebook_font_weight_content || 'normal';
         if (document.getElementById('setting-ebook-line-height-content')) document.getElementById('setting-ebook-line-height-content').value = settings.ebook_line_height_content || 1.8;
-        if (document.getElementById('setting-ebook-font-family-headings')) document.getElementById('setting-ebook-font-family-headings').value = settings.ebook_font_family_headings || 'Playfair Display';
-        if (document.getElementById('setting-ebook-font-size-headings')) document.getElementById('setting-ebook-font-size-headings').value = settings.ebook_font_size_headings || 32.0;
-        if (document.getElementById('setting-ebook-font-weight-headings')) document.getElementById('setting-ebook-font-weight-headings').value = settings.ebook_font_weight_headings || 'bold';
-        if (document.getElementById('setting-ebook-line-height-headings')) document.getElementById('setting-ebook-line-height-headings').value = settings.ebook_line_height_headings || 1.3;
+        if (document.getElementById('setting-ebook-chapter-title-font-family')) document.getElementById('setting-ebook-chapter-title-font-family').value = settings.ebook_font_family_headings || 'Playfair Display';
+        if (document.getElementById('setting-ebook-chapter-title-font-size')) document.getElementById('setting-ebook-chapter-title-font-size').value = settings.ebook_font_size_headings || 32.0;
+        if (document.getElementById('setting-ebook-chapter-title-font-weight')) document.getElementById('setting-ebook-chapter-title-font-weight').value = settings.ebook_font_weight_headings || 'bold';
+        if (document.getElementById('setting-ebook-chapter-title-line-height')) document.getElementById('setting-ebook-chapter-title-line-height').value = settings.ebook_line_height_headings || 1.3;
+        
+        if (document.getElementById('setting-ebook-chapter-title-align')) document.getElementById('setting-ebook-chapter-title-align').value = settings.ebook_chapter_title_align || 'center';
+        if (document.getElementById('setting-ebook-chapter-title-text-transform')) document.getElementById('setting-ebook-chapter-title-text-transform').value = settings.ebook_chapter_title_text_transform || 'none';
+        if (document.getElementById('setting-ebook-chapter-title-padding-top')) document.getElementById('setting-ebook-chapter-title-padding-top').value = settings.ebook_chapter_title_padding_top ?? 2;
+        if (document.getElementById('setting-ebook-chapter-title-padding-bottom')) document.getElementById('setting-ebook-chapter-title-padding-bottom').value = settings.ebook_chapter_title_padding_bottom ?? 2;
+        if (document.getElementById('setting-ebook-chapter-title-padding-left')) document.getElementById('setting-ebook-chapter-title-padding-left').value = settings.ebook_chapter_title_padding_left ?? 0;
+        if (document.getElementById('setting-ebook-chapter-title-padding-right')) document.getElementById('setting-ebook-chapter-title-padding-right').value = settings.ebook_chapter_title_padding_right ?? 0;
+
+        if (document.getElementById('setting-ebook-chapter-subtitle-show')) document.getElementById('setting-ebook-chapter-subtitle-show').checked = settings.ebook_subtitle_show == 1 || settings.ebook_subtitle_show === undefined;
+        if (document.getElementById('setting-ebook-chapter-subtitle-font-family')) document.getElementById('setting-ebook-chapter-subtitle-font-family').value = settings.ebook_subtitle_font_family || '';
+        if (document.getElementById('setting-ebook-chapter-subtitle-font-size')) document.getElementById('setting-ebook-chapter-subtitle-font-size').value = settings.ebook_subtitle_font_size ?? 18;
+        if (document.getElementById('setting-ebook-chapter-subtitle-align')) document.getElementById('setting-ebook-chapter-subtitle-align').value = settings.ebook_subtitle_align || 'center';
+        if (document.getElementById('setting-ebook-chapter-subtitle-font-style')) document.getElementById('setting-ebook-chapter-subtitle-font-style').value = settings.ebook_subtitle_font_style || 'normal';
+        if (document.getElementById('setting-ebook-chapter-subtitle-text-transform')) document.getElementById('setting-ebook-chapter-subtitle-text-transform').value = settings.ebook_subtitle_text_transform || 'none';
+        if (document.getElementById('setting-ebook-chapter-subtitle-font-weight')) document.getElementById('setting-ebook-chapter-subtitle-font-weight').value = settings.ebook_subtitle_font_weight || 'normal';
+        if (document.getElementById('setting-ebook-chapter-subtitle-padding-top')) document.getElementById('setting-ebook-chapter-subtitle-padding-top').value = settings.ebook_subtitle_padding_top ?? 0.5;
+        if (document.getElementById('setting-ebook-chapter-subtitle-padding-bottom')) document.getElementById('setting-ebook-chapter-subtitle-padding-bottom').value = settings.ebook_subtitle_padding_bottom ?? 0.5;
+        if (document.getElementById('setting-ebook-chapter-subtitle-letter-spacing')) document.getElementById('setting-ebook-chapter-subtitle-letter-spacing').value = settings.ebook_subtitle_letter_spacing ?? 0;
+
+        if (document.getElementById('setting-ebook-chapter-prefix-show')) document.getElementById('setting-ebook-chapter-prefix-show').checked = settings.ebook_chapter_prefix_show == 1;
+        if (document.getElementById('setting-ebook-chapter-prefix-template')) document.getElementById('setting-ebook-chapter-prefix-template').value = settings.ebook_chapter_prefix_template || 'Capítulo {N}';
+        if (document.getElementById('setting-ebook-chapter-prefix-position')) document.getElementById('setting-ebook-chapter-prefix-position').value = settings.ebook_chapter_prefix_position || 'above';
+        if (document.getElementById('setting-ebook-chapter-prefix-font-family')) document.getElementById('setting-ebook-chapter-prefix-font-family').value = settings.ebook_chapter_prefix_font_family || 'Playfair Display';
+        if (document.getElementById('setting-ebook-chapter-prefix-font-size')) document.getElementById('setting-ebook-chapter-prefix-font-size').value = settings.ebook_chapter_prefix_font_size || 16;
+        if (document.getElementById('setting-ebook-chapter-prefix-font-weight')) document.getElementById('setting-ebook-chapter-prefix-font-weight').value = settings.ebook_chapter_prefix_font_weight || 'normal';
+        if (document.getElementById('setting-ebook-chapter-prefix-font-style')) document.getElementById('setting-ebook-chapter-prefix-font-style').value = settings.ebook_chapter_prefix_font_style || 'normal';
+        if (document.getElementById('setting-ebook-chapter-prefix-letter-spacing')) document.getElementById('setting-ebook-chapter-prefix-letter-spacing').value = settings.ebook_chapter_prefix_letter_spacing ?? 0;
+        if (document.getElementById('setting-ebook-chapter-prefix-ornament')) document.getElementById('setting-ebook-chapter-prefix-ornament').value = settings.ebook_chapter_prefix_ornament || 'none';
+
         if (document.getElementById('setting-ebook-text-align-justify')) document.getElementById('setting-ebook-text-align-justify').checked = settings.ebook_text_align_justify == 1;
         if (document.getElementById('setting-ebook-hyphenation')) document.getElementById('setting-ebook-hyphenation').checked = settings.ebook_hyphenation == 1;
 
@@ -312,7 +341,6 @@ function toggleSettingsModal(show) {
         // Pestaña Capítulos
         document.getElementById('setting-chapter-start-parity').value = settings.chapter_start_parity || 'any';
 
-        document.getElementById('setting-chapter-page-one-align').value = settings.chapter_page_one_align || 'center';
         document.getElementById('setting-chapter-page-one-vertical').value = settings.chapter_chapter_page_one_vertical || 'top';
         document.getElementById('setting-chapter-title-font-family').value = settings.chapter_title_font_family || 'Playfair Display';
         document.getElementById('setting-chapter-title-font-size').value = settings.chapter_title_font_size || 24;
@@ -324,7 +352,18 @@ function toggleSettingsModal(show) {
         document.getElementById('setting-chapter-title-padding-bottom').value = settings.chapter_title_padding_bottom ?? 1.5;
         document.getElementById('setting-chapter-title-padding-left').value = settings.chapter_title_padding_left ?? 0;
         document.getElementById('setting-chapter-title-padding-right').value = settings.chapter_title_padding_right ?? 0;
-        document.getElementById('setting-chapter-title-line-height').value = settings.chapter_title_line_height ?? 1.2;
+        document.getElementById('setting-chapter-title-line-height').value = settings.chapter_title_line_height ?? 1.3;
+
+        document.getElementById('setting-chapter-subtitle-show').checked = settings.chapter_subtitle_show == 1 || settings.chapter_subtitle_show === undefined;
+        document.getElementById('setting-chapter-subtitle-font-family').value = settings.chapter_subtitle_font_family || '';
+        document.getElementById('setting-chapter-subtitle-font-size').value = settings.chapter_subtitle_font_size ?? 16;
+        document.getElementById('setting-chapter-subtitle-align').value = settings.chapter_subtitle_align || 'center';
+        document.getElementById('setting-chapter-subtitle-font-style').value = settings.chapter_subtitle_font_style || 'normal';
+        document.getElementById('setting-chapter-subtitle-text-transform').value = settings.chapter_subtitle_text_transform || 'none';
+        document.getElementById('setting-chapter-subtitle-font-weight').value = settings.chapter_subtitle_font_weight || 'normal';
+        document.getElementById('setting-chapter-subtitle-margin-top').value = settings.chapter_subtitle_margin_top ?? 0.5;
+        document.getElementById('setting-chapter-subtitle-margin-bottom').value = settings.chapter_subtitle_margin_bottom ?? 0.5;
+        document.getElementById('setting-chapter-subtitle-letter-spacing').value = settings.chapter_subtitle_letter_spacing ?? 0;
 
         document.getElementById('setting-chapter-prefix-show').checked = settings.chapter_prefix_show == 1;
         document.getElementById('setting-chapter-prefix-template').value = settings.chapter_prefix_template || 'Capítulo {N}';

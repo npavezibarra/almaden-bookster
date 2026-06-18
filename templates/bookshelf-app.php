@@ -21,42 +21,66 @@ $args = array(
 $published_books = new WP_Query( $args );
 
 ?>
-
-<?php $fonts_url = almaden_get_thumbnail_fonts_url(); ?>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<script>
-    window.tailwind = window.tailwind || {};
-    window.tailwind.config = {
-        theme: {
-            extend: {
-                fontFamily: {
-                    sans: ['"Urbanist"', 'sans-serif']
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookCraft - Bookshelf</title>
+    <script>
+        window.tailwind = window.tailwind || {};
+        window.tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Urbanist"', 'sans-serif']
+                    }
                 }
             }
+        };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="<?php echo esc_url( almaden_get_thumbnail_fonts_url() ); ?>" rel="stylesheet">
+    <!-- Urbanist Font for UI -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons para UI -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: "Urbanist", sans-serif;
+            background-color: #fcfcfc;
+            color: #111;
         }
-    };
-</script>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="<?php echo esc_url($fonts_url); ?>" rel="stylesheet">
-
-<div class="almaden-bookshelf-wrapper">
-	<style>
-		/* Ocultar el título de página que inyecta el tema de WordPress por defecto */
-		h1.wp-block-post-title,
-		.page-title,
-		.entry-title,
-		header.entry-header {
-			display: none !important;
-		}
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af; 
+        }
+        .urbanist-almaden-logo {
+            font-family: "Urbanist", sans-serif;
+            font-optical-sizing: auto;
+            font-weight: 700;
+            font-size: 34px !important;
+            font-style: normal;
+        }
 
 		/* Scoped styles to avoid theme conflicts */
 		.almaden-bookshelf-wrapper {
 			max-width: 1200px;
 			margin: 0 auto;
 			padding: 2rem 1rem;
-			font-family: "Urbanist", sans-serif;
-			color: #1e293b;
 		}
 		.almaden-bookshelf-grid {
 			display: grid;
@@ -90,7 +114,6 @@ $published_books = new WP_Query( $args );
 			align-items: center;
 			justify-content: center;
 		}
-		/* Replicating tailwind classes used by the cover HTML */
 		.cover-thumbnail-wrapper {
 			width: 100%;
 			background-color: #ffffff;
@@ -156,57 +179,91 @@ $published_books = new WP_Query( $args );
 			color: #64748b;
 			margin: 0;
 		}
-	</style>
+    </style>
+    <?php wp_head(); ?>
+</head>
+<body class="min-h-screen flex flex-col theme-light">
 
-	<?php if ( $published_books->have_posts() ) : ?>
-		<div class="almaden-bookshelf-grid">
-			<?php while ( $published_books->have_posts() ) : $published_books->the_post(); 
-				$cover_thumbnail_html = almaden_get_cover_thumbnail_html( get_the_ID() );
-				$author = get_post_meta( get_the_ID(), '_almaden_book_author', true );
-			?>
-				<a href="<?php echo esc_url( get_permalink() ); ?>" class="almaden-book-card">
-					<div class="almaden-book-cover-wrap">
-						<?php if ( ! empty( $cover_thumbnail_html ) ) : ?>
-							<?php echo str_replace('border-b', '', $cover_thumbnail_html); ?>
-						<?php else : ?>
-							<svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-							</svg>
-						<?php endif; ?>
-					</div>
-				</a>
-			<?php endwhile; ?>
-		</div>
-		<?php wp_reset_postdata(); ?>
-	<?php else : ?>
-		<div class="almaden-empty-state">
-			<svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-			</svg>
-			<h3>No hay libros publicados</h3>
-			<p>Los libros que marques como "Publish ebook" aparecerán aquí.</p>
-		</div>
-	<?php endif; ?>
+    <!-- Top Navigation -->
+    <nav class="border-b border-gray-200 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center text-black">
+                        <span class="text-2xl tracking-tight urbanist-almaden-logo">almaden</span>
+                    </div>
+                    
+                    <div class="hidden sm:ml-8 sm:flex sm:space-x-6 items-center">
+                        <a href="<?php echo esc_url( home_url('/almaden-booklist/') ); ?>" class="border-b-2 border-transparent text-gray-500 hover:text-black hover:border-gray-300 px-1 pt-1 text-sm font-medium h-full flex items-center transition-colors">
+                            Taller
+                        </a>
+                        <a href="<?php echo esc_url( home_url('/bookshelf/') ); ?>" class="border-b-2 border-black text-black px-1 pt-1 text-sm font-medium h-full flex items-center">
+                            Bookshelf
+                        </a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="<?php echo esc_url( admin_url() ); ?>" class="text-sm font-medium text-gray-500 hover:text-black transition-colors">Volver a WP</a>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-</div>
+    <!-- Main Content -->
+    <main class="flex-1 bg-gray-50 p-6 sm:p-8">
+        <div class="max-w-7xl mx-auto almaden-bookshelf-wrapper" id="bookshelf-app-container">
+            <?php if ( $published_books->have_posts() ) : ?>
+                <div class="almaden-bookshelf-grid">
+                    <?php while ( $published_books->have_posts() ) : $published_books->the_post(); 
+                        $cover_thumbnail_html = almaden_get_cover_thumbnail_html( get_the_ID() );
+                        $author = get_post_meta( get_the_ID(), '_almaden_book_author', true );
+                    ?>
+                        <a href="<?php echo esc_url( get_permalink() ); ?>" class="almaden-book-card">
+                            <div class="almaden-book-cover-wrap">
+                                <?php if ( ! empty( $cover_thumbnail_html ) ) : ?>
+                                    <?php echo str_replace('border-b', '', $cover_thumbnail_html); ?>
+                                <?php else : ?>
+                                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                <?php endif; ?>
+                            </div>
+                        </a>
+                    <?php endwhile; ?>
+                </div>
+                <?php wp_reset_postdata(); ?>
+            <?php else : ?>
+                <div class="almaden-empty-state">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <h3>No hay libros publicados</h3>
+                    <p>Los libros que marques como "Publish ebook" aparecerán aquí.</p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </main>
 
-<!-- Script para escalar portadas igual que en el dashboard -->
-<script>
-	function scaleThumbnails() {
-		document.querySelectorAll('.cover-thumbnail-wrapper').forEach(wrapper => {
-			const targetWidth = wrapper.clientWidth;
-			const frontCoverPx = parseFloat(wrapper.getAttribute('data-front-cover-px'));
-			const startPx = parseFloat(wrapper.getAttribute('data-start-px'));
-			if (frontCoverPx > 0) {
-				const scale = targetWidth / frontCoverPx;
-				const spread = wrapper.querySelector('.cover-spread-container');
-				if (spread) {
-					spread.style.transform = `scale(${scale}) translateX(${-startPx}px)`;
-				}
-			}
-		});
-	}
-	window.addEventListener('resize', scaleThumbnails);
-	scaleThumbnails();
-	window.addEventListener('load', scaleThumbnails);
-</script>
+    <!-- Script para escalar portadas igual que en el dashboard -->
+    <script>
+        function scaleThumbnails() {
+            document.querySelectorAll('.cover-thumbnail-wrapper').forEach(wrapper => {
+                const targetWidth = wrapper.clientWidth;
+                const frontCoverPx = parseFloat(wrapper.getAttribute('data-front-cover-px'));
+                const startPx = parseFloat(wrapper.getAttribute('data-start-px'));
+                if (frontCoverPx > 0) {
+                    const scale = targetWidth / frontCoverPx;
+                    const spread = wrapper.querySelector('.cover-spread-container');
+                    if (spread) {
+                        spread.style.transform = `scale(${scale}) translateX(${-startPx}px)`;
+                    }
+                }
+            });
+        }
+        window.addEventListener('resize', scaleThumbnails);
+        scaleThumbnails();
+        window.addEventListener('load', scaleThumbnails);
+    </script>
+    <?php wp_footer(); ?>
+</body>
+</html>

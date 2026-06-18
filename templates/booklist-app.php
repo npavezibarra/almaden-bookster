@@ -23,7 +23,7 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BookCraft - Mis Libros</title>
+    <title>BookCraft - Taller</title>
     <script>
         window.tailwind = window.tailwind || {};
         window.tailwind.config = {
@@ -124,7 +124,7 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
                     
                     <div class="hidden sm:ml-8 sm:flex sm:space-x-6 items-center">
                         <a href="<?php echo esc_url( home_url('/almaden-booklist/') ); ?>" class="border-b-2 border-black text-black px-1 pt-1 text-sm font-medium h-full flex items-center">
-                            Mis Libros
+                            Taller
                         </a>
                         <a href="<?php echo esc_url( home_url('/bookshelf/') ); ?>" class="border-b-2 border-transparent text-gray-500 hover:text-black hover:border-gray-300 px-1 pt-1 text-sm font-medium h-full flex items-center transition-colors" target="_blank">
                             Bookshelf
@@ -133,12 +133,7 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
                 </div>
                 <div class="flex items-center space-x-4">
                     <a href="<?php echo esc_url( admin_url() ); ?>" class="text-sm font-medium text-gray-500 hover:text-black transition-colors">Volver a WP</a>
-                    <button id="open-modal-btn" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors shadow-sm">
-                        <svg class="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                        Crear Libro
-                    </button>
+
                 </div>
             </div>
         </div>
@@ -171,8 +166,16 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
 
         <div class="mb-8 border-b border-gray-200 pb-5 flex justify-between items-end">
             <div>
-                <h1 class="text-3xl font-bold text-black leading-tight">Mis Libros</h1>
+                <h1 class="text-3xl font-bold text-black leading-tight">Taller</h1>
                 <p class="mt-2 text-sm text-gray-500">Gestiona y edita tus proyectos editoriales.</p>
+            </div>
+            <div>
+                <button id="open-modal-btn" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors shadow-sm">
+                    <svg class="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Crear Libro
+                </button>
             </div>
         </div>
 

@@ -1,6 +1,6 @@
 // reader-prefs.js
 
-let userPrefs = { fontSizeOffset: 0, fontFamily: '', lineHeightOffset: 0, theme: '' };
+let userPrefs = { fontSizeOffset: 0, lineHeightOffset: 0, theme: '' };
 try {
     if (typeof window.userDBPrefs !== 'undefined' && window.userDBPrefs) {
         userPrefs = window.userDBPrefs;
@@ -48,10 +48,6 @@ function changeFontSize(dir) {
     }
 }
 
-function changeFontFamily(family) {
-    userPrefs.fontFamily = family;
-    savePrefs();
-}
 
 function changeLineHeight(dir) {
     userPrefs.lineHeightOffset = (userPrefs.lineHeightOffset || 0) + dir;
