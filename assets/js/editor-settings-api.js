@@ -372,8 +372,8 @@ function savePDFSettings() {
 
             if (btn) {
                 btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Guardado';
-                btn.classList.replace('bg-indigo-600', 'bg-emerald-600');
-                btn.classList.replace('hover:bg-indigo-700', 'hover:bg-emerald-700');
+                btn.classList.replace('bg-black', 'bg-emerald-600');
+                btn.classList.replace('hover:bg-neutral-800', 'hover:bg-emerald-700');
             }
 
             setTimeout(() => {
@@ -384,21 +384,21 @@ function savePDFSettings() {
                     btn.innerHTML = originalBtnText;
                     btn.disabled = false;
                     btn.classList.remove('opacity-75', 'cursor-not-allowed');
-                    btn.classList.replace('bg-emerald-600', 'bg-indigo-600');
-                    btn.classList.replace('hover:bg-emerald-700', 'hover:bg-indigo-700');
+                    btn.classList.replace('bg-emerald-600', 'bg-black');
+                    btn.classList.replace('hover:bg-emerald-700', 'hover:bg-neutral-800');
                 }
             }, 800);
         } else {
             if (btn) {
                 btn.innerHTML = '<i class="fa-solid fa-circle-exclamation mr-1"></i> Error';
-                btn.classList.replace('bg-indigo-600', 'bg-rose-600');
-                btn.classList.replace('hover:bg-indigo-700', 'hover:bg-rose-700');
+                btn.classList.replace('bg-black', 'bg-rose-600');
+                btn.classList.replace('hover:bg-neutral-800', 'hover:bg-rose-700');
                 setTimeout(() => {
                     btn.innerHTML = originalBtnText;
                     btn.disabled = false;
                     btn.classList.remove('opacity-75', 'cursor-not-allowed');
-                    btn.classList.replace('bg-rose-600', 'bg-indigo-600');
-                    btn.classList.replace('hover:bg-rose-700', 'hover:bg-indigo-700');
+                    btn.classList.replace('bg-rose-600', 'bg-black');
+                    btn.classList.replace('hover:bg-rose-700', 'hover:bg-neutral-800');
                 }, 3000);
             }
             alert("Error al guardar: " + res.data);
@@ -408,14 +408,14 @@ function savePDFSettings() {
         console.error(err);
         if (btn) {
             btn.innerHTML = '<i class="fa-solid fa-wifi mr-1"></i> Error red';
-            btn.classList.replace('bg-indigo-600', 'bg-rose-600');
-            btn.classList.replace('hover:bg-indigo-700', 'hover:bg-rose-700');
+            btn.classList.replace('bg-black', 'bg-rose-600');
+            btn.classList.replace('hover:bg-neutral-800', 'hover:bg-rose-700');
             setTimeout(() => {
                 btn.innerHTML = originalBtnText;
                 btn.disabled = false;
                 btn.classList.remove('opacity-75', 'cursor-not-allowed');
-                btn.classList.replace('bg-rose-600', 'bg-indigo-600');
-                btn.classList.replace('hover:bg-rose-700', 'hover:bg-indigo-700');
+                btn.classList.replace('bg-rose-600', 'bg-black');
+                btn.classList.replace('hover:bg-rose-700', 'hover:bg-neutral-800');
             }, 3000);
         }
     });

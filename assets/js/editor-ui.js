@@ -18,15 +18,15 @@ function setViewMode(mode) {
     if (mode === 'split') {
         if (editorPane) editorPane.classList.remove('hidden');
         if (previewPane) previewPane.classList.remove('hidden');
-        if (splitBtn) splitBtn.className = "px-3 py-1.5 rounded-md bg-indigo-600 text-white shadow-sm transition";
+        if (splitBtn) splitBtn.className = "px-3 py-1.5 rounded-md bg-black text-white shadow-sm transition";
     } else if (mode === 'edit') {
         if (editorPane) editorPane.classList.remove('hidden');
         if (previewPane) previewPane.classList.add('hidden');
-        if (editBtn) editBtn.className = "px-3 py-1.5 rounded-md bg-indigo-600 text-white shadow-sm transition";
+        if (editBtn) editBtn.className = "px-3 py-1.5 rounded-md bg-black text-white shadow-sm transition";
     } else if (mode === 'preview') {
         if (editorPane) editorPane.classList.add('hidden');
         if (previewPane) previewPane.classList.remove('hidden');
-        if (previewBtn) previewBtn.className = "px-3 py-1.5 rounded-md bg-indigo-600 text-white shadow-sm transition";
+        if (previewBtn) previewBtn.className = "px-3 py-1.5 rounded-md bg-black text-white shadow-sm transition";
     }
 
     bookState.viewMode = mode;

@@ -57,15 +57,12 @@ window.buildChapterHTML = function(chapter, index, settings, bookState) {
                 
                 let titleHtml = c.title || 'Capítulo';
                 let numberStyle = maxPrefixLen > 0 ? `style="width: ${maxPrefixLen}ch; display: inline-block; text-align: left; flex-shrink: 0;"` : '';
-                
                 tocHtml += `<div class="toc-item toc-item-h1" data-target-id="${c.id}">
                     <div class="toc-number" ${numberStyle}>${prefix}</div>
                     <div class="toc-title-wrapper">
-                        <div class="toc-spacer-left"></div>
-                        <div class="toc-title">${titleHtml}</div>
-                        <div class="toc-spacer-right"></div>
+                        <span class="toc-title">${titleHtml}</span>
+                        <span class="toc-page">000</span>
                     </div>
-                    <div class="toc-page">000</div>
                 </div>`;
             }
         });

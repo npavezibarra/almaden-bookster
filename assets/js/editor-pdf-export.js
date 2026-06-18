@@ -39,7 +39,7 @@ async function triggerPrint() {
     // Forzamos compilación completa para poder imprimir el libro entero
     const scroller = document.getElementById('pdf-scroller');
     if (scroller) {
-        scroller.innerHTML = '<div class="flex flex-col items-center justify-center h-full w-full text-indigo-500 gap-4"><i class="fa-solid fa-spinner fa-spin text-4xl"></i><span class="text-lg">Compilando libro completo para impresión...</span></div>';
+        scroller.innerHTML = '<div class="flex flex-col items-center justify-center h-full w-full text-black dark:text-white gap-4"><i class="fa-solid fa-spinner fa-spin text-4xl"></i><span class="text-lg">Compilando libro completo para impresión...</span></div>';
     }
     
     // Esperar a que el navegador dibuje el loading
@@ -132,7 +132,7 @@ async function triggerPrint() {
         
         // Renderizar solo el capítulo actual de nuevo
         if (scroller) {
-            scroller.innerHTML = '<div class="flex flex-col items-center justify-center h-full w-full text-indigo-500 gap-4"><i class="fa-solid fa-spinner fa-spin text-4xl"></i><span class="text-lg">Restaurando vista...</span></div>';
+            scroller.innerHTML = '<div class="flex flex-col items-center justify-center h-full w-full text-black dark:text-white gap-4"><i class="fa-solid fa-spinner fa-spin text-4xl"></i><span class="text-lg">Restaurando vista...</span></div>';
         }
         setTimeout(async () => {
             await compilePDFPreview(); // Automáticamente usará 'active'

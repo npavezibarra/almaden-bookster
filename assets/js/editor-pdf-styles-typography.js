@@ -169,7 +169,7 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
         /* ── Estilos TOC por nivel ── */
         .toc-item {
             display: flex !important;
-            align-items: baseline !important;
+            align-items: flex-end !important;
             width: 100% !important;
             hyphens: none !important;
         }
@@ -215,41 +215,64 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
 
         .toc-number {
             flex-shrink: 0 !important;
-            margin-right: 4px !important;
+            margin-right: 8px !important;
             text-align: left !important;
+            align-self: flex-start !important;
         }
         
         .toc-title-wrapper {
-            display: flex !important;
-            align-items: baseline !important;
             flex-grow: 1 !important;
+            display: grid !important;
+            grid-template-columns: auto max-content;
+            grid-template-areas: "title leader";
+            align-items: end !important; /* Aligns dots with the baseline of the last line */
+            gap: 0 4px !important;
+            overflow: hidden !important;
             min-width: 0 !important;
             position: relative !important;
-        }
-        
-        .toc-spacer-left {
-            flex-grow: ${tocSettings.itemAlign === 'center' ? '1' : '0'} !important;
-            min-width: 0 !important;
-        }
-        
-        .toc-spacer-right {
-            flex-grow: 1 !important;
-            border-bottom: ${tocSettings.leaderStyle === 'none' ? 'none' : '1.5px ' + tocSettings.leaderStyle + ' #a0aec0'} !important;
-            position: relative !important;
-            bottom: ${tocSettings.leaderPosition === 'bottom' ? '0' : '4px'} !important;
-            min-width: 10px !important;
-            margin-left: 5px !important;
+            text-align: left !important;
         }
         
         .toc-title {
-            flex-shrink: 0 !important;
-            padding-left: ${tocSettings.itemAlign !== 'left' ? '5px' : '0'} !important;
-            padding-right: 5px !important;
-            text-align: ${tocSettings.itemAlign} !important;
+            grid-area: title !important;
+            display: inline !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+            position: relative !important;
+            text-align: left !important;
+        }
+        
+        .toc-title::after {
+            content: ${
+                tocSettings.leaderStyle === 'dotted'
+                ? '" . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ."'
+                : (tocSettings.leaderStyle === 'dashed'
+                    ? '" - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"'
+                    : '""')
+            } !important;
+            position: absolute !important;
+            padding-left: 6px !important;
             white-space: nowrap !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            max-width: 100% !important;
+            letter-spacing: ${tocSettings.leaderStyle === 'dotted' ? '3px' : '0px'} !important;
+            color: #a0aec0 !important;
+        }
+
+        /* Si es solid, simulamos la línea continua usando un borde inferior */
+        ${tocSettings.leaderStyle === 'solid' ? `
+        .toc-title::after {
+            content: "" !important;
+            position: absolute !important;
+            border-bottom: 1.5px solid #a0aec0 !important;
+            width: 2000px !important;
+            height: 0 !important;
+            margin-left: 6px !important;
+            bottom: 5px !important;
+        }
+        ` : ''}
+
+        /* Omitimos .toc-leader de la estructura para usar el pseudo-elemento inline que fluye nativamente en la misma caja de texto */
+        .toc-leader {
+            display: none !important;
         }
         
         .toc-page {
@@ -257,7 +280,8 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             white-space: nowrap !important;
             font-variant-numeric: tabular-nums !important;
             text-align: right !important;
-            margin-left: 5px !important;
+            margin-left: 8px !important;
+            align-self: end !important;
         }
 
         .pdf-content .chapter-prefix-line {

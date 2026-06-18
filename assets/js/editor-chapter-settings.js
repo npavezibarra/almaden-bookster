@@ -258,8 +258,8 @@ function saveChapterSettings() {
     setTimeout(() => {
         if (btn) {
             btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Guardado';
-            btn.classList.replace('bg-indigo-600', 'bg-emerald-600');
-            btn.classList.replace('hover:bg-indigo-700', 'hover:bg-emerald-700');
+            btn.classList.replace('bg-black', 'bg-emerald-600');
+            btn.classList.replace('hover:bg-neutral-800', 'hover:bg-emerald-700');
         }
 
         setTimeout(() => {
@@ -269,8 +269,8 @@ function saveChapterSettings() {
                 btn.innerHTML = originalBtnText;
                 btn.disabled = false;
                 btn.classList.remove('opacity-75', 'cursor-not-allowed');
-                btn.classList.replace('bg-emerald-600', 'bg-indigo-600');
-                btn.classList.replace('hover:bg-emerald-700', 'hover:bg-indigo-700');
+                btn.classList.replace('bg-emerald-600', 'bg-black');
+                btn.classList.replace('hover:bg-emerald-700', 'hover:bg-neutral-800');
             }
 
             // Re-renderizar el PDF para reflejar cambios
@@ -336,7 +336,7 @@ function switchChapterTab(tabId) {
     // Desactivar todos los botones
     const btns = document.querySelectorAll('.chapter-tab-btn');
     btns.forEach(btn => {
-        btn.classList.remove('border-indigo-500', 'text-indigo-600');
+        btn.classList.remove('border-black', 'text-black', 'dark:border-white', 'dark:text-white');
         btn.classList.add('border-transparent', 'text-[var(--text-muted)]');
     });
 
@@ -350,7 +350,7 @@ function switchChapterTab(tabId) {
     const activeBtn = document.getElementById('btn-' + tabId);
     if (activeBtn) {
         activeBtn.classList.remove('border-transparent', 'text-[var(--text-muted)]');
-        activeBtn.classList.add('border-indigo-500', 'text-indigo-600');
+        activeBtn.classList.add('border-black', 'text-black', 'dark:border-white', 'dark:text-white');
     }
 }
 
@@ -365,7 +365,7 @@ function switchTocTab(tabId) {
     // Desactivar todos los botones
     const btns = document.querySelectorAll('.toc-tab-btn');
     btns.forEach(btn => {
-        btn.classList.remove('border-indigo-500', 'text-indigo-600');
+        btn.classList.remove('border-black', 'text-black', 'dark:border-white', 'dark:text-white');
         btn.classList.add('border-transparent', 'text-[var(--text-muted)]');
     });
 
@@ -379,6 +379,6 @@ function switchTocTab(tabId) {
     const activeBtn = document.getElementById('btn-' + tabId);
     if (activeBtn) {
         activeBtn.classList.remove('border-transparent', 'text-[var(--text-muted)]');
-        activeBtn.classList.add('border-indigo-500', 'text-indigo-600');
+        activeBtn.classList.add('border-black', 'text-black', 'dark:border-white', 'dark:text-white');
     }
 }

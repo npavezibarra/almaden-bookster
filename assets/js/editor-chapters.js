@@ -39,14 +39,14 @@ function renderSidebar() {
         const chapterEl = document.createElement('div');
         chapterEl.className = `group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all border ${
             isActive 
-            ? 'bg-gradient-to-r from-indigo-50/80 to-indigo-100/30 border-indigo-200 dark:from-indigo-950/40 dark:to-slate-900/40 dark:border-indigo-800' 
+            ? 'bg-neutral-100 border-neutral-300 dark:bg-neutral-800 dark:border-neutral-700' 
             : 'border-transparent hover:bg-[var(--bg-app)]'
         }`;
         chapterEl.setAttribute('onclick', `selectChapter('${chapter.id}')`);
 
         let chapterPagesStr = '';
         if (window.bookChapterLengths && window.bookChapterLengths[chapter.id] !== undefined) {
-            chapterPagesStr = `<span class="text-[9px] text-indigo-400 font-medium whitespace-nowrap"><i class="fa-regular fa-file-lines mr-0.5"></i> ${window.bookChapterLengths[chapter.id]} p.</span>`;
+            chapterPagesStr = `<span class="text-[9px] text-neutral-400 font-medium whitespace-nowrap"><i class="fa-regular fa-file-lines mr-0.5"></i> ${window.bookChapterLengths[chapter.id]} p.</span>`;
         }
 
         // Determinar número a mostrar en sidebar
@@ -58,20 +58,19 @@ function renderSidebar() {
 
         chapterEl.innerHTML = `
             <div class="flex items-center gap-3 overflow-hidden w-full">
-                <span class="text-xs font-bold text-indigo-500/80 dark:text-indigo-400/80 group-hover:scale-110 transition-transform">${displayStr}</span>
+                <span class="text-xs font-bold text-neutral-500/80 dark:text-neutral-400/80 group-hover:scale-110 transition-transform">${displayStr}</span>
                 <div class="truncate flex-1">
                     <div class="flex items-center justify-between gap-2">
-                        <h4 class="text-sm font-semibold truncate ${isActive ? 'text-indigo-700 dark:text-indigo-400' : 'text-[var(--text-main)]'}">
+                        <h4 class="text-sm font-bold truncate ${isActive ? 'text-black dark:text-white' : 'text-[var(--text-main)]'}">
                             ${chapter.is_toc == '1' ? '<i class="fa-solid fa-list-ol mr-1"></i> ' : ''}${chapter.is_credits == '1' ? '<i class="fa-solid fa-copyright mr-1"></i> ' : ''}${chapter.title || 'Capítulo sin título'}
                         </h4>
                         ${chapterPagesStr}
                     </div>
-                    <p class="text-[10px] text-[var(--text-muted)] truncate">${getExcerpt(chapter.content)}</p>
                 </div>
             </div>
             <!-- Acciones del Capítulo -->
             <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity no-print">
-                <button onclick="event.stopPropagation(); moveChapterUp(${index})" class="p-1 hover:text-indigo-600 dark:hover:text-indigo-400 text-[var(--text-muted)] transition" title="Subir capítulo">
+                <button onclick="event.stopPropagation(); moveChapterUp(${index})" class="p-1 hover:text-black dark:hover:text-white text-[var(--text-muted)] transition" title="Subir capítulo">
                     <i class="fa-solid fa-chevron-up text-xs"></i>
                 </button>
                 <button onclick="event.stopPropagation(); deleteChapter('${chapter.id}')" class="p-1 hover:text-rose-600 text-[var(--text-muted)] transition" title="Eliminar capítulo">
@@ -107,13 +106,13 @@ function renderSidebar() {
         chapterEl.addEventListener('dragenter', (e) => {
             e.preventDefault();
             if (draggedChapterIndex !== null && draggedChapterIndex !== index) {
-                chapterEl.classList.add('ring-2', 'ring-indigo-500', 'ring-offset-1', 'scale-[1.02]', 'bg-indigo-50', 'dark:bg-indigo-900/40');
+                chapterEl.classList.add('ring-2', 'ring-black', 'ring-offset-1', 'scale-[1.02]', 'bg-neutral-100', 'dark:bg-neutral-850/40');
                 chapterEl.classList.remove('border-transparent');
             }
         });
 
         chapterEl.addEventListener('dragleave', (e) => {
-            chapterEl.classList.remove('ring-2', 'ring-indigo-500', 'ring-offset-1', 'scale-[1.02]', 'bg-indigo-50', 'dark:bg-indigo-900/40');
+            chapterEl.classList.remove('ring-2', 'ring-black', 'ring-offset-1', 'scale-[1.02]', 'bg-neutral-100', 'dark:bg-neutral-850/40');
             if (!isActive) chapterEl.classList.add('border-transparent');
         });
 

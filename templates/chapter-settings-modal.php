@@ -6,7 +6,7 @@
         <div class="px-6 py-4 border-b border-[var(--border-color)] flex justify-between items-center bg-[var(--bg-sidebar)]">
             <div>
                 <h3 class="font-bold text-lg text-[var(--text-main)] flex items-center gap-2">
-                    <i class="fa-solid fa-gear text-indigo-500"></i> Ajustes de este Capítulo
+                    <i class="fa-solid fa-gear text-black dark:text-white"></i> Ajustes de este Capítulo
                 </h3>
                 <p class="text-xs text-[var(--text-muted)] mt-1">
                     Estas configuraciones sobrescriben las reglas globales solo para el capítulo actual.
@@ -26,7 +26,7 @@
                     <div>
                         <label class="block font-semibold mb-1">¿Dónde debe iniciar este capítulo?</label>
                         <p class="text-xs text-[var(--text-muted)] mb-2">Fuerza a que este capítulo comience en una página específica del libro impreso.</p>
-                        <select id="chapter_start_parity" name="chapter_start_parity" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-[var(--text-main)] focus:outline-none focus:border-indigo-500">
+                        <select id="chapter_start_parity" name="chapter_start_parity" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-[var(--text-main)] focus:outline-none focus:border-black">
                             <option value="any">Continuo / Cualquiera (Por defecto)</option>
                             <option value="odd">Página Impar (Lado Derecho)</option>
                             <option value="even">Página Par (Lado Izquierdo)</option>
@@ -59,7 +59,7 @@
             <button type="button" onclick="closeChapterSettingsModal()" class="px-4 py-2 rounded-lg text-sm font-semibold border border-[var(--border-color)] hover:bg-[var(--bg-app)] transition">
                 Cancelar
             </button>
-            <button type="button" onclick="saveChapterSettings()" class="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-500/30 transition flex items-center gap-2">
+            <button type="button" onclick="saveChapterSettings()" class="px-4 py-2 rounded-lg text-sm font-semibold bg-black text-white hover:bg-neutral-800 shadow-lg shadow-black/30 transition flex items-center gap-2">
                 <i class="fa-solid fa-check"></i> Aplicar al Capítulo
             </button>
         </div>

@@ -6,17 +6,17 @@ window.switchFormatTab = function(format) {
     const secEbook = document.getElementById('format-ebook-section');
 
     if (format === 'pdf') {
-        btnPdf.classList.add('bg-[var(--bg-sidebar)]', 'shadow-sm', 'border-[var(--border-color)]', 'text-indigo-600');
+        btnPdf.classList.add('bg-[var(--bg-sidebar)]', 'shadow-sm', 'border-[var(--border-color)]', 'text-black', 'dark:text-white', 'font-bold');
         btnPdf.classList.remove('border-transparent', 'text-[var(--text-muted)]');
-        btnEbook.classList.remove('bg-[var(--bg-sidebar)]', 'shadow-sm', 'border-[var(--border-color)]', 'text-indigo-600');
+        btnEbook.classList.remove('bg-[var(--bg-sidebar)]', 'shadow-sm', 'border-[var(--border-color)]', 'text-black', 'dark:text-white', 'font-bold');
         btnEbook.classList.add('border-transparent', 'text-[var(--text-muted)]');
         
         secPdf.classList.remove('hidden');
         secEbook.classList.add('hidden');
     } else {
-        btnEbook.classList.add('bg-[var(--bg-sidebar)]', 'shadow-sm', 'border-[var(--border-color)]', 'text-indigo-600');
+        btnEbook.classList.add('bg-[var(--bg-sidebar)]', 'shadow-sm', 'border-[var(--border-color)]', 'text-black', 'dark:text-white', 'font-bold');
         btnEbook.classList.remove('border-transparent', 'text-[var(--text-muted)]');
-        btnPdf.classList.remove('bg-[var(--bg-sidebar)]', 'shadow-sm', 'border-[var(--border-color)]', 'text-indigo-600');
+        btnPdf.classList.remove('bg-[var(--bg-sidebar)]', 'shadow-sm', 'border-[var(--border-color)]', 'text-black', 'dark:text-white', 'font-bold');
         btnPdf.classList.add('border-transparent', 'text-[var(--text-muted)]');
         
         secEbook.classList.remove('hidden');
@@ -35,7 +35,7 @@ function switchSettingTab(tabId) {
 
     // Actualizar estilos de los botones
     document.querySelectorAll('.setting-tab-btn').forEach(btn => {
-        btn.classList.remove('border-indigo-500', 'text-indigo-500');
+        btn.classList.remove('border-black', 'text-black', 'dark:border-white', 'dark:text-white');
         btn.classList.add('border-transparent', 'text-[var(--text-muted)]');
     });
     
@@ -43,7 +43,7 @@ function switchSettingTab(tabId) {
     const activeBtn = document.getElementById('btn-' + tabId);
     if (activeBtn) {
         activeBtn.classList.remove('border-transparent', 'text-[var(--text-muted)]');
-        activeBtn.classList.add('border-indigo-500', 'text-indigo-500');
+        activeBtn.classList.add('border-black', 'text-black', 'dark:border-white', 'dark:text-white');
     }
 }
 
@@ -58,7 +58,7 @@ window.switchEbookSettingTab = function(tabId) {
 
     // Actualizar estilos de los botones
     document.querySelectorAll('.ebook-setting-tab-btn').forEach(btn => {
-        btn.classList.remove('border-indigo-500', 'text-indigo-500');
+        btn.classList.remove('border-black', 'text-black', 'dark:border-white', 'dark:text-white');
         btn.classList.add('border-transparent', 'text-[var(--text-muted)]');
     });
     
@@ -66,7 +66,7 @@ window.switchEbookSettingTab = function(tabId) {
     const activeBtn = document.getElementById('btn-' + tabId);
     if (activeBtn) {
         activeBtn.classList.remove('border-transparent', 'text-[var(--text-muted)]');
-        activeBtn.classList.add('border-indigo-500', 'text-indigo-500');
+        activeBtn.classList.add('border-black', 'text-black', 'dark:border-white', 'dark:text-white');
     }
 }
 
@@ -134,8 +134,8 @@ window.addCustomCreditRow = function(role = '', name = '') {
     const row = document.createElement('div');
     row.className = 'flex items-center gap-2 mb-2 custom-credit-row';
     row.innerHTML = `
-        <input type="text" placeholder="Rol (ej: Traducción)" value="${role}" class="credit-role w-1/3 bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        <input type="text" placeholder="Nombre (ej: Ana Pérez)" value="${name}" class="credit-name w-1/2 bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1">
+        <input type="text" placeholder="Rol (ej: Traducción)" value="${role}" class="credit-role w-1/3 bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+        <input type="text" placeholder="Nombre (ej: Ana Pérez)" value="${name}" class="credit-name w-1/2 bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black flex-1">
         <button type="button" onclick="this.parentElement.remove()" class="w-8 h-8 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar fila">
             <i class="fa-solid fa-trash-can text-xs"></i>
         </button>

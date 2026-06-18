@@ -300,7 +300,7 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
                 <!-- Text Properties Panel (Hidden by default) -->
                 <div id="text-properties-panel" class="hidden px-4 flex-col gap-3 pt-2 border-t border-gray-100">
                     <div class="flex justify-between items-center mb-1">
-                        <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Propiedades</span>
+                        <span class="text-xs font-bold uppercase tracking-wider text-black dark:text-white">Propiedades</span>
                         <button id="delete-text-btn" class="text-red-500 hover:text-red-700" title="Eliminar Texto">
                             <i class="fa-solid fa-trash text-sm"></i>
                         </button>
@@ -308,12 +308,12 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
 
                     <div class="text-only-prop">
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Contenido</label>
-                        <textarea id="prop-text-content" rows="2" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                        <textarea id="prop-text-content" rows="2" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-black focus:border-black dark:border-white"></textarea>
                     </div>
 
                     <div class="text-only-prop">
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Tipografía</label>
-                        <select id="prop-font-family" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500">
+                        <select id="prop-font-family" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-black focus:border-black dark:border-white">
                             <!-- Populated via JS -->
                         </select>
                     </div>
@@ -321,22 +321,22 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
                     <div class="flex gap-2">
                         <div class="flex-1">
                             <label class="block text-xs font-semibold text-gray-700 mb-1">Rotación (°)</label>
-                            <input type="number" id="prop-rotation" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500" />
+                            <input type="number" id="prop-rotation" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-black focus:border-black dark:border-white" />
                         </div>
                         <div class="flex-1 text-only-prop">
                             <label class="block text-xs font-semibold text-gray-700 mb-1">Tamaño (px)</label>
-                            <input type="number" id="prop-font-size" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500" />
+                            <input type="number" id="prop-font-size" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-black focus:border-black dark:border-white" />
                         </div>
                     </div>
 
                     <div class="flex gap-2">
                         <div class="flex-1">
                             <label class="block text-xs font-semibold text-gray-700 mb-1">Ancho (px)</label>
-                            <input type="number" id="prop-width" placeholder="Auto" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500" />
+                            <input type="number" id="prop-width" placeholder="Auto" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-black focus:border-black dark:border-white" />
                         </div>
                         <div class="flex-1">
                             <label class="block text-xs font-semibold text-gray-700 mb-1">Alto (px)</label>
-                            <input type="number" id="prop-height" placeholder="Auto" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500" />
+                            <input type="number" id="prop-height" placeholder="Auto" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-black focus:border-black dark:border-white" />
                         </div>
                     </div>
 
@@ -344,7 +344,7 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Color</label>
                         <div class="flex items-center gap-1">
                             <input type="color" id="prop-text-color" class="block w-8 h-8 p-0 border-0 rounded cursor-pointer" />
-                            <input type="text" id="prop-text-color-hex" class="flex-1 text-xs border border-gray-300 rounded-md px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500" />
+                            <input type="text" id="prop-text-color-hex" class="flex-1 text-xs border border-gray-300 rounded-md px-2 py-1.5 focus:ring-black focus:border-black dark:border-white" />
                         </div>
                     </div>
 
@@ -367,14 +367,14 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
                     </div>
 
                     <div class="flex items-center gap-2 mt-1 text-only-prop">
-                        <input type="checkbox" id="prop-hyphens" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
+                        <input type="checkbox" id="prop-hyphens" class="rounded border-gray-300 text-black dark:text-white focus:ring-black cursor-pointer" />
                         <label for="prop-hyphens" class="text-xs font-semibold text-gray-700 cursor-pointer">Separación por sílabas (guiones)</label>
                     </div>
 
                     <!-- SHAPE PROPERTIES -->
                     <div class="shape-only-prop hidden">
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Tipo de Forma</label>
-                        <select id="prop-shape-type" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-indigo-500 focus:border-indigo-500">
+                        <select id="prop-shape-type" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-black focus:border-black dark:border-white">
                             <option value="rectangle">Rectángulo</option>
                             <option value="circle">Círculo</option>
                         </select>
@@ -390,7 +390,7 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
                         <label class="block text-xs font-semibold text-gray-700 mb-2">Fondo (Background)</label>
                         
                         <div class="flex items-center gap-2 mb-2">
-                            <input type="checkbox" id="prop-shape-is-gradient" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
+                            <input type="checkbox" id="prop-shape-is-gradient" class="rounded border-gray-300 text-black dark:text-white focus:ring-black cursor-pointer" />
                             <label for="prop-shape-is-gradient" class="text-xs font-semibold text-gray-700 cursor-pointer">Usar Degradado Lineal</label>
                         </div>
                         
@@ -409,7 +409,7 @@ $total_pages = $total_pages ? intval( $total_pages ) : 0;
 
                         <div id="prop-shape-angle-container" style="display: none;">
                             <label class="block text-[10px] font-semibold text-gray-500 uppercase mb-1 mt-2">Ángulo (°)</label>
-                            <input type="number" id="prop-shape-angle" value="90" min="0" max="360" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500" />
+                            <input type="number" id="prop-shape-angle" value="90" min="0" max="360" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-black focus:border-black dark:border-white" />
                         </div>
                     </div>
                 </div>

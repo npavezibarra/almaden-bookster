@@ -8,6 +8,11 @@ $book_id = get_the_ID();
 $book_title = get_the_title();
 $author = get_post_meta( $book_id, '_almaden_book_author', true );
 
+$source_book_id = get_post_meta( $book_id, '_almaden_source_book_id', true );
+if ( empty( $source_book_id ) ) {
+	$source_book_id = $book_id;
+}
+
 // Get the cover HTML
 require_once dirname( __FILE__ ) . '/../includes/cover-thumbnail.php';
 $cover_html = almaden_get_cover_thumbnail_html( $book_id );
@@ -16,7 +21,7 @@ $fonts_url = almaden_get_thumbnail_fonts_url();
 // Fetch chapters
 $chapters_query = new WP_Query( array(
 	'post_type'      => 'book_chapter',
-	'post_parent'    => $book_id,
+	'post_parent'    => $source_book_id,
 	'posts_per_page' => -1,
 	'orderby'        => 'menu_order',
 	'order'          => 'ASC',

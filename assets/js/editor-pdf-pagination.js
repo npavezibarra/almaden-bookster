@@ -22,10 +22,19 @@ window.isValidSpanishHyphenation = function(word, index) {
     const vowels = /[aeiouáéíóúüAEIOUÁÉÍÓÚÜ]/;
     if (!vowels.test(part1) || !vowels.test(part2)) return false;
 
-    // Intentar cortar preferiblemente entre consonantes o vocal-consonante.
-    // Evitar cortar C-V porque en español la consonante suele ir con la vocal siguiente (ej. ca-sa).
+    // Evitar separar dígrafos qu, gu
     const charBefore = word[index - 1].toLowerCase();
     const charAfter = word[index].toLowerCase();
+    
+    if ((charBefore === 'u' || charBefore === 'ü') && index >= 2) {
+        const charBefore2 = word[index - 2].toLowerCase();
+        if (charBefore2 === 'q' || charBefore2 === 'g') {
+            return false;
+        }
+    }
+
+    // Intentar cortar preferiblemente entre consonantes o vocal-consonante.
+    // Evitar cortar C-V porque en español la consonante suele ir con la vocal siguiente (ej. ca-sa).
     const isVowelBefore = vowels.test(charBefore);
     const isVowelAfter = vowels.test(charAfter);
     if (!isVowelBefore && isVowelAfter) return false;

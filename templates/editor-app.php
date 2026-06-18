@@ -53,12 +53,12 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
                 <i class="fa-solid fa-arrow-left"></i>
                 <span class="hidden sm:inline">Volver</span>
             </a>
-            <div class="bg-indigo-600 text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
+            <div class="bg-black text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-black/30">
                 <i class="fa-solid fa-book-open text-lg"></i>
             </div>
             <div>
                 <input id="book-title-input" type="text" value="Mi Novela Inédita" 
-                    class="bg-transparent font-bold text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded px-1 w-48 md:w-64 border-b border-transparent hover:border-dashed hover:border-gray-400 transition-all" 
+                    class="bg-transparent font-bold text-lg focus:outline-none focus:ring-2 focus:ring-black rounded px-1 w-48 md:w-64 border-b border-transparent hover:border-dashed hover:border-gray-400 transition-all" 
                     title="Haz clic para renombrar el libro">
                 <p class="text-xs text-[var(--text-muted)] -mt-1 font-medium">Editor de Manuscritos</p>
             </div>
@@ -75,13 +75,13 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
                     <i class="fa-solid fa-feather text-amber-800"></i>
                 </button>
                 <button onclick="changeTheme('dark')" class="w-8 h-8 rounded-md flex items-center justify-center text-sm hover:bg-slate-800 transition" title="Modo Oscuro">
-                    <i class="fa-solid fa-moon text-indigo-400"></i>
+                    <i class="fa-solid fa-moon text-neutral-400"></i>
                 </button>
             </div>
 
             <!-- Toggles de Visualización -->
             <div class="hidden md:flex bg-[var(--bg-app)] rounded-lg p-1 border border-[var(--border-color)] text-xs font-semibold">
-                <button id="view-split-btn" onclick="setViewMode('split')" class="px-3 py-1.5 rounded-md bg-indigo-600 text-white shadow-sm transition">
+                <button id="view-split-btn" onclick="setViewMode('split')" class="px-3 py-1.5 rounded-md bg-black text-white shadow-sm transition">
                     Dividido
                 </button>
                 <button id="view-edit-btn" onclick="setViewMode('edit')" class="px-3 py-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] transition">
@@ -97,7 +97,7 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
                 <button onclick="toggleSettingsModal(true)" class="p-2 border border-[var(--border-color)] hover:bg-[var(--bg-app)] rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] transition" title="Configuración de Maquetación del PDF">
                     <i class="fa-solid fa-gear"></i>
                 </button>
-                <button id="btn-export-pdf" onclick="triggerPrint()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-lg transition flex items-center gap-2">
+                <button id="btn-export-pdf" onclick="triggerPrint()" class="px-4 py-2 bg-black hover:bg-neutral-800 text-white text-sm font-semibold rounded-[6px] shadow-md hover:shadow-lg transition flex items-center gap-2">
                     <i class="fa-solid fa-file-pdf"></i>
                     <span class="hidden sm:inline">Imprimir PDF</span>
                 </button>
@@ -111,7 +111,7 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
         <!-- BARRA LATERAL IZQUIERDA -->
         <aside id="sidebar" class="w-80 border-r border-[var(--border-color)] bg-[var(--bg-sidebar)] flex flex-col justify-between transition-all z-20 no-print h-full">
             <div class="p-4 shrink-0 pb-2 relative" id="add-chapter-dropdown-wrapper">
-                <button onclick="toggleAddChapterDropdown()" class="w-full py-3 px-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
+                <button onclick="toggleAddChapterDropdown()" class="w-full py-3 px-2 bg-black hover:bg-neutral-800 text-white font-bold rounded-[6px] shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
                     <i class="fa-solid fa-plus"></i>
                     Añadir
                     <i class="fa-solid fa-chevron-down text-[10px] ml-1 opacity-80"></i>
@@ -145,7 +145,7 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
                 <div class="flex-1 mt-2">
                     <div class="flex items-center justify-between mb-3 px-2">
                         <span class="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Índice de Capítulos</span>
-                        <span id="chapter-count" class="text-xs bg-indigo-100 text-indigo-800 dark:bg-slate-800 dark:text-indigo-400 font-bold px-2 py-0.5 rounded-full">0</span>
+                        <span id="chapter-count" class="text-xs bg-neutral-200 text-neutral-850 dark:bg-slate-800 dark:text-neutral-400 font-bold px-2 py-0.5 rounded-full">0</span>
                     </div>
 
                     <div id="chapters-list" class="space-y-1">
@@ -239,7 +239,7 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
                         <div class="flex items-center rounded border border-transparent hover:border-[var(--border-color)] transition focus-within:border-[var(--border-color)] focus-within:bg-[var(--bg-app)] h-7 px-1">
                             <input type="number" id="toolbar-font-size" value="16" min="8" max="72" class="w-8 bg-transparent text-[11px] text-center focus:outline-none" title="Tamaño de fuente">
                             <span class="text-[10px] text-slate-400 font-mono mr-1">px</span>
-                            <button onclick="applyFontSize()" class="w-5 h-5 flex items-center justify-center text-indigo-500 hover:bg-indigo-100 hover:text-indigo-600 rounded transition" title="Aplicar tamaño al texto seleccionado">
+                            <button onclick="applyFontSize()" class="w-5 h-5 flex items-center justify-center text-black hover:bg-neutral-100 hover:text-black rounded transition" title="Aplicar tamaño al texto seleccionado">
                                 <i class="fa-solid fa-check text-[9px]"></i>
                             </button>
                         </div>
@@ -273,22 +273,22 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
                             <div id="lang-dropdown" class="hidden absolute top-full left-0 mt-1 bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg shadow-xl z-50 py-1 min-w-[160px]">
                                 <p class="text-[10px] text-[var(--text-muted)] px-3 pt-1 pb-1 uppercase tracking-wider font-semibold">Idioma del fragmento</p>
                                 <button onclick="applyLanguage('es')" class="w-full text-left px-3 py-1.5 text-xs hover:bg-[var(--bg-app)] transition flex items-center gap-2">
-                                    <span class="font-mono font-bold text-indigo-500">es</span> Español
+                                    <span class="font-mono font-bold text-black dark:text-neutral-400">es</span> Español
                                 </button>
                                 <button onclick="applyLanguage('en')" class="w-full text-left px-3 py-1.5 text-xs hover:bg-[var(--bg-app)] transition flex items-center gap-2">
-                                    <span class="font-mono font-bold text-indigo-500">en</span> English
+                                    <span class="font-mono font-bold text-black dark:text-neutral-400">en</span> English
                                 </button>
                                 <button onclick="applyLanguage('fr')" class="w-full text-left px-3 py-1.5 text-xs hover:bg-[var(--bg-app)] transition flex items-center gap-2">
-                                    <span class="font-mono font-bold text-indigo-500">fr</span> Français
+                                    <span class="font-mono font-bold text-black dark:text-neutral-400">fr</span> Français
                                 </button>
                                 <button onclick="applyLanguage('de')" class="w-full text-left px-3 py-1.5 text-xs hover:bg-[var(--bg-app)] transition flex items-center gap-2">
-                                    <span class="font-mono font-bold text-indigo-500">de</span> Deutsch
+                                    <span class="font-mono font-bold text-black dark:text-neutral-400">de</span> Deutsch
                                 </button>
                                 <button onclick="applyLanguage('pt')" class="w-full text-left px-3 py-1.5 text-xs hover:bg-[var(--bg-app)] transition flex items-center gap-2">
-                                    <span class="font-mono font-bold text-indigo-500">pt</span> Português
+                                    <span class="font-mono font-bold text-black dark:text-neutral-400">pt</span> Português
                                 </button>
                                 <button onclick="applyLanguage('it')" class="w-full text-left px-3 py-1.5 text-xs hover:bg-[var(--bg-app)] transition flex items-center gap-2">
-                                    <span class="font-mono font-bold text-indigo-500">it</span> Italiano
+                                    <span class="font-mono font-bold text-black dark:text-neutral-400">it</span> Italiano
                                 </button>
                                 <div class="border-t border-[var(--border-color)] my-1"></div>
                                 <button onclick="removeLanguage()" class="w-full text-left px-3 py-1.5 text-xs hover:bg-[var(--bg-app)] transition flex items-center gap-2 text-rose-500">
@@ -315,10 +315,10 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
                     <div class="flex-1 overflow-y-auto">
                         <div class="max-w-[800px] mx-auto px-6 pt-6 pb-6 flex flex-col h-full min-h-full">
                             <!-- Título del capítulo y Configuración Local -->
-                            <div class="flex items-center gap-3 mb-4 border-b-2 border-transparent focus-within:border-indigo-500 transition-all pb-2">
+                            <div class="flex items-center gap-3 mb-4 border-b-2 border-transparent focus-within:border-black transition-all pb-2">
                                 <input id="chapter-title-input" type="text" placeholder="Título del Capítulo..."
                                     class="w-full bg-transparent font-serif font-semibold text-2xl md:text-3xl focus:outline-none text-[var(--text-main)]">
-                                <button onclick="openChapterSettingsModal()" class="text-[var(--text-muted)] hover:text-indigo-500 transition-colors p-2 rounded-lg hover:bg-[var(--bg-sidebar)]" title="Configuración de este Capítulo">
+                                <button onclick="openChapterSettingsModal()" class="text-[var(--text-muted)] hover:text-black dark:hover:text-white transition-colors p-2 rounded-lg hover:bg-[var(--bg-sidebar)]" title="Configuración de este Capítulo">
                                     <i class="fa-solid fa-gear text-lg"></i>
                                 </button>
                             </div>
@@ -337,11 +337,11 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
                 <!-- Barra informativa superior de página -->
                 <div class="h-12 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] px-4 flex items-center justify-between text-xs text-[var(--text-muted)] no-print">
                     <span class="font-semibold uppercase tracking-wider flex items-center gap-1">
-                        <i class="fa-solid fa-magnifying-glass-doc text-xs text-indigo-500"></i> Vista Previa
+                        <i class="fa-solid fa-magnifying-glass-doc text-xs text-black dark:text-white"></i> Vista Previa
                     </span>
                     <div class="flex items-center gap-3">
 
-                        <button id="btn-toggle-spread" class="text-[var(--text-muted)] hover:text-indigo-500 transition-colors" title="Alternar Vista a Doble Página">
+                        <button id="btn-toggle-spread" class="text-[var(--text-muted)] hover:text-black dark:hover:text-white transition-colors" title="Alternar Vista a Doble Página">
                             <i class="fa-solid fa-file-lines"></i>
                         </button>
                         <span id="pdf-page-indicator">0 Páginas</span>
@@ -361,7 +361,7 @@ require_once plugin_dir_path( __DIR__ ) . 'includes/editor-data-loader.php';
     <?php include plugin_dir_path( __FILE__ ) . 'chapter-settings-modal.php'; ?>
 
     <!-- NOTIFICACIÓN FLOTANTE (TOAST) -->
-    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-10 opacity-0 pointer-events-none transition-all duration-300 bg-slate-900 text-white dark:bg-indigo-600 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-10 opacity-0 pointer-events-none transition-all duration-300 bg-slate-900 text-white dark:bg-neutral-800 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3">
         <span id="toast-icon" class="text-emerald-400"><i class="fa-solid fa-circle-check"></i></span>
         <span id="toast-message" class="text-sm font-medium">Libro guardado con éxito</span>
     </div>
