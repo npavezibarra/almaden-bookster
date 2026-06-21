@@ -77,7 +77,14 @@ window.buildChapterHTML = function(chapter, index, settings, bookState) {
             creditsHtml += `<p><strong>Número de edición:</strong> ${settings.credits_edition}</p>`;
         }
         if (settings.credits_date) {
-            creditsHtml += `<p><strong>Fecha de publicación:</strong> ${settings.credits_date}</p>`;
+            let formattedDate = settings.credits_date;
+            if (/^\d{4}-\d{2}$/.test(settings.credits_date)) {
+                const [year, month] = settings.credits_date.split('-');
+                const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+                const monthName = months[parseInt(month, 10) - 1];
+                formattedDate = `${monthName} ${year}`;
+            }
+            creditsHtml += `<p><strong>Fecha de publicación:</strong> ${formattedDate}</p>`;
         }
         
         let customCredits = [];

@@ -336,7 +336,7 @@ require_once plugin_dir_path( dirname( __DIR__ ) ) . 'includes/editor-data-loade
                                         </div>
                                         <div>
                                             <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Fecha de Publicación</label>
-                                            <input id="setting-credits-date" type="text" placeholder="Ej: Mayo 2024" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                            <input id="setting-credits-date" type="month" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                                         </div>
                                     </div>
 
