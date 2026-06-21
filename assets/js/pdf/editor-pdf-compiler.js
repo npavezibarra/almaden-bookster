@@ -94,6 +94,18 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
         window.bookChapterPreParityPages = window.bookChapterPreParityPages || {};
         window.bookChapterPreParityPages[chapter.id] = currentPageNumber;
 
+        // Páginas blancas manuales ANTES de Créditos
+        if (chapter.is_credits == '1') {
+            const blankBefore = parseInt(settings.credits_blank_before || 0, 10);
+            for (let i = 0; i < blankBefore; i++) {
+                const blankPage = window.createNewPageElement(currentPageNumber, { ...chapter, parity_image: null }, false, true);
+                blankPage.setAttribute('data-chapter-id', chapter.id);
+                scroller.appendChild(blankPage);
+                virtualizePage(blankPage, currentPageNumber);
+                currentPageNumber++;
+            }
+        }
+
         // Determinar paridad y generar páginas en blanco correspondientes
         currentPageNumber = window.handleChapterParity(chapter, index, settings, currentPageNumber, scroller, virtualizePage);
 
@@ -428,6 +440,18 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
         }
 
         currentPageNumber++;
+
+        // Páginas blancas manuales DESPUÉS de Créditos
+        if (chapter.is_credits == '1') {
+            const blankAfter = parseInt(settings.credits_blank_after || 0, 10);
+            for (let i = 0; i < blankAfter; i++) {
+                const blankPage = window.createNewPageElement(currentPageNumber, { ...chapter, parity_image: null }, false, true);
+                blankPage.setAttribute('data-chapter-id', chapter.id);
+                scroller.appendChild(blankPage);
+                virtualizePage(blankPage, currentPageNumber);
+                currentPageNumber++;
+            }
+        }
     }
 
     // Segunda pasada: Rellenar la Tabla de Contenidos (Índice) si existe
