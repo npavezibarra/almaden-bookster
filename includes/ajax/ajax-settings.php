@@ -159,7 +159,7 @@ function almaden_bookster_save_settings_ajax() {
 		update_post_meta( $book_id, '_almaden_credits_blank_after', intval( $_POST['credits_blank_after'] ?? 0 ) );
 		
 		$custom_credits = isset($_POST['credits_custom']) ? json_decode(wp_unslash($_POST['credits_custom']), true) : [];
-		update_post_meta( $book_id, '_almaden_credits_custom', wp_json_encode($custom_credits) );
+		update_post_meta( $book_id, '_almaden_credits_custom', wp_slash(wp_json_encode($custom_credits)) );
 
 		// Guardar configuraciones globales de subtítulo en post_meta para PDF y Ebook
 		$subtitle_fields = [
