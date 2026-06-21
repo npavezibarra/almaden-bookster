@@ -4,6 +4,40 @@
 // ============================================================
 
 function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit) {
+        let headerAlignCSS = '';
+        if (settings.header_align === 'outer') {
+            headerAlignCSS = `
+                .pdf-page.page-odd .pdf-header { text-align: right !important; }
+                .pdf-page.page-even .pdf-header { text-align: left !important; }
+            `;
+        } else if (settings.header_align === 'inner') {
+            headerAlignCSS = `
+                .pdf-page.page-odd .pdf-header { text-align: left !important; }
+                .pdf-page.page-even .pdf-header { text-align: right !important; }
+            `;
+        } else {
+            headerAlignCSS = `
+                .pdf-header { text-align: ${settings.header_align || 'center'} !important; }
+            `;
+        }
+
+        let footerAlignCSS = '';
+        if (settings.footer_align === 'outer') {
+            footerAlignCSS = `
+                .pdf-page.page-odd .pdf-footer { text-align: right !important; }
+                .pdf-page.page-even .pdf-footer { text-align: left !important; }
+            `;
+        } else if (settings.footer_align === 'inner') {
+            footerAlignCSS = `
+                .pdf-page.page-odd .pdf-footer { text-align: left !important; }
+                .pdf-page.page-even .pdf-footer { text-align: right !important; }
+            `;
+        } else {
+            footerAlignCSS = `
+                .pdf-footer { text-align: ${settings.footer_align || 'center'} !important; }
+            `;
+        }
+
     return `
         @page {
             size: ${widthPx + globalBleedPx}px ${heightPx + (globalBleedPx * 2)}px;
@@ -118,7 +152,7 @@ function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit
         @media screen {
             #pdf-scroller.spread-view {
                 display: grid !important;
-                grid-template-columns: max-content max-content;
+                grid-template-columns: ${widthPx + globalBleedPx}px ${widthPx + globalBleedPx}px;
                 justify-content: center;
                 column-gap: 0;
                 padding: 40px 0; /* Fallback top/bottom spacing instead of row-gap */
@@ -150,8 +184,8 @@ function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit
             font-style: ${settings.header_font_style || 'normal'} !important;
             letter-spacing: ${toPx(settings.header_letter_spacing || 0.1, true)}px !important;
             color: #475569 !important;
-            text-align: ${settings.header_align || 'center'} !important;
         }
+        ${headerAlignCSS}
 
         /* ── Pie de página ── */
         .pdf-footer {
@@ -164,8 +198,8 @@ function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit
             font-style: ${settings.footer_font_style || 'normal'} !important;
             letter-spacing: ${toPx(settings.footer_letter_spacing || 0.0, true)}px !important;
             color: #475569 !important;
-            text-align: ${settings.footer_align || 'center'} !important;
         }
+        ${footerAlignCSS}
 
         /* ── Márgenes laterales por paridad ── */
         .pdf-page.page-odd .pdf-header,

@@ -41,6 +41,14 @@ window.onload = function() {
         titleInput.value = bookState.title;
     }
 
+    // Poblar los campos de configuración en el DOM para evitar sobreescritura con campos vacíos
+    if (typeof window.populateSettingsForm === 'function') {
+        window.populateSettingsForm();
+    }
+    if (typeof window.initCreditsForm === 'function') {
+        window.initCreditsForm();
+    }
+
     // Inicializar Listeners
     initEventListeners();
 

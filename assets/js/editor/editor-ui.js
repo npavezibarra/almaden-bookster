@@ -88,6 +88,11 @@ function toggleSpreadView() {
     
     // Update icon
     btn.innerHTML = isSpread ? '<i class="fa-solid fa-book-open"></i>' : '<i class="fa-solid fa-file-lines"></i>';
+
+    // Re-render ruler if visible
+    if (typeof window.renderRuler === 'function') {
+        setTimeout(window.renderRuler, 10);
+    }
 }
 
 function initSpreadView() {
@@ -144,5 +149,132 @@ document.addEventListener('click', function(event) {
     const addChapterDropdown = document.getElementById('add-chapter-dropdown');
     if (addChapterWrapper && addChapterDropdown && !addChapterWrapper.contains(event.target)) {
         addChapterDropdown.classList.add('hidden');
+    }
+});
+
+// Ruler Logic
+window.toggleRuler = function() {
+    const ruler = document.getElementById('pdf-ruler-wrapper');
+    const btn = document.getElementById('btn-toggle-ruler');
+    if (!ruler || !btn) return;
+    
+    ruler.classList.toggle('hidden');
+    const isVisible = !ruler.classList.contains('hidden');
+    
+    if (isVisible) {
+        btn.classList.add('text-black', 'dark:text-white');
+        btn.classList.remove('text-[var(--text-muted)]');
+        if (typeof window.renderRuler === 'function') window.renderRuler();
+    } else {
+        btn.classList.remove('text-black', 'dark:text-white');
+        btn.classList.add('text-[var(--text-muted)]');
+    }
+}
+
+window.renderRuler = function() {
+    const wrapper = document.getElementById('pdf-ruler-wrapper');
+    const ruler = document.getElementById('pdf-ruler');
+    const scroller = document.getElementById('pdf-scroller');
+    if (!wrapper || !ruler || !scroller || wrapper.classList.contains('hidden')) return;
+
+    // 1cm ≈ 37.7952755906px
+    const unitPixels = 37.7952755906;
+    
+    // Ruler should be as wide as the scrollable area
+    const totalWidth = Math.max(scroller.clientWidth, scroller.scrollWidth) + 1000; // Extra width for scrolling safety
+    ruler.style.width = totalWidth + 'px';
+    
+    // Align ruler with horizontal scroll
+    ruler.style.left = -scroller.scrollLeft + 'px';
+    
+    let center = totalWidth / 2;
+    
+    // Exact spine calculation based on DOM
+    const oddPage = scroller.querySelector('.pdf-page.page-odd');
+    const evenPage = scroller.querySelector('.pdf-page.page-even');
+    
+    if (scroller.classList.contains('spread-view')) {
+        // Spine is the boundary between even and odd
+        if (oddPage) {
+            center = oddPage.offsetLeft;
+        } else if (evenPage) {
+            center = evenPage.offsetLeft + evenPage.offsetWidth;
+        }
+    } else {
+        // Single page view: user probably wants 0 at the left edge of odd, or right edge of even
+        // Or center of the page? "medio del spread" implies the spine.
+        if (oddPage) {
+            center = oddPage.offsetLeft; // Spine is on the left
+        } else if (evenPage) {
+            center = evenPage.offsetLeft + evenPage.offsetWidth; // Spine is on the right
+        } else {
+            // Fallback to exactly center of first page
+            const firstPage = scroller.querySelector('.pdf-page');
+            if (firstPage) {
+                center = firstPage.offsetLeft + (firstPage.offsetWidth / 2);
+            }
+        }
+    }
+
+    const maxUnitsRight = Math.ceil((totalWidth - center) / unitPixels) + 2;
+    const maxUnitsLeft = Math.ceil(center / unitPixels) + 2;
+    const maxUnits = Math.max(maxUnitsRight, maxUnitsLeft);
+
+    let html = '';
+    // Draw 0 at center
+    html += `<div style="position: absolute; top: 0; bottom: 0; border-left: 1px solid #ef4444; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; left: ${center}px; z-index: 10;">
+        <span style="font-size: 8px; color: #ef4444; font-weight: bold; line-height: 1;  margin-bottom: 2px;">0</span>
+    </div>`;
+
+    for (let i = 1; i <= maxUnits; i++) {
+        // Right
+        html += `<div style="position: absolute; top: 0; bottom: 0; border-left: 1px solid #9ca3af; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; left: ${center + (i * unitPixels)}px;">
+            <span style="font-size: 8px; color: #4b5563; line-height: 1;  margin-bottom: 2px;">${i}</span>
+        </div>`;
+        // Left
+        html += `<div style="position: absolute; top: 0; bottom: 0; border-left: 1px solid #9ca3af; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; left: ${center - (i * unitPixels)}px;">
+            <span style="font-size: 8px; color: #4b5563; line-height: 1;  margin-bottom: 2px;">-${i}</span>
+        </div>`;
+
+        // Sub-ticks
+        for (let j = 1; j < 10; j++) {
+            const subTickOffset = (i - 1 + (j / 10)) * unitPixels;
+            const tickHeight = j === 5 ? '10px' : '6px';
+            // Right subtick
+            html += `<div style="position: absolute; bottom: 0; border-left: 1px solid #d1d5db; height: ${tickHeight}; left: ${center + subTickOffset}px;"></div>`;
+            // Left subtick
+            html += `<div style="position: absolute; bottom: 0; border-left: 1px solid #d1d5db; height: ${tickHeight}; left: ${center - subTickOffset}px;"></div>`;
+        }
+    }
+
+    ruler.innerHTML = html;
+}
+
+// Ensure scroll syncs ruler
+document.addEventListener('DOMContentLoaded', () => {
+    const scroller = document.getElementById('pdf-scroller');
+    if (scroller) {
+        scroller.addEventListener('scroll', () => {
+            const wrapper = document.getElementById('pdf-ruler-wrapper');
+            const ruler = document.getElementById('pdf-ruler');
+            if (wrapper && !wrapper.classList.contains('hidden') && ruler) {
+                ruler.style.left = -scroller.scrollLeft + 'px';
+            }
+        });
+
+        // Add ResizeObserver to re-render ruler when scroller size changes
+        const resizeObserver = new ResizeObserver(() => {
+            const wrapper = document.getElementById('pdf-ruler-wrapper');
+            if (wrapper && !wrapper.classList.contains('hidden')) {
+                if (typeof window.renderRuler === 'function') window.renderRuler();
+            }
+        });
+        resizeObserver.observe(scroller);
+    }
+});
+
+window.addEventListener('resize', () => {
+    if (typeof window.renderRuler === 'function') {
+        window.renderRuler();
     }
 });

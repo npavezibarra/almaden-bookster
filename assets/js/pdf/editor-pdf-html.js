@@ -69,7 +69,9 @@ window.buildChapterHTML = function(chapter, index, settings, bookState) {
         tocHtml += '</div>'; // Cierra .toc-container
         compiledHtml = tocHtml;
     } else if (chapter.is_credits == '1') {
-        let creditsHtml = '<div class="credits-page-content" style="margin-top: auto; margin-bottom: 2cm; font-size: 0.85em; line-height: 1.4;">';
+        let creditsHtml = '<div class="content-box" style="display: flex; flex-direction: column; height: 100%;">';
+        creditsHtml += '<div class="credits-top-section" style="flex-grow: 1;"></div>';
+        creditsHtml += '<div class="credits-bottom-section" style="font-size: 0.85em; line-height: 1.4; padding-bottom: 2cm;">';
         
         if (settings.credits_edition) {
             creditsHtml += `<p><strong>Número de edición:</strong> ${settings.credits_edition}</p>`;
@@ -105,7 +107,7 @@ window.buildChapterHTML = function(chapter, index, settings, bookState) {
             creditsHtml += `<div class="credits-printer" style="margin-top: 2em; text-align: center; font-size: 0.9em; opacity: 0.8;"><p>Impreso por ${settings.credits_printer}</p></div>`;
         }
         
-        creditsHtml += '</div>';
+        creditsHtml += '</div></div>';
         compiledHtml = creditsHtml;
     } else {
         compiledHtml = compileMarkdownToHTML(chapter.content);

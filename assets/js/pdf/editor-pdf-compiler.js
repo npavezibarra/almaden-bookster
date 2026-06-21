@@ -40,6 +40,15 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
     tempContainer.className = 'pdf-content';
     document.body.appendChild(tempContainer);
 
+    const isolatedScroller = document.createElement('div');
+    isolatedScroller.style.position = 'absolute';
+    isolatedScroller.style.visibility = 'hidden';
+    isolatedScroller.style.top = '0';
+    isolatedScroller.style.left = '0';
+    isolatedScroller.style.width = scroller.clientWidth + 'px';
+    isolatedScroller.className = scroller.className;
+    document.body.appendChild(isolatedScroller);
+
     scroller.innerHTML = '';
     let currentPageNumber = 1;
     
@@ -103,14 +112,25 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
         tempContainer.innerHTML = compiledHtml;
 
         // Esperar a que las imágenes se carguen para poder medir su altura real
+        const isExporting = window.isPrintingPDF || forceFull;
         const images = Array.from(tempContainer.querySelectorAll('img'));
         const imagePromises = images.map(img => {
-            img.removeAttribute('loading'); // FORCE LOAD EVEN IF OFF-SCREEN
-            if (img.complete) return Promise.resolve();
-            return new Promise(resolve => {
-                img.onload = resolve;
-                img.onerror = resolve; // Si falla, continuamos igual
-            });
+            if (isExporting) {
+                img.removeAttribute('loading'); // FORCE LOAD EVEN IF OFF-SCREEN
+                if (img.complete) return Promise.resolve();
+                return new Promise(resolve => {
+                    img.onload = resolve;
+                    img.onerror = resolve; // Si falla, continuamos igual
+                });
+            } else {
+                // Modo Vista Previa (Lazy Loading)
+                // Asignar un placeholder de dimensiones prestablecidas para que la paginación no se rompa
+                if (!img.getAttribute('height') && !img.style.height) {
+                    img.style.minHeight = '150px';
+                    img.style.objectFit = 'contain';
+                }
+                return Promise.resolve();
+            }
         });
         
         if (imagePromises.length > 0) {
@@ -132,7 +152,7 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
         let isFirstPageOfChapter = true;
         let currentPageEl = window.createNewPageElement(currentPageNumber, chapter, isFirstPageOfChapter, false);
         currentPageEl.setAttribute('data-chapter-id', chapter.id);
-        scroller.appendChild(currentPageEl);
+        isolatedScroller.appendChild(currentPageEl);
         let currentInnerContainer = currentPageEl.querySelector('.pdf-content-inner');
         let currentFootnotesContainer = currentPageEl.querySelector('.pdf-footnotes');
 
@@ -200,11 +220,20 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
                 childNodes.unshift(node); // Devolver a la cola
                 
                 // Forzar salto de página
+                scroller.appendChild(currentPageEl);
+                // --- SUGERENCIA 5: Time Slicing ---
+                // Ceder el control al navegador para evitar congelamiento de UI
+                await new Promise(resolve => setTimeout(resolve, 0));
+                if (window._pdfCompileCounter !== currentVersion) {
+                    if (tempContainer.parentNode) document.body.removeChild(tempContainer);
+                    if (isolatedScroller.parentNode) document.body.removeChild(isolatedScroller);
+                    return;
+                }
                 currentPageNumber++;
                 isFirstPageOfChapter = false;
                 currentPageEl = window.createNewPageElement(currentPageNumber, chapter, isFirstPageOfChapter, false);
                 currentPageEl.setAttribute('data-chapter-id', chapter.id);
-                scroller.appendChild(currentPageEl);
+                isolatedScroller.appendChild(currentPageEl);
                 currentInnerContainer = currentPageEl.querySelector('.pdf-content-inner');
                 currentFootnotesContainer = currentPageEl.querySelector('.pdf-footnotes');
                 activePageFootnotes = [];
@@ -217,11 +246,20 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
                 currentInnerContainer.removeChild(clonedNode); // No imprimir el nodo invisible
                 
                 // Forzar salto de página
+                scroller.appendChild(currentPageEl);
+                // --- SUGERENCIA 5: Time Slicing ---
+                // Ceder el control al navegador para evitar congelamiento de UI
+                await new Promise(resolve => setTimeout(resolve, 0));
+                if (window._pdfCompileCounter !== currentVersion) {
+                    if (tempContainer.parentNode) document.body.removeChild(tempContainer);
+                    if (isolatedScroller.parentNode) document.body.removeChild(isolatedScroller);
+                    return;
+                }
                 currentPageNumber++;
                 isFirstPageOfChapter = false;
                 currentPageEl = window.createNewPageElement(currentPageNumber, chapter, isFirstPageOfChapter, false);
                 currentPageEl.setAttribute('data-chapter-id', chapter.id);
-                scroller.appendChild(currentPageEl);
+                isolatedScroller.appendChild(currentPageEl);
                 currentInnerContainer = currentPageEl.querySelector('.pdf-content-inner');
                 currentFootnotesContainer = currentPageEl.querySelector('.pdf-footnotes');
                 activePageFootnotes = [];
@@ -320,11 +358,20 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
                 virtualizePage(currentPageEl, currentPageNumber);
 
                 // Crear nueva página
+                scroller.appendChild(currentPageEl);
+                // --- SUGERENCIA 5: Time Slicing ---
+                // Ceder el control al navegador para evitar congelamiento de UI
+                await new Promise(resolve => setTimeout(resolve, 0));
+                if (window._pdfCompileCounter !== currentVersion) {
+                    if (tempContainer.parentNode) document.body.removeChild(tempContainer);
+                    if (isolatedScroller.parentNode) document.body.removeChild(isolatedScroller);
+                    return;
+                }
                 currentPageNumber++;
                 isFirstPageOfChapter = false;
                 currentPageEl = window.createNewPageElement(currentPageNumber, chapter, isFirstPageOfChapter, false);
                 currentPageEl.setAttribute('data-chapter-id', chapter.id);
-                scroller.appendChild(currentPageEl);
+                isolatedScroller.appendChild(currentPageEl);
                 currentInnerContainer = currentPageEl.querySelector('.pdf-content-inner');
                 currentFootnotesContainer = currentPageEl.querySelector('.pdf-footnotes');
                 activePageFootnotes = [];
@@ -369,6 +416,16 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
 
         // --- VIRTUALIZATION (Última página del capítulo) ---
         virtualizePage(currentPageEl, currentPageNumber);
+        scroller.appendChild(currentPageEl);
+        
+        // --- SUGERENCIA 5: Time Slicing ---
+        // Ceder el control al navegador para evitar congelamiento de UI
+        await new Promise(resolve => setTimeout(resolve, 0));
+        if (window._pdfCompileCounter !== currentVersion) {
+            if (tempContainer.parentNode) document.body.removeChild(tempContainer);
+            if (isolatedScroller.parentNode) document.body.removeChild(isolatedScroller);
+            return;
+        }
 
         currentPageNumber++;
     }
@@ -408,6 +465,7 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
         renderSidebar();
     }
     if (tempContainer.parentNode) document.body.removeChild(tempContainer);
+    if (isolatedScroller.parentNode) document.body.removeChild(isolatedScroller);
 
     if (targetScrollerId === 'pdf-scroller') {
         const indicator = document.getElementById('pdf-page-indicator');

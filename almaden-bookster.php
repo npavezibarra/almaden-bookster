@@ -83,6 +83,7 @@ function almaden_bookster_create_settings_table() {
 			ebook_text_align_justify tinyint(1) DEFAULT 0 NOT NULL,
 			ebook_hyphenation tinyint(1) DEFAULT 0 NOT NULL,
 			font_family_content varchar(50) DEFAULT 'Merriweather' NOT NULL,
+			font_weight_content varchar(20) DEFAULT 'normal' NOT NULL,
 			font_size_content float DEFAULT 11.5 NOT NULL,
 			line_height_content float DEFAULT 1.65 NOT NULL,
 			content_text_align varchar(20) DEFAULT 'justify' NOT NULL,
@@ -215,8 +216,15 @@ add_action('init', function() {
 	$table_name = $wpdb->prefix . 'almaden_book_settings';
 	$columns = $wpdb->get_col("DESCRIBE $table_name", 0);
 	$needed_columns = [
+		'margin_left_odd' => 'float DEFAULT 2.0 NOT NULL',
+		'margin_right_odd' => 'float DEFAULT 2.0 NOT NULL',
+		'margin_left_even' => 'float DEFAULT 2.0 NOT NULL',
+		'margin_right_even' => 'float DEFAULT 2.0 NOT NULL',
+		'padding_top' => 'float DEFAULT 0.0 NOT NULL',
+		'padding_bottom' => 'float DEFAULT 0.0 NOT NULL',
 		'padding_left' => 'float DEFAULT 0.0 NOT NULL',
 		'padding_right' => 'float DEFAULT 0.0 NOT NULL',
+		'bleeding' => 'float DEFAULT 0.0 NOT NULL',
 		'chapter_title_padding_left' => 'float DEFAULT 0.0 NOT NULL',
 		'chapter_title_padding_right' => 'float DEFAULT 0.0 NOT NULL',
 		'export_grayscale' => 'tinyint(1) DEFAULT 0 NOT NULL',
@@ -256,6 +264,7 @@ add_action('init', function() {
 		'ebook_font_family_content' => "varchar(50) DEFAULT 'Merriweather' NOT NULL",
 		'ebook_font_size_content' => "float DEFAULT 18.0 NOT NULL",
 		'ebook_font_weight_content' => "varchar(20) DEFAULT 'normal' NOT NULL",
+		'font_weight_content' => "varchar(20) DEFAULT 'normal' NOT NULL",
 		'ebook_line_height_content' => "float DEFAULT 1.8 NOT NULL",
 		'ebook_font_family_headings' => "varchar(50) DEFAULT 'Playfair Display' NOT NULL",
 		'ebook_font_size_headings' => "float DEFAULT 32.0 NOT NULL",

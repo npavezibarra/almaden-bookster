@@ -37,8 +37,14 @@ assets/js/
   Controla el panel lateral izquierdo. Maneja la creación, eliminación, reordenamiento (drag and drop) de capítulos, y el cambio del capítulo "activo".
 - **`editor-virtualization.js`**: 
   Optimiza el rendimiento inicializando la Virtualización del PDF en el DOM vía IntersectionObserver, limitando los elementos inyectados a lo visible.
-- **`editor-settings-ui.js`**: 
-  Mapea y controla la visualización de los controles interactivos del modal global de ajustes de maquetación.
+- **`editor-settings-tabs.js`**: 
+  Maneja el control visual de pestañas y apertura/cierre del modal de ajustes de maquetación.
+- **`editor-settings-fields.js`**: 
+  Maneja la lógica condicional que muestra/oculta campos, además de la integración de color pickers y selección de imágenes del PDF.
+- **`editor-settings-credits.js`**: 
+  Controla dinámicamente la UI del editor para crear y modificar en tiempo real la página de créditos personalizada.
+- **`editor-settings-templates.js`**: 
+  Manejo y guardado de plantillas de ajustes y conexión UI/AJAX para cargarlas.
 - **`editor-settings-api.js`**: 
   Peticiones AJAX de guardado y carga del modal global de ajustes, actualizando `bookState`.
 - **`editor-chapter-settings.js`**: 

@@ -316,6 +316,69 @@ require_once plugin_dir_path( dirname( __DIR__ ) ) . 'includes/editor-data-loade
                                 class="flex-1 w-full resize-none bg-transparent text-[var(--text-main)] focus:outline-none font-mono text-sm leading-relaxed placeholder-gray-400 dark:placeholder-gray-600 focus:ring-0"
                                 style="min-height: 400px;"
                                 placeholder="Escribe tu historia aquí utilizando formato simple o las herramientas de arriba..."></textarea>
+
+                            <!-- Formulario de Créditos (Oculto por defecto) -->
+                            <div id="credits-editor-container" class="hidden flex-1 w-full bg-transparent overflow-y-auto space-y-5">
+                                <div class="border border-[var(--border-color)] rounded-xl p-4 bg-[var(--bg-app)] space-y-4 shadow-sm">
+                                    <h4 class="text-xs font-bold text-black dark:text-white uppercase tracking-wider flex items-center gap-1.5 border-b border-[var(--border-color)] pb-2 mb-1">
+                                        <i class="fa-solid fa-list-check text-[10px]"></i> Configuración de Página de Créditos
+                                    </h4>
+                                    
+                                    <p class="text-[10px] text-[var(--text-muted)] mt-1 mb-3">
+                                        Modifica la información de tu libro aquí. Esta información se utilizará para generar la página de créditos.
+                                    </p>
+
+                                    <!-- Campos Fijos -->
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Número de Edición</label>
+                                            <input id="setting-credits-edition" type="text" placeholder="Ej: Primera Edición" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Fecha de Publicación</label>
+                                            <input id="setting-credits-date" type="text" placeholder="Ej: Mayo 2024" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Advertencia de Copyright</label>
+                                        <textarea id="setting-credits-copyright" rows="3" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-black resize-none">Queda rigurosamente prohibida, sin la autorización escrita de los titulares del "copyright", bajo las sanciones establecidas en las leyes, la reproducción parcial o total de esta obra por cualquier medio o procedimiento.</textarea>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Imprenta</label>
+                                        <input id="setting-credits-printer" type="text" placeholder="Ej: Impreso en Chile por XXXXX" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Páginas Blancas Anteriores</label>
+                                            <input id="setting-credits-blank-before" type="number" min="0" value="0" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Páginas Blancas Posteriores</label>
+                                            <input id="setting-credits-blank-after" type="number" min="0" value="0" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Créditos Dinámicos -->
+                                <div class="border border-[var(--border-color)] rounded-xl p-4 bg-[var(--bg-app)] shadow-sm">
+                                    <h4 class="text-xs font-bold text-black dark:text-white uppercase tracking-wider flex items-center justify-between border-b border-[var(--border-color)] pb-2 mb-3">
+                                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-users text-[10px]"></i> Créditos Personalizados</span>
+                                        <button type="button" onclick="addCustomCreditRow()" class="px-2 py-1 bg-neutral-100 hover:bg-neutral-200 text-black dark:text-white rounded text-[10px] font-bold transition-colors">
+                                            <i class="fa-solid fa-plus mr-1"></i> Añadir Rol
+                                        </button>
+                                    </h4>
+                                    
+                                    <div id="custom-credits-container" class="space-y-2">
+                                        <!-- Dynamic rows will be inserted here -->
+                                    </div>
+                                    
+                                    <!-- Hidden input to store JSON data -->
+                                    <input type="hidden" id="setting-credits-custom-json" value="[]">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -330,6 +393,9 @@ require_once plugin_dir_path( dirname( __DIR__ ) ) . 'includes/editor-data-loade
                     </span>
                     <div class="flex items-center gap-3">
 
+                        <button id="btn-toggle-ruler" class="text-[var(--text-muted)] hover:text-black dark:hover:text-white transition-colors" title="Mostrar Regla" onclick="window.toggleRuler()">
+                            <i class="fa-solid fa-ruler-horizontal"></i>
+                        </button>
                         <button id="btn-toggle-spread" class="text-[var(--text-muted)] hover:text-black dark:hover:text-white transition-colors" title="Alternar Vista a Doble Página">
                             <i class="fa-solid fa-file-lines"></i>
                         </button>
@@ -338,7 +404,8 @@ require_once plugin_dir_path( dirname( __DIR__ ) ) . 'includes/editor-data-loade
                 </div>
 
                 <!-- Visor Scrollable de Páginas PDF -->
-                <div id="pdf-scroller" class="flex-1 overflow-y-auto p-4 md:p-8 space-y-4">
+                <div id="pdf-ruler-wrapper" class="hidden w-full h-6 bg-white border-b border-gray-300 relative overflow-hidden pointer-events-none select-none shrink-0"><div id="pdf-ruler" class="absolute top-0 bottom-0 h-full"></div></div>
+                <div id="pdf-scroller" class="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 relative">
                     <!-- Contenido dinámico del PDF compilado por JS -->
                 </div>
             </section>
@@ -382,7 +449,10 @@ require_once plugin_dir_path( dirname( __DIR__ ) ) . 'includes/editor-data-loade
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-toolbar.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-virtualization.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-chapters.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-tabs.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-fields.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-templates.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-api.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-chapter-settings.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/almaden-shortcodes.js?v=' . time(), __FILE__ ) ); ?>"></script>

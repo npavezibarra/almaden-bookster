@@ -56,7 +56,7 @@ The frontend JavaScript logic is organized into subfolders by domain to maintain
 - **`editor-toolbar.js`**: Markdown format injection, media library attachment, and parity-image toggling.
 - **`editor-chapters.js`**: Chapter CRUD (creation, sorting, selecting active chapters).
 - **`editor-virtualization.js`**: Performance optimization for massive documents using IntersectionObserver.
-- **`editor-settings-ui.js`** & **`editor-settings-api.js`**: Controller logic and AJAX communication for the layout Settings Modal.
+- **`editor-settings-tabs.js`**, **`editor-settings-fields.js`**, **`editor-settings-credits.js`**, **`editor-settings-templates.js`** & **`editor-settings-api.js`**: Controller logic, UI conditionals, and AJAX communication for the layout Settings Modal and dynamic credits form.
 - **`editor-chapter-settings.js`**: Specific chapter overrides and target page parity properties.
 - **`editor-markdown.js`**: Conversion of raw markdown into HTML.
 
@@ -86,7 +86,7 @@ These files define the HTML structure and PHP rendering for the BookCraft applic
 - **`chapter-settings-modal.php`**, `chapter-settings-normal.php`, `chapter-settings-toc.php`: Options and layouts at the individual chapter level.
 - **`settings-tabs/`**:
   - **`functions.php`**: Font arrays helper.
-  - **`tab-page.php`**, `tab-typography.php`, `tab-header-footer.php`, `tab-chapters.php`, `tab-credits.php`, `tab-ebook-chapters.php`: Custom pages settings tabs.
+  - **`tab-page.php`**, `tab-typography.php`, `tab-header-footer.php`, `tab-chapters.php`, `tab-ebook-chapters.php`: Custom pages settings tabs.
 
 ### 2. Admin & Lists (`templates/admin/`)
 - **`booklist-app.php`**: Taller / workshop list of books.

@@ -1,22 +1,42 @@
+let chapterWordCountCache = {};
+
+function getWordCount(text) {
+    if (typeof text !== 'string') return 0;
+    const cleanText = text.trim();
+    return cleanText === '' ? 0 : cleanText.split(/\s+/).length;
+}
+
 // Cuenta y actualiza las palabras en tiempo real
 function updateWordCounts() {
     const textEl = document.getElementById('editor-textarea');
     if (!textEl) return;
     const text = textEl.value;
-    const cleanText = text.trim();
-    const wordCount = cleanText === '' ? 0 : cleanText.split(/\s+/).length;
+    const wordCount = getWordCount(text);
     
     const currentWordCountEl = document.getElementById('current-word-count');
     if (currentWordCountEl) {
         currentWordCountEl.textContent = `${wordCount} ${wordCount === 1 ? 'palabra' : 'palabras'}`;
     }
 
-    // Calcular palabras totales del libro completo
+    // Calcular palabras totales del libro completo usando caché para optimizar rendimiento
     let total = 0;
     bookState.chapters.forEach(c => {
-        const cText = c.content.trim();
-        total += cText === '' ? 0 : cText.split(/\s+/).length;
+        if (c.id === bookState.activeChapterId) {
+            total += wordCount;
+            chapterWordCountCache[c.id] = { length: text.length, count: wordCount };
+        } else {
+            const content = c.content || '';
+            const cached = chapterWordCountCache[c.id];
+            if (!cached || cached.length !== content.length) {
+                const count = getWordCount(content);
+                chapterWordCountCache[c.id] = { length: content.length, count: count };
+                total += count;
+            } else {
+                total += cached.count;
+            }
+        }
     });
+
     const totalWordsEl = document.getElementById('total-words');
     if (totalWordsEl) {
         totalWordsEl.textContent = total.toLocaleString();
@@ -159,14 +179,25 @@ function loadActiveChapter() {
 
     if (chapter) {
         if (titleInput) titleInput.value = chapter.title;
-        if (textInput) {
-            textInput.value = chapter.content;
-            if (chapter.is_toc === '1' || chapter.is_credits === '1') {
-                textInput.readOnly = true;
-                textInput.classList.add('opacity-50', 'cursor-not-allowed');
-            } else {
-                textInput.readOnly = false;
-                textInput.classList.remove('opacity-50', 'cursor-not-allowed');
+        
+        const creditsContainer = document.getElementById('credits-editor-container');
+        
+        if (chapter.is_credits === '1') {
+            if (textInput) textInput.classList.add('hidden');
+            if (creditsContainer) creditsContainer.classList.remove('hidden');
+            if (typeof initCreditsForm === 'function') initCreditsForm();
+        } else {
+            if (creditsContainer) creditsContainer.classList.add('hidden');
+            if (textInput) {
+                textInput.classList.remove('hidden');
+                textInput.value = chapter.content;
+                if (chapter.is_toc === '1') {
+                    textInput.readOnly = true;
+                    textInput.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    textInput.readOnly = false;
+                    textInput.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
             }
         }
         updateWordCounts();
@@ -314,14 +345,25 @@ function saveStateToLocalStorage(immediate = false) {
         
         // Compilar PDF JUSTO ANTES de guardar (para que refleje los cambios recientes)
         if (typeof compilePDFPreview === 'function') {
-            // 1. Calcular las páginas reales totales en background de forma invisible PRIMERO
-            // Esto actualiza window.bookChapterPages con las posiciones correctas
-            if (typeof calculateAllPagesBackground === 'function') {
+            if (immediate && typeof calculateAllPagesBackground === 'function') {
+                // 1. Calcular las páginas reales totales de fondo SOLO en guardado manual
+                // Esto actualiza window.bookChapterPages con las posiciones correctas
                 totalPages = await calculateAllPagesBackground();
+            } else {
+                // En autosave, rescatamos el total de páginas previo para evitar Layout Thrashing
+                const totalPagesSidebarEl = document.getElementById('total-pages-sidebar');
+                if (totalPagesSidebarEl) {
+                    totalPages = parseInt(totalPagesSidebarEl.textContent) || 0;
+                }
             }
             
-            // 2. Actualizar la vista principal normalmente AHORA, usando los datos frescos
+            // 2. Actualizar la vista principal normalmente AHORA (esto solo compila el capítulo activo en modo 'active')
             compilePDFPreview();
+        }
+
+        // Guardar ajustes simultáneamente sin mostrar loading extra (silent = true)
+        if (typeof savePDFSettings === 'function') {
+            savePDFSettings(true);
         }
 
         const data = new FormData();

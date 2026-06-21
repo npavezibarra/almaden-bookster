@@ -22,6 +22,9 @@
 
         <!-- Navigation Tabs -->
         <div class="flex border-b border-[var(--border-color)] mb-4 -mx-6 px-6 overflow-x-auto gap-4 scrollbar-none">
+            <button type="button" onclick="switchSettingTab('tab-templates')" class="setting-tab-btn py-2 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-templates">
+                <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Plantillas
+            </button>
             <button type="button" onclick="switchSettingTab('tab-page')" class="setting-tab-btn py-2 border-b-2 border-black dark:border-white text-black dark:text-white font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-page">
                 Página
             </button>
@@ -34,14 +37,31 @@
             <button type="button" onclick="switchSettingTab('tab-chapters')" class="setting-tab-btn py-2 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-chapters">
                 Capítulos
             </button>
-            <button type="button" onclick="switchSettingTab('tab-credits')" class="setting-tab-btn py-2 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-credits">
-                Créditos
-            </button>
         </div>
 
         <!-- Formulario Ajustes -->
         <div class="space-y-4 max-h-[55vh] overflow-y-auto pr-1">
             
+            <!-- PESTAÑA: PLANTILLAS -->
+            <div id="tab-templates" class="setting-tab-content space-y-5 hidden">
+                <div class="border border-[var(--border-color)] rounded-xl p-4 bg-[var(--bg-app)] space-y-3 shadow-sm">
+                    <h4 class="text-xs font-bold text-black dark:text-white uppercase tracking-wider flex items-center gap-1.5 border-b border-[var(--border-color)] pb-2 mb-1">
+                        <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Plantillas Predeterminadas
+                    </h4>
+                    <p class="text-[10px] text-[var(--text-muted)] mb-3">Aplica una configuración estandarizada de márgenes, tipografías y cabeceras a tu libro. <strong>Atención: esto sobrescribirá tus ajustes actuales.</strong></p>
+                    <div id="templates-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Renderizado por JS -->
+                        <div class="text-[10px] text-[var(--text-muted)] italic"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Cargando plantillas...</div>
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-[var(--border-color)]">
+                        <button type="button" onclick="promptSaveCurrentAsTemplate()" class="text-[11px] font-semibold text-black dark:text-white bg-transparent border border-black dark:border-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded px-3 py-1.5 transition">
+                            <i class="fa-solid fa-plus mr-1"></i> Guardar Ajustes Actuales como Plantilla
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- PESTAÑA 1: PÁGINA FÍSICA -->
             <?php include plugin_dir_path( __FILE__ ) . 'settings-tabs/tab-page.php'; ?>
 
@@ -94,8 +114,7 @@
                             <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Alineación Texto</label>
                             <select id="setting-header-align" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                                 <option value="center">Centrado</option>
-                                <option value="left">Izquierda</option>
-                                <option value="right">Derecha</option>
+                                <option value="outer">Exterior</option>
                             </select>
                         </div>
                     </div>
@@ -188,8 +207,7 @@
                             <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Alineación Texto</label>
                             <select id="setting-footer-align" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                                 <option value="center">Centrado</option>
-                                <option value="left">Izquierda</option>
-                                <option value="right">Derecha</option>
+                                <option value="outer">Exterior</option>
                             </select>
                         </div>
                     </div>
@@ -257,9 +275,6 @@
 
             <!-- PESTAÑA 4: COMPORTAMIENTO DE CAPÍTULOS -->
             <?php include plugin_dir_path( __FILE__ ) . 'settings-tabs/tab-chapters.php'; ?>
-
-            <!-- PESTAÑA 5: CRÉDITOS -->
-            <?php include plugin_dir_path( __FILE__ ) . 'settings-tabs/tab-credits.php'; ?>
 
         </div> <!-- Fin de scrollable area -->
         </div> <!-- Fin de format-pdf-section -->

@@ -349,7 +349,10 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
     
     <!-- Include the Settings Modal and JS -->
     <?php include plugin_dir_path( __FILE__ ) . '../editor/editor-settings-modal.php'; ?>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-tabs.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-fields.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-templates.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-api.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <?php wp_footer(); ?>
 </body>
