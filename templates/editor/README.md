@@ -9,4 +9,4 @@ Este directorio contiene las plantillas PHP relacionadas con la interfaz princip
 - **`chapter-settings-modal.php`**: El modal de configuración específico a nivel de capítulo.
 - **`chapter-settings-normal.php`**: El contenido y formulario para un capítulo de tipo normal.
 - **`chapter-settings-toc.php`**: El formulario de configuración para la Tabla de Contenidos.
-- **`settings-tabs/`**: Pestañas de configuración individuales para el modal de maquetación (páginas, tipografías, encabezados/pies, capítulos, ebooks).
+- **`settings-tabs/`**: Pestañas de configuración individuales estáticas (páginas, tipografías, encabezados/pies, capítulos, ebooks). *Nota: La pestaña de créditos (`tab-credits.php`) fue eliminada y trasladada al controlador dinámico `editor-settings-credits.js`*.

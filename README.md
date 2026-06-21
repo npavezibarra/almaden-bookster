@@ -15,8 +15,8 @@ almaden-bookster/
 │   ├── css/               # Hojas de estilo del editor, admin y vistas
 │   └── js/                # Scripts de interactividad cliente (ver subcarpetas)
 │       ├── admin/         # Controladores de administración y booklist
-│       ├── editor/        # Lógica de la interfaz del editor
-│       ├── pdf/           # Motor de paginación virtual y exportación PDF
+│       ├── editor/        # Lógica de la interfaz del editor (totalmente modularizada por componentes como pestañas, campos dinámicos y visor/regla)
+│       ├── pdf/           # Motor de paginación virtual, algoritmos de layout de retícula de precisión y exportación PDF
 │       ├── reader/        # Experiencia de lectura de eBooks
 │       └── cover/         # Diseñador de portadas de libros
 ├── includes/              # Lógica de negocio de WordPress (AJAX, taxonomías, CPTs, exportaciones)

@@ -38,15 +38,15 @@ assets/js/
 - **`editor-virtualization.js`**: 
   Optimiza el rendimiento inicializando la Virtualización del PDF en el DOM vía IntersectionObserver, limitando los elementos inyectados a lo visible.
 - **`editor-settings-tabs.js`**: 
-  Maneja el control visual de pestañas y apertura/cierre del modal de ajustes de maquetación.
+  Maneja el control visual de pestañas. Implementa coalescencia nula (`??`) para conservar configuraciones estables (e.g., permite márgenes exactamente en 0).
 - **`editor-settings-fields.js`**: 
   Maneja la lógica condicional que muestra/oculta campos, además de la integración de color pickers y selección de imágenes del PDF.
 - **`editor-settings-credits.js`**: 
-  Controla dinámicamente la UI del editor para crear y modificar en tiempo real la página de créditos personalizada.
+  Controla dinámicamente la UI del editor para crear y modificar en tiempo real la página de créditos personalizada, prescindiendo del archivo estático PHP antiguo.
 - **`editor-settings-templates.js`**: 
   Manejo y guardado de plantillas de ajustes y conexión UI/AJAX para cargarlas.
 - **`editor-settings-api.js`**: 
-  Peticiones AJAX de guardado y carga del modal global de ajustes, actualizando `bookState`.
+  Peticiones AJAX de guardado y carga del modal global de ajustes, actualizando `bookState`. Serializa correctamente valores enteros y decimales.
 - **`editor-chapter-settings.js`**: 
   Controla los ajustes específicos individuales del capítulo activo.
 - **`editor-markdown.js`**: 
