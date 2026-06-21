@@ -69,7 +69,7 @@ window.buildChapterHTML = function(chapter, index, settings, bookState) {
         tocHtml += '</div>'; // Cierra .toc-container
         compiledHtml = tocHtml;
     } else if (chapter.is_credits == '1') {
-        let creditsHtml = '<div class="content-box" style="display: flex; flex-direction: column; height: 100%;">';
+        let creditsHtml = '<div class="content-box" style="display: flex; flex-direction: column; height: calc(100% - 4px);">';
         creditsHtml += '<div class="credits-top-section" style="flex-grow: 1;"></div>';
         creditsHtml += '<div class="credits-bottom-section" style="font-size: 0.85em; line-height: 1.4; padding-bottom: 2cm;">';
         

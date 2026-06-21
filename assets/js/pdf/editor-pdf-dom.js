@@ -160,7 +160,7 @@ window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter
     pageDiv.innerHTML = `
         <div class="pdf-header text-xs">${headerHtml}</div>
         <div class="${contentClass}" style="${contentStyle}" lang="${settings.content_language || 'es'}">
-            <div class="pdf-content-inner" style="display: flow-root; ${(chapter && chapter.is_credits == '1') ? 'height: 100%;' : ''}"></div>
+            <div class="pdf-content-inner" style="display: flow-root; ${(chapter && chapter.is_credits == '1') ? 'height: calc(100% - 4px);' : ''}"></div>
         </div>
         <div class="pdf-footnotes hidden"></div>
         <div class="pdf-footer text-xs">${footerHtml}</div>
