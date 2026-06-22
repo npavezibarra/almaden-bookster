@@ -4,7 +4,7 @@
 // ============================================================
 
 function getPDFStylesTypography(settings, tocSettings, toPx) {
-    return `
+    let styles = `
         /* ── Contenido ── */
         .pdf-content {
             flex: 1 !important;
@@ -404,4 +404,38 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             color: #64748b;
         }
     `;
+
+    // Buscar capítulo de créditos en el estado global para aplicar estilos específicos escalados
+    if (typeof bookState !== 'undefined' && bookState.chapters) {
+        const creditsChapter = bookState.chapters.find(c => c.is_credits === '1');
+        if (creditsChapter) {
+            let creditsSpecificCss = '';
+            if (creditsChapter.credits_font_family) creditsSpecificCss += `font-family: "${creditsChapter.credits_font_family}", serif !important;\n`;
+            if (creditsChapter.credits_font_size) creditsSpecificCss += `font-size: ${toPx(creditsChapter.credits_font_size, true)}px !important;\n`;
+            if (creditsChapter.credits_font_weight) creditsSpecificCss += `font-weight: ${creditsChapter.credits_font_weight} !important;\n`;
+            
+            // Si la alineación es vacía (opción "Global / Centro"), aplicamos center por defecto
+            const align = creditsChapter.credits_align || 'center';
+            creditsSpecificCss += `text-align: ${align} !important;\n`;
+            
+            if (creditsChapter.credits_letter_spacing) creditsSpecificCss += `letter-spacing: ${toPx(creditsChapter.credits_letter_spacing, true)}px !important;\n`;
+            
+            if (creditsSpecificCss) {
+                styles += `
+                .credits-page-content, 
+                .credits-page-content p, 
+                .credits-page-content div, 
+                .credits-page-content ul, 
+                .credits-page-content ol,
+                .credits-page-content h1,
+                .credits-page-content h2,
+                .credits-page-content h3 {
+                    ${creditsSpecificCss}
+                }
+                `;
+            }
+        }
+    }
+
+    return styles;
 }

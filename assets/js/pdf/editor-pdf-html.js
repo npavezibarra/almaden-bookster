@@ -69,8 +69,12 @@ window.buildChapterHTML = function(chapter, index, settings, bookState) {
         tocHtml += '</div>'; // Cierra .toc-container
         compiledHtml = tocHtml;
     } else if (chapter.is_credits == '1') {
-        let creditsHtml = '<div class="content-box" style="display: flex; flex-direction: column; height: calc(100% - 4px);">';
-        creditsHtml += '<div class="credits-top-section" style="flex-grow: 1;"></div>';
+        let creditsHtml = '<div class="content-box credits-page-content" style="display: flex; flex-direction: column; height: calc(100% - 4px);">';
+        let parsedTopContent = '';
+        if (chapter.content && chapter.content.trim() !== '') {
+            parsedTopContent = compileMarkdownToHTML(chapter.content);
+        }
+        creditsHtml += `<div class="credits-top-section" style="flex-grow: 1; margin-bottom: 2em;">${parsedTopContent}</div>`;
         creditsHtml += '<div class="credits-bottom-section" style="font-size: 0.85em; line-height: 1.4; padding-bottom: 2cm;">';
         
         if (settings.credits_edition) {

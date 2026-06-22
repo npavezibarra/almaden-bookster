@@ -1,5 +1,12 @@
 <?php
 require_once plugin_dir_path( dirname( __DIR__ ) ) . 'includes/editor-data-loader.php';
+
+// Prevent caching of the editor page
+if (!headers_sent()) {
+    header("Cache-Control: no-cache, must-revalidate, max-age=0");
+    header("Pragma: no-cache");
+    header("Expires: Wed, 11 Jan 1984 05:00:00 GMT");
+}
 ?>
 <!DOCTYPE html>
 <html lang="es" class="h-full">
@@ -441,8 +448,17 @@ require_once plugin_dir_path( dirname( __DIR__ ) ) . 'includes/editor-data-loade
             nonce: <?php echo json_encode( wp_create_nonce( 'almaden_save_book_nonce_' . $book_id ) ); ?>,
             settings: <?php echo json_encode( $pdf_settings ); ?>,
             settingsNonce: <?php echo json_encode( wp_create_nonce( 'almaden_save_settings_nonce_' . $book_id ) ); ?>,
-            installedFonts: <?php echo json_encode( $installed_fonts ); ?>
+            installedFonts: <?php echo json_encode( $installed_fonts ); ?>,
+            coverSettings: <?php echo json_encode( get_post_meta( $book_id, '_almaden_cover_settings', true ) ?: get_post_meta( $source_book_id, '_almaden_cover_settings', true ) ); ?>
         };
+        window.bookState = bookState;
+
+        console.log("Almaden IDs and Settings Check:", {
+            bookId: <?php echo intval($book_id); ?>,
+            sourceBookId: <?php echo intval($source_book_id); ?>,
+            coverSettingsRawBook: <?php echo json_encode( get_post_meta( $book_id, '_almaden_cover_settings', true ) ); ?>,
+            coverSettingsRawSource: <?php echo json_encode( get_post_meta( $source_book_id, '_almaden_cover_settings', true ) ); ?>
+        });
     </script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-core.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>

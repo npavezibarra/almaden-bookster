@@ -42,7 +42,9 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
     let rawHtmlCounter = 0;
     cleanMarkdown = cleanMarkdown.replace(/\[html\]([\s\S]*?)\[\/html\]/gi, (match, content) => {
         const key = `%%RAW_HTML_PLACEHOLDER_${rawHtmlCounter++}%%`;
-        rawHtmlPlaceholders[key] = content;
+        let processed = window.AlmadenShortcodes.parseStructural(content, false);
+        processed = window.AlmadenShortcodes.parseInline(processed);
+        rawHtmlPlaceholders[key] = processed;
         return key;
     });
 

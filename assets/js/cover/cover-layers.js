@@ -13,6 +13,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const textOnlyProps = document.querySelectorAll('.text-only-prop');
     const shapeOnlyProps = document.querySelectorAll('.shape-only-prop');
 
+    // Group properties inputs
+    const groupPropertiesPanel = document.getElementById('group-properties-panel');
+    const propGroupName = document.getElementById('prop-group-name');
+    const propGroupIsLogo = document.getElementById('prop-group-is-logo');
+    const ungroupBtn = document.getElementById('ungroup-btn');
+    const groupLayersBtn = document.getElementById('group-layers-btn');
+
     // Shape properties inputs
     const propShapeType = document.getElementById('prop-shape-type');
     const propShapeOpacity = document.getElementById('prop-shape-opacity');
@@ -74,64 +81,84 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (id) {
             const layer = s.textLayers.find(l => l.id === id);
-            el.textPropertiesPanel.classList.remove('hidden');
-            el.textPropertiesPanel.classList.add('flex');
             
             el.textsContent.classList.remove('hidden');
             el.textsContent.classList.add('flex');
             textsIcon.classList.add('-rotate-90');
             
-            if (layer.type === 'image') {
-                textOnlyProps.forEach(el => el.classList.add('hidden'));
-                shapeOnlyProps.forEach(el => el.classList.add('hidden'));
-            } else if (layer.type === 'shape') {
-                textOnlyProps.forEach(el => el.classList.add('hidden'));
-                shapeOnlyProps.forEach(el => el.classList.remove('hidden'));
-                
-                propShapeType.value = layer.shapeType || 'rectangle';
-                propShapeOpacity.value = layer.opacity !== undefined ? layer.opacity : 100;
-                propShapeOpacityVal.textContent = propShapeOpacity.value + '%';
-                propShapeIsGradient.checked = !!layer.isGradient;
-                propShapeColor1.value = layer.color1 || '#000000';
-                propShapeColor1Opacity.value = layer.color1Opacity !== undefined ? layer.color1Opacity : 100;
-                propShapeColor2.value = layer.color2 || '#ffffff';
-                propShapeColor2Opacity.value = layer.color2Opacity !== undefined ? layer.color2Opacity : 100;
-                propShapeAngle.value = layer.gradientAngle || 90;
-                
-                if (layer.isGradient) {
-                    propShapeColor2Container.style.display = 'flex';
-                    propShapeAngleContainer.style.display = 'block';
-                } else {
-                    propShapeColor2Container.style.display = 'none';
-                    propShapeAngleContainer.style.display = 'none';
+            if (layer.type === 'group') {
+                el.textPropertiesPanel.classList.add('hidden');
+                el.textPropertiesPanel.classList.remove('flex');
+                if (groupPropertiesPanel) {
+                    groupPropertiesPanel.classList.remove('hidden');
+                    groupPropertiesPanel.classList.add('flex');
+                    propGroupName.value = layer.name || 'Grupo';
+                    propGroupIsLogo.checked = !!layer.isBookLogo;
                 }
             } else {
-                textOnlyProps.forEach(el => el.classList.remove('hidden'));
-                shapeOnlyProps.forEach(el => el.classList.add('hidden'));
-                propTextContent.value = layer.text || '';
-                propFontFamily.value = layer.fontFamily || (coverData.installedFonts && coverData.installedFonts[0] ? coverData.installedFonts[0].family : 'Inter');
-                propFontSize.value = layer.fontSize;
-                propTextColor.value = layer.color;
-                propTextColorHex.value = layer.color;
-                propHyphens.checked = !!layer.hyphens;
+                if (groupPropertiesPanel) {
+                    groupPropertiesPanel.classList.add('hidden');
+                    groupPropertiesPanel.classList.remove('flex');
+                }
+                el.textPropertiesPanel.classList.remove('hidden');
+                el.textPropertiesPanel.classList.add('flex');
                 
-                propAlignBtns.forEach(btn => {
-                    if (btn.dataset.align === layer.textAlign) {
-                        btn.classList.add('bg-white', 'shadow-sm', 'text-indigo-600');
-                        btn.classList.remove('text-gray-600');
+                if (layer.type === 'image') {
+                    textOnlyProps.forEach(el => el.classList.add('hidden'));
+                    shapeOnlyProps.forEach(el => el.classList.add('hidden'));
+                } else if (layer.type === 'shape') {
+                    textOnlyProps.forEach(el => el.classList.add('hidden'));
+                    shapeOnlyProps.forEach(el => el.classList.remove('hidden'));
+                    
+                    propShapeType.value = layer.shapeType || 'rectangle';
+                    propShapeOpacity.value = layer.opacity !== undefined ? layer.opacity : 100;
+                    propShapeOpacityVal.textContent = propShapeOpacity.value + '%';
+                    propShapeIsGradient.checked = !!layer.isGradient;
+                    propShapeColor1.value = layer.color1 || '#000000';
+                    propShapeColor1Opacity.value = layer.color1Opacity !== undefined ? layer.color1Opacity : 100;
+                    propShapeColor2.value = layer.color2 || '#ffffff';
+                    propShapeColor2Opacity.value = layer.color2Opacity !== undefined ? layer.color2Opacity : 100;
+                    propShapeAngle.value = layer.gradientAngle || 90;
+                    
+                    if (layer.isGradient) {
+                        propShapeColor2Container.style.display = 'flex';
+                        propShapeAngleContainer.style.display = 'block';
                     } else {
-                        btn.classList.remove('bg-white', 'shadow-sm', 'text-indigo-600');
-                        btn.classList.add('text-gray-600');
+                        propShapeColor2Container.style.display = 'none';
+                        propShapeAngleContainer.style.display = 'none';
                     }
-                });
+                } else {
+                    textOnlyProps.forEach(el => el.classList.remove('hidden'));
+                    shapeOnlyProps.forEach(el => el.classList.add('hidden'));
+                    propTextContent.value = layer.text || '';
+                    propFontFamily.value = layer.fontFamily || (coverData.installedFonts && coverData.installedFonts[0] ? coverData.installedFonts[0].family : 'Inter');
+                    propFontSize.value = layer.fontSize;
+                    propTextColor.value = layer.color;
+                    propTextColorHex.value = layer.color;
+                    propHyphens.checked = !!layer.hyphens;
+                    
+                    propAlignBtns.forEach(btn => {
+                        if (btn.dataset.align === layer.textAlign) {
+                            btn.classList.add('bg-white', 'shadow-sm', 'text-indigo-600');
+                            btn.classList.remove('text-gray-600');
+                        } else {
+                            btn.classList.remove('bg-white', 'shadow-sm', 'text-indigo-600');
+                            btn.classList.add('text-gray-600');
+                        }
+                    });
+                }
+                
+                propRotation.value = layer.rotation || 0;
+                propWidth.value = layer.width || '';
+                propHeight.value = layer.height || '';
             }
-            
-            propRotation.value = layer.rotation || 0;
-            propWidth.value = layer.width || '';
-            propHeight.value = layer.height || '';
         } else {
             el.textPropertiesPanel.classList.remove('flex');
             el.textPropertiesPanel.classList.add('hidden');
+            if (groupPropertiesPanel) {
+                groupPropertiesPanel.classList.add('hidden');
+                groupPropertiesPanel.classList.remove('flex');
+            }
         }
 
         if (window.CoverEditor.actions.renderLayersPanel) {
@@ -146,20 +173,45 @@ document.addEventListener('DOMContentLoaded', () => {
         const dx = e.clientX - s.dragStartX;
         const dy = e.clientY - s.dragStartY;
         
-        const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-        if (layer) {
+        const activeLayer = s.textLayers.find(l => l.id === s.activeLayerId);
+        if (activeLayer) {
             const rect = el.coverSpread.getBoundingClientRect();
             const spreadWidthPx = rect.width / s.zoomLevel;
             const spreadHeightPx = rect.height / s.zoomLevel;
 
-            layer.x = s.layerStartX + (dx / s.zoomLevel / spreadWidthPx) * 100;
-            layer.y = s.layerStartY + (dy / s.zoomLevel / spreadHeightPx) * 100;
+            const deltaXPercent = (dx / s.zoomLevel / spreadWidthPx) * 100;
+            const deltaYPercent = (dy / s.zoomLevel / spreadHeightPx) * 100;
+
+            if (activeLayer.type === 'group') {
+                // Arrastrar grupo: mover todos los hijos
+                const children = s.textLayers.filter(l => l.parentId === activeLayer.id);
+                children.forEach(child => {
+                    if (child._origX === undefined) {
+                        child._origX = child.x;
+                        child._origY = child.y;
+                    }
+                    child.x = child._origX + deltaXPercent;
+                    child.y = child._origY + deltaYPercent;
+                });
+            } else {
+                // Arrastrar capa normal
+                if (activeLayer._origX === undefined) {
+                    activeLayer._origX = activeLayer.x;
+                    activeLayer._origY = activeLayer.y;
+                }
+                activeLayer.x = activeLayer._origX + deltaXPercent;
+                activeLayer.y = activeLayer._origY + deltaYPercent;
+            }
             window.CoverEditor.actions.renderTextLayers();
         }
     });
 
     document.addEventListener('mouseup', () => {
         s.isDragging = false;
+        s.textLayers.forEach(l => {
+            delete l._origX;
+            delete l._origY;
+        });
     });
 
     el.workspaceContainer.addEventListener('mousedown', (e) => {
@@ -369,7 +421,91 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Exports
-    window.CoverEditor.actions.renderTextLayers = renderTextLayers;
-    window.CoverEditor.actions.renderLayersPanel = renderLayersPanel;
+    // Group Actions
+    window.CoverEditor.actions.groupLayers = function(selectedIds) {
+        const groupId = 'group-' + Math.random().toString(36).substr(2, 9);
+        const maxZ = Math.max(...s.textLayers.map(l => l.zIndex || 30), 30);
+        const newGroup = {
+            id: groupId,
+            type: 'group',
+            name: 'Grupo ' + (s.textLayers.filter(l => l.type === 'group').length + 1),
+            collapsed: false,
+            isBookLogo: false,
+            zIndex: maxZ + 1
+        };
+
+        s.textLayers.forEach(l => {
+            if (selectedIds.includes(l.id)) {
+                l.parentId = groupId;
+            }
+        });
+
+        s.textLayers.push(newGroup);
+        s.selectedLayerIds = [];
+        
+        if (window.CoverEditor.actions.renderTextLayers) window.CoverEditor.actions.renderTextLayers();
+        if (window.CoverEditor.actions.renderLayersPanel) window.CoverEditor.actions.renderLayersPanel();
+        window.CoverEditor.actions.selectLayer(groupId);
+    };
+
+    window.CoverEditor.actions.ungroup = function(groupId) {
+        s.textLayers.forEach(l => {
+            if (l.parentId === groupId) {
+                l.parentId = null;
+            }
+        });
+        s.textLayers = s.textLayers.filter(l => l.id !== groupId);
+        
+        if (window.CoverEditor.actions.renderTextLayers) window.CoverEditor.actions.renderTextLayers();
+        if (window.CoverEditor.actions.renderLayersPanel) window.CoverEditor.actions.renderLayersPanel();
+        window.CoverEditor.actions.selectLayer(null);
+    };
+
+    // Group properties inputs event listeners
+    if (propGroupName) {
+        propGroupName.addEventListener('input', (e) => {
+            const layer = s.textLayers.find(l => l.id === s.activeLayerId);
+            if (layer && layer.type === 'group') {
+                layer.name = e.target.value;
+                if (window.CoverEditor.actions.renderLayersPanel) window.CoverEditor.actions.renderLayersPanel();
+            }
+        });
+    }
+
+    if (propGroupIsLogo) {
+        propGroupIsLogo.addEventListener('change', (e) => {
+            const layer = s.textLayers.find(l => l.id === s.activeLayerId);
+            if (layer && layer.type === 'group') {
+                const checked = e.target.checked;
+                
+                // Si marcamos como logo, desmarcar todos los demás grupos
+                if (checked) {
+                    s.textLayers.forEach(l => {
+                        if (l.type === 'group') l.isBookLogo = false;
+                    });
+                }
+                layer.isBookLogo = checked;
+                
+                if (window.CoverEditor.actions.renderLayersPanel) window.CoverEditor.actions.renderLayersPanel();
+            }
+        });
+    }
+
+    if (ungroupBtn) {
+        ungroupBtn.addEventListener('click', () => {
+            if (s.activeLayerId) {
+                window.CoverEditor.actions.ungroup(s.activeLayerId);
+            }
+        });
+    }
+
+    if (groupLayersBtn) {
+        groupLayersBtn.addEventListener('click', () => {
+            if (s.selectedLayerIds && s.selectedLayerIds.length > 0) {
+                window.CoverEditor.actions.groupLayers(s.selectedLayerIds);
+            } else {
+                alert("Selecciona al menos una capa usando los checkboxes para agruparlas.");
+            }
+        });
+    }
 });

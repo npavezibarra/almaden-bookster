@@ -83,6 +83,23 @@ function openChapterSettingsModal() {
         document.getElementById('chapter_toc_title_padding_bottom').value = activeChapter.toc_title_padding_bottom || '';
         document.getElementById('chapter_toc_title_line_height').value = activeChapter.toc_title_line_height || '';
     } else if (isCredits) {
+        // Poblar las tipografías de créditos si no se ha hecho
+        const creditsFontSelect = document.getElementById('chapter_credits_font_family');
+        if (creditsFontSelect && creditsFontSelect.options.length <= 1 && bookState.installedFonts) {
+            bookState.installedFonts.forEach(font => {
+                const opt = document.createElement('option');
+                opt.value = font.family;
+                opt.textContent = font.family;
+                creditsFontSelect.appendChild(opt);
+            });
+        }
+        
+        document.getElementById('chapter_credits_font_family').value = activeChapter.credits_font_family || '';
+        document.getElementById('chapter_credits_align').value = activeChapter.credits_align || '';
+        document.getElementById('chapter_credits_font_size').value = activeChapter.credits_font_size || '';
+        document.getElementById('chapter_credits_letter_spacing').value = activeChapter.credits_letter_spacing || '';
+        document.getElementById('chapter_credits_font_weight').value = activeChapter.credits_font_weight || '';
+        
         normalContainer.classList.add('hidden');
         tocContainer.classList.add('hidden');
         creditsContainer.classList.remove('hidden');
@@ -214,7 +231,11 @@ function saveChapterSettings() {
         activeChapter.toc_title_padding_bottom = cleanFloat('chapter_toc_title_padding_bottom');
         activeChapter.toc_title_line_height = cleanFloat('chapter_toc_title_line_height');
     } else if (isCredits) {
-        // Nada extra que guardar, usa configuraciones globales
+        activeChapter.credits_font_family = document.getElementById('chapter_credits_font_family').value;
+        activeChapter.credits_align = document.getElementById('chapter_credits_align').value;
+        activeChapter.credits_font_size = cleanFloat('chapter_credits_font_size');
+        activeChapter.credits_letter_spacing = cleanFloat('chapter_credits_letter_spacing');
+        activeChapter.credits_font_weight = document.getElementById('chapter_credits_font_weight').value;
     } else {
         // Leer valores del formulario
         activeChapter.hide_title = document.getElementById('chapter_hide_title').checked ? '1' : '0';
@@ -273,19 +294,16 @@ function saveChapterSettings() {
                 btn.classList.replace('hover:bg-emerald-700', 'hover:bg-neutral-800');
             }
 
-            // Re-renderizar el PDF para reflejar cambios
-            if (typeof compilePDFPreview === 'function') {
+            // Actualizar estilos dinámicos del PDF y re-renderizar
+            if (typeof applyDynamicPDFStyles === 'function') {
+                applyDynamicPDFStyles();
+            } else if (typeof compilePDFPreview === 'function') {
                 compilePDFPreview();
             }
 
             // Marcar como pendiente de guardado y forzar actualización del PDF
             if (typeof saveStateToLocalStorage === 'function') {
                 saveStateToLocalStorage(true);
-            }
-            
-            // Si la función está disponible (debería), compilar para reflejar cambios
-            if (typeof compilePDFPreview === 'function') {
-                compilePDFPreview();
             }
             
             if (typeof showToast === 'function') {

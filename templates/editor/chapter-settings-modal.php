@@ -41,13 +41,54 @@
                 <?php include plugin_dir_path( __FILE__ ) . 'chapter-settings-toc.php'; ?>
 
                 <!-- Ajustes para Créditos -->
-                <div id="credits-chapter-settings" class="hidden">
+                <div id="credits-chapter-settings" class="hidden space-y-6">
                     <div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-4 flex gap-3">
                         <i class="fa-solid fa-circle-info mt-0.5 text-amber-500"></i>
                         <div class="text-sm">
                             <p class="font-bold mb-1">Página de Créditos</p>
                             <p>El contenido de esta página se genera automáticamente utilizando los datos configurados en los <strong>Ajustes Globales > Créditos</strong>.</p>
                             <p class="mt-2">Puedes elegir en qué lado de la página debe iniciar utilizando el selector de arriba.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 gap-4">
+                        <h4 class="font-bold border-b border-[var(--border-color)] pb-2">Tipografía de la Página de Créditos</h4>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Tipografía</label>
+                            <select id="chapter_credits_font_family" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                <option value="">Usar Global</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Alineación</label>
+                            <select id="chapter_credits_align" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                <option value="">Global / Centro</option>
+                                <option value="left">Izquierda</option>
+                                <option value="center">Centro</option>
+                                <option value="right">Derecha</option>
+                                <option value="justify">Justificado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Tamaño (pt)</label>
+                            <input type="number" step="0.5" id="chapter_credits_font_size" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 9">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Espaciado de Letras (px)</label>
+                            <input type="number" step="0.1" id="chapter_credits_letter_spacing" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 0.5">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Peso</label>
+                            <select id="chapter_credits_font_weight" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                <option value="">Global</option>
+                                <option value="normal">Normal (400)</option>
+                                <option value="bold">Bold (700)</option>
+                                <option value="300">Light (300)</option>
+                            </select>
                         </div>
                     </div>
                 </div>

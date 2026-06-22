@@ -22,11 +22,14 @@ document.addEventListener('DOMContentLoaded', () => {
         existingLayers.forEach(layer => layer.remove());
 
         s.textLayers.forEach(layer => {
+            if (layer.type === 'group') return; // Saltar renderizado visual del grupo
+            
             const div = document.createElement('div');
             div.className = 'text-layer absolute cursor-move';
             div.dataset.id = layer.id;
             
-            if (s.activeLayerId === layer.id) {
+            // Delinear si la capa misma está seleccionada, o si pertenece al grupo seleccionado
+            if (s.activeLayerId === layer.id || (layer.parentId && s.activeLayerId === layer.parentId)) {
                 div.classList.add('outline', 'outline-2', 'outline-indigo-500', 'bg-indigo-50', 'bg-opacity-10');
             } else {
                 div.classList.add('outline', 'outline-1', 'outline-transparent', 'hover:outline-dashed', 'hover:outline-gray-400');
@@ -60,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!layer.width) div.style.width = '150px';
                 if (!layer.height) div.style.height = '150px';
             } else {
-                div.style.fontFamily = layer.fontFamily;
+                div.style.fontFamily = `'${layer.fontFamily}', serif`;
                 div.style.fontSize = `${layer.fontSize}px`;
                 div.style.color = layer.color;
                 div.style.textAlign = layer.textAlign;

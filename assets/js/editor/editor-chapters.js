@@ -183,14 +183,27 @@ function loadActiveChapter() {
         const creditsContainer = document.getElementById('credits-editor-container');
         
         if (chapter.is_credits === '1') {
-            if (textInput) textInput.classList.add('hidden');
+            if (textInput) {
+                textInput.classList.remove('hidden');
+                textInput.classList.remove('flex-1');
+                textInput.style.minHeight = '150px';
+                textInput.style.flex = 'none';
+                textInput.value = chapter.content || '';
+                textInput.placeholder = 'Escribe contenido o inserta imágenes para la sección superior de los créditos...';
+                textInput.readOnly = false;
+                textInput.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
             if (creditsContainer) creditsContainer.classList.remove('hidden');
             if (typeof initCreditsForm === 'function') initCreditsForm();
         } else {
             if (creditsContainer) creditsContainer.classList.add('hidden');
             if (textInput) {
                 textInput.classList.remove('hidden');
-                textInput.value = chapter.content;
+                textInput.classList.add('flex-1');
+                textInput.style.minHeight = '400px';
+                textInput.style.flex = '';
+                textInput.value = chapter.content || '';
+                textInput.placeholder = 'Escribe tu historia aquí utilizando formato simple o las herramientas de arriba...';
                 if (chapter.is_toc === '1') {
                     textInput.readOnly = true;
                     textInput.classList.add('opacity-50', 'cursor-not-allowed');
