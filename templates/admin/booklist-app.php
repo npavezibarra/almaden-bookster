@@ -16,7 +16,8 @@ $books_query = new WP_Query( $args );
 // Check if a book was just created or deleted
 $book_created = isset( $_GET['book_created'] ) && $_GET['book_created'] == '1';
 $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
-
+$book_imported = isset( $_GET['book_imported'] ) && $_GET['book_imported'] == '1';
+$book_imported_error = isset( $_GET['book_imported_error'] ) ? sanitize_text_field( $_GET['book_imported_error'] ) : '';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -142,18 +143,28 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
     <!-- Main Content -->
     <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         
-        <?php if ( $book_created || $book_deleted ) : ?>
+        <?php if ( $book_created || $book_deleted || $book_imported || ! empty( $book_imported_error ) ) : ?>
         <div id="success-toast" class="mb-8 bg-black text-white p-4 rounded-lg shadow-lg flex items-center justify-between animate-fade-in-down">
             <div class="flex items-center">
-                <svg class="h-5 w-5 text-<?php echo $book_created ? 'green' : 'gray'; ?>-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <?php if ( $book_created ) : ?>
+                <svg class="h-5 w-5 text-<?php echo ($book_created || $book_imported) ? 'green' : 'red'; ?>-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <?php if ( $book_created || $book_imported ) : ?>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     <?php else : ?>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     <?php endif; ?>
                 </svg>
                 <span class="font-medium text-sm">
-                    <?php echo $book_created ? 'Libro creado exitosamente.' : 'Libro eliminado con éxito.'; ?>
+                    <?php 
+                    if ( $book_created ) {
+                        echo 'Libro creado exitosamente.';
+                    } elseif ( $book_deleted ) {
+                        echo 'Libro eliminado con éxito.';
+                    } elseif ( $book_imported ) {
+                        echo 'Libro importado exitosamente.';
+                    } else {
+                        echo 'Error al importar libro: ' . esc_html( $book_imported_error );
+                    }
+                    ?>
                 </span>
             </div>
             <button onclick="document.getElementById('success-toast').style.display='none'" class="text-gray-400 hover:text-white">
@@ -169,13 +180,24 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
                 <h1 class="text-3xl font-bold text-black leading-tight">Taller</h1>
                 <p class="mt-2 text-sm text-gray-500">Gestiona y edita tus proyectos editoriales.</p>
             </div>
-            <div>
+            <div class="flex items-center">
                 <button id="open-modal-btn" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors shadow-sm">
                     <svg class="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                     Crear Libro
                 </button>
+                <button onclick="document.getElementById('upload-book-file').click();" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors shadow-sm ml-2">
+                    <svg class="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    Upload Book
+                </button>
+                <form id="upload-book-form" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="POST" enctype="multipart/form-data" style="display: none;">
+                    <input type="hidden" name="action" value="almaden_upload_book">
+                    <?php wp_nonce_field( 'almaden_upload_book_nonce', 'almaden_upload_nonce' ); ?>
+                    <input type="file" id="upload-book-file" name="book_zip" accept=".zip" onchange="document.getElementById('upload-book-form').submit();">
+                </form>
             </div>
         </div>
 
@@ -262,6 +284,12 @@ $book_deleted = isset( $_GET['book_deleted'] ) && $_GET['book_deleted'] == '1';
                                                         <input type="hidden" name="book_id" value="<?php echo get_the_ID(); ?>">
                                                         <?php wp_nonce_field( 'almaden_export_epub_nonce', 'almaden_epub_nonce' ); ?>
                                                         <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Export ePub</button>
+                                                    </form>
+                                                    <form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="POST">
+                                                        <input type="hidden" name="action" value="almaden_download_book">
+                                                        <input type="hidden" name="book_id" value="<?php echo get_the_ID(); ?>">
+                                                        <?php wp_nonce_field( 'almaden_download_book_nonce', 'almaden_download_nonce' ); ?>
+                                                        <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Download Book (Backup)</button>
                                                     </form>
                                                     <a href="#" onclick="uploadBookToDrive(<?php echo get_the_ID(); ?>); event.preventDefault();" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center"><span class="drive-text-<?php echo get_the_ID(); ?>">Subir a Google Drive</span><i class="fa-solid fa-spinner fa-spin hidden drive-spinner-<?php echo get_the_ID(); ?>"></i></a>
                                                 </div>

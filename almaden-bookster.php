@@ -35,6 +35,8 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/crypto.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/admin-settings.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/gdrive-client.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/epub-export.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/book-import-export.php';
+
 
 // --- Crear Tabla Especial de Ajustes de PDF ---
 
