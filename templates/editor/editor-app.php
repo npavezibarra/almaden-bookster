@@ -33,7 +33,7 @@ if (!headers_sent()) {
     <!-- Google Fonts: Inter para la interfaz, Merriweather para el estilo de libro PDF -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="<?php echo esc_url( $google_fonts_url ); ?>" rel="stylesheet">
+    <link id="google-fonts-stylesheet" href="<?php echo esc_url( $google_fonts_url ); ?>" rel="stylesheet">
     <!-- Urbanist Font for UI -->
     <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&amp;display=swap" rel="stylesheet">
     <!-- Font Awesome Icons para UI -->
@@ -452,6 +452,12 @@ if (!headers_sent()) {
             coverSettings: <?php echo json_encode( get_post_meta( $book_id, '_almaden_cover_settings', true ) ?: get_post_meta( $source_book_id, '_almaden_cover_settings', true ) ); ?>
         };
         window.bookState = bookState;
+        window.PagedConfig = {
+            auto: false,
+            settings: {
+                hyphenGlyph: '-'
+            }
+        };
 
         console.log("Almaden IDs and Settings Check:", {
             bookId: <?php echo intval($book_id); ?>,
@@ -473,16 +479,16 @@ if (!headers_sent()) {
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-chapter-settings.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/almaden-shortcodes.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-markdown.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/editor-pdf-dom.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/editor-pdf-pagination.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/editor-pdf-html.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/editor-pdf-compiler-dimensions.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/editor-pdf-compiler-parity.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/editor-pdf-compiler.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/editor-pdf-export.js?v='   . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/editor-pdf-styles-base.js?v='   . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/editor-pdf-styles-typography.js?v='   . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/editor-pdf-styles.js?v='   . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/vendor/paged.polyfill.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-dom.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-html.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-compiler-dimensions.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-compiler.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/export/editor-pdf-export.js?v='   . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/styles/editor-pdf-styles-base.js?v='   . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/styles/editor-pdf-styles-chapters.js?v='   . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/styles/editor-pdf-styles-typography.js?v='   . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/styles/editor-pdf-styles.js?v='   . time(), __FILE__ ) ); ?>"></script>
     <?php wp_footer(); ?>
 </body>
 </html>

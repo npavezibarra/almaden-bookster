@@ -128,6 +128,7 @@ window.savePDFSettings = function(silent = false) {
     data.append('header_font_size', getCleanVal('setting-header-font-size'));
     data.append('header_font_weight', getVal('setting-header-font-weight'));
     data.append('header_font_style', getVal('setting-header-font-style'));
+    data.append('header_text_transform', getVal('setting-header-text-transform'));
     data.append('header_letter_spacing', getCleanVal('setting-header-letter-spacing'));
     data.append('header_even_type', getVal('setting-header-even-type'));
     data.append('header_even_custom', getVal('setting-header-even-custom'));
@@ -137,6 +138,7 @@ window.savePDFSettings = function(silent = false) {
     data.append('footer_font_size', getCleanVal('setting-footer-font-size'));
     data.append('footer_font_weight', getVal('setting-footer-font-weight'));
     data.append('footer_font_style', getVal('setting-footer-font-style'));
+    data.append('footer_text_transform', getVal('setting-footer-text-transform'));
     data.append('footer_letter_spacing', getCleanVal('setting-footer-letter-spacing'));
     data.append('footer_even_type', getVal('setting-footer-even-type'));
     data.append('footer_odd_type', getVal('setting-footer-odd-type'));
@@ -312,6 +314,7 @@ window.savePDFSettings = function(silent = false) {
                 header_font_size: parseVal('setting-header-font-size', 8.5),
                 header_font_weight: getVal('setting-header-font-weight'),
                 header_font_style: getVal('setting-header-font-style'),
+                header_text_transform: getVal('setting-header-text-transform'),
                 header_letter_spacing: parseVal('setting-header-letter-spacing', 0.1),
                 header_even_type: getVal('setting-header-even-type'),
                 header_even_custom: getVal('setting-header-even-custom'),
@@ -321,6 +324,7 @@ window.savePDFSettings = function(silent = false) {
                 footer_font_size: parseVal('setting-footer-font-size', 9),
                 footer_font_weight: getVal('setting-footer-font-weight'),
                 footer_font_style: getVal('setting-footer-font-style'),
+                footer_text_transform: getVal('setting-footer-text-transform'),
                 footer_letter_spacing: parseVal('setting-footer-letter-spacing', 0),
                 footer_even_type: getVal('setting-footer-even-type'),
                 footer_odd_type: getVal('setting-footer-odd-type'),
@@ -381,8 +385,15 @@ window.savePDFSettings = function(silent = false) {
                 credits_custom: getCustomCreditsJSON()
             };
 
-            if (typeof applyDynamicPDFStyles === 'function') applyDynamicPDFStyles();
-            if (typeof compilePDFPreview === 'function') compilePDFPreview(); // RECOMPILAR PDF con los nuevos márgenes/anchos
+            if (typeof applyDynamicPDFStyles === 'function') {
+                try {
+                    applyDynamicPDFStyles();
+                } catch (styleErr) {
+                    console.error("Error al aplicar los estilos dinámicos del PDF:", styleErr);
+                }
+            } else if (typeof compilePDFPreview === 'function') {
+                compilePDFPreview(); // Solo si no existe applyDynamicPDFStyles (que ya la llama)
+            }
             if (typeof updateParityButtonVisibility === 'function') updateParityButtonVisibility();
 
             if (!silent) {

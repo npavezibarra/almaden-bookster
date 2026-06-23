@@ -190,28 +190,37 @@ window.renderRuler = function() {
     let center = totalWidth / 2;
     
     // Exact spine calculation based on DOM
-    const oddPage = scroller.querySelector('.pdf-page.page-odd');
-    const evenPage = scroller.querySelector('.pdf-page.page-even');
+    const pages = Array.from(scroller.querySelectorAll('.pagedjs_page'));
+    const firstPage = pages[0];
     
     if (scroller.classList.contains('spread-view')) {
-        // Spine is the boundary between even and odd
-        if (oddPage) {
+        // En Paged.js, la primera página (página 1, impar/derecha) se muestra sola a la derecha en la vista spread,
+        // por lo que no tiene una página izquierda (even) acompañándola.
+        // Si hay una página par (left) e impar (right) visibles al mismo tiempo:
+        const evenPage = scroller.querySelector('.pagedjs_page.pagedjs_left_page');
+        const oddPage = scroller.querySelector('.pagedjs_page.pagedjs_right_page');
+        
+        if (evenPage && oddPage) {
+            // Caso normal de dos páginas contiguas: el 0 (lomo) es el borde izquierdo de la página derecha.
             center = oddPage.offsetLeft;
-        } else if (evenPage) {
-            center = evenPage.offsetLeft + evenPage.offsetWidth;
+        } else if (firstPage) {
+            if (firstPage.classList.contains('pagedjs_right_page')) {
+                // Si solo se muestra la página 1 (derecha), el lomo divisor/0 va justo en su borde izquierdo
+                center = firstPage.offsetLeft;
+            } else if (firstPage.classList.contains('pagedjs_left_page')) {
+                // Si solo se muestra una página izquierda, el lomo divisor/0 va en su borde derecho
+                center = firstPage.offsetLeft + firstPage.offsetWidth;
+            }
         }
     } else {
-        // Single page view: user probably wants 0 at the left edge of odd, or right edge of even
-        // Or center of the page? "medio del spread" implies the spine.
-        if (oddPage) {
-            center = oddPage.offsetLeft; // Spine is on the left
-        } else if (evenPage) {
-            center = evenPage.offsetLeft + evenPage.offsetWidth; // Spine is on the right
-        } else {
-            // Fallback to exactly center of first page
-            const firstPage = scroller.querySelector('.pdf-page');
-            if (firstPage) {
-                center = firstPage.offsetLeft + (firstPage.offsetWidth / 2);
+        // Vista de una sola página:
+        if (firstPage) {
+            if (firstPage.classList.contains('pagedjs_right_page')) {
+                center = firstPage.offsetLeft;
+            } else if (firstPage.classList.contains('pagedjs_left_page')) {
+                center = firstPage.offsetLeft + firstPage.offsetWidth;
+            } else {
+                center = firstPage.offsetLeft;
             }
         }
     }

@@ -68,13 +68,15 @@ window.AlmadenShortcodes = {
         });
 
         // [gap:X]
-        t = t.replace(/\[gap:([0-9]+(?:\.[0-9]+)?)\]/gi, (match, val) => {
-            return processReplacement(`<hr class="almaden-gap" style="height: ${val}mm; border: none; margin: 0; padding: 0; clear: both; background: transparent;" />`);
+        t = t.replace(/\[gap:\s*([0-9]+(?:\.[0-9]+)?)(px|mm|cm|pt|em|rem|in)?\s*\]/gi, (match, val, unit) => {
+            const u = unit || 'mm';
+            return processReplacement(`<div class="almaden-gap" style="display: block; width: 100%; height: ${val}${u}; border: none; margin: 0; padding: 0; clear: both; background: transparent; color: transparent; pointer-events: none;" aria-hidden="true"></div>`);
         });
 
         // [book_logo] o [book-logo] o [logo]
         t = t.replace(/\[(?:book[-_]?)?logo\s*([^\]]*)\]/gi, (match, attrs) => {
             let width = '40mm'; // Default fallback
+            let align = 'center'; // Default fallback
             if (attrs) {
                 const wMatch = attrs.match(/width=(?:"|')?([0-9]+(?:\.[0-9]+)?)(mm|px|pt|em|rem|cm|in)?(?:"|')?/i);
                 if (wMatch) {
@@ -82,14 +84,18 @@ window.AlmadenShortcodes = {
                     const unit = wMatch[2] || 'mm';
                     width = `${val}${unit}`;
                 }
+                const aMatch = attrs.match(/align=(?:"|')?(left|center|right)(?:"|')?/i);
+                if (aMatch) {
+                    align = aMatch[1].toLowerCase();
+                }
             }
-            return processReplacement(window.AlmadenShortcodes.generateBookLogoHtml(width));
+            return processReplacement(window.AlmadenShortcodes.generateBookLogoHtml(width, align));
         });
 
         return t;
     },
 
-    generateBookLogoHtml: function(targetWidth = '40mm') {
+    generateBookLogoHtml: function(targetWidth = '40mm', align = 'center') {
         let coverSettings = {};
         try {
             const state = (typeof bookState !== 'undefined') ? bookState : (window.bookState || null);
@@ -118,31 +124,18 @@ window.AlmadenShortcodes = {
             textLayers = [];
         }
 
-        console.log("Almaden Logo Debug (Raw):", {
-            coverSettings: coverSettings,
-            textLayers: textLayers,
-            coverSettingsKeys: Object.keys(coverSettings),
-            coverSettingsSerialized: JSON.stringify(coverSettings),
-            typeofCoverSettings: typeof coverSettings
-        });
-
         if (textLayers.length === 0) return '';
 
         // Buscar el grupo marcado como logo
         const logoGroup = textLayers.find(l => l && l.type === 'group' && (l.isBookLogo === true || l.isBookLogo === 'true'));
         
-        console.log("Almaden Logo Group Found:", logoGroup);
+
 
         if (!logoGroup) return '';
 
         // Obtener hijos del grupo
         const children = textLayers.filter(l => l && l.parentId && String(l.parentId) === String(logoGroup.id));
         
-        console.log("Almaden Logo Children Found:", {
-            count: children.length,
-            children: children
-        });
-
         if (children.length === 0) return '';
 
         // Calcular dimensiones absolutas del canvas en píxeles (basado en la maquetación del cover spread)
@@ -232,8 +225,15 @@ window.AlmadenShortcodes = {
 
         const scale = targetWidthPx / groupW;
 
+        let marginStyle = '15px auto';
+        if (align === 'left') {
+            marginStyle = '15px auto 15px 0';
+        } else if (align === 'right') {
+            marginStyle = '15px 0 15px auto';
+        }
+
         // Generar contenedor
-        let html = `<div class="almaden-book-logo-block" style="position: relative; width: ${targetWidthVal}${unit}; height: ${targetHeight}; overflow: visible; display: block; margin: 15px auto; clear: both;">`;
+        let html = `<div class="almaden-book-logo-block" style="position: relative; width: ${targetWidthVal}${unit}; height: ${targetHeight}; overflow: visible; display: block; margin: ${marginStyle}; clear: both;">`;
         html += `<div style="position: absolute; left: 0; top: 0; width: ${groupW}px; height: ${groupH}px; transform: scale(${scale}); transform-origin: top left; overflow: visible;">`;
 
         calculatedChildren.forEach(child => {

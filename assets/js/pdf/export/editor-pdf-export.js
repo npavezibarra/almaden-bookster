@@ -30,6 +30,12 @@ async function triggerPrint() {
         btnPrint.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Preparando...';
     }
 
+    // Asegurar que el contenedor del PDF sea visible durante la preparación/compilación
+    const previewPane = document.getElementById('pdf-preview-pane');
+    if (previewPane && previewPane.classList.contains('hidden')) {
+        previewPane.classList.remove('hidden');
+    }
+
     // 1. Desactivar virtualización para asegurar que todas las páginas existan en el DOM real
     window.isPrintingPDF = true;
     if (window.pdfVirtualObserver) {
@@ -75,7 +81,7 @@ async function triggerPrint() {
                 margin: 0 !important;
                 padding: 0 !important;
             }
-            body > div.flex.flex-1, main, #preview-pane, #pdf-container, #pdf-scroller {
+            body > div.flex.flex-1, main, #pdf-preview-pane, #pdf-container, #pdf-scroller {
                 display: block !important;
                 height: auto !important;
                 overflow: visible !important;
@@ -87,22 +93,21 @@ async function triggerPrint() {
                 position: static !important;
                 transform: none !important;
             }
-            /* Eliminamos @page duplicado, editor-pdf-styles.js ya tiene el correcto con sangrías (bleeding) */
-            .pdf-page {
+            .pagedjs_page {
                 margin: 0 !important; /* Ensure it sticks to top-left of the @page */
                 box-sizing: border-box !important;
                 overflow: hidden !important;
                 box-shadow: none !important;
                 border: none !important;
-                page-break-after: auto !important;
+                page-break-after: always !important;
                 page-break-inside: avoid !important;
-                break-after: auto !important;
+                break-after: page !important;
                 break-inside: avoid !important;
                 transform: none !important;
             }
-            .pdf-page:last-child {
-                page-break-after: auto !important;
-                break-after: auto !important;
+            .pagedjs_page:last-child {
+                page-break-after: avoid !important;
+                break-after: avoid !important;
             }
             .print\\:hidden {
                 display: none !important;
@@ -125,22 +130,32 @@ async function triggerPrint() {
 
     // Pequeño delay para permitir que el navegador aplique los estilos antes de abrir el diálogo
     setTimeout(() => {
-        window.print();
-        
-        // Terminado el print, volver al modo 'active' para no saturar memoria
-        window.isPrintingPDF = false;
-        
-        // Renderizar solo el capítulo actual de nuevo
-        if (scroller) {
-            scroller.innerHTML = '<div class="flex flex-col items-center justify-center h-full w-full text-black dark:text-white gap-4"><i class="fa-solid fa-spinner fa-spin text-4xl"></i><span class="text-lg">Restaurando vista...</span></div>';
-        }
-        setTimeout(async () => {
-            await compilePDFPreview(); // Automáticamente usará 'active'
+        const onAfterPrint = () => {
+            window.removeEventListener('afterprint', onAfterPrint);
             
-            if (btnPrint) {
-                btnPrint.disabled = false;
-                btnPrint.innerHTML = '<i class="fa-solid fa-file-pdf"></i> Imprimir PDF';
+            // Terminado el print, volver al modo 'active' para no saturar memoria
+            window.isPrintingPDF = false;
+            
+            // Restaurar el modo de vista original (ocultar panel si estaba en modo 'edit')
+            if (typeof setViewMode === 'function' && bookState.viewMode) {
+                setViewMode(bookState.viewMode);
             }
-        }, 50);
+            
+            // Renderizar solo el capítulo actual de nuevo
+            if (scroller) {
+                scroller.innerHTML = '<div class="flex flex-col items-center justify-center h-full w-full text-black dark:text-white gap-4"><i class="fa-solid fa-spinner fa-spin text-4xl"></i><span class="text-lg">Restaurando vista...</span></div>';
+            }
+            setTimeout(async () => {
+                await compilePDFPreview(); // Automáticamente usará 'active'
+                
+                if (btnPrint) {
+                    btnPrint.disabled = false;
+                    btnPrint.innerHTML = '<i class="fa-solid fa-file-pdf"></i> Imprimir PDF';
+                }
+            }, 50);
+        };
+
+        window.addEventListener('afterprint', onAfterPrint);
+        window.print();
     }, 300);
 }

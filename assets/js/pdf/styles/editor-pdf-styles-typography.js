@@ -7,11 +7,12 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
     let styles = `
         /* ── Contenido ── */
         .pdf-content {
-            flex: 1 !important;
+            display: block !important;
+            flex: none !important;
             min-height: 0 !important;
             box-sizing: border-box !important;
-            padding-top: ${toPx(settings.padding_top)}px !important;
-            padding-bottom: ${toPx(settings.padding_bottom)}px !important;
+            padding-top: 0px !important;
+            padding-bottom: 0px !important;
             margin-left: 0px !important;
             margin-right: 0px !important;
             font-family: '${settings.font_family_content || 'Merriweather'}', serif !important;
@@ -26,8 +27,9 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             font-weight: ${settings.font_weight_content || 'normal'} !important;
             line-height: ${settings.line_height_content || 1.65} !important;
             text-align: ${settings.content_text_align || 'justify'} !important;
-            hyphens: auto !important;
-            -webkit-hyphens: auto !important;
+            ${(settings.content_text_align === 'justify' || !settings.content_text_align) ? 'text-align-last: left !important;' : ''}
+            hyphens: ${(settings.content_hyphenation === 0 || settings.content_hyphenation === '0') ? 'none' : 'auto'} !important;
+            -webkit-hyphens: ${(settings.content_hyphenation === 0 || settings.content_hyphenation === '0') ? 'none' : 'auto'} !important;
             hyphenate-limit-chars: 6 3 3 !important;
             hyphenate-limit-lines: 2 !important;
             -webkit-hyphenate-limit-before: 3 !important;
@@ -57,6 +59,7 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
 
         .pdf-content .almaden-align-justify, .pdf-content .almaden-align-justify * {
             text-align: justify !important;
+            text-align-last: left !important;
             text-indent: ${toPx(settings.content_paragraph_indent !== undefined ? settings.content_paragraph_indent : 0.0, true)}px !important;
         }
 
@@ -66,8 +69,36 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
         }
 
         .pdf-content .deep-split-start {
-            text-align-last: justify !important;
+            text-align-last: left !important;
         } 
+
+        /* Párrafos Divididos y Continuación (Paged.js) */
+        .pdf-content [data-split-from] {
+            text-indent: 0 !important;
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+        .pdf-content [data-split-to] {
+            margin-bottom: 0 !important;
+            padding-bottom: 0 !important;
+        }
+        .pdf-content [data-align-last-split-element='justify'] {
+            text-align-last: justify !important;
+        }
+
+        /* Safety buffer to prevent sub-pixel layout overflow clipping */
+        .pagedjs_page_content {
+            height: calc(100% - var(--pagedjs-footnotes-height)) !important;
+        }
+
+        .pdf-content .almaden-align-center [data-split-to],
+        .pdf-content .almaden-align-left [data-split-to],
+        .pdf-content .almaden-align-right [data-split-to],
+        .pdf-content [data-split-to].almaden-align-center,
+        .pdf-content [data-split-to].almaden-align-left,
+        .pdf-content [data-split-to].almaden-align-right {
+            text-align-last: auto !important;
+        }
 
         /* ── Párrafos Continuación (segunda mitad tras el salto) ── */
         .pdf-content p.split-paragraph-continuation,
@@ -314,6 +345,10 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
         .pdf-content .chapter-prefix-wrapper {
             text-align: ${settings.chapter_title_align || 'center'} !important;
             margin-bottom: 5px;
+            page-break-after: avoid !important;
+            break-after: avoid !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
         }
 
         .pdf-content .chapter-prefix-text {

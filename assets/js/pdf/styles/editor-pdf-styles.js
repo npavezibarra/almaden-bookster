@@ -57,7 +57,12 @@ function applyDynamicPDFStyles() {
     };
 
     let styleEl = document.getElementById('dynamic-pdf-settings');
-    if (!settings || !styleEl) return;
+    if (!settings) return;
+    if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'dynamic-pdf-settings';
+        document.head.appendChild(styleEl);
+    }
 
     const unit = settings.unit || 'cm';
     let width  = parseFloat(settings.page_width)  || 21;
@@ -87,8 +92,10 @@ function applyDynamicPDFStyles() {
     const bleedingPx = toPx(bleeding);
     const globalBleedPx = toPx(unit === 'cm' ? 0.5 : (0.5 / 2.54));
 
+    console.log("[BOOKSTER-DEBUG] applyDynamicPDFStyles: writing dynamic CSS into styleEl", { styleElId: styleEl.id, styleElInDom: !!document.getElementById('dynamic-pdf-settings') });
     styleEl.innerHTML = `
         ${getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit)}
+        ${getPDFStylesChapters(settings, toPx)}
         ${getPDFStylesTypography(settings, tocSettings, toPx)}
     `;
 

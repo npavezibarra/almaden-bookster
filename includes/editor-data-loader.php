@@ -105,10 +105,14 @@ $installed_fonts = almaden_bookster_get_installed_fonts_list();
 
 // Construir URL dinámica de Google Fonts CDN con las fuentes instaladas y TODOS sus pesos
 $font_families_for_cdn = array();
-// Default built-ins (Inter, Merriweather, Playfair Display)
+// Default built-ins (Inter, Merriweather, Playfair Display, Lora, Cinzel, Cormorant Garamond, Outfit)
 $font_families_for_cdn[] = 'Inter:wght@100;200;300;400;500;600;700;800;900';
 $font_families_for_cdn[] = 'Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900';
 $font_families_for_cdn[] = 'Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900';
+$font_families_for_cdn[] = 'Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700';
+$font_families_for_cdn[] = 'Cinzel:wght@400;500;600;700;800;900';
+$font_families_for_cdn[] = 'Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700';
+$font_families_for_cdn[] = 'Outfit:wght@100;200;300;400;500;600;700;800;900';
 
 foreach ( $installed_fonts as $ifont ) {
 	$family_slug = str_replace( ' ', '+', $ifont['family'] );

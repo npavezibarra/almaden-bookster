@@ -333,9 +333,9 @@ function saveStateToLocalStorage(immediate = false) {
             dummyScroller.style.left = '0';
             // Necesitamos que tenga dimensiones similares al visor real para que CSS de las páginas funcione igual
             const realScroller = document.getElementById('pdf-scroller');
-            if (realScroller) {
-                dummyScroller.style.width = realScroller.clientWidth + 'px';
-            }
+            let w = realScroller ? realScroller.clientWidth : 0;
+            if (w <= 0) w = 800; // Fallback si está oculto en modo Solo Editor
+            dummyScroller.style.width = w + 'px';
             document.body.appendChild(dummyScroller);
         }
         

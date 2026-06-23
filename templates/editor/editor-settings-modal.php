@@ -89,7 +89,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-4 gap-2">
+                    <div class="grid grid-cols-5 gap-1.5">
                         <div>
                             <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Peso Fuente</label>
                             <select id="setting-header-font-weight" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
@@ -104,6 +104,13 @@
                             <select id="setting-header-font-style" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                                 <option value="normal">Normal</option>
                                 <option value="italic">Itálica</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Transformación</label>
+                            <select id="setting-header-text-transform" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                <option value="none">Normal</option>
+                                <option value="uppercase">MAYÚSCULAS</option>
                             </select>
                         </div>
                         <div>
@@ -182,7 +189,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-4 gap-2">
+                    <div class="grid grid-cols-5 gap-1.5">
                         <div>
                             <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Peso Fuente</label>
                             <select id="setting-footer-font-weight" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
@@ -197,6 +204,13 @@
                             <select id="setting-footer-font-style" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                                 <option value="normal">Normal</option>
                                 <option value="italic">Itálica</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Transformación</label>
+                            <select id="setting-footer-text-transform" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                <option value="none">Normal</option>
+                                <option value="uppercase">MAYÚSCULAS</option>
                             </select>
                         </div>
                         <div>
