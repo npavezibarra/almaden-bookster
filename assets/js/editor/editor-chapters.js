@@ -257,7 +257,9 @@ function createNewChapter(isToc = false, isCredits = false) {
         title: isToc ? 'Índice' : (isCredits ? 'Créditos' : `Capítulo ${newIndex}: Título Nuevo`),
         content: isToc ? `En este capítulo se generará automáticamente el Índice de contenidos.` : (isCredits ? `En este capítulo se generará automáticamente la página de Créditos.` : `# Capítulo ${newIndex}\n## Título Nuevo\n\nComienza a escribir la historia de este capítulo aquí...`),
         is_toc: isToc ? '1' : '0',
-        is_credits: isCredits ? '1' : '0'
+        is_credits: isCredits ? '1' : '0',
+        start_parity: isToc ? 'even' : 'any',
+        credits_hide_page_number: '0'
     };
 
     bookState.chapters.push(newChapter);

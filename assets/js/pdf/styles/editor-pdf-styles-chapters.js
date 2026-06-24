@@ -80,7 +80,9 @@ function getPDFStylesChapters(settings, toPx) {
                     `;
                 }
             } else {
-                let chapterStartParity = (ch.start_parity && ch.start_parity !== 'any') ? ch.start_parity : settings.chapter_start_parity;
+                let chapterStartParity = ch.is_toc === '1'
+                    ? 'even'
+                    : ((ch.start_parity && ch.start_parity !== 'any') ? ch.start_parity : settings.chapter_start_parity);
                 let breakBefore = 'page';
                 if (idx > 0) {
                     if (chapterStartParity === 'odd') {
@@ -109,17 +111,37 @@ function getPDFStylesChapters(settings, toPx) {
             const firstFooterType = (ch.first_page_footer_type && ch.first_page_footer_type !== 'global') ? ch.first_page_footer_type : (settings.first_page_footer_type || 'page_number');
             const firstHeaderCustom = ch.first_page_header_custom || settings.first_page_header_custom || '';
             const firstFooterCustom = ch.first_page_footer_custom || settings.first_page_footer_custom || '';
+            const hideCreditsPageNumber = ch.is_credits === '1' && ch.credits_hide_page_number === '1';
+            const hideTocPageNumber = ch.is_toc === '1' && ch.toc_hide_page_numbers === '1';
+            const hideChapterPageNumber = hideCreditsPageNumber || hideTocPageNumber;
             
             chapterCSSRules += `
                 @page chapter-${ch.id}:first {
-                    @top-left { content: ${firstHeaderType === 'custom' ? `"${firstHeaderCustom.replace(/"/g, '\\"')}"` : '""'}; }
-                    @top-center { content: ${firstHeaderType === 'chapter_title' ? 'string(chapter-title)' : (firstHeaderType === 'book_title' ? `"${bookTitle.replace(/"/g, '\\"')}"` : '""')}; }
+                    @top-left { content: ${hideCreditsPageNumber ? '""' : (firstHeaderType === 'custom' ? `"${firstHeaderCustom.replace(/"/g, '\\"')}"` : '""')}; }
+                    @top-center { content: ${hideCreditsPageNumber ? '""' : (firstHeaderType === 'chapter_title' ? 'string(chapter-title)' : (firstHeaderType === 'book_title' ? `"${bookTitle.replace(/"/g, '\\"')}"` : '""'))}; }
                     @top-right { content: ""; }
                     
-                    @bottom-left { content: ${firstFooterType === 'custom' ? `"${firstFooterCustom.replace(/"/g, '\\"')}"` : '""'}; }
-                    @bottom-center { content: ${firstFooterType === 'page_number' ? 'counter(page)' : '""'}; }
+                    @bottom-left { content: ${hideChapterPageNumber ? '""' : (firstFooterType === 'custom' ? `"${firstFooterCustom.replace(/"/g, '\\"')}"` : '""')}; }
+                    @bottom-center { content: ${hideChapterPageNumber ? '""' : (firstFooterType === 'page_number' ? 'counter(page)' : '""')}; }
                     @bottom-right { content: ""; }
                 }
+                ${hideCreditsPageNumber ? `
+                @page chapter-${ch.id} {
+                    @top-left { content: "" !important; }
+                    @top-center { content: "" !important; }
+                    @top-right { content: "" !important; }
+                    @bottom-left { content: "" !important; }
+                    @bottom-center { content: "" !important; }
+                    @bottom-right { content: "" !important; }
+                }
+                ` : ''}
+                ${hideTocPageNumber ? `
+                @page chapter-${ch.id} {
+                    @bottom-left { content: "" !important; }
+                    @bottom-center { content: "" !important; }
+                    @bottom-right { content: "" !important; }
+                }
+                ` : ''}
                 @page chapter-${ch.id}:blank {
                     @top-left { content: "" !important; }
                     @top-center { content: "" !important; }
@@ -134,7 +156,7 @@ function getPDFStylesChapters(settings, toPx) {
             `;
             
             // Ocultar cabeceras/pies si está configurado en el capítulo
-            if (ch.hide_all_headers_footers === '1' || ch.is_toc === '1') {
+            if (ch.hide_all_headers_footers === '1') {
                 chapterCSSRules += `
                     @page chapter-${ch.id} {
                         @top-left { content: ""; }

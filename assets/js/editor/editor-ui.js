@@ -89,6 +89,10 @@ function toggleSpreadView() {
     // Update icon
     btn.innerHTML = isSpread ? '<i class="fa-solid fa-book-open"></i>' : '<i class="fa-solid fa-file-lines"></i>';
 
+    if (typeof window.applySpreadPageLayout === 'function') {
+        window.applySpreadPageLayout(scroller);
+    }
+
     // Re-render ruler if visible
     if (typeof window.renderRuler === 'function') {
         setTimeout(window.renderRuler, 10);
@@ -101,6 +105,9 @@ function initSpreadView() {
         const scroller = document.getElementById('pdf-scroller');
         const btn = document.getElementById('btn-toggle-spread');
         if (scroller) scroller.classList.add('spread-view');
+        if (scroller && typeof window.applySpreadPageLayout === 'function') {
+            window.applySpreadPageLayout(scroller);
+        }
         if (btn) btn.innerHTML = '<i class="fa-solid fa-book-open"></i>';
     }
 }
@@ -190,7 +197,8 @@ window.renderRuler = function() {
     let center = totalWidth / 2;
     
     // Exact spine calculation based on DOM
-    const pages = Array.from(scroller.querySelectorAll('.pagedjs_page'));
+    const pages = Array.from(scroller.querySelectorAll('.pagedjs_page'))
+        .filter((page) => page && page.offsetWidth > 0 && page.offsetHeight > 0 && page.style.display !== 'none');
     const firstPage = pages[0];
     
     if (scroller.classList.contains('spread-view')) {

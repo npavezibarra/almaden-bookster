@@ -179,8 +179,10 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-font-weight-content')) document.getElementById('setting-font-weight-content').value = settings.font_weight_content || 'normal';
     if (document.getElementById('setting-line-height-content')) document.getElementById('setting-line-height-content').value = settings.line_height_content || 1.65;
     if (document.getElementById('setting-content-text-align')) document.getElementById('setting-content-text-align').value = settings.content_text_align || 'justify';
+    if (document.getElementById('setting-content-text-align-last')) document.getElementById('setting-content-text-align-last').value = settings.content_text_align_last || 'left';
     if (document.getElementById('setting-content-hyphenation')) document.getElementById('setting-content-hyphenation').value = settings.content_hyphenation !== undefined ? settings.content_hyphenation : 1;
     if (document.getElementById('setting-content-language')) document.getElementById('setting-content-language').value = settings.content_language || 'es';
+    if (document.getElementById('setting-content-hyphenation-exceptions')) document.getElementById('setting-content-hyphenation-exceptions').value = settings.content_hyphenation_exceptions || '';
     if (document.getElementById('setting-content-paragraph-indent')) document.getElementById('setting-content-paragraph-indent').value = settings.content_paragraph_indent !== undefined ? settings.content_paragraph_indent : 0.0;
     if (document.getElementById('setting-content-paragraph-spacing')) document.getElementById('setting-content-paragraph-spacing').value = settings.content_paragraph_spacing !== undefined ? settings.content_paragraph_spacing : 14.0;
     if (document.getElementById('setting-font-family-h1')) document.getElementById('setting-font-family-h1').value = settings.font_family_h1 || 'Playfair Display';
@@ -217,6 +219,18 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-first-page-footer-type')) document.getElementById('setting-first-page-footer-type').value = settings.first_page_footer_type || 'page_number';
     if (document.getElementById('setting-first-page-footer-custom')) document.getElementById('setting-first-page-footer-custom').value = settings.first_page_footer_custom || '';
 
+    // Pestaña Footnotes
+    if (document.getElementById('setting-footnote-font-family')) document.getElementById('setting-footnote-font-family').value = settings.footnote_font_family || 'Merriweather';
+    if (document.getElementById('setting-footnote-font-size')) document.getElementById('setting-footnote-font-size').value = settings.footnote_font_size ?? 8.5;
+    if (document.getElementById('setting-footnote-font-weight')) document.getElementById('setting-footnote-font-weight').value = settings.footnote_font_weight || 'normal';
+    if (document.getElementById('setting-footnote-align')) document.getElementById('setting-footnote-align').value = settings.footnote_align || 'justify';
+    if (document.getElementById('setting-footnote-call-scale')) document.getElementById('setting-footnote-call-scale').value = settings.footnote_call_scale ?? 0.65;
+    if (document.getElementById('setting-footnote-call-raise')) document.getElementById('setting-footnote-call-raise').value = settings.footnote_call_raise ?? 0.18;
+    if (document.getElementById('setting-footnote-padding-top')) document.getElementById('setting-footnote-padding-top').value = settings.footnote_padding_top ?? 0.15;
+    if (document.getElementById('setting-footnote-padding-bottom')) document.getElementById('setting-footnote-padding-bottom').value = settings.footnote_padding_bottom ?? 0.15;
+    if (document.getElementById('setting-footnote-padding-left')) document.getElementById('setting-footnote-padding-left').value = settings.footnote_padding_left ?? 0;
+    if (document.getElementById('setting-footnote-padding-right')) document.getElementById('setting-footnote-padding-right').value = settings.footnote_padding_right ?? 0;
+
     if (document.getElementById('setting-header-margin-top')) document.getElementById('setting-header-margin-top').value = settings.header_margin_top !== undefined ? settings.header_margin_top : 1.0;
     if (document.getElementById('setting-header-margin-bottom')) document.getElementById('setting-header-margin-bottom').value = settings.header_margin_bottom !== undefined ? settings.header_margin_bottom : 0.5;
     if (document.getElementById('setting-header-align')) document.getElementById('setting-header-align').value = settings.header_align || 'center';
@@ -227,12 +241,20 @@ window.populateSettingsForm = function() {
     // Pestaña Capítulos
     if (document.getElementById('setting-chapter-start-parity')) document.getElementById('setting-chapter-start-parity').value = settings.chapter_start_parity || 'any';
 
-    if (document.getElementById('setting-chapter-page-one-vertical')) document.getElementById('setting-chapter-page-one-vertical').value = settings.chapter_chapter_page_one_vertical || 'top';
+    if (document.getElementById('setting-chapter-page-one-vertical')) {
+        const chapterPageOneVertical = settings.chapter_page_one_vertical || 'top';
+        document.getElementById('setting-chapter-page-one-vertical').value = chapterPageOneVertical === 'half' ? 'center' : chapterPageOneVertical;
+    }
     if (document.getElementById('setting-chapter-title-font-family')) document.getElementById('setting-chapter-title-font-family').value = settings.chapter_title_font_family || 'Playfair Display';
     if (document.getElementById('setting-chapter-title-font-size')) document.getElementById('setting-chapter-title-font-size').value = settings.chapter_title_font_size || 24;
     if (document.getElementById('setting-chapter-title-font-weight')) document.getElementById('setting-chapter-title-font-weight').value = settings.chapter_title_font_weight || 'bold';
     if (document.getElementById('setting-chapter-title-font-style')) document.getElementById('setting-chapter-title-font-style').value = settings.chapter_title_font_style || 'normal';
-    if (document.getElementById('setting-chapter-title-align')) document.getElementById('setting-chapter-title-align').value = settings.chapter_title_align || 'center';
+    if (document.getElementById('setting-chapter-title-align')) {
+        const chapterTitleAlign = ['left', 'center', 'right'].includes(String(settings.chapter_title_align || '').toLowerCase())
+            ? String(settings.chapter_title_align).toLowerCase()
+            : 'center';
+        document.getElementById('setting-chapter-title-align').value = chapterTitleAlign;
+    }
     if (document.getElementById('setting-chapter-title-text-transform')) document.getElementById('setting-chapter-title-text-transform').value = settings.chapter_title_text_transform || 'none';
     if (document.getElementById('setting-chapter-title-padding-top')) document.getElementById('setting-chapter-title-padding-top').value = settings.chapter_title_padding_top ?? 0;
     if (document.getElementById('setting-chapter-title-padding-bottom')) document.getElementById('setting-chapter-title-padding-bottom').value = settings.chapter_title_padding_bottom ?? 1.5;
@@ -243,7 +265,12 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-chapter-subtitle-show')) document.getElementById('setting-chapter-subtitle-show').checked = settings.chapter_subtitle_show == 1 || settings.chapter_subtitle_show === undefined;
     if (document.getElementById('setting-chapter-subtitle-font-family')) document.getElementById('setting-chapter-subtitle-font-family').value = settings.chapter_subtitle_font_family || '';
     if (document.getElementById('setting-chapter-subtitle-font-size')) document.getElementById('setting-chapter-subtitle-font-size').value = settings.chapter_subtitle_font_size ?? 16;
-    if (document.getElementById('setting-chapter-subtitle-align')) document.getElementById('setting-chapter-subtitle-align').value = settings.chapter_subtitle_align || 'center';
+    if (document.getElementById('setting-chapter-subtitle-align')) {
+        const chapterSubtitleAlign = ['left', 'center', 'right'].includes(String(settings.chapter_subtitle_align || '').toLowerCase())
+            ? String(settings.chapter_subtitle_align).toLowerCase()
+            : 'center';
+        document.getElementById('setting-chapter-subtitle-align').value = chapterSubtitleAlign;
+    }
     if (document.getElementById('setting-chapter-subtitle-font-style')) document.getElementById('setting-chapter-subtitle-font-style').value = settings.chapter_subtitle_font_style || 'normal';
     if (document.getElementById('setting-chapter-subtitle-text-transform')) document.getElementById('setting-chapter-subtitle-text-transform').value = settings.chapter_subtitle_text_transform || 'none';
     if (document.getElementById('setting-chapter-subtitle-font-weight')) document.getElementById('setting-chapter-subtitle-font-weight').value = settings.chapter_subtitle_font_weight || 'normal';

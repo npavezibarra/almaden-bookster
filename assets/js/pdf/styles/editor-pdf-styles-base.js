@@ -195,6 +195,17 @@ function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit
             overflow: hidden !important;
             clear: both !important;
         }
+
+        .credits-blank-page {
+            break-after: page !important;
+            page: chapter-blank-page !important;
+            height: 1px !important;
+            line-height: 1px !important;
+            font-size: 1px !important;
+            color: transparent !important;
+            overflow: hidden !important;
+            clear: both !important;
+        }
         
         .book-start-dummy-page {
             break-after: page !important;

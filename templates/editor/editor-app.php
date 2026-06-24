@@ -458,13 +458,6 @@ if (!headers_sent()) {
                 hyphenGlyph: '-'
             }
         };
-
-        console.log("Almaden IDs and Settings Check:", {
-            bookId: <?php echo intval($book_id); ?>,
-            sourceBookId: <?php echo intval($source_book_id); ?>,
-            coverSettingsRawBook: <?php echo json_encode( get_post_meta( $book_id, '_almaden_cover_settings', true ) ); ?>,
-            coverSettingsRawSource: <?php echo json_encode( get_post_meta( $source_book_id, '_almaden_cover_settings', true ) ); ?>
-        });
     </script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-core.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>

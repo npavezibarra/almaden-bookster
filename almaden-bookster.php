@@ -46,7 +46,7 @@ function almaden_bookster_create_settings_table() {
 	
 	$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) === $table_name;
 	
-	if ( get_option( 'almaden_bookster_db_version' ) !== '1.9.0' || ! $table_exists ) {
+	if ( get_option( 'almaden_bookster_db_version' ) !== '2.0.0' || ! $table_exists ) {
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE $table_name (
@@ -75,8 +75,10 @@ function almaden_bookster_create_settings_table() {
 			font_size_content float DEFAULT 11.5 NOT NULL,
 			line_height_content float DEFAULT 1.65 NOT NULL,
 			content_text_align varchar(20) DEFAULT 'justify' NOT NULL,
+			content_text_align_last varchar(20) DEFAULT 'left' NOT NULL,
 			content_hyphenation tinyint(1) DEFAULT 1 NOT NULL,
 			content_language varchar(10) DEFAULT 'es' NOT NULL,
+			content_hyphenation_exceptions varchar(2000) DEFAULT '' NOT NULL,
 			content_paragraph_indent float DEFAULT 0.0 NOT NULL,
 			content_paragraph_spacing float DEFAULT 14.0 NOT NULL,
 			font_family_headings varchar(50) DEFAULT '' NOT NULL,
@@ -128,6 +130,16 @@ function almaden_bookster_create_settings_table() {
 			footer_odd_type varchar(50) DEFAULT 'page_number' NOT NULL,
 			footer_margin_top float DEFAULT 0.5 NOT NULL,
 			footer_margin_bottom float DEFAULT 1.0 NOT NULL,
+			footnote_font_family varchar(50) DEFAULT 'Merriweather' NOT NULL,
+			footnote_font_size float DEFAULT 8.5 NOT NULL,
+			footnote_font_weight varchar(20) DEFAULT 'normal' NOT NULL,
+			footnote_align varchar(20) DEFAULT 'justify' NOT NULL,
+			footnote_call_scale float DEFAULT 0.65 NOT NULL,
+			footnote_call_raise float DEFAULT 0.18 NOT NULL,
+			footnote_padding_top float DEFAULT 0.15 NOT NULL,
+			footnote_padding_bottom float DEFAULT 0.15 NOT NULL,
+			footnote_padding_left float DEFAULT 0.0 NOT NULL,
+			footnote_padding_right float DEFAULT 0.0 NOT NULL,
 			first_page_header_type varchar(50) DEFAULT 'blank' NOT NULL,
 			first_page_header_custom varchar(255) DEFAULT '' NOT NULL,
 			first_page_footer_type varchar(50) DEFAULT 'page_number' NOT NULL,
@@ -196,7 +208,7 @@ function almaden_bookster_create_settings_table() {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 
-		update_option( 'almaden_bookster_db_version', '1.9.0' );
+		update_option( 'almaden_bookster_db_version', '2.0.0' );
 	}
 }
 add_action( 'init', 'almaden_bookster_create_settings_table' );
@@ -230,6 +242,17 @@ add_action('init', function() {
 		'first_page_header_custom' => "varchar(255) DEFAULT '' NOT NULL",
 		'first_page_footer_type' => "varchar(50) DEFAULT 'page_number' NOT NULL",
 		'first_page_footer_custom' => "varchar(255) DEFAULT '' NOT NULL",
+		'footnote_font_family' => "varchar(50) DEFAULT 'Merriweather' NOT NULL",
+		'footnote_font_size' => 'float DEFAULT 8.5 NOT NULL',
+		'footnote_font_weight' => "varchar(20) DEFAULT 'normal' NOT NULL",
+		'footnote_align' => "varchar(20) DEFAULT 'justify' NOT NULL",
+		'footnote_call_scale' => 'float DEFAULT 0.65 NOT NULL',
+		'footnote_call_raise' => 'float DEFAULT 0.18 NOT NULL',
+		'footnote_padding_top' => 'float DEFAULT 0.15 NOT NULL',
+		'footnote_padding_bottom' => 'float DEFAULT 0.15 NOT NULL',
+		'footnote_padding_left' => 'float DEFAULT 0.0 NOT NULL',
+		'footnote_padding_right' => 'float DEFAULT 0.0 NOT NULL',
+		'content_hyphenation_exceptions' => "varchar(2000) DEFAULT '' NOT NULL",
 		'chapter_start_parity' => "varchar(20) DEFAULT 'any' NOT NULL",
 		'parity_image_mode' => "varchar(20) DEFAULT 'content' NOT NULL",
 		'chapter_page_one_align' => "varchar(20) DEFAULT 'center' NOT NULL",
@@ -278,7 +301,15 @@ add_action('init', function() {
 		'ebook_chapter_prefix_font_weight' => "varchar(20) DEFAULT 'normal' NOT NULL",
 		'ebook_chapter_prefix_font_style' => "varchar(20) DEFAULT 'normal' NOT NULL",
 		'ebook_chapter_prefix_letter_spacing' => "float DEFAULT 0.0 NOT NULL",
-		'ebook_chapter_prefix_ornament' => "varchar(20) DEFAULT 'none' NOT NULL"
+		'ebook_chapter_prefix_ornament' => "varchar(20) DEFAULT 'none' NOT NULL",
+		'footnote_font_family' => "varchar(50) DEFAULT 'Merriweather' NOT NULL",
+		'footnote_font_size' => 'float DEFAULT 8.5 NOT NULL',
+		'footnote_font_weight' => "varchar(20) DEFAULT 'normal' NOT NULL",
+		'footnote_align' => "varchar(20) DEFAULT 'justify' NOT NULL",
+		'footnote_padding_top' => 'float DEFAULT 0.15 NOT NULL',
+		'footnote_padding_bottom' => 'float DEFAULT 0.15 NOT NULL',
+		'footnote_padding_left' => 'float DEFAULT 0.0 NOT NULL',
+		'footnote_padding_right' => 'float DEFAULT 0.0 NOT NULL'
 	];
 	foreach ($needed_columns as $col => $def) {
 		if (!empty($columns) && !in_array($col, $columns)) {

@@ -27,7 +27,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="grid grid-cols-4 gap-2 mt-2">
+                    <div class="grid grid-cols-5 gap-2 mt-2">
                         <div>
                             <label class="block text-[9px] text-[var(--text-muted)] mb-1">Interlineado</label>
                             <input id="setting-line-height-content" type="number" step="0.05" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
@@ -39,6 +39,14 @@
                                 <option value="center">Centro</option>
                                 <option value="right">Derecha</option>
                                 <option value="justify">Justificado</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] text-[var(--text-muted)] mb-1">Última línea</label>
+                            <select id="setting-content-text-align-last" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                <option value="left">Izquierda</option>
+                                <option value="center">Centro</option>
+                                <option value="right">Derecha</option>
                             </select>
                         </div>
                         <div>
@@ -68,6 +76,11 @@
                             <label class="block text-[9px] text-[var(--text-muted)] mb-1">Espaciado entre párrafos (pt)</label>
                             <input id="setting-content-paragraph-spacing" type="number" step="0.5" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
                         </div>
+                    </div>
+                    <div class="mt-2">
+                        <label class="block text-[9px] text-[var(--text-muted)] mb-1">Excepciones de separación silábica</label>
+                        <textarea id="setting-content-hyphenation-exceptions" rows="3" placeholder="realidad, prohibición, extraordinario" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-black"></textarea>
+                        <p class="mt-1 text-[10px] text-[var(--text-muted)]">Una palabra por línea o separadas por comas. Estas palabras no se partirán al final de línea.</p>
                     </div>
                 </div>
 

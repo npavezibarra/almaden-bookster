@@ -47,7 +47,6 @@ if ( $chapter_posts ) {
 			
 			'drop_cap_enabled'         => get_post_meta( $cp->ID, '_drop_cap_enabled', true ),
 			'disable_hyphenation'      => get_post_meta( $cp->ID, '_disable_hyphenation', true ),
-			'page_one_vertical'        => get_post_meta( $cp->ID, '_page_one_vertical', true ),
 			'start_parity'             => get_post_meta( $cp->ID, '_start_parity', true ),
 			'first_page_header_type'   => get_post_meta( $cp->ID, '_first_page_header_type', true ),
 			'first_page_header_custom' => get_post_meta( $cp->ID, '_first_page_header_custom', true ),
@@ -63,6 +62,7 @@ if ( $chapter_posts ) {
 			'credits_font_size'        => get_post_meta( $cp->ID, '_credits_font_size', true ),
 			'credits_letter_spacing'   => get_post_meta( $cp->ID, '_credits_letter_spacing', true ),
 			'credits_font_weight'      => get_post_meta( $cp->ID, '_credits_font_weight', true ),
+			'credits_hide_page_number' => get_post_meta( $cp->ID, '_credits_hide_page_number', true ),
 			'toc_font_family'          => get_post_meta( $cp->ID, '_toc_font_family', true ),
 			'toc_font_size'            => get_post_meta( $cp->ID, '_toc_font_size', true ),
 			'toc_enumerate'            => get_post_meta( $cp->ID, '_toc_enumerate', true ),
@@ -75,7 +75,6 @@ if ( $chapter_posts ) {
 			'toc_leader_style'         => get_post_meta( $cp->ID, '_toc_leader_style', true ),
 			'toc_leader_position'      => get_post_meta( $cp->ID, '_toc_leader_position', true ),
 			'toc_title_align'          => get_post_meta( $cp->ID, '_toc_title_align', true ),
-			'toc_page_one_vertical'    => get_post_meta( $cp->ID, '_toc_page_one_vertical', true ),
 			'toc_title_font_family'    => get_post_meta( $cp->ID, '_toc_title_font_family', true ),
 			'toc_title_font_size'      => get_post_meta( $cp->ID, '_toc_title_font_size', true ),
 			'toc_title_font_style'     => get_post_meta( $cp->ID, '_toc_title_font_style', true ),

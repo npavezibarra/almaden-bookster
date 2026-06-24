@@ -22,6 +22,13 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
         return t;
     };
 
+    const escapeAttribute = (value) => String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
     // Limpiar definiciones del markdown y guardarlas
     let cleanMarkdown = markdownText.replace(/(?:^|\n)\[\^([^\]]+)\]:\s*([^\n]+)/g, (match, id, text) => {
         footnoteDefs[id] = parseInlineMarkdown(text.trim());
@@ -70,7 +77,8 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
                 footnoteRefs.push(id);
             }
             const index = idMap[id];
-            return `<span class="pdf-footnote-ref font-semibold align-super text-[9px]" data-footnote-id="${id}" data-footnote-number="${index}"><sup>${index}</sup></span>`;
+            const safeId = escapeAttribute(id);
+            return `<span data-ref="${safeId}" data-footnote-id="${safeId}" data-footnote-number="${index}">${footnoteDefs[id]}</span>`;
         }
         return match;
     });

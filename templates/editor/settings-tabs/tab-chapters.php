@@ -88,7 +88,8 @@
                             <label class="block text-[9px] text-[var(--text-muted)] mb-1">Diseño Vertical</label>
                             <select id="setting-chapter-page-one-vertical" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                                 <option value="top">Arriba (Margen estándar)</option>
-                                <option value="half">Media Página (Centrado vertical)</option>
+                                <option value="center">Centrado vertical</option>
+                                <option value="bottom">Abajo</option>
                             </select>
                         </div>
                     </div>

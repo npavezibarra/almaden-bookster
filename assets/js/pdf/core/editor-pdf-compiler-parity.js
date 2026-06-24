@@ -5,7 +5,9 @@
 // ============================================================
 
 window.handleChapterParity = function(chapter, index, settings, currentPageNumber, scroller, virtualizePage) {
-    const chapterStartParity = (chapter.start_parity && chapter.start_parity !== 'any') ? chapter.start_parity : settings.chapter_start_parity;
+    const chapterStartParity = chapter && chapter.is_toc === '1'
+        ? 'even'
+        : ((chapter.start_parity && chapter.start_parity !== 'any') ? chapter.start_parity : settings.chapter_start_parity);
     
     if (index > 0 && chapterStartParity && chapterStartParity !== 'any') {
         const isOdd = (currentPageNumber % 2 === 1);

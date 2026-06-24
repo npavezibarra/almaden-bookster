@@ -45,10 +45,9 @@ graph TD
 ### 2. Estructura de DOM y HTML
 
 *   **[editor-pdf-dom.js](file:///Users/nicolasibarra/Local%20Sites/ada/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/editor-pdf-dom.js)**
-    *   **Responsabilidad**: Helpers para crear páginas físicas virtuales en el DOM y gestionar footnotes locales de página.
+    *   **Responsabilidad**: Helpers para crear páginas físicas virtuales en el DOM y encapsular la estructura visual de cada hoja.
     *   **Funciones Clave**:
-        *   [createNewPageElement](file:///Users/nicolasibarra/Local%20Sites/ada/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/editor-pdf-dom.js#L25): Construye la envoltura HTML de cada página (cajas de cabecera, pie, contenedor de notas al pie y clases de paridad).
-        *   [renderPageFootnotes](file:///Users/nicolasibarra/Local%20Sites/ada/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/editor-pdf-dom.js#L8): Inserta las notas acumuladas al final de la página activa.
+        *   [createNewPageElement](file:///Users/nicolasibarra/Local%20Sites/ada/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/editor-pdf-dom.js#L7): Construye la envoltura HTML de cada página (cajas de cabecera, pie y clases de paridad).
 
 *   **[editor-pdf-html.js](file:///Users/nicolasibarra/Local%20Sites/ada/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/editor-pdf-html.js)**
     *   **Responsabilidad**: Procesamiento del Markdown a nivel de estructura de página. Prepara bloques de capítulos, genera el listado dinámico del Índice (TOC), renderiza las secciones de Créditos y aplica letras capitales y prefijos de capítulo.

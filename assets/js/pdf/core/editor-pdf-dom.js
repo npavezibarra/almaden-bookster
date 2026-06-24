@@ -1,25 +1,8 @@
 // ============================================================
 // MÓDULO: editor-pdf-dom.js
 // Responsabilidad: Helpers para crear el DOM virtual de las
-// páginas PDF y renderizar notas al pie.
+// páginas PDF y gestionar la estructura física de cada página.
 // ============================================================
-
-// Renderiza el listado de notas al pie correspondientes a la página
-window.renderPageFootnotes = function(container, footnotes) {
-    if (!container) return;
-    if (!footnotes || footnotes.length === 0) {
-        container.innerHTML = '';
-        container.classList.add('hidden');
-        return;
-    }
-
-    container.classList.remove('hidden');
-    container.innerHTML = footnotes.map(fn => `
-        <div class="pdf-footnote-item">
-            <span class="footnote-num font-semibold mr-1">${fn.number}.</span> ${fn.text}
-        </div>
-    `).join('');
-};
 
 // Crea la estructura HTML limpia de una página física virtual del libro
 window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter = false, isBlankPage = false) {
@@ -39,8 +22,11 @@ window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter
     const firstPageFooterCustom = (chapter && chapter.first_page_footer_custom) ? chapter.first_page_footer_custom : (settings.first_page_footer_custom || '');
     const customRunningHeader = (chapter && chapter.custom_running_header) ? chapter.custom_running_header : null;
     const isToc = (chapter && chapter.is_toc == '1');
-    const pageOneVertical = (isToc && chapter.toc_page_one_vertical) ? chapter.toc_page_one_vertical : ((chapter && chapter.page_one_vertical) ? chapter.page_one_vertical : (settings.chapter_page_one_vertical || 'top'));
+    const pageOneVertical = settings.chapter_page_one_vertical || 'top';
     const disableHyphenation = (chapter && chapter.disable_hyphenation === '1');
+    const chapterTitleAlign = ['left', 'center', 'right'].includes(String(settings.chapter_title_align || '').toLowerCase())
+        ? String(settings.chapter_title_align).toLowerCase()
+        : 'center';
 
     if (isBlankPage) {
         if (parityImageUrl) {
@@ -119,6 +105,10 @@ window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter
         footerType = 'blank';
     }
     
+    if (chapter && chapter.is_credits == '1' && chapter.credits_hide_page_number === '1') {
+        footerType = 'blank';
+    }
+
     if (chapter && chapter.is_toc == '1' && chapter.toc_hide_page_numbers === '1') {
         footerType = 'blank';
     }
@@ -148,7 +138,7 @@ window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter
     
     if (isFirstPageOfChapter) {
         contentClass += ' chapter-first-page';
-        const align = (isToc && chapter.toc_title_align) ? chapter.toc_title_align : (settings.chapter_title_align || 'center');
+        const align = (isToc && chapter.toc_title_align) ? chapter.toc_title_align : chapterTitleAlign;
         contentStyle += ` text-align: ${align};`;
         if (pageOneVertical === 'half' || pageOneVertical === 'center') {
             contentClass += ' flex flex-col justify-center';
@@ -162,7 +152,6 @@ window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter
         <div class="${contentClass}" style="${contentStyle}" lang="${settings.content_language || 'es'}">
             <div class="pdf-content-inner" style="display: flow-root; ${(chapter && chapter.is_credits == '1') ? 'height: calc(100% - 4px);' : ''}"></div>
         </div>
-        <div class="pdf-footnotes hidden"></div>
         <div class="pdf-footer text-xs">${footerHtml}</div>
         <div class="global-trim-line"></div>
     `;
@@ -171,7 +160,9 @@ window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter
 };
 
 window.handleChapterParity = function(chapter, index, settings, currentPageNumber, scroller, virtualizePage) {
-    const chapterStartParity = (chapter.start_parity && chapter.start_parity !== 'any') ? chapter.start_parity : settings.chapter_start_parity;
+    const chapterStartParity = chapter && chapter.is_toc === '1'
+        ? 'even'
+        : ((chapter.start_parity && chapter.start_parity !== 'any') ? chapter.start_parity : settings.chapter_start_parity);
     
     if (index > 0 && chapterStartParity && chapterStartParity !== 'any') {
         const isOdd = (currentPageNumber % 2 === 1);

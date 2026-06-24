@@ -4,6 +4,43 @@
 // ============================================================
 
 function getPDFStylesTypography(settings, tocSettings, toPx) {
+    const contentTextAlign = settings.content_text_align || 'justify';
+    const contentTextAlignLast = settings.content_text_align_last
+        || (contentTextAlign === 'justify' ? 'left' : contentTextAlign);
+    const tocItemAlign = ['left', 'center', 'right'].includes(String(tocSettings.itemAlign || '').toLowerCase())
+        ? String(tocSettings.itemAlign).toLowerCase()
+        : 'left';
+    const tocItemJustify = tocItemAlign === 'right'
+        ? 'flex-end'
+        : (tocItemAlign === 'center' ? 'center' : 'flex-start');
+    const chapterTitleAlign = ['left', 'center', 'right'].includes(String(settings.chapter_title_align || '').toLowerCase())
+        ? String(settings.chapter_title_align).toLowerCase()
+        : 'center';
+    const chapterTitleJustify = chapterTitleAlign === 'left'
+        ? 'flex-start'
+        : (chapterTitleAlign === 'right' ? 'flex-end' : 'center');
+    const footnoteFontFamily = settings.footnote_font_family || settings.font_family_content || 'Merriweather';
+    const footnoteFontSize = settings.footnote_font_size || Math.max(parseFloat(settings.font_size_content || 11.5) * 0.75, 8.0);
+    const footnoteFontWeight = settings.footnote_font_weight || 'normal';
+    const footnoteAlign = ['left', 'center', 'right', 'justify'].includes(String(settings.footnote_align || '').toLowerCase())
+        ? String(settings.footnote_align).toLowerCase()
+        : 'justify';
+    const footnoteAlignLast = footnoteAlign === 'justify' ? 'left' : footnoteAlign;
+    const footnoteCallScale = settings.footnote_call_scale !== undefined && settings.footnote_call_scale !== ''
+        ? parseFloat(settings.footnote_call_scale)
+        : 0.65;
+    const footnoteCallRaise = settings.footnote_call_raise !== undefined && settings.footnote_call_raise !== ''
+        ? parseFloat(settings.footnote_call_raise)
+        : 0.18;
+    const footnotePaddingTop = settings.footnote_padding_top !== undefined ? settings.footnote_padding_top : 0.15;
+    const footnotePaddingBottom = settings.footnote_padding_bottom !== undefined ? settings.footnote_padding_bottom : 0.15;
+    const footnotePaddingLeft = settings.footnote_padding_left !== undefined ? settings.footnote_padding_left : 0;
+    const footnotePaddingRight = settings.footnote_padding_right !== undefined ? settings.footnote_padding_right : 0;
+    const smartSpanishHyphenation = !['0', 0].includes(settings.content_hyphenation) && String(settings.content_language || 'es').toLowerCase().startsWith('es');
+    const contentHyphenationMode = (settings.content_hyphenation === 0 || settings.content_hyphenation === '0')
+        ? 'none'
+        : (smartSpanishHyphenation ? 'manual' : 'auto');
+
     let styles = `
         /* ── Contenido ── */
         .pdf-content {
@@ -26,10 +63,10 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             font-size: ${toPx(settings.font_size_content || 11.5, true)}px !important;
             font-weight: ${settings.font_weight_content || 'normal'} !important;
             line-height: ${settings.line_height_content || 1.65} !important;
-            text-align: ${settings.content_text_align || 'justify'} !important;
-            ${(settings.content_text_align === 'justify' || !settings.content_text_align) ? 'text-align-last: left !important;' : ''}
-            hyphens: ${(settings.content_hyphenation === 0 || settings.content_hyphenation === '0') ? 'none' : 'auto'} !important;
-            -webkit-hyphens: ${(settings.content_hyphenation === 0 || settings.content_hyphenation === '0') ? 'none' : 'auto'} !important;
+            text-align: ${contentTextAlign} !important;
+            text-align-last: ${contentTextAlignLast} !important;
+            hyphens: ${contentHyphenationMode} !important;
+            -webkit-hyphens: ${contentHyphenationMode} !important;
             hyphenate-limit-chars: 6 3 3 !important;
             hyphenate-limit-lines: 2 !important;
             -webkit-hyphenate-limit-before: 3 !important;
@@ -46,7 +83,7 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             text-align: center !important;
             text-indent: 0 !important;
         }
-        
+
         .pdf-content .almaden-align-left, .pdf-content .almaden-align-left * {
             text-align: left !important;
             text-indent: 0 !important;
@@ -59,7 +96,7 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
 
         .pdf-content .almaden-align-justify, .pdf-content .almaden-align-justify * {
             text-align: justify !important;
-            text-align-last: left !important;
+            text-align-last: ${contentTextAlignLast} !important;
             text-indent: ${toPx(settings.content_paragraph_indent !== undefined ? settings.content_paragraph_indent : 0.0, true)}px !important;
         }
 
@@ -67,10 +104,6 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             margin-bottom: 0px !important;
             padding-bottom: 0px !important;
         }
-
-        .pdf-content .deep-split-start {
-            text-align-last: left !important;
-        } 
 
         /* Párrafos Divididos y Continuación (Paged.js) */
         .pdf-content [data-split-from] {
@@ -82,7 +115,8 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             margin-bottom: 0 !important;
             padding-bottom: 0 !important;
         }
-        .pdf-content [data-align-last-split-element='justify'] {
+        /* Si un párrafo se parte entre páginas, el fragmento que sigue en la página anterior debe seguir justificado. */
+        .pdf-content [data-split-to] {
             text-align-last: justify !important;
         }
 
@@ -91,13 +125,89 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             height: calc(100% - var(--pagedjs-footnotes-height)) !important;
         }
 
+        .pdf-content span[data-footnote-id] {
+            float: footnote !important;
+            footnote-policy: auto !important;
+            footnote-display: block !important;
+        }
+
+        .pagedjs_area [data-footnote-call] {
+            all: unset;
+            counter-increment: footnote;
+            display: inline;
+        }
+
+        .pagedjs_area [data-footnote-call]::after {
+            content: attr(data-footnote-number) !important;
+            font-size: ${footnoteCallScale}em !important;
+            line-height: 1 !important;
+            vertical-align: baseline !important;
+            position: relative !important;
+            top: -${footnoteCallRaise}em !important;
+            font-variant-position: super !important;
+        }
+
+        .pagedjs_pagebox > .pagedjs_area > .pagedjs_footnote_area {
+            font-family: '${footnoteFontFamily}', serif !important;
+            font-size: ${toPx(footnoteFontSize, true)}px !important;
+            font-weight: ${footnoteFontWeight} !important;
+            color: #475569 !important;
+        }
+
+        .pagedjs_pagebox > .pagedjs_area > .pagedjs_footnote_area > .pagedjs_footnote_content {
+            padding-top: ${toPx(footnotePaddingTop, false)}px !important;
+            padding-bottom: ${toPx(footnotePaddingBottom, false)}px !important;
+            padding-left: ${toPx(footnotePaddingLeft, false)}px !important;
+            padding-right: ${toPx(footnotePaddingRight, false)}px !important;
+            box-sizing: border-box !important;
+            width: 100% !important;
+        }
+
+        .pagedjs_pagebox > .pagedjs_area > .pagedjs_footnote_area > .pagedjs_footnote_content > .pagedjs_footnote_inner_content {
+            font-family: '${footnoteFontFamily}', serif !important;
+            font-size: ${toPx(footnoteFontSize, true)}px !important;
+            font-weight: ${footnoteFontWeight} !important;
+            line-height: 1.35 !important;
+            text-align: ${footnoteAlign} !important;
+            text-align-last: ${footnoteAlignLast} !important;
+            hyphens: ${contentHyphenationMode} !important;
+            -webkit-hyphens: ${contentHyphenationMode} !important;
+            color: #475569 !important;
+            width: 100% !important;
+        }
+
+        .pagedjs_footnote_area [data-note='footnote'] {
+            margin: 0 0 ${toPx(3, true)}px 0 !important;
+            text-indent: 0 !important;
+            font-family: '${footnoteFontFamily}', serif !important;
+            font-size: ${toPx(footnoteFontSize, true)}px !important;
+            font-weight: ${footnoteFontWeight} !important;
+            line-height: 1.35 !important;
+            text-align: ${footnoteAlign} !important;
+            text-align-last: ${footnoteAlignLast} !important;
+            color: #475569 !important;
+        }
+
+        .pagedjs_footnote_area [data-note='footnote'] p,
+        .pagedjs_footnote_area [data-note='footnote'] div {
+            margin: 0 !important;
+        }
+
         .pdf-content .almaden-align-center [data-split-to],
         .pdf-content .almaden-align-left [data-split-to],
         .pdf-content .almaden-align-right [data-split-to],
         .pdf-content [data-split-to].almaden-align-center,
         .pdf-content [data-split-to].almaden-align-left,
         .pdf-content [data-split-to].almaden-align-right {
-            text-align-last: auto !important;
+            text-align-last: right !important;
+        }
+
+        .pdf-content [data-split-to].almaden-align-center {
+            text-align-last: center !important;
+        }
+
+        .pdf-content [data-split-to].almaden-align-left {
+            text-align-last: left !important;
         }
 
         /* ── Párrafos Continuación (segunda mitad tras el salto) ── */
@@ -113,10 +223,11 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
         .pdf-content p:last-child:not(.split-paragraph-start) {
             margin-bottom: 0 !important;
         }
-        
+
         .pdf-content p.split-paragraph-continuation {
             text-indent: 0 !important;
         }
+        .pdf-content .chapter-opening-block + p,
         .pdf-content .chapter-main-title + p,
         .pdf-content h1 + p,
         .pdf-content h2 + p {
@@ -150,7 +261,10 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             font-weight: ${settings.chapter_title_font_weight || 'bold'} !important;
             font-style: ${settings.chapter_title_font_style || 'normal'} !important;
             text-transform: ${settings.chapter_title_text_transform || 'none'} !important;
-            text-align: ${settings.chapter_title_align || 'center'} !important;
+            text-align: ${chapterTitleAlign} !important;
+            text-align-last: auto !important;
+            word-spacing: normal !important;
+            text-wrap: balance !important;
             line-height: ${settings.chapter_title_line_height || 1.2} !important;
             margin-top: 0 !important;
             margin-bottom: 0 !important;
@@ -164,6 +278,36 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             break-after: avoid;
             width: 100%;
             box-sizing: border-box;
+        }
+
+        .pdf-content .chapter-opening-block {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: stretch !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .pdf-content .chapter-opening-content {
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        .pdf-content .chapter-opening-content[data-align="left"] {
+            text-align: left !important;
+        }
+
+        .pdf-content .chapter-opening-content[data-align="center"] {
+            text-align: center !important;
+        }
+
+        .pdf-content .chapter-opening-content[data-align="right"] {
+            text-align: right !important;
         }
 
         /* ── Título del Índice (TOC) ── */
@@ -195,14 +339,23 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             padding: 0;
             list-style: none;
             width: 100%;
+            text-align: ${tocItemAlign} !important;
+            text-align-last: ${tocItemAlign} !important;
+            word-spacing: normal !important;
+            letter-spacing: normal !important;
         }
 
         /* ── Estilos TOC por nivel ── */
         .toc-item {
             display: flex !important;
-            align-items: flex-end !important;
+            justify-content: ${tocItemJustify} !important;
+            align-items: baseline !important;
             width: 100% !important;
             hyphens: none !important;
+            text-align: ${tocItemAlign} !important;
+            text-align-last: ${tocItemAlign} !important;
+            word-spacing: normal !important;
+            letter-spacing: normal !important;
         }
 
         .toc-item-h1 {
@@ -247,32 +400,40 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
         .toc-number {
             flex-shrink: 0 !important;
             margin-right: 8px !important;
-            text-align: left !important;
-            align-self: flex-start !important;
+            text-align: ${tocItemAlign} !important;
+            align-self: baseline !important;
+            word-spacing: normal !important;
+            letter-spacing: normal !important;
         }
-        
+
         .toc-title-wrapper {
             flex-grow: 1 !important;
             display: grid !important;
             grid-template-columns: auto max-content;
             grid-template-areas: "title leader";
-            align-items: end !important; /* Aligns dots with the baseline of the last line */
+            align-items: baseline !important; /* Aligns dots with the baseline of the last line */
             gap: 0 4px !important;
             overflow: hidden !important;
             min-width: 0 !important;
             position: relative !important;
-            text-align: left !important;
+            text-align: ${tocItemAlign} !important;
+            text-align-last: ${tocItemAlign} !important;
+            word-spacing: normal !important;
+            letter-spacing: normal !important;
         }
-        
+
         .toc-title {
             grid-area: title !important;
             display: inline !important;
             white-space: normal !important;
             word-break: break-word !important;
             position: relative !important;
-            text-align: left !important;
+            text-align: ${tocItemAlign} !important;
+            text-align-last: ${tocItemAlign} !important;
+            word-spacing: normal !important;
+            letter-spacing: normal !important;
         }
-        
+
         .toc-title::after {
             content: ${
                 tocSettings.leaderStyle === 'dotted'
@@ -305,14 +466,16 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
         .toc-leader {
             display: none !important;
         }
-        
+
         .toc-page {
             flex-shrink: 0 !important;
             white-space: nowrap !important;
             font-variant-numeric: tabular-nums !important;
-            text-align: right !important;
+            text-align: ${tocItemAlign} !important;
             margin-left: 8px !important;
-            align-self: end !important;
+            align-self: baseline !important;
+            word-spacing: normal !important;
+            letter-spacing: normal !important;
         }
 
         .pdf-content .chapter-prefix-line {
@@ -323,8 +486,8 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
         }
 
         /* Si está alineado a la izquierda o derecha, ajustar el margen de la línea */
-        ${settings.chapter_title_align === 'left' ? '.pdf-content .chapter-prefix-line { margin-left: 0; }' : ''}
-        ${settings.chapter_title_align === 'right' ? '.pdf-content .chapter-prefix-line { margin-right: 0; }' : ''}
+        ${chapterTitleAlign === 'left' ? '.pdf-content .chapter-prefix-line { margin-left: 0; }' : ''}
+        ${chapterTitleAlign === 'right' ? '.pdf-content .chapter-prefix-line { margin-right: 0; }' : ''}
 
         .pdf-content .chapter-prefix-wrapper[data-ornament="line_above_below"]::before {
             content: '';
@@ -332,10 +495,10 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             width: 50px;
             height: 1px;
             background-color: #000;
-            margin: 10px auto 10px ${settings.chapter_title_align === 'left' ? '0' : (settings.chapter_title_align === 'right' ? 'auto' : 'auto')};
+            margin: 10px auto 10px ${chapterTitleAlign === 'left' ? '0' : (chapterTitleAlign === 'right' ? 'auto' : 'auto')};
         }
-        
-        ${settings.chapter_title_align === 'right' && settings.chapter_prefix_ornament === 'line_above_below' ? '.pdf-content .chapter-prefix-wrapper[data-ornament="line_above_below"]::before { margin-left: auto; margin-right: 0; }' : ''}
+
+        ${chapterTitleAlign === 'right' && settings.chapter_prefix_ornament === 'line_above_below' ? '.pdf-content .chapter-prefix-wrapper[data-ornament="line_above_below"]::before { margin-left: auto; margin-right: 0; }' : ''}
 
         .pdf-content .chapter-prefix-asterisks {
             margin: 5px 0;
@@ -343,7 +506,11 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
         }
 
         .pdf-content .chapter-prefix-wrapper {
-            text-align: ${settings.chapter_title_align || 'center'} !important;
+            text-align: ${chapterTitleAlign} !important;
+            width: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: ${chapterTitleJustify} !important;
             margin-bottom: 5px;
             page-break-after: avoid !important;
             break-after: avoid !important;
@@ -357,6 +524,25 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             font-weight: ${settings.chapter_prefix_font_weight || 'normal'} !important;
             font-style: ${settings.chapter_prefix_font_style || 'normal'} !important;
             letter-spacing: ${settings.chapter_prefix_letter_spacing || 0}px !important;
+            word-spacing: normal !important;
+            display: inline-flex !important;
+            justify-content: center !important;
+            align-items: baseline !important;
+            width: auto !important;
+            white-space: nowrap !important;
+            text-indent: 0 !important;
+        }
+
+        .pdf-content .chapter-prefix-number {
+            letter-spacing: 0 !important;
+            word-spacing: normal !important;
+            white-space: nowrap !important;
+        }
+
+        .pdf-content .chapter-subtitle {
+            word-spacing: normal !important;
+            text-align-last: auto !important;
+            text-wrap: balance !important;
         }
 
         /* ── Encabezados h1/h2/h3 ── */
@@ -405,39 +591,6 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             break-after: avoid;
         }
 
-        /* ── Notas al pie ── */
-        .pdf-footnotes {
-            padding-top: ${toPx(0.5)}px !important;
-            margin-top: 0 !important;
-            border-top: none !important;
-            font-family: '${settings.font_family_content || 'Merriweather'}', serif !important;
-            font-size: ${toPx((parseFloat(settings.font_size_content) || 11.5) * 0.8, true)}px !important;
-            line-height: 1.4 !important;
-            color: #475569 !important;
-        }
-
-        .pdf-footnotes::before {
-            content: '';
-            display: block;
-            width: 100%; /* El ancho del contenedor de texto, sin incluir el padding de la página */
-            border-top: 0.5px solid #000; /* Línea más fina posible y negra */
-            margin-bottom: ${toPx(0.3)}px; /* Espacio entre la línea y las notas */
-        }
-
-        .pdf-footnote-item {
-            margin-bottom: ${toPx(4, true)}px !important;
-            text-align: justify !important;
-            text-indent: 0 !important;
-            display: flex;
-            gap: 4px;
-        }
-
-        .pdf-footnote-ref {
-            font-size: 0.75em;
-            vertical-align: super;
-            line-height: 0;
-            color: #64748b;
-        }
     `;
 
     // Buscar capítulo de créditos en el estado global para aplicar estilos específicos escalados
@@ -448,19 +601,18 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             if (creditsChapter.credits_font_family) creditsSpecificCss += `font-family: "${creditsChapter.credits_font_family}", serif !important;\n`;
             if (creditsChapter.credits_font_size) creditsSpecificCss += `font-size: ${toPx(creditsChapter.credits_font_size, true)}px !important;\n`;
             if (creditsChapter.credits_font_weight) creditsSpecificCss += `font-weight: ${creditsChapter.credits_font_weight} !important;\n`;
-            
+
             // Si la alineación es vacía (opción "Global / Centro"), aplicamos center por defecto
             const align = creditsChapter.credits_align || 'center';
             creditsSpecificCss += `text-align: ${align} !important;\n`;
-            
+
             if (creditsChapter.credits_letter_spacing) creditsSpecificCss += `letter-spacing: ${toPx(creditsChapter.credits_letter_spacing, true)}px !important;\n`;
-            
+
             if (creditsSpecificCss) {
                 styles += `
-                .credits-page-content, 
-                .credits-page-content p, 
-                .credits-page-content div, 
-                .credits-page-content ul, 
+                .credits-page-content,
+                .credits-page-content p,
+                .credits-page-content ul,
                 .credits-page-content ol,
                 .credits-page-content h1,
                 .credits-page-content h2,

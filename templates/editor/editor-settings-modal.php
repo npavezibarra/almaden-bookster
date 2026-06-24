@@ -34,6 +34,9 @@
             <button type="button" onclick="switchSettingTab('tab-header-footer')" class="setting-tab-btn py-2 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-header-footer">
                 Cabecera y Pie
             </button>
+            <button type="button" onclick="switchSettingTab('tab-footnotes')" class="setting-tab-btn py-2 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-footnotes">
+                Footnotes
+            </button>
             <button type="button" onclick="switchSettingTab('tab-chapters')" class="setting-tab-btn py-2 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-chapters">
                 Capítulos
             </button>
@@ -287,7 +290,10 @@
                 </div>
             </div>
 
-            <!-- PESTAÑA 4: COMPORTAMIENTO DE CAPÍTULOS -->
+            <!-- PESTAÑA 4: FOOTNOTES -->
+            <?php include plugin_dir_path( __FILE__ ) . 'settings-tabs/tab-footnotes.php'; ?>
+
+            <!-- PESTAÑA 5: COMPORTAMIENTO DE CAPÍTULOS -->
             <?php include plugin_dir_path( __FILE__ ) . 'settings-tabs/tab-chapters.php'; ?>
 
         </div> <!-- Fin de scrollable area -->

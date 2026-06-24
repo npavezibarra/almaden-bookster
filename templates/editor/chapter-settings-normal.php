@@ -78,14 +78,9 @@
 
                 <!-- Alineación Vertical Página 1 -->
                 <div class="grid grid-cols-1 gap-4">
-                    <div>
+                    <div class="p-4 rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)]">
                         <label class="block font-semibold mb-1">Alineación Vertical de la Página 1</label>
-                        <p class="text-xs text-[var(--text-muted)] mb-2">Ideal para crear separadores de "Partes" que van al centro de la hoja.</p>
-                        <select id="chapter_page_one_vertical" name="chapter_page_one_vertical" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-[var(--text-main)] focus:outline-none focus:border-black dark:border-white">
-                            <option value="top">Arriba (Por defecto)</option>
-                            <option value="center">Centrado (Medio)</option>
-                            <option value="bottom">Abajo</option>
-                        </select>
+                        <p class="text-xs text-[var(--text-muted)]">Esta opción se define globalmente en Ajustes del Libro &gt; Capítulos y se aplica a todos los capítulos por igual.</p>
                     </div>
                 </div>
 
@@ -111,10 +106,9 @@
                             <div>
                                 <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Alineación</label>
                                 <select id="chapter_subtitle_align" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
-                                    <option value="center">Centro</option>
                                     <option value="left">Izquierda</option>
+                                    <option value="center">Centro</option>
                                     <option value="right">Derecha</option>
-                                    <option value="justify">Justificado</option>
                                 </select>
                             </div>
                         </div>

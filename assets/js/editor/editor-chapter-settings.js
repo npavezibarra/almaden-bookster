@@ -21,7 +21,10 @@ function openChapterSettingsModal() {
     const creditsContainer = document.getElementById('credits-chapter-settings');
     
     // Shared settings
-    document.getElementById('chapter_start_parity').value = activeChapter.start_parity || 'any';
+    if (isToc && (!activeChapter.start_parity || activeChapter.start_parity === 'any')) {
+        activeChapter.start_parity = 'even';
+    }
+    document.getElementById('chapter_start_parity').value = isToc ? (activeChapter.start_parity || 'even') : (activeChapter.start_parity || 'any');
     
     if (isToc) {
         normalContainer.classList.add('hidden');
@@ -73,7 +76,6 @@ function openChapterSettingsModal() {
         
         // TOC Title Formats
         document.getElementById('chapter_toc_title_align').value = activeChapter.toc_title_align || '';
-        document.getElementById('chapter_toc_page_one_vertical').value = activeChapter.toc_page_one_vertical || '';
         document.getElementById('chapter_toc_title_font_family').value = activeChapter.toc_title_font_family || '';
         document.getElementById('chapter_toc_title_font_size').value = activeChapter.toc_title_font_size || '';
         document.getElementById('chapter_toc_title_font_style').value = activeChapter.toc_title_font_style || '';
@@ -99,6 +101,7 @@ function openChapterSettingsModal() {
         document.getElementById('chapter_credits_font_size').value = activeChapter.credits_font_size || '';
         document.getElementById('chapter_credits_letter_spacing').value = activeChapter.credits_letter_spacing || '';
         document.getElementById('chapter_credits_font_weight').value = activeChapter.credits_font_weight || '';
+        document.getElementById('chapter_credits_hide_page_number').checked = activeChapter.credits_hide_page_number === '1';
         
         normalContainer.classList.add('hidden');
         tocContainer.classList.add('hidden');
@@ -130,7 +133,6 @@ function openChapterSettingsModal() {
         document.getElementById('chapter_custom_running_header').value = activeChapter.custom_running_header || '';
     document.getElementById('chapter_drop_cap_enabled').checked = activeChapter.drop_cap_enabled === '1';
     document.getElementById('chapter_disable_hyphenation').checked = activeChapter.disable_hyphenation === '1';
-    document.getElementById('chapter_page_one_vertical').value = activeChapter.page_one_vertical || 'top';
     document.getElementById('chapter_first_page_header_type').value = activeChapter.first_page_header_type || 'global';
     document.getElementById('chapter_first_page_header_custom').value = activeChapter.first_page_header_custom || '';
     document.getElementById('chapter_first_page_footer_type').value = activeChapter.first_page_footer_type || 'global';
@@ -142,7 +144,12 @@ function openChapterSettingsModal() {
     // Valores del Subtítulo
     document.getElementById('chapter_subtitle_text').value = activeChapter.subtitle_text || '';
     document.getElementById('chapter_subtitle_font_family').value = activeChapter.subtitle_font_family || '';
-    document.getElementById('chapter_subtitle_align').value = activeChapter.subtitle_align || 'center';
+    if (document.getElementById('chapter_subtitle_align')) {
+        const subtitleAlign = ['left', 'center', 'right'].includes(String(activeChapter.subtitle_align || '').toLowerCase())
+            ? String(activeChapter.subtitle_align).toLowerCase()
+            : 'center';
+        document.getElementById('chapter_subtitle_align').value = subtitleAlign;
+    }
     document.getElementById('chapter_subtitle_font_size').value = activeChapter.subtitle_font_size || '';
     document.getElementById('chapter_subtitle_letter_spacing').value = activeChapter.subtitle_letter_spacing || '';
     document.getElementById('chapter_subtitle_font_style').value = activeChapter.subtitle_font_style || 'normal';
@@ -197,7 +204,7 @@ function saveChapterSettings() {
     const isCredits = activeChapter.is_credits === '1';
 
     // Shared settings
-    activeChapter.start_parity = document.getElementById('chapter_start_parity').value;
+    activeChapter.start_parity = isToc ? 'even' : document.getElementById('chapter_start_parity').value;
 
     const cleanFloat = (id) => {
         const el = document.getElementById(id);
@@ -221,7 +228,6 @@ function saveChapterSettings() {
         
         // TOC Title formats
         activeChapter.toc_title_align = document.getElementById('chapter_toc_title_align').value;
-        activeChapter.toc_page_one_vertical = document.getElementById('chapter_toc_page_one_vertical').value;
         activeChapter.toc_title_font_family = document.getElementById('chapter_toc_title_font_family').value;
         activeChapter.toc_title_font_size = cleanFloat('chapter_toc_title_font_size');
         activeChapter.toc_title_font_style = document.getElementById('chapter_toc_title_font_style').value;
@@ -236,6 +242,7 @@ function saveChapterSettings() {
         activeChapter.credits_font_size = cleanFloat('chapter_credits_font_size');
         activeChapter.credits_letter_spacing = cleanFloat('chapter_credits_letter_spacing');
         activeChapter.credits_font_weight = document.getElementById('chapter_credits_font_weight').value;
+        activeChapter.credits_hide_page_number = document.getElementById('chapter_credits_hide_page_number').checked ? '1' : '0';
     } else {
         // Leer valores del formulario
         activeChapter.hide_title = document.getElementById('chapter_hide_title').checked ? '1' : '0';
@@ -244,7 +251,6 @@ function saveChapterSettings() {
         activeChapter.custom_running_header = document.getElementById('chapter_custom_running_header').value.trim();
         activeChapter.drop_cap_enabled = document.getElementById('chapter_drop_cap_enabled').checked ? '1' : '0';
         activeChapter.disable_hyphenation = document.getElementById('chapter_disable_hyphenation').checked ? '1' : '0';
-        activeChapter.page_one_vertical = document.getElementById('chapter_page_one_vertical').value;
         activeChapter.first_page_header_type = document.getElementById('chapter_first_page_header_type').value;
         activeChapter.first_page_header_custom = document.getElementById('chapter_first_page_header_custom').value;
         activeChapter.first_page_footer_type = document.getElementById('chapter_first_page_footer_type').value;
@@ -256,7 +262,9 @@ function saveChapterSettings() {
         // Valores del subtítulo
         activeChapter.subtitle_text = document.getElementById('chapter_subtitle_text').value;
         activeChapter.subtitle_font_family = document.getElementById('chapter_subtitle_font_family').value;
-        activeChapter.subtitle_align = document.getElementById('chapter_subtitle_align').value;
+        activeChapter.subtitle_align = ['left', 'center', 'right'].includes(String(document.getElementById('chapter_subtitle_align').value || '').toLowerCase())
+            ? String(document.getElementById('chapter_subtitle_align').value).toLowerCase()
+            : 'center';
         activeChapter.subtitle_font_size = document.getElementById('chapter_subtitle_font_size').value;
         activeChapter.subtitle_letter_spacing = document.getElementById('chapter_subtitle_letter_spacing').value;
         activeChapter.subtitle_font_style = document.getElementById('chapter_subtitle_font_style').value;

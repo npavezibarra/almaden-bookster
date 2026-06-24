@@ -54,6 +54,8 @@ function almaden_bookster_handle_download_book() {
 		'size'    => get_post_meta( $book_id, '_almaden_book_size', true ),
 		'is_published' => get_post_meta( $book_id, '_almaden_is_published', true ),
 		'cover_settings' => get_post_meta( $book_id, '_almaden_cover_settings', true ),
+		'credits_blank_before' => (int) get_post_meta( $book_id, '_almaden_credits_blank_before', true ),
+		'credits_blank_after' => (int) get_post_meta( $book_id, '_almaden_credits_blank_after', true ),
 	);
 
 	// 2. Fetch custom table settings
@@ -87,12 +89,16 @@ function almaden_bookster_handle_download_book() {
 		'_parity_image', '_hide_title', '_hide_all_headers_footers', '_exclude_from_numbering', '_custom_running_header',
 		'_subtitle_text', '_subtitle_font_family', '_subtitle_align', '_subtitle_font_size', '_subtitle_letter_spacing',
 		'_subtitle_font_style', '_subtitle_text_transform', '_subtitle_font_weight', '_subtitle_margin_top', '_subtitle_margin_bottom',
-		'_drop_cap_enabled', '_disable_hyphenation', '_page_one_vertical', '_start_parity', '_first_page_header_type',
+		'_drop_cap_enabled', '_disable_hyphenation',
+		// Legacy compatibility keys. They may exist in older exports but are no longer part of the active editor flow.
+		'_page_one_vertical',
+		'_start_parity', '_first_page_header_type',
 		'_first_page_header_custom', '_first_page_footer_type', '_first_page_footer_custom', '_parity_image_mode',
 		'_parity_image_width', '_parity_image_height', '_is_toc', '_is_credits', '_credits_font_family', '_credits_align',
-		'_credits_font_size', '_credits_letter_spacing', '_credits_font_weight', '_toc_font_family', '_toc_font_size',
+		'_credits_font_size', '_credits_letter_spacing', '_credits_font_weight', '_credits_hide_page_number', '_toc_font_family', '_toc_font_size',
 		'_toc_enumerate', '_toc_font_style', '_toc_font_weight', '_toc_text_transform', '_toc_letter_spacing', '_toc_line_height',
-		'_toc_item_spacing', '_toc_leader_style', '_toc_leader_position', '_toc_title_align', '_toc_page_one_vertical',
+		'_toc_item_spacing', '_toc_leader_style', '_toc_leader_position', '_toc_title_align',
+		'_toc_page_one_vertical',
 		'_toc_title_font_family', '_toc_title_font_size', '_toc_title_font_style', '_toc_title_text_transform', '_toc_title_font_weight',
 		'_toc_title_padding_top', '_toc_title_padding_bottom', '_toc_title_line_height'
 	);
@@ -303,6 +309,8 @@ function almaden_bookster_handle_upload_book() {
 		update_post_meta( $book_post_id, '_almaden_book_size', $book_info['size'] );
 	}
 	update_post_meta( $book_post_id, '_almaden_is_published', $book_info['is_published'] );
+	update_post_meta( $book_post_id, '_almaden_credits_blank_before', intval( $book_info['credits_blank_before'] ?? 0 ) );
+	update_post_meta( $book_post_id, '_almaden_credits_blank_after', intval( $book_info['credits_blank_after'] ?? 0 ) );
 	
 	// Map cover settings image URLs
 	$cover_settings = $book_info['cover_settings'];

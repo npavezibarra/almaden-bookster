@@ -91,6 +91,17 @@
                             </select>
                         </div>
                     </div>
+
+                    <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+                        <div>
+                            <label class="font-semibold block mb-1">Ocultar número de página</label>
+                            <span class="text-xs text-[var(--text-muted)]">Oculta el número de página en este capítulo de créditos.</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="chapter_credits_hide_page_number" name="credits_hide_page_number" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
+                        </label>
+                    </div>
                 </div>
             </form>
         </div>

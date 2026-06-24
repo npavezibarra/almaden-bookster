@@ -40,6 +40,7 @@ if ( $chapters_query->have_posts() ) {
 			'hide_title' => get_post_meta( get_the_ID(), '_hide_title', true ),
 			'is_toc'     => get_post_meta( get_the_ID(), '_is_toc', true ),
 			'is_credits' => get_post_meta( get_the_ID(), '_is_credits', true ),
+			'credits_hide_page_number' => get_post_meta( get_the_ID(), '_credits_hide_page_number', true ),
 			'exclude_from_numbering' => get_post_meta( get_the_ID(), '_exclude_from_numbering', true ),
 			'subtitle_text'            => get_post_meta( get_the_ID(), '_subtitle_text', true ),
 			'subtitle_font_family'     => get_post_meta( get_the_ID(), '_subtitle_font_family', true ),
@@ -61,9 +62,6 @@ if ( $chapters_query->have_posts() ) {
 $source_book_id = get_post_meta( $book_id, '_almaden_source_book_id', true );
 $settings_book_id = $book_id;
 $book_settings = function_exists('almaden_get_book_pdf_settings') ? almaden_get_book_pdf_settings( $settings_book_id ) : array();
-error_log("ALMADEN_READER_SETTINGS: " . print_r($book_settings, true));
-error_log("ALMADEN_READER_BOOK_ID: " . $book_id);
-error_log("ALMADEN_READER_SETTINGS_BOOK_ID: " . $settings_book_id);
 
 
 $cover_settings = get_post_meta( $settings_book_id, '_almaden_cover_settings', true );

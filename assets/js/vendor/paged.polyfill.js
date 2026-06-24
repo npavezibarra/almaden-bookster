@@ -11488,7 +11488,6 @@
 	            var enterRet = enter.call(context, node, item, list);
 
 	            if (enterRet === breakWalk) {
-	                debugger;
 	                return true;
 	            }
 
@@ -31245,9 +31244,10 @@
 
 			footnoteCall.dataset.footnoteCall = node.dataset.ref;
 			footnoteCall.dataset.ref = node.dataset.ref;
+			footnoteCall.dataset.footnoteNumber = node.dataset.footnoteNumber || "";
 
 			// Increment for counters
-			footnoteCall.dataset.dataCounterFootnoteIncrement = 1;
+			footnoteCall.dataset.counterFootnoteIncrement = 1;
 
 			// Add link
 			footnoteCall.href = `#note-${node.dataset.ref}`;

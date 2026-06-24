@@ -109,8 +109,10 @@ window.savePDFSettings = function(silent = false) {
     data.append('font_weight_content', getCleanVal('setting-font-weight-content'));
     data.append('line_height_content', getCleanVal('setting-line-height-content'));
     data.append('content_text_align', getVal('setting-content-text-align'));
+    data.append('content_text_align_last', getVal('setting-content-text-align-last'));
     data.append('content_hyphenation', getVal('setting-content-hyphenation'));
     data.append('content_language', getVal('setting-content-language'));
+    data.append('content_hyphenation_exceptions', getVal('setting-content-hyphenation-exceptions'));
     data.append('content_paragraph_indent', getCleanVal('setting-content-paragraph-indent'));
     data.append('content_paragraph_spacing', getCleanVal('setting-content-paragraph-spacing'));
     data.append('font_family_h1', getVal('setting-font-family-h1'));
@@ -147,6 +149,18 @@ window.savePDFSettings = function(silent = false) {
     data.append('first_page_footer_type', getVal('setting-first-page-footer-type'));
     data.append('first_page_footer_custom', getVal('setting-first-page-footer-custom'));
 
+    // Footnotes
+    data.append('footnote_font_family', getVal('setting-footnote-font-family'));
+    data.append('footnote_font_size', getCleanVal('setting-footnote-font-size'));
+    data.append('footnote_font_weight', getVal('setting-footnote-font-weight'));
+    data.append('footnote_align', getVal('setting-footnote-align'));
+    data.append('footnote_call_scale', getCleanVal('setting-footnote-call-scale'));
+    data.append('footnote_call_raise', getCleanVal('setting-footnote-call-raise'));
+    data.append('footnote_padding_top', getCleanVal('setting-footnote-padding-top'));
+    data.append('footnote_padding_bottom', getCleanVal('setting-footnote-padding-bottom'));
+    data.append('footnote_padding_left', getCleanVal('setting-footnote-padding-left'));
+    data.append('footnote_padding_right', getCleanVal('setting-footnote-padding-right'));
+
     data.append('header_margin_top', getCleanVal('setting-header-margin-top'));
     data.append('header_margin_bottom', getCleanVal('setting-header-margin-bottom'));
     data.append('header_align', getVal('setting-header-align'));
@@ -173,7 +187,9 @@ window.savePDFSettings = function(silent = false) {
     data.append('chapter_subtitle_show', getChecked('setting-chapter-subtitle-show'));
     data.append('chapter_subtitle_font_family', getVal('setting-chapter-subtitle-font-family') || '');
     data.append('chapter_subtitle_font_size', getCleanVal('setting-chapter-subtitle-font-size'));
-    data.append('chapter_subtitle_align', getVal('setting-chapter-subtitle-align') || '');
+    data.append('chapter_subtitle_align', ['left', 'center', 'right'].includes(String(getVal('setting-chapter-subtitle-align') || '').toLowerCase())
+        ? String(getVal('setting-chapter-subtitle-align')).toLowerCase()
+        : 'center');
     data.append('chapter_subtitle_font_style', getVal('setting-chapter-subtitle-font-style') || '');
     data.append('chapter_subtitle_text_transform', getVal('setting-chapter-subtitle-text-transform') || '');
     data.append('chapter_subtitle_font_weight', getVal('setting-chapter-subtitle-font-weight') || '');
@@ -296,8 +312,10 @@ window.savePDFSettings = function(silent = false) {
                 font_weight_content: getVal('setting-font-weight-content'),
                 line_height_content: parseVal('setting-line-height-content', 1.65),
                 content_text_align: getVal('setting-content-text-align'),
+                content_text_align_last: getVal('setting-content-text-align-last'),
                 content_hyphenation: parseInt(getVal('setting-content-hyphenation')),
                 content_language: getVal('setting-content-language'),
+                content_hyphenation_exceptions: getVal('setting-content-hyphenation-exceptions'),
                 content_paragraph_indent: parseVal('setting-content-paragraph-indent', 0.0),
                 content_paragraph_spacing: parseVal('setting-content-paragraph-spacing', 14.0),
                 font_family_h1: getVal('setting-font-family-h1'),
@@ -332,6 +350,17 @@ window.savePDFSettings = function(silent = false) {
                 first_page_header_custom: getVal('setting-first-page-header-custom'),
                 first_page_footer_type: getVal('setting-first-page-footer-type'),
                 first_page_footer_custom: getVal('setting-first-page-footer-custom'),
+
+                footnote_font_family: getVal('setting-footnote-font-family'),
+                footnote_font_size: parseVal('setting-footnote-font-size', 8.5),
+                footnote_font_weight: getVal('setting-footnote-font-weight'),
+                footnote_align: getVal('setting-footnote-align'),
+                footnote_call_scale: parseVal('setting-footnote-call-scale', 0.65),
+                footnote_call_raise: parseVal('setting-footnote-call-raise', 0.18),
+                footnote_padding_top: parseVal('setting-footnote-padding-top', 0.15),
+                footnote_padding_bottom: parseVal('setting-footnote-padding-bottom', 0.15),
+                footnote_padding_left: parseVal('setting-footnote-padding-left', 0),
+                footnote_padding_right: parseVal('setting-footnote-padding-right', 0),
 
                 header_margin_top: parseVal('setting-header-margin-top', 1.0),
                 header_margin_bottom: parseVal('setting-header-margin-bottom', 0.5),

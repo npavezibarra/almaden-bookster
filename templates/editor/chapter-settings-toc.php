@@ -148,13 +148,9 @@
                                     <option value="right">Derecha</option>
                                 </select>
                             </div>
-                            <div>
+                            <div class="p-4 rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)]">
                                 <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Diseño Vertical</label>
-                                <select id="chapter_toc_page_one_vertical" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
-                                    <option value="">Usar Global</option>
-                                    <option value="top">Arriba (Margen estándar)</option>
-                                    <option value="half">Media Página (Centrado vertical)</option>
-                                </select>
+                                <p class="text-xs text-[var(--text-muted)]">Se controla globalmente en Ajustes del Libro &gt; Capítulos para mantener todos los capítulos coherentes.</p>
                             </div>
                         </div>
 
