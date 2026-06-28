@@ -51,6 +51,12 @@ function getFooterContent(type, isEven, bookTitle, settings) {
 // ── Generador principal de estilos base ──
 function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit) {
     const bookTitle = bookState.title || 'Libro';
+    const bleedPx = Math.max(parseFloat(globalBleedPx) || 0, 0);
+    const bleedValue = Math.max(parseFloat(settings.bleeding) || 0, 0);
+    const bleedLength = `${bleedValue.toFixed(4)}${unit}`;
+    const zeroLength = `0${unit}`;
+    const screenPageWidthPx = widthPx + bleedPx;
+    const screenPageHeightPx = heightPx + (bleedPx * 2);
     
     // Compute the width and height using unit
     let width = parseFloat(settings.page_width) || 14;
@@ -173,16 +179,54 @@ function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit
         }
         
         @page :left {
+            bleed: ${bleedLength} ${zeroLength} ${bleedLength} ${bleedLength};
             margin-left: ${settings.margin_left_even ?? settings.margin_left ?? 2.0}${unit};
             margin-right: ${settings.margin_right_even ?? settings.margin_right ?? 2.0}${unit};
         }
         
         @page :right {
+            bleed: ${bleedLength} ${bleedLength} ${bleedLength} ${zeroLength};
             margin-left: ${settings.margin_left_odd ?? settings.margin_left ?? 2.0}${unit};
             margin-right: ${settings.margin_right_odd ?? settings.margin_right ?? 2.0}${unit};
         }
         
         ${getHeaderFooterCSS(settings, bookTitle)}
+
+        @page chapter-blank-page {
+            @top-left { content: "" !important; }
+            @top-center { content: "" !important; }
+            @top-right { content: "" !important; }
+            @bottom-left { content: "" !important; }
+            @bottom-center { content: "" !important; }
+            @bottom-right { content: "" !important; }
+        }
+
+        @page chapter-blank-page:left {
+            @top-left { content: "" !important; }
+            @top-center { content: "" !important; }
+            @top-right { content: "" !important; }
+            @bottom-left { content: "" !important; }
+            @bottom-center { content: "" !important; }
+            @bottom-right { content: "" !important; }
+        }
+
+        @page chapter-blank-page:right {
+            @top-left { content: "" !important; }
+            @top-center { content: "" !important; }
+            @top-right { content: "" !important; }
+            @bottom-left { content: "" !important; }
+            @bottom-center { content: "" !important; }
+            @bottom-right { content: "" !important; }
+        }
+
+        @page chapter-blank-page:blank {
+            @top-left { content: "" !important; }
+            @top-center { content: "" !important; }
+            @top-right { content: "" !important; }
+            @bottom-left { content: "" !important; }
+            @bottom-center { content: "" !important; }
+            @bottom-right { content: "" !important; }
+        }
         
         .chapter-preview-blank-page {
             break-before: left !important;
@@ -232,9 +276,17 @@ function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit
                 box-shadow: none !important;
                 overflow: hidden !important;
             }
+
+            .pagedjs_page.pagedjs_blank_page .pagedjs_margin {
+                visibility: hidden !important;
+            }
         }
         
         @media print {
+            .pagedjs_page.pagedjs_blank_page .pagedjs_margin {
+                visibility: hidden !important;
+            }
+
             .single-chapter-mode .pagedjs_page:has(.book-start-dummy-page) {
                 visibility: hidden !important;
                 position: absolute !important;
@@ -266,6 +318,9 @@ function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit
                 --pagedjs-pagebox-height-right: ${height}${unit} !important;
                 --pagedjs-pagebox-width-left: ${width}${unit} !important;
                 --pagedjs-pagebox-height-left: ${height}${unit} !important;
+                --bookster-screen-bleed: ${bleedPx}px !important;
+                --bookster-screen-page-width: ${screenPageWidthPx}px !important;
+                --bookster-screen-page-height: ${screenPageHeightPx}px !important;
             }
 
             /* Forzar el grid interno de Paged.js para que respete los márgenes guardados */
@@ -301,20 +356,61 @@ function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit
             }
             
             .pagedjs_page {
-                width: var(--pagedjs-width) !important;
-                height: var(--pagedjs-height) !important;
+                width: var(--bookster-screen-page-width) !important;
+                height: var(--bookster-screen-page-height) !important;
                 background-color: white !important;
                 box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
                 border: 1px solid #e2e8f0 !important;
                 margin-bottom: 40px !important;
                 box-sizing: border-box !important;
+                position: relative !important;
+                padding-top: var(--bookster-screen-bleed) !important;
+                padding-bottom: var(--bookster-screen-bleed) !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                overflow: visible !important;
                 ${settings.export_grayscale == 1 ? 'filter: grayscale(100%) !important; -webkit-filter: grayscale(100%) !important;' : ''}
             }
+
+            .pagedjs_page.pagedjs_left_page {
+                padding-left: var(--bookster-screen-bleed) !important;
+                padding-right: 0 !important;
+            }
+
+            .pagedjs_page.pagedjs_right_page {
+                padding-left: 0 !important;
+                padding-right: var(--bookster-screen-bleed) !important;
+            }
+
+            ${bleedPx > 0 ? `
+            .pagedjs_page::after {
+                content: "" !important;
+                position: absolute !important;
+                border: 2px dashed #94a3b8 !important;
+                pointer-events: none !important;
+                box-sizing: border-box !important;
+                z-index: 2 !important;
+            }
+
+            .pagedjs_page.pagedjs_left_page::after {
+                top: var(--bookster-screen-bleed) !important;
+                right: 0 !important;
+                bottom: var(--bookster-screen-bleed) !important;
+                left: var(--bookster-screen-bleed) !important;
+            }
+
+            .pagedjs_page.pagedjs_right_page::after {
+                top: var(--bookster-screen-bleed) !important;
+                right: var(--bookster-screen-bleed) !important;
+                bottom: var(--bookster-screen-bleed) !important;
+                left: 0 !important;
+            }
+            ` : ''}
             
             /* Vista Spread (Doble Página) en Pantalla */
             #pdf-scroller.spread-view .pagedjs_pages {
                 display: grid !important;
-                grid-template-columns: var(--pagedjs-width) var(--pagedjs-width) !important;
+                grid-template-columns: var(--bookster-screen-page-width) var(--bookster-screen-page-width) !important;
                 justify-content: center !important;
                 column-gap: 0px !important;
                 row-gap: 40px !important;
@@ -367,24 +463,6 @@ function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit
         }
 
         /* ── Reglas de Bloqueo de Contenido ── */
-        .pdf-content span[lang],
-        .pdf-content span[lang] em,
-        .pdf-content span[lang] i,
-        .pdf-content span[lang] b,
-        .pdf-content span[lang] strong,
-        .pdf-content span[lang] * {
-            color: #ff0000 !important;
-            background-color: rgba(255, 0, 0, 0.08) !important;
-        }
-        
-        @media print {
-            .pdf-content span[lang],
-            .pdf-content span[lang] em,
-            .pdf-content span[lang] * {
-                color: inherit !important;
-                background-color: transparent !important;
-            }
-        }
     `;
 }
 

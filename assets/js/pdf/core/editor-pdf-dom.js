@@ -11,9 +11,8 @@ window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter
     pageDiv.className = 'pdf-page' + (isBlankPage ? ' blank-page' : '') + (isOdd ? ' page-odd' : ' page-even');
 
     const settings = bookState.settings || {};
-    
-    // Extraer ajustes locales con fallback a globales
     const parityImageUrl = chapter ? chapter.parity_image : null;
+    const openingPageMode = window.getEffectiveOpeningPageMode ? window.getEffectiveOpeningPageMode(chapter) : 'none';
     const chapterTitle = chapter ? chapter.title : '';
 
     const firstPageHeaderType = (chapter && chapter.first_page_header_type && chapter.first_page_header_type !== 'global') ? chapter.first_page_header_type : (settings.first_page_header_type || 'blank');
@@ -29,12 +28,12 @@ window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter
         : 'center';
 
     if (isBlankPage) {
-        if (parityImageUrl) {
+        if (openingPageMode === 'image' && parityImageUrl) {
             const mode = (chapter && chapter.parity_image_mode) ? chapter.parity_image_mode : 'content';
             
             if (mode === 'bleed') {
                 pageDiv.innerHTML = `
-                    <div class="parity-bleed-container" style="position: absolute; z-index: 0;">
+                    <div class="parity-bleed-container" style="position: absolute; inset: 0; z-index: 0;">
                         <img src="${parityImageUrl}" alt="Página de paridad" style="width: 100%; height: 100%; object-fit: cover;" />
                     </div>
                 `;
@@ -42,31 +41,20 @@ window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter
                 const imgWidth = chapter.parity_image_width ? `${chapter.parity_image_width}%` : '100%';
                 const imgHeight = chapter.parity_image_height ? `${chapter.parity_image_height}%` : 'auto';
                 pageDiv.innerHTML = `
-                    <div class="pdf-header opacity-0" style="visibility:hidden;">&nbsp;</div>
                     <div class="pdf-content" style="padding: 0; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; position: relative; z-index: 0;">
                         <img src="${parityImageUrl}" alt="Página de paridad" style="width: ${imgWidth}; height: ${imgHeight}; object-fit: contain;" />
                     </div>
-                    <div class="pdf-footer opacity-0" style="visibility:hidden;">&nbsp;</div>
                 `;
             } else { // mode === 'content'
                 pageDiv.innerHTML = `
-                    <div class="pdf-header opacity-0" style="visibility:hidden;">&nbsp;</div>
                     <div class="pdf-content" style="padding: 0; display: flex; width: 100%; height: 100%; position: relative; z-index: 0;">
                         <img src="${parityImageUrl}" alt="Página de paridad" style="width: 100%; height: 100%; object-fit: contain;" />
                     </div>
-                    <div class="pdf-footer opacity-0" style="visibility:hidden;">&nbsp;</div>
                 `;
             }
         } else {
-            pageDiv.innerHTML = `
-                <div class="pdf-header opacity-0" style="visibility:hidden;">&nbsp;</div>
-                <div class="pdf-content flex items-center justify-center h-full" lang="${settings.content_language || 'es'}">
-                    <span class="text-[var(--text-muted)] tracking-[1em] text-lg print:visible" style="opacity: 0.3;">. . .</span>
-                </div>
-                <div class="pdf-footer opacity-0" style="visibility:hidden;">&nbsp;</div>
-            `;
+            pageDiv.innerHTML = '';
         }
-        pageDiv.innerHTML += '<div class="global-trim-line"></div>';
         return pageDiv;
     }
 
@@ -75,7 +63,7 @@ window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter
     // Header Content
     let headerHtml = '&nbsp;';
     let headerType = isFirstPageOfChapter ? firstPageHeaderType : (isEven ? (settings.header_even_type || 'book_title') : (settings.header_odd_type || 'chapter_title'));
-    if (chapter && chapter.is_toc == '1') {
+    if (chapter && chapter.is_toc == '1' && chapter.toc_hide_header === '1') {
         headerType = 'blank';
     }
     if (chapter && chapter.hide_all_headers_footers === '1') {
@@ -157,42 +145,4 @@ window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter
     `;
 
     return pageDiv;
-};
-
-window.handleChapterParity = function(chapter, index, settings, currentPageNumber, scroller, virtualizePage) {
-    const chapterStartParity = chapter && chapter.is_toc === '1'
-        ? 'even'
-        : ((chapter.start_parity && chapter.start_parity !== 'any') ? chapter.start_parity : settings.chapter_start_parity);
-    
-    if (index > 0 && chapterStartParity && chapterStartParity !== 'any') {
-        const isOdd = (currentPageNumber % 2 === 1);
-        if (chapterStartParity === 'odd') {
-            if (!isOdd) {
-                const blankPage = window.createNewPageElement(currentPageNumber, chapter, false, true);
-                blankPage.setAttribute('data-chapter-id', chapter.id);
-                scroller.appendChild(blankPage);
-                virtualizePage(blankPage, currentPageNumber);
-                currentPageNumber++;
-            } else {
-                const pureBlankPage = window.createNewPageElement(currentPageNumber, { ...chapter, parity_image: null }, false, true);
-                pureBlankPage.setAttribute('data-chapter-id', chapter.id);
-                scroller.appendChild(pureBlankPage);
-                virtualizePage(pureBlankPage, currentPageNumber);
-                currentPageNumber++;
-
-                const parityPage = window.createNewPageElement(currentPageNumber, chapter, false, true);
-                parityPage.setAttribute('data-chapter-id', chapter.id);
-                scroller.appendChild(parityPage);
-                virtualizePage(parityPage, currentPageNumber);
-                currentPageNumber++;
-            }
-        } else if (chapterStartParity === 'even' && isOdd) {
-            const blankPage = window.createNewPageElement(currentPageNumber, chapter, false, true);
-            blankPage.setAttribute('data-chapter-id', chapter.id);
-            scroller.appendChild(blankPage);
-            virtualizePage(blankPage, currentPageNumber);
-            currentPageNumber++;
-        }
-    }
-    return currentPageNumber;
 };

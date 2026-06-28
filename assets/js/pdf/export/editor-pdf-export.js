@@ -70,7 +70,27 @@ async function triggerPrint() {
     }
 
     styleEl.innerHTML = `
+        @page {
+            size: ${width}${unit} ${height}${unit};
+            margin: 0;
+        }
+
         @media print {
+            :root {
+                --pagedjs-width: ${width}${unit};
+                --pagedjs-height: ${height}${unit};
+                --pagedjs-width-right: ${width}${unit};
+                --pagedjs-height-right: ${height}${unit};
+                --pagedjs-width-left: ${width}${unit};
+                --pagedjs-height-left: ${height}${unit};
+                --pagedjs-pagebox-width: ${width}${unit};
+                --pagedjs-pagebox-height: ${height}${unit};
+                --pagedjs-pagebox-width-right: ${width}${unit};
+                --pagedjs-pagebox-height-right: ${height}${unit};
+                --pagedjs-pagebox-width-left: ${width}${unit};
+                --pagedjs-pagebox-height-left: ${height}${unit};
+            }
+
             header, aside, #editor-pane, .pdf-toolbar, #split-resizer {
                 display: none !important;
             }
@@ -93,6 +113,17 @@ async function triggerPrint() {
                 position: static !important;
                 transform: none !important;
             }
+            ${bookState.settings && bookState.settings.export_grayscale == 1 ? `
+            #pdf-preview-pane,
+            #pdf-container,
+            #pdf-scroller,
+            .pagedjs_pages,
+            .pagedjs_page,
+            .pagedjs_page * {
+                filter: grayscale(100%) !important;
+                -webkit-filter: grayscale(100%) !important;
+            }
+            ` : ''}
             .pagedjs_page {
                 margin: 0 !important; /* Ensure it sticks to top-left of the @page */
                 box-sizing: border-box !important;

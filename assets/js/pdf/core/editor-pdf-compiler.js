@@ -169,6 +169,9 @@ window.getBookPageMapSignature = function() {
         is_toc: ch.is_toc,
         is_credits: ch.is_credits,
         parity_image: ch.parity_image,
+        opening_page_mode: ch.opening_page_mode,
+        opening_blank_intentional: ch.opening_blank_intentional,
+        opening_block_enabled: ch.opening_block_enabled,
         start_parity: ch.start_parity,
         hide_all_headers_footers: ch.hide_all_headers_footers,
         toc_hide_page_numbers: ch.toc_hide_page_numbers,
@@ -271,6 +274,35 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
                 <div style="height: 1px;"></div>
             </section>
         `;
+
+        const getEffectiveOpeningPageMode = window.getEffectiveOpeningPageMode || function(chapter) {
+            const configuredMode = chapter && chapter.opening_page_mode ? chapter.opening_page_mode : 'auto';
+            if (configuredMode === 'auto') {
+                return chapter && chapter.parity_image ? 'image' : 'none';
+            }
+            if (configuredMode === 'image' && !(chapter && chapter.parity_image)) {
+                return 'blank';
+            }
+            return configuredMode;
+        };
+
+        const chapterHasOpeningPage = window.chapterHasOpeningPage || function(chapter) {
+            const mode = getEffectiveOpeningPageMode(chapter);
+            return mode === 'blank' || mode === 'image';
+        };
+
+        const buildOpeningPageSection = (chapter) => `
+            <section class="chapter-opening-page-section-${chapter.id} pdf-content" data-opening-mode="${getEffectiveOpeningPageMode(chapter)}">
+                <div class="chapter-parity-blank-page"></div>
+            </section>
+        `;
+
+        const buildMainChapterSection = (chapter, compiledHtml) => `
+            <section class="chapter-section-${chapter.id} pdf-content" id="chapter-section-${chapter.id}">
+                <div class="chapter-metadata-title" style="visibility: hidden; height: 0; line-height: 0; margin: 0; padding: 0; overflow: hidden; position: absolute;">${chapter.title || 'Sin título'}</div>
+                ${compiledHtml}
+            </section>
+        `;
         
         // Mostrar cargador mientras Paged.js maqueta
         scroller.innerHTML = `
@@ -298,7 +330,7 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
                 if (cachedPageNum !== undefined && cachedPageNum !== null) {
                     startPageNum = cachedPageNum;
                 } else {
-                    if (activeChapter.parity_image) {
+                    if (chapterHasOpeningPage(activeChapter)) {
                         startPageNum = 3;
                     } else if (activeIndex === 0) {
                         startPageNum = 1;
@@ -315,7 +347,7 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
                     prependBlankPage = true;
                 }
 
-                if (activeChapter.parity_image || prependBlankPage) {
+                if (chapterHasOpeningPage(activeChapter) || prependBlankPage) {
                     previewFirstPhysicalPageNumber = Math.max(1, startPageNum - 1);
                 }
                 
@@ -335,28 +367,19 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
                     `;
                 }
                 
-                if (activeChapter.parity_image) {
-                    fullBookHTML += `
-                        <section class="chapter-parity-section-${activeChapter.id} pdf-content">
-                            <div class="chapter-parity-blank-page"></div>
-                        </section>
-                        <section class="chapter-section-${activeChapter.id} pdf-content" id="chapter-section-${activeChapter.id}">
-                            <div class="chapter-metadata-title" style="visibility: hidden; height: 0; line-height: 0; margin: 0; padding: 0; overflow: hidden; position: absolute;">${activeChapter.title || 'Sin título'}</div>
-                            ${window.buildChapterHTML(activeChapter, activeIndex, settings, bookState)}
-                        </section>
-                    `;
+                if (chapterHasOpeningPage(activeChapter)) {
+                    fullBookHTML += buildOpeningPageSection(activeChapter);
+                    fullBookHTML += buildMainChapterSection(
+                        activeChapter,
+                        window.buildChapterHTML(activeChapter, activeIndex, settings, bookState)
+                    );
                 } else if (activeChapter.is_credits === '1') {
                     for (let i = 0; i < creditsBlankBefore; i++) {
                         fullBookHTML += buildCreditsBlankPage(activeChapter.id);
                     }
 
                     const compiledHtml = window.buildChapterHTML(activeChapter, activeIndex, settings, bookState);
-                    fullBookHTML += `
-                        <section class="chapter-section-${activeChapter.id} pdf-content" id="chapter-section-${activeChapter.id}">
-                            <div class="chapter-metadata-title" style="visibility: hidden; height: 0; line-height: 0; margin: 0; padding: 0; overflow: hidden; position: absolute;">${activeChapter.title || 'Sin título'}</div>
-                            ${compiledHtml}
-                        </section>
-                    `;                    
+                    fullBookHTML += buildMainChapterSection(activeChapter, compiledHtml);
 
                     for (let i = 0; i < creditsBlankAfter; i++) {
                         fullBookHTML += buildCreditsBlankPage(activeChapter.id);
@@ -372,12 +395,7 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
                     }
                     
                     const compiledHtml = window.buildChapterHTML(activeChapter, activeIndex, settings, bookState);
-                    fullBookHTML += `
-                        <section class="chapter-section-${activeChapter.id} pdf-content" id="chapter-section-${activeChapter.id}">
-                            <div class="chapter-metadata-title" style="visibility: hidden; height: 0; line-height: 0; margin: 0; padding: 0; overflow: hidden; position: absolute;">${activeChapter.title || 'Sin título'}</div>
-                            ${compiledHtml}
-                        </section>
-                    `;
+                    fullBookHTML += buildMainChapterSection(activeChapter, compiledHtml);
                 }
             } else {
                 fullBookHTML = `<div class="book-container" lang="${settings.content_language || 'es'}">`;
@@ -387,7 +405,7 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
             const firstCh = bookState.chapters[0];
             if (firstCh) {
                 const firstChStartParity = (firstCh.start_parity && firstCh.start_parity !== 'any') ? firstCh.start_parity : settings.chapter_start_parity;
-                if (firstCh.parity_image || firstChStartParity === 'even') {
+                if (chapterHasOpeningPage(firstCh) || firstChStartParity === 'even') {
                     needsDummyPage = true;
                 }
             }
@@ -404,38 +422,21 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
                 const chapter = bookState.chapters[index];
                 const compiledHtml = window.buildChapterHTML(chapter, index, settings, bookState);
                 
-                if (chapter.parity_image) {
-                    fullBookHTML += `
-                        <section class="chapter-parity-section-${chapter.id} pdf-content">
-                            <div class="chapter-parity-blank-page"></div>
-                        </section>
-                        <section class="chapter-section-${chapter.id} pdf-content" id="chapter-section-${chapter.id}">
-                            <div class="chapter-metadata-title" style="visibility: hidden; height: 0; line-height: 0; margin: 0; padding: 0; overflow: hidden; position: absolute;">${chapter.title || 'Sin título'}</div>
-                            ${compiledHtml}
-                        </section>
-                    `;
+                if (chapterHasOpeningPage(chapter)) {
+                    fullBookHTML += buildOpeningPageSection(chapter);
+                    fullBookHTML += buildMainChapterSection(chapter, compiledHtml);
                 } else if (chapter.is_credits === '1') {
                     for (let i = 0; i < creditsBlankBefore; i++) {
                         fullBookHTML += buildCreditsBlankPage(chapter.id);
                     }
 
-                    fullBookHTML += `
-                        <section class="chapter-section-${chapter.id} pdf-content" id="chapter-section-${chapter.id}">
-                            <div class="chapter-metadata-title" style="visibility: hidden; height: 0; line-height: 0; margin: 0; padding: 0; overflow: hidden; position: absolute;">${chapter.title || 'Sin título'}</div>
-                            ${compiledHtml}
-                        </section>
-                    `;
+                    fullBookHTML += buildMainChapterSection(chapter, compiledHtml);
 
                     for (let i = 0; i < creditsBlankAfter; i++) {
                         fullBookHTML += buildCreditsBlankPage(chapter.id);
                     }
                 } else {
-                    fullBookHTML += `
-                        <section class="chapter-section-${chapter.id} pdf-content" id="chapter-section-${chapter.id}">
-                            <div class="chapter-metadata-title" style="visibility: hidden; height: 0; line-height: 0; margin: 0; padding: 0; overflow: hidden; position: absolute;">${chapter.title || 'Sin título'}</div>
-                            ${compiledHtml}
-                        </section>
-                    `;
+                    fullBookHTML += buildMainChapterSection(chapter, compiledHtml);
                 }
             }
         }

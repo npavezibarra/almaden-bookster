@@ -41,12 +41,17 @@ document.addEventListener('DOMContentLoaded', () => {
             div.style.zIndex = layer.zIndex || 30;
             
             if (layer.type === 'image') {
-                div.style.backgroundImage = `url(${layer.url})`;
-                div.style.backgroundSize = 'contain';
-                div.style.backgroundRepeat = 'no-repeat';
-                div.style.backgroundPosition = 'center';
+                div.style.overflow = 'hidden';
                 if (!layer.width) div.style.width = '200px';
                 if (!layer.height) div.style.height = '200px';
+
+                const img = document.createElement('img');
+                img.src = layer.url;
+                img.alt = '';
+                img.setAttribute('aria-hidden', 'true');
+                img.className = 'cover-media-image cover-media-image--contain';
+                img.style.objectFit = 'contain';
+                div.appendChild(img);
             } else if (layer.type === 'shape') {
                 div.style.opacity = (layer.opacity !== undefined ? layer.opacity : 100) / 100;
                 if (layer.shapeType === 'circle') div.style.borderRadius = '50%';

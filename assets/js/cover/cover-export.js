@@ -53,6 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     background: white !important;
                     margin: 0 !important;
                     padding: 0 !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
                 }
                 #workspace-container {
                     display: block !important;
@@ -106,6 +108,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 .text-layer.bg-indigo-50 {
                     background-color: transparent !important;
+                }
+
+                #cover-spread,
+                .cover-part,
+                .text-layer,
+                .cover-media-image {
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
                 }
 
                 @page {

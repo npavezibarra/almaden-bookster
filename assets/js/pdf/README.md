@@ -10,9 +10,10 @@ En cumplimiento estricto de las directrices del proyecto (**límite de 500 líne
 
 ```mermaid
 graph TD
-    Compiler[editor-pdf-compiler.js] --> Dimensions[editor-pdf-compiler-dimensions.js]
-    Compiler --> Parity[editor-pdf-compiler-parity.js]
-    Compiler --> DOMFactory[editor-pdf-dom.js]
+    Flow[editor-pdf-chapter-flow.js] --> Parity[editor-pdf-compiler-parity.js]
+    Flow --> DOMFactory[editor-pdf-dom.js]
+    Flow --> Compiler[editor-pdf-compiler.js]
+    Compiler --> Dimensions[editor-pdf-compiler-dimensions.js]
     Compiler --> HTMLProc[editor-pdf-html.js]
     
     Styles[editor-pdf-styles.js] --> StylesBase[editor-pdf-styles-base.js]
@@ -35,10 +36,15 @@ graph TD
     *   **Funciones Clave**:
         *   [calculatePageDimensions](file:///Users/nicolasibarra/Local%20Sites/ada/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/editor-pdf-compiler-dimensions.js#L7): Retorna anchos, altos, factores de conversión y la altura máxima disponible de contenido por página.
 
-*   **[editor-pdf-compiler-parity.js](file:///Users/nicolasibarra/Local%20Sites/ada/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/editor-pdf-compiler-parity.js)**
-    *   **Responsabilidad**: Controla el inicio correcto en página par/impar para flujos de impresión.
+*   **[editor-pdf-chapter-flow.js](file:///Users/nicolasibarra/Local%20Sites/ada/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/editor-pdf-chapter-flow.js)**
+    *   **Responsabilidad**: Centraliza el modo efectivo de apertura de capítulos y la paridad base para evitar discrepancias entre compilador, DOM y estilos.
     *   **Funciones Clave**:
-        *   [handleChapterParity](file:///Users/nicolasibarra/Local%20Sites/ada/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/editor-pdf-compiler-parity.js#L7): Inserta páginas en blanco lógicas si el capítulo siguiente requiere paridad (ej: iniciar en página derecha/impar).
+        *   [getEffectiveOpeningPageMode](file:///Users/nicolasibarra/Local%20Sites/ada/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/editor-pdf-chapter-flow.js#L7): Resuelve si un capítulo abre con imagen, blanco intencional o sin página previa.
+        *   [chapterHasOpeningPage](file:///Users/nicolasibarra/Local%20Sites/ada/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/editor-pdf-chapter-flow.js#L21): Indica si un capítulo debe reservar una página de apertura separada.
+        *   [getChapterStartParity](file:///Users/nicolasibarra/Local%20Sites/ada/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/editor-pdf-chapter-flow.js#L26): Resuelve la paridad inicial (odd/even) según el capítulo y la configuración global.
+
+*   **[editor-pdf-compiler-parity.js](file:///Users/nicolasibarra/Local%20Sites/ada/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/editor-pdf-compiler-parity.js)**
+    *   **Responsabilidad**: Inserta páginas en blanco lógicas cuando un capítulo necesita cumplir una paridad específica de arranque (ej.: comenzar a la derecha/odd).
 
 ---
 

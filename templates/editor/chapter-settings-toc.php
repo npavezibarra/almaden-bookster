@@ -16,6 +16,17 @@
                             <p class="text-xs">Estás editando el Índice. Configura opciones globales para esta sección.</p>
                         </div>
 
+                        <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)] mb-4">
+                            <div>
+                                <label class="font-semibold block mb-1 text-sm">Ocultar Cabecera</label>
+                                <span class="text-xs text-[var(--text-muted)]">Oculta la cabecera superior en todas las páginas que forman parte del Índice.</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="chapter_toc_hide_header" name="toc_hide_header" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
+                            </label>
+                        </div>
+
                         <!-- NUEVA OPCIÓN: Ocultar números de página en el pie del Índice -->
                         <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)] mb-4">
                             <div>

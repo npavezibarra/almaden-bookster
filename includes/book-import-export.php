@@ -28,6 +28,33 @@ function almaden_bookster_scan_images( $content ) {
 }
 
 /**
+ * Helper: Recursively scan cover layers for image URLs.
+ */
+function almaden_bookster_scan_cover_layer_images( $layers ) {
+	$images = array();
+
+	if ( empty( $layers ) || ! is_array( $layers ) ) {
+		return $images;
+	}
+
+	foreach ( $layers as $layer ) {
+		if ( ! is_array( $layer ) ) {
+			continue;
+		}
+
+		if ( ! empty( $layer['type'] ) && $layer['type'] === 'image' && ! empty( $layer['url'] ) ) {
+			$images[] = $layer['url'];
+		}
+
+		if ( ! empty( $layer['children'] ) && is_array( $layer['children'] ) ) {
+			$images = array_merge( $images, almaden_bookster_scan_cover_layer_images( $layer['children'] ) );
+		}
+	}
+
+	return $images;
+}
+
+/**
  * Handle Download (Export) of a book
  */
 function almaden_bookster_handle_download_book() {
@@ -112,6 +139,13 @@ function almaden_bookster_handle_download_book() {
 			if ( ! empty( $book_data['cover_settings'][$k] ) ) {
 				$image_urls[] = $book_data['cover_settings'][$k];
 			}
+		}
+
+		if ( ! empty( $book_data['cover_settings']['text_layers'] ) && is_array( $book_data['cover_settings']['text_layers'] ) ) {
+			$image_urls = array_merge(
+				$image_urls,
+				almaden_bookster_scan_cover_layer_images( $book_data['cover_settings']['text_layers'] )
+			);
 		}
 	}
 
@@ -321,6 +355,41 @@ function almaden_bookster_handle_upload_book() {
 				$cover_settings[$k] = $url_mapping[$cover_settings[$k]];
 			}
 		}
+
+		if ( ! empty( $cover_settings['text_layers'] ) && is_array( $cover_settings['text_layers'] ) ) {
+			$cover_settings['text_layers'] = array_map(
+				function( $layer ) use ( $url_mapping ) {
+					if ( ! is_array( $layer ) ) {
+						return $layer;
+					}
+
+					if ( ! empty( $layer['type'] ) && $layer['type'] === 'image' && ! empty( $layer['url'] ) && isset( $url_mapping[ $layer['url'] ] ) ) {
+						$layer['url'] = $url_mapping[ $layer['url'] ];
+					}
+
+					if ( ! empty( $layer['children'] ) && is_array( $layer['children'] ) ) {
+						$layer['children'] = array_map(
+							function( $child ) use ( $url_mapping ) {
+								if ( ! is_array( $child ) ) {
+									return $child;
+								}
+
+								if ( ! empty( $child['type'] ) && $child['type'] === 'image' && ! empty( $child['url'] ) && isset( $url_mapping[ $child['url'] ] ) ) {
+									$child['url'] = $url_mapping[ $child['url'] ];
+								}
+
+								return $child;
+							},
+							$layer['children']
+						);
+					}
+
+					return $layer;
+				},
+				$cover_settings['text_layers']
+			);
+		}
+
 		update_post_meta( $book_post_id, '_almaden_cover_settings', $cover_settings );
 	}
 

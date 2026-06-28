@@ -208,6 +208,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <label for="prop-hyphens" class="text-xs font-semibold text-gray-700 cursor-pointer">Separación por sílabas (guiones)</label>
             </div>
 
+            <div class="image-only-prop hidden">
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Imagen</label>
+                <button type="button" id="prop-image-reupload-btn" class="block w-full text-xs font-semibold bg-gray-100 text-gray-700 py-2 px-3 rounded-md border border-gray-300 hover:bg-gray-200 transition text-center">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Reemplazar Imagen
+                </button>
+            </div>
+
             <!-- SHAPE PROPERTIES -->
             <div class="shape-only-prop hidden">
                 <label class="block text-xs font-semibold text-gray-700 mb-1">Tipo de Forma</label>

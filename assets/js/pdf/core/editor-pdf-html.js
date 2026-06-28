@@ -6,6 +6,70 @@
 
 const ALMADEN_SOFT_HYPHEN = '\u00AD';
 
+function almadenGetSpanishEditionLabel(editionValue) {
+    const editionNumber = parseInt(String(editionValue || '').trim(), 10);
+    if (!Number.isFinite(editionNumber) || editionNumber <= 0) {
+        return '';
+    }
+
+    const unitWords = {
+        1: 'Primera',
+        2: 'Segunda',
+        3: 'Tercera',
+        4: 'Cuarta',
+        5: 'Quinta',
+        6: 'Sexta',
+        7: 'Séptima',
+        8: 'Octava',
+        9: 'Novena'
+    };
+
+    if (unitWords[editionNumber]) {
+        return `${unitWords[editionNumber]} Edición`;
+    }
+
+    const tensWords = {
+        10: 'Décima',
+        20: 'Vigésima',
+        30: 'Trigésima',
+        40: 'Cuadragésima',
+        50: 'Quincuagésima',
+        60: 'Sexagésima',
+        70: 'Septuagésima',
+        80: 'Octogésima',
+        90: 'Nonagésima',
+        100: 'Centésima'
+    };
+
+    if (tensWords[editionNumber]) {
+        return `${tensWords[editionNumber]} Edición`;
+    }
+
+    if (editionNumber > 10 && editionNumber < 20) {
+        const teenWords = {
+            11: 'Undécima',
+            12: 'Duodécima',
+            13: 'Decimotercera',
+            14: 'Decimocuarta',
+            15: 'Decimoquinta',
+            16: 'Decimosexta',
+            17: 'Decimoséptima',
+            18: 'Decimoctava',
+            19: 'Decimonovena'
+        };
+
+        return `${teenWords[editionNumber] || `Décima ${editionNumber - 10}a`} Edición`;
+    }
+
+    const tens = Math.floor(editionNumber / 10) * 10;
+    const units = editionNumber % 10;
+    if (tensWords[tens] && unitWords[units]) {
+        return `${tensWords[tens]} ${unitWords[units].toLowerCase()} Edición`;
+    }
+
+    return `Edición ${editionNumber}`;
+}
+
 function almadenNormalizeHyphenationKey(word) {
     return String(word || '')
         .normalize('NFD')
@@ -192,6 +256,10 @@ function almadenSplitSpanishWordIntoSyllables(word) {
     return syllables.filter(Boolean);
 }
 
+function almadenIsSingleSpanishVowelSyllable(syllable) {
+    return String(syllable || '').length === 1 && almadenIsSpanishVowel(syllable);
+}
+
 function almadenHyphenateSpanishWord(word, exceptionSet) {
     const normalized = String(word || '').normalize('NFC');
     const exceptionKey = almadenNormalizeHyphenationKey(normalized);
@@ -204,7 +272,25 @@ function almadenHyphenateSpanishWord(word, exceptionSet) {
         return normalized;
     }
 
-    return syllables.join(ALMADEN_SOFT_HYPHEN);
+    const parts = [];
+    for (let i = 0; i < syllables.length; i++) {
+        const syllable = syllables[i];
+        parts.push(syllable);
+
+        const nextSyllable = syllables[i + 1];
+        if (!nextSyllable) {
+            continue;
+        }
+
+        // Never leave a single vowel dangling at the end of a line.
+        if (almadenIsSingleSpanishVowelSyllable(syllable)) {
+            continue;
+        }
+
+        parts.push(ALMADEN_SOFT_HYPHEN);
+    }
+
+    return parts.join('');
 }
 
 function almadenApplyHyphenationToText(text, exceptionSet) {
@@ -244,6 +330,14 @@ function almadenApplyHyphenationToHtml(html, settings) {
         }
 
         textNodes.forEach((textNode) => {
+            const langCarrier = textNode.parentElement && textNode.parentElement.closest('[lang]');
+            if (langCarrier) {
+                const nodeLang = String(langCarrier.getAttribute('lang') || '').toLowerCase();
+                if (nodeLang && !nodeLang.startsWith(language)) {
+                    return;
+                }
+            }
+
             const original = textNode.nodeValue;
             const hyphenated = almadenApplyHyphenationToText(original, exceptionSet);
             if (hyphenated !== original) {
@@ -332,7 +426,10 @@ window.buildChapterHTML = function(chapter, index, settings, bookState) {
         creditsHtml += '<div class="credits-bottom-section" style="font-size: 0.85em; line-height: 1.4; padding-bottom: 2cm;">';
         
         if (settings.credits_edition) {
-            creditsHtml += `<p><strong>Número de edición:</strong> ${settings.credits_edition}</p>`;
+            const editionLabel = almadenGetSpanishEditionLabel(settings.credits_edition);
+            if (editionLabel) {
+                creditsHtml += `<p><strong>${editionLabel}</strong></p>`;
+            }
         }
         if (settings.credits_date) {
             let formattedDate = settings.credits_date;
@@ -387,6 +484,7 @@ window.buildChapterHTML = function(chapter, index, settings, bookState) {
     if (chapter.title && chapter.title.trim() !== '' && chapter.hide_title !== '1' && chapter.is_credits !== '1') {
         const titleClass = chapter.is_toc == '1' ? 'toc-main-title' : 'chapter-main-title';
         const hasSubtitle = chapter.subtitle_text && chapter.subtitle_text.trim() !== '' && chapter.is_toc !== '1';
+        const openingBlockEnabled = chapter.is_toc == '1' ? true : (chapter.opening_block_enabled !== '0');
         let extraTitleStyle = hasSubtitle ? 'padding-bottom: 0 !important;' : '';
         let titleHtml = `<h1 class="${titleClass}" style="${extraTitleStyle}">${chapter.title.trim()}</h1>`;
         let openerMinHeightEm = hasSubtitle ? 8.5 : 7.25;
@@ -499,17 +597,29 @@ window.buildChapterHTML = function(chapter, index, settings, bookState) {
             titleHtml = titleHtml + subtitleHtml;
         }
 
-        compiledHtml = `
-            <div class="chapter-opening-block" style="min-height: ${openerMinHeightEm}em;">
-                <div class="chapter-opening-content" data-align="${chapterTitleAlign}">
-                    ${titleHtml}
-                </div>
+        const openingContentHtml = `
+            <div class="chapter-opening-content" data-align="${chapterTitleAlign}">
+                ${titleHtml}
             </div>
-        ` + `\n\n` + compiledHtml;
+        `;
+
+        compiledHtml = (
+            openingBlockEnabled
+                ? `
+            <div class="chapter-opening-block" style="min-height: ${openerMinHeightEm}em;">
+                ${openingContentHtml}
+            </div>
+        `
+                : openingContentHtml
+        ) + `\n\n` + compiledHtml;
     }
 
     if (chapter.disable_hyphenation !== '1') {
         compiledHtml = almadenApplyHyphenationToHtml(compiledHtml, settings);
+    }
+
+    if (window.applySemanticChapterPostProcessing) {
+        compiledHtml = window.applySemanticChapterPostProcessing(chapter, compiledHtml);
     }
     
     return compiledHtml;

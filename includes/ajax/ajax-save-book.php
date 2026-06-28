@@ -42,6 +42,9 @@ function almaden_bookster_save_book_ajax() {
 		
 		// Meta-datos locales
 		$parity_image          = isset( $chapter['parity_image'] ) ? sanitize_text_field( $chapter['parity_image'] ) : '';
+		$opening_page_mode     = isset( $chapter['opening_page_mode'] ) ? sanitize_text_field( $chapter['opening_page_mode'] ) : '';
+		$opening_blank_intentional = isset( $chapter['opening_blank_intentional'] ) ? sanitize_text_field( $chapter['opening_blank_intentional'] ) : '0';
+		$opening_block_enabled = isset( $chapter['opening_block_enabled'] ) ? sanitize_text_field( $chapter['opening_block_enabled'] ) : '1';
 		$hide_title            = isset( $chapter['hide_title'] ) ? sanitize_text_field( $chapter['hide_title'] ) : '0';
 		$hide_all_headers_footers = isset( $chapter['hide_all_headers_footers'] ) ? sanitize_text_field( $chapter['hide_all_headers_footers'] ) : '0';
 		$exclude_from_numbering= isset( $chapter['exclude_from_numbering'] ) ? sanitize_text_field( $chapter['exclude_from_numbering'] ) : '0';
@@ -90,6 +93,9 @@ function almaden_bookster_save_book_ajax() {
 		$toc_letter_spacing    = isset( $chapter['toc_letter_spacing'] ) ? sanitize_text_field( $chapter['toc_letter_spacing'] ) : '';
 		$toc_line_height       = isset( $chapter['toc_line_height'] ) ? sanitize_text_field( $chapter['toc_line_height'] ) : '';
 		$toc_item_spacing      = isset( $chapter['toc_item_spacing'] ) ? sanitize_text_field( $chapter['toc_item_spacing'] ) : '';
+		$toc_hide_header       = isset( $chapter['toc_hide_header'] ) ? sanitize_text_field( $chapter['toc_hide_header'] ) : '0';
+		$toc_hide_page_numbers = isset( $chapter['toc_hide_page_numbers'] ) ? sanitize_text_field( $chapter['toc_hide_page_numbers'] ) : '0';
+		$toc_item_align        = isset( $chapter['toc_item_align'] ) ? sanitize_text_field( $chapter['toc_item_align'] ) : 'left';
 		$toc_leader_style      = isset( $chapter['toc_leader_style'] ) ? sanitize_text_field( $chapter['toc_leader_style'] ) : 'dotted';
 		$toc_leader_position   = isset( $chapter['toc_leader_position'] ) ? sanitize_text_field( $chapter['toc_leader_position'] ) : 'middle';
 		
@@ -131,6 +137,9 @@ function almaden_bookster_save_book_ajax() {
 		if ( ! is_wp_error( $post_id ) && $post_id > 0 ) {
 			// Guardar meta-datos
 			update_post_meta( $post_id, '_parity_image', $parity_image );
+			update_post_meta( $post_id, '_opening_page_mode', $opening_page_mode );
+			update_post_meta( $post_id, '_opening_blank_intentional', $opening_blank_intentional );
+			update_post_meta( $post_id, '_opening_block_enabled', $opening_block_enabled );
 			update_post_meta( $post_id, '_hide_title', $hide_title );
 			update_post_meta( $post_id, '_hide_all_headers_footers', $hide_all_headers_footers );
 			update_post_meta( $post_id, '_exclude_from_numbering', $exclude_from_numbering );
@@ -177,6 +186,9 @@ function almaden_bookster_save_book_ajax() {
 			update_post_meta( $post_id, '_toc_letter_spacing', $toc_letter_spacing );
 			update_post_meta( $post_id, '_toc_line_height', $toc_line_height );
 			update_post_meta( $post_id, '_toc_item_spacing', $toc_item_spacing );
+			update_post_meta( $post_id, '_toc_hide_header', $toc_hide_header );
+			update_post_meta( $post_id, '_toc_hide_page_numbers', $toc_hide_page_numbers );
+			update_post_meta( $post_id, '_toc_item_align', $toc_item_align );
 			update_post_meta( $post_id, '_toc_leader_style', $toc_leader_style );
 			update_post_meta( $post_id, '_toc_leader_position', $toc_leader_position );
 			
@@ -197,6 +209,9 @@ function almaden_bookster_save_book_ajax() {
 				'title'                 => $chapter_title,
 				'content'               => $chapter_content,
 				'parity_image'          => $parity_image,
+				'opening_page_mode'     => $opening_page_mode,
+				'opening_blank_intentional' => $opening_blank_intentional,
+				'opening_block_enabled' => $opening_block_enabled,
 				'hide_title'            => $hide_title,
 				'hide_all_headers_footers' => $hide_all_headers_footers,
 				'exclude_from_numbering'=> $exclude_from_numbering,
@@ -239,6 +254,10 @@ function almaden_bookster_save_book_ajax() {
 				'toc_text_transform'    => $toc_text_transform,
 				'toc_letter_spacing'    => $toc_letter_spacing,
 				'toc_line_height'       => $toc_line_height,
+				'toc_item_spacing'      => $toc_item_spacing,
+				'toc_hide_header'       => $toc_hide_header,
+				'toc_hide_page_numbers' => $toc_hide_page_numbers,
+				'toc_item_align'        => $toc_item_align,
 				'toc_leader_style'      => $toc_leader_style,
 				'toc_leader_position'   => $toc_leader_position,
 				'toc_title_align'       => $toc_title_align,

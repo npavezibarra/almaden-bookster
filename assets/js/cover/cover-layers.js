@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const deleteTextBtn = document.getElementById('delete-text-btn');
 
     const textOnlyProps = document.querySelectorAll('.text-only-prop');
+    const imageOnlyProps = document.querySelectorAll('.image-only-prop');
     const shapeOnlyProps = document.querySelectorAll('.shape-only-prop');
 
     // Group properties inputs
@@ -44,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const propTextColorHex = document.getElementById('prop-text-color-hex');
     const propAlignBtns = document.querySelectorAll('.prop-align-btn');
     const propHyphens = document.getElementById('prop-hyphens');
+    const propImageReuploadBtn = document.getElementById('prop-image-reupload-btn');
 
     // Populate Fonts
     if (typeof coverData !== 'undefined' && coverData.installedFonts && coverData.installedFonts.length > 0) {
@@ -105,9 +107,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (layer.type === 'image') {
                     textOnlyProps.forEach(el => el.classList.add('hidden'));
+                    imageOnlyProps.forEach(el => el.classList.remove('hidden'));
                     shapeOnlyProps.forEach(el => el.classList.add('hidden'));
                 } else if (layer.type === 'shape') {
                     textOnlyProps.forEach(el => el.classList.add('hidden'));
+                    imageOnlyProps.forEach(el => el.classList.add('hidden'));
                     shapeOnlyProps.forEach(el => el.classList.remove('hidden'));
                     
                     propShapeType.value = layer.shapeType || 'rectangle';
@@ -129,6 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } else {
                     textOnlyProps.forEach(el => el.classList.remove('hidden'));
+                    imageOnlyProps.forEach(el => el.classList.add('hidden'));
                     shapeOnlyProps.forEach(el => el.classList.add('hidden'));
                     propTextContent.value = layer.text || '';
                     propFontFamily.value = layer.fontFamily || (coverData.installedFonts && coverData.installedFonts[0] ? coverData.installedFonts[0].family : 'Inter');
@@ -155,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             el.textPropertiesPanel.classList.remove('flex');
             el.textPropertiesPanel.classList.add('hidden');
+            imageOnlyProps.forEach(el => el.classList.add('hidden'));
             if (groupPropertiesPanel) {
                 groupPropertiesPanel.classList.add('hidden');
                 groupPropertiesPanel.classList.remove('flex');
@@ -363,6 +369,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const layer = s.textLayers.find(l => l.id === s.activeLayerId);
         if (layer) { layer.hyphens = e.target.checked; window.CoverEditor.actions.renderTextLayers(); }
     });
+
+    if (propImageReuploadBtn) {
+        propImageReuploadBtn.addEventListener('click', () => {
+            const layer = s.textLayers.find(l => l.id === s.activeLayerId);
+            if (!layer || layer.type !== 'image' || !window.CoverEditor.actions.openMediaUploader) {
+                return;
+            }
+
+            window.CoverEditor.actions.openMediaUploader('Reemplazar Imagen de Capa', (url) => {
+                layer.url = url;
+                window.CoverEditor.actions.renderTextLayers();
+                window.CoverEditor.actions.renderLayersPanel();
+                window.CoverEditor.actions.selectLayer(layer.id);
+            });
+        });
+    }
 
     // Shape Binding Inputs
     if (propShapeType) {

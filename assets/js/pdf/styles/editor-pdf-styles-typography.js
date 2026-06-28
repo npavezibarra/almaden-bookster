@@ -19,23 +19,6 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
     const chapterTitleJustify = chapterTitleAlign === 'left'
         ? 'flex-start'
         : (chapterTitleAlign === 'right' ? 'flex-end' : 'center');
-    const footnoteFontFamily = settings.footnote_font_family || settings.font_family_content || 'Merriweather';
-    const footnoteFontSize = settings.footnote_font_size || Math.max(parseFloat(settings.font_size_content || 11.5) * 0.75, 8.0);
-    const footnoteFontWeight = settings.footnote_font_weight || 'normal';
-    const footnoteAlign = ['left', 'center', 'right', 'justify'].includes(String(settings.footnote_align || '').toLowerCase())
-        ? String(settings.footnote_align).toLowerCase()
-        : 'justify';
-    const footnoteAlignLast = footnoteAlign === 'justify' ? 'left' : footnoteAlign;
-    const footnoteCallScale = settings.footnote_call_scale !== undefined && settings.footnote_call_scale !== ''
-        ? parseFloat(settings.footnote_call_scale)
-        : 0.65;
-    const footnoteCallRaise = settings.footnote_call_raise !== undefined && settings.footnote_call_raise !== ''
-        ? parseFloat(settings.footnote_call_raise)
-        : 0.18;
-    const footnotePaddingTop = settings.footnote_padding_top !== undefined ? settings.footnote_padding_top : 0.15;
-    const footnotePaddingBottom = settings.footnote_padding_bottom !== undefined ? settings.footnote_padding_bottom : 0.15;
-    const footnotePaddingLeft = settings.footnote_padding_left !== undefined ? settings.footnote_padding_left : 0;
-    const footnotePaddingRight = settings.footnote_padding_right !== undefined ? settings.footnote_padding_right : 0;
     const smartSpanishHyphenation = !['0', 0].includes(settings.content_hyphenation) && String(settings.content_language || 'es').toLowerCase().startsWith('es');
     const contentHyphenationMode = (settings.content_hyphenation === 0 || settings.content_hyphenation === '0')
         ? 'none'
@@ -100,134 +83,8 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             text-indent: ${toPx(settings.content_paragraph_indent !== undefined ? settings.content_paragraph_indent : 0.0, true)}px !important;
         }
 
-        .pdf-content .split-paragraph-start {
-            margin-bottom: 0px !important;
-            padding-bottom: 0px !important;
-        }
-
-        /* Párrafos Divididos y Continuación (Paged.js) */
-        .pdf-content [data-split-from] {
-            text-indent: 0 !important;
-            margin-top: 0 !important;
-            padding-top: 0 !important;
-        }
-        .pdf-content [data-split-to] {
-            margin-bottom: 0 !important;
-            padding-bottom: 0 !important;
-        }
-        /* Si un párrafo se parte entre páginas, el fragmento que sigue en la página anterior debe seguir justificado. */
-        .pdf-content [data-split-to] {
-            text-align-last: justify !important;
-        }
-
-        /* Safety buffer to prevent sub-pixel layout overflow clipping */
-        .pagedjs_page_content {
-            height: calc(100% - var(--pagedjs-footnotes-height)) !important;
-        }
-
-        .pdf-content span[data-footnote-id] {
-            float: footnote !important;
-            footnote-policy: auto !important;
-            footnote-display: block !important;
-        }
-
-        .pagedjs_area [data-footnote-call] {
-            all: unset;
-            counter-increment: footnote;
-            display: inline;
-        }
-
-        .pagedjs_area [data-footnote-call]::after {
-            content: attr(data-footnote-number) !important;
-            font-size: ${footnoteCallScale}em !important;
-            line-height: 1 !important;
-            vertical-align: baseline !important;
-            position: relative !important;
-            top: -${footnoteCallRaise}em !important;
-            font-variant-position: super !important;
-        }
-
-        .pagedjs_pagebox > .pagedjs_area > .pagedjs_footnote_area {
-            font-family: '${footnoteFontFamily}', serif !important;
-            font-size: ${toPx(footnoteFontSize, true)}px !important;
-            font-weight: ${footnoteFontWeight} !important;
-            color: #475569 !important;
-        }
-
-        .pagedjs_pagebox > .pagedjs_area > .pagedjs_footnote_area > .pagedjs_footnote_content {
-            padding-top: ${toPx(footnotePaddingTop, false)}px !important;
-            padding-bottom: ${toPx(footnotePaddingBottom, false)}px !important;
-            padding-left: ${toPx(footnotePaddingLeft, false)}px !important;
-            padding-right: ${toPx(footnotePaddingRight, false)}px !important;
-            box-sizing: border-box !important;
-            width: 100% !important;
-        }
-
-        .pagedjs_pagebox > .pagedjs_area > .pagedjs_footnote_area > .pagedjs_footnote_content > .pagedjs_footnote_inner_content {
-            font-family: '${footnoteFontFamily}', serif !important;
-            font-size: ${toPx(footnoteFontSize, true)}px !important;
-            font-weight: ${footnoteFontWeight} !important;
-            line-height: 1.35 !important;
-            text-align: ${footnoteAlign} !important;
-            text-align-last: ${footnoteAlignLast} !important;
-            hyphens: ${contentHyphenationMode} !important;
-            -webkit-hyphens: ${contentHyphenationMode} !important;
-            color: #475569 !important;
-            width: 100% !important;
-        }
-
-        .pagedjs_footnote_area [data-note='footnote'] {
-            margin: 0 0 ${toPx(3, true)}px 0 !important;
-            text-indent: 0 !important;
-            font-family: '${footnoteFontFamily}', serif !important;
-            font-size: ${toPx(footnoteFontSize, true)}px !important;
-            font-weight: ${footnoteFontWeight} !important;
-            line-height: 1.35 !important;
-            text-align: ${footnoteAlign} !important;
-            text-align-last: ${footnoteAlignLast} !important;
-            color: #475569 !important;
-        }
-
-        .pagedjs_footnote_area [data-note='footnote'] p,
-        .pagedjs_footnote_area [data-note='footnote'] div {
-            margin: 0 !important;
-        }
-
-        .pdf-content .almaden-align-center [data-split-to],
-        .pdf-content .almaden-align-left [data-split-to],
-        .pdf-content .almaden-align-right [data-split-to],
-        .pdf-content [data-split-to].almaden-align-center,
-        .pdf-content [data-split-to].almaden-align-left,
-        .pdf-content [data-split-to].almaden-align-right {
-            text-align-last: right !important;
-        }
-
-        .pdf-content [data-split-to].almaden-align-center {
-            text-align-last: center !important;
-        }
-
-        .pdf-content [data-split-to].almaden-align-left {
-            text-align-last: left !important;
-        }
-
-        /* ── Párrafos Continuación (segunda mitad tras el salto) ── */
-        .pdf-content p.split-paragraph-continuation,
-        .pdf-content ul.split-paragraph-continuation,
-        .pdf-content ol.split-paragraph-continuation,
-        .pdf-content div.split-paragraph-continuation,
-        .pdf-content blockquote.split-paragraph-continuation {
-            text-indent: 0 !important;
-            margin-top: 0 !important;
-        }
-
-        .pdf-content p:last-child:not(.split-paragraph-start) {
-            margin-bottom: 0 !important;
-        }
-
-        .pdf-content p.split-paragraph-continuation {
-            text-indent: 0 !important;
-        }
         .pdf-content .chapter-opening-block + p,
+        .pdf-content .chapter-opening-content + p,
         .pdf-content .chapter-main-title + p,
         .pdf-content h1 + p,
         .pdf-content h2 + p {
@@ -618,6 +475,20 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
                 .credits-page-content h2,
                 .credits-page-content h3 {
                     ${creditsSpecificCss}
+                }
+                .credits-page-content .credits-copyright,
+                .credits-page-content .credits-copyright p {
+                    text-align: justify !important;
+                    text-align-last: left !important;
+                    text-indent: 0 !important;
+                    margin-left: 0 !important;
+                    margin-right: 0 !important;
+                    padding-left: 0 !important;
+                    padding-right: 0 !important;
+                }
+                .credits-page-content .credits-copyright p {
+                    margin-top: 0 !important;
+                    margin-bottom: 0 !important;
                 }
                 `;
             }

@@ -5,9 +5,11 @@
 // ============================================================
 
 window.handleChapterParity = function(chapter, index, settings, currentPageNumber, scroller, virtualizePage) {
-    const chapterStartParity = chapter && chapter.is_toc === '1'
-        ? 'even'
-        : ((chapter.start_parity && chapter.start_parity !== 'any') ? chapter.start_parity : settings.chapter_start_parity);
+    const chapterStartParity = window.getChapterStartParity ? window.getChapterStartParity(chapter, settings) : (
+        chapter && chapter.is_toc === '1'
+            ? 'even'
+            : ((chapter.start_parity && chapter.start_parity !== 'any') ? chapter.start_parity : settings.chapter_start_parity)
+    );
     
     if (index > 0 && chapterStartParity && chapterStartParity !== 'any') {
         const isOdd = (currentPageNumber % 2 === 1);
@@ -19,13 +21,16 @@ window.handleChapterParity = function(chapter, index, settings, currentPageNumbe
                 virtualizePage(blankPage, currentPageNumber);
                 currentPageNumber++;
             } else {
-                const pureBlankPage = window.createNewPageElement(currentPageNumber, { ...chapter, parity_image: null }, false, true);
+                const pureBlankPage = window.createNewPageElement(currentPageNumber, { ...chapter, parity_image: null, opening_page_mode: 'blank' }, false, true);
                 pureBlankPage.setAttribute('data-chapter-id', chapter.id);
                 scroller.appendChild(pureBlankPage);
                 virtualizePage(pureBlankPage, currentPageNumber);
                 currentPageNumber++;
 
-                const parityPage = window.createNewPageElement(currentPageNumber, chapter, false, true);
+                const parityChapter = (window.getEffectiveOpeningPageMode ? window.getEffectiveOpeningPageMode(chapter) : 'none') === 'none'
+                    ? { ...chapter, opening_page_mode: 'blank' }
+                    : chapter;
+                const parityPage = window.createNewPageElement(currentPageNumber, parityChapter, false, true);
                 parityPage.setAttribute('data-chapter-id', chapter.id);
                 scroller.appendChild(parityPage);
                 virtualizePage(parityPage, currentPageNumber);

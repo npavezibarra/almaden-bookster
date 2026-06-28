@@ -218,18 +218,3 @@ body, html {
 ::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
 }
-
-/* Indicador visual de otro idioma en la vista previa (no imprimir) */
-@media screen {
-    .pdf-content span[lang],
-    .pdf-content span[lang] em,
-    .pdf-content span[lang] * {
-        color: #b91c1c !important; /* Leve color rojizo (Tailwind red-700) */
-    }
-}
-
-@media print {
-    .pdf-content span[lang] {
-        color: inherit !important;
-    }
-}

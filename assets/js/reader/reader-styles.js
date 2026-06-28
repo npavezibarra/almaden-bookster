@@ -97,14 +97,15 @@ function generateDynamicStyles() {
     // Typography overrides
     const sizeOffset = userPrefs.fontSizeOffset || 0;
     const lhOffset = userPrefs.lineHeightOffset || 0;
-    
-    let calculatedHeading = parseFloat(settings.ebook_font_size_headings || 32.0) + (sizeOffset * 4);
-    let calculatedContent = parseFloat(settings.ebook_font_size_content || 18.0) + (sizeOffset * 2);
-    
-    const baseSizeHeading = Math.min(52, Math.max(18, calculatedHeading));
-    const baseSizeContent = Math.min(52, Math.max(18, calculatedContent));
-    
-    const baseLhHeading = Math.max(1.0, parseFloat(settings.ebook_line_height_headings || 1.3) + lhOffset);
+
+    // The reader controls only scale the chapter body. Metadata such as title,
+    // subtitle and prefix keep the book's configured sizing.
+    const baseSizeChapterTitle = Math.min(52, Math.max(18, parseFloat(settings.ebook_font_size_headings || 32.0)));
+    const baseSizeContentHeading = Math.min(52, Math.max(18, parseFloat(settings.ebook_font_size_headings || 32.0) + (sizeOffset * 4)));
+    const baseSizeContent = Math.min(52, Math.max(18, parseFloat(settings.ebook_font_size_content || 18.0) + (sizeOffset * 2)));
+
+    const baseLhChapterTitle = Math.max(1.0, parseFloat(settings.ebook_line_height_headings || 1.3));
+    const baseLhContentHeading = Math.max(1.0, parseFloat(settings.ebook_line_height_headings || 1.3) + lhOffset);
     const baseLhContent = Math.max(1.0, parseFloat(settings.ebook_line_height_content || 1.8) + lhOffset);
     
     let ffHeading = `'${settings.ebook_font_family_headings || 'Playfair Display'}', serif`;
@@ -115,9 +116,9 @@ function generateDynamicStyles() {
     css += `
         .reader-chapter-title {
             font-family: ${ffHeading} !important;
-            font-size: ${baseSizeHeading}px !important;
+            font-size: ${baseSizeChapterTitle}px !important;
             font-weight: ${settings.ebook_font_weight_headings || 'bold'} !important;
-            line-height: ${settings.ebook_chapter_title_line_height !== undefined ? settings.ebook_chapter_title_line_height : baseLhHeading} !important;
+            line-height: ${settings.ebook_chapter_title_line_height !== undefined ? settings.ebook_chapter_title_line_height : baseLhChapterTitle} !important;
             text-transform: ${settings.ebook_chapter_title_text_transform || 'none'} !important;
             text-align: ${settings.ebook_chapter_title_align || 'center'} !important;
             padding-top: ${settings.ebook_chapter_title_padding_top !== undefined ? settings.ebook_chapter_title_padding_top : 2}em !important;
@@ -135,6 +136,7 @@ function generateDynamicStyles() {
             font-weight: ${settings.ebook_chapter_prefix_font_weight || 'normal'} !important;
             font-style: ${settings.ebook_chapter_prefix_font_style || 'normal'} !important;
             letter-spacing: ${settings.ebook_chapter_prefix_letter_spacing || 0}px !important;
+            line-height: 1.2 !important;
             text-align: ${settings.ebook_chapter_title_align || 'center'} !important;
             margin-bottom: 0.5rem;
             color: ${readerHeadingColor} !important;
@@ -177,9 +179,9 @@ function generateDynamicStyles() {
         }
         .prose h1, .prose h2, .prose h3 {
             font-family: ${ffHeading} !important;
-            font-size: ${baseSizeHeading}px !important;
+            font-size: ${baseSizeContentHeading}px !important;
             font-weight: ${settings.ebook_font_weight_headings || 'bold'} !important;
-            line-height: ${baseLhHeading} !important;
+            line-height: ${baseLhContentHeading} !important;
             color: ${readerHeadingColor} !important;
         }
         

@@ -36,6 +36,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // WP Media Frame
     let mediaFrame;
 
+    function setMediaImage(targetEl, url, fit) {
+        targetEl.style.backgroundImage = `url(${url})`;
+
+        let mediaImg = targetEl.querySelector(':scope > img.cover-media-image');
+        if (!mediaImg) {
+            mediaImg = document.createElement('img');
+            mediaImg.className = `cover-media-image ${fit === 'contain' ? 'cover-media-image--contain' : 'cover-media-image--cover'}`;
+            mediaImg.alt = '';
+            mediaImg.setAttribute('aria-hidden', 'true');
+            mediaImg.style.zIndex = '0';
+            targetEl.prepend(mediaImg);
+        } else {
+            mediaImg.classList.remove('cover-media-image--cover', 'cover-media-image--contain');
+            mediaImg.classList.add(fit === 'contain' ? 'cover-media-image--contain' : 'cover-media-image--cover');
+        }
+
+        mediaImg.src = url;
+    }
+
+    function clearMediaImage(targetEl) {
+        const mediaImg = targetEl.querySelector(':scope > img.cover-media-image');
+        if (mediaImg) {
+            mediaImg.remove();
+        }
+    }
+
     function openMediaUploader(title, onSelect) {
         if (mediaFrame) {
             mediaFrame.open();
@@ -57,14 +83,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function applyImageToCover(url, targetEl, inputEl, clearBtn) {
-        targetEl.style.backgroundImage = `url(${url})`;
-        targetEl.innerHTML = ''; // clear text
+        targetEl.querySelectorAll(':scope > :not(img.cover-media-image)').forEach(node => node.remove());
+        setMediaImage(targetEl, url, 'cover');
         inputEl.value = url;
         clearBtn.classList.remove('hidden');
     }
 
     function applySpreadImage(url) {
-        el.coverSpread.style.backgroundImage = `url(${url})`;
+        setMediaImage(el.coverSpread, url, 'cover');
         uploadSpread.value = url;
         clearSpread.classList.remove('hidden');
         
@@ -147,6 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clear Logic
     clearSpine.addEventListener('click', () => {
         el.spine.style.backgroundImage = 'none';
+        clearMediaImage(el.spine);
         el.spine.style.backgroundColor = '#f9fafb';
         uploadSpine.value = '';
         spineColorPicker.value = '#f9fafb';
@@ -156,6 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     clearFrontFlap.addEventListener('click', () => {
         el.frontFlap.style.backgroundImage = '';
+        clearMediaImage(el.frontFlap);
         el.frontFlap.style.backgroundColor = '';
         uploadFrontFlapImage.value = '';
         frontFlapColorPicker.value = '#ffffff';
@@ -166,6 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     clearBackFlap.addEventListener('click', () => {
         el.backFlap.style.backgroundImage = '';
+        clearMediaImage(el.backFlap);
         el.backFlap.style.backgroundColor = '';
         uploadBackFlapImage.value = '';
         backFlapColorPicker.value = '#ffffff';
@@ -176,6 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     clearSpread.addEventListener('click', () => {
         el.coverSpread.style.backgroundImage = 'none';
+        clearMediaImage(el.coverSpread);
         uploadSpread.value = '';
         clearSpread.classList.add('hidden');
         

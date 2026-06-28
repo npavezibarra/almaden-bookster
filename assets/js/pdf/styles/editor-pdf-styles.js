@@ -90,12 +90,13 @@ function applyDynamicPDFStyles() {
     const widthPx = toPx(width);
     const heightPx = toPx(height);
     const bleedingPx = toPx(bleeding);
-    const globalBleedPx = toPx(unit === 'cm' ? 0.5 : (0.5 / 2.54));
 
     styleEl.innerHTML = `
-        ${getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit)}
+        ${getPDFStylesBase(settings, toPx, widthPx, heightPx, bleedingPx, unit)}
         ${getPDFStylesChapters(settings, toPx)}
+        ${getPDFStylesFlow(settings, toPx)}
         ${getPDFStylesTypography(settings, tocSettings, toPx)}
+        ${getPDFStylesSemantic(settings, toPx)}
     `;
 
     compilePDFPreview();

@@ -79,6 +79,7 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
             background-position: center;
             background-repeat: no-repeat;
             flex-shrink: 0;
+            z-index: 1;
         }
         #spine {
             background-color: #f9fafb;
@@ -87,6 +88,19 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+        .cover-media-image {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .cover-media-image--cover {
+            object-fit: cover;
+        }
+        .cover-media-image--contain {
+            object-fit: contain;
         }
     </style>
     

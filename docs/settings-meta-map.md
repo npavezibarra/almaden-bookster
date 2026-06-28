@@ -21,8 +21,9 @@ This document maps the canonical source of truth for the current book layout sys
 | Global PDF | Subtitle defaults | `post_meta` on book | `_almaden_chapter_subtitle_*` |
 | Global Ebook | Ebook typography / chapter opener | Table `almaden_book_settings` | `ebook_*`, `ebook_chapter_*` |
 | Global Ebook | Ebook subtitle defaults | `post_meta` on book | `_almaden_ebook_subtitle_*` |
-| Chapter override | Visibility / numbering / header behavior | `post_meta` on chapter | `_hide_title`, `_exclude_from_numbering`, `_hide_all_headers_footers`, `_custom_running_header` |
-| Chapter override | Chapter body options | `post_meta` on chapter | `_drop_cap_enabled`, `_disable_hyphenation`, `_start_parity`, `_first_page_header_*`, `_first_page_footer_*`, `_parity_image_*` |
+| Chapter override | Chapter structural flow | `post_meta` on chapter | `_start_parity`, `_opening_page_mode`, `_opening_blank_intentional`, `_opening_block_enabled`, `_parity_image`, `_parity_image_*` |
+| Chapter override | Visibility / numbering / header behavior | `post_meta` on chapter | `_hide_title`, `_exclude_from_numbering`, `_hide_all_headers_footers`, `_custom_running_header`, `_first_page_header_*`, `_first_page_footer_*` |
+| Chapter override | Chapter body options | `post_meta` on chapter | `_drop_cap_enabled`, `_disable_hyphenation` |
 | Chapter override | Chapter subtitle override | `post_meta` on chapter | `_subtitle_*` |
 | Chapter TOC override | TOC-specific chapter layout | `post_meta` on chapter | `_is_toc`, `_toc_*` |
 | Chapter credits override | Credits-specific chapter layout | `post_meta` on chapter | `_is_credits`, `_credits_*` |
@@ -41,6 +42,8 @@ They should be treated as legacy compatibility only.
 
 - PDF chapter opener vertical alignment: global only from `chapter_page_one_vertical`.
 - Chapter start parity: chapter override wins, otherwise global.
+- Chapter opening page mode: chapter override wins; if absent, compatibility falls back to current parity-image behavior.
+- Chapter opening block: if absent, compatibility defaults to enabled.
 - Subtitle alignment: chapter override wins, otherwise global.
 - TOC title alignment: TOC override wins, otherwise global.
 - Ebook settings: remain independent from PDF settings.
