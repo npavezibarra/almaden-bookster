@@ -92,6 +92,13 @@ async function triggerPrint() {
                 --pagedjs-bleed-left-left: ${geometry.bleed}${unit};
             }
 
+            /* Desactivar grid de spreads para permitir saltos de página correctos */
+            .pagedjs_pages {
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
             header, aside, #editor-pane, .pdf-toolbar, #split-resizer {
                 display: none !important;
             }
@@ -115,8 +122,8 @@ async function triggerPrint() {
                 transform: none !important;
             }
             #pdf-scroller .pagedjs_page {
-                width: ${previewWidthPx}px !important;
-                height: ${previewHeightPx}px !important;
+                width: ${previewWidth}${unit} !important;
+                height: ${previewHeight}${unit} !important;
             }
             ${bookState.settings && bookState.settings.export_grayscale == 1 ? `
             #pdf-preview-pane,
