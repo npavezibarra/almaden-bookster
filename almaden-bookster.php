@@ -26,6 +26,8 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/frontend.php';
 // --- Manejadores AJAX ---
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-save-book.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-publish.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-settings-helper.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-settings-templates.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-settings.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-cover.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-user-prefs.php';
@@ -36,6 +38,8 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/admin-settings.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/gdrive-client.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/epub-export.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/book-import-export.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/highlights.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/highlight-comments.php';
 
 
 // --- Crear Tabla Especial de Ajustes de PDF ---
@@ -212,6 +216,83 @@ function almaden_bookster_create_settings_table() {
 	}
 }
 add_action( 'init', 'almaden_bookster_create_settings_table' );
+
+function almaden_bookster_get_highlights_table_name() {
+	global $wpdb;
+	return $wpdb->prefix . 'almaden_book_highlights';
+}
+
+function almaden_bookster_create_highlights_table() {
+	global $wpdb;
+	$table_name = almaden_bookster_get_highlights_table_name();
+	$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) === $table_name;
+
+	if ( get_option( 'almaden_bookster_highlights_db_version' ) !== '1.0.0' || ! $table_exists ) {
+		$charset_collate = $wpdb->get_charset_collate();
+		$sql = "CREATE TABLE $table_name (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			book_id bigint(20) NOT NULL,
+			chapter_id bigint(20) NOT NULL,
+			user_id bigint(20) NOT NULL,
+			selected_text longtext NOT NULL,
+			start_offset int(11) NOT NULL DEFAULT 0,
+			end_offset int(11) NOT NULL DEFAULT 0,
+			status varchar(20) NOT NULL DEFAULT 'active',
+			created_at datetime NOT NULL,
+			updated_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			KEY book_user_chapter (book_id, user_id, chapter_id),
+			KEY user_book (user_id, book_id)
+		) $charset_collate;";
+
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		dbDelta( $sql );
+		update_option( 'almaden_bookster_highlights_db_version', '1.0.0' );
+	}
+}
+add_action( 'init', 'almaden_bookster_create_highlights_table' );
+
+function almaden_bookster_get_highlight_comments_table_name() {
+	global $wpdb;
+	return $wpdb->prefix . 'almaden_book_highlight_comments';
+}
+
+function almaden_bookster_create_highlight_comments_table() {
+	global $wpdb;
+	$table_name = almaden_bookster_get_highlight_comments_table_name();
+	$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) === $table_name;
+
+	if ( get_option( 'almaden_bookster_highlight_comments_db_version' ) !== '1.0.0' || ! $table_exists ) {
+		$charset_collate = $wpdb->get_charset_collate();
+		$sql = "CREATE TABLE $table_name (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			highlight_id bigint(20) NOT NULL,
+			book_id bigint(20) NOT NULL,
+			chapter_id bigint(20) NOT NULL,
+			user_id bigint(20) NOT NULL,
+			comment_text longtext NOT NULL,
+			status varchar(20) NOT NULL DEFAULT 'active',
+			created_at datetime NOT NULL,
+			updated_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			KEY highlight_id (highlight_id),
+			KEY book_chapter (book_id, chapter_id),
+			KEY user_book (user_id, book_id)
+		) $charset_collate;";
+
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		dbDelta( $sql );
+		update_option( 'almaden_bookster_highlight_comments_db_version', '1.0.0' );
+	}
+}
+add_action( 'init', 'almaden_bookster_create_highlight_comments_table' );
+
+function almaden_bookster_activate_plugin() {
+	almaden_bookster_create_settings_table();
+	almaden_bookster_create_highlights_table();
+	almaden_bookster_create_highlight_comments_table();
+}
+register_activation_hook( __FILE__, 'almaden_bookster_activate_plugin' );
 
 add_action('init', function() {
 	global $wpdb;

@@ -4,7 +4,7 @@
 // para maquetación y paginación del PDF.
 // ============================================================
 
-window.calculatePageDimensions = function(settings) {
+window.resolvePDFGeometry = function(settings = {}) {
     const unit = settings.unit || 'cm';
     let width = parseFloat(settings.page_width) || 21.0;
     let height = parseFloat(settings.page_height) || 29.7;
@@ -17,9 +17,21 @@ window.calculatePageDimensions = function(settings) {
         height = (unit === 'cm') ? (11.0 * 2.54) : 11.0;
     }
 
+    const bleed = Math.max(parseFloat(settings.bleeding) || 0, 0);
     const conversionFactor = (unit === 'cm') ? 37.7952755906 : 96.0;
-    const pageHeightPx = height * conversionFactor;
-    const pageWidthPx = width * conversionFactor;
+    const toPx = (value) => value * conversionFactor;
+
+    const sheetWidth = width + (bleed * 2);
+    const sheetHeight = height + (bleed * 2);
+    const previewWidth = width + bleed;
+    const previewHeight = height + (bleed * 2);
+    const pageHeightPx = toPx(height);
+    const pageWidthPx = toPx(width);
+    const bleedPx = toPx(bleed);
+    const sheetWidthPx = toPx(sheetWidth);
+    const sheetHeightPx = toPx(sheetHeight);
+    const previewWidthPx = toPx(previewWidth);
+    const previewHeightPx = toPx(previewHeight);
 
     const headerFontPx = (parseFloat(settings.header_font_size) || 8.5) * 1.333;
     const footerFontPx = (parseFloat(settings.footer_font_size) || 9.0) * 1.333;
@@ -39,9 +51,43 @@ window.calculatePageDimensions = function(settings) {
         unit,
         width,
         height,
+        bleed,
         conversionFactor,
         pageHeightPx,
         pageWidthPx,
+        bleedPx,
+        sheetWidth,
+        sheetHeight,
+        sheetWidthPx,
+        sheetHeightPx,
+        previewWidth,
+        previewHeight,
+        previewWidthPx,
+        previewHeightPx,
         maxPageContentHeight
+    };
+};
+
+window.calculatePageDimensions = function(settings) {
+    const geometry = window.resolvePDFGeometry(settings);
+
+    return {
+        unit: geometry.unit,
+        width: geometry.width,
+        height: geometry.height,
+        conversionFactor: geometry.conversionFactor,
+        pageHeightPx: geometry.pageHeightPx,
+        pageWidthPx: geometry.pageWidthPx,
+        maxPageContentHeight: geometry.maxPageContentHeight,
+        bleed: geometry.bleed,
+        bleedPx: geometry.bleedPx,
+        sheetWidth: geometry.sheetWidth,
+        sheetHeight: geometry.sheetHeight,
+        sheetWidthPx: geometry.sheetWidthPx,
+        sheetHeightPx: geometry.sheetHeightPx,
+        previewWidth: geometry.previewWidth,
+        previewHeight: geometry.previewHeight,
+        previewWidthPx: geometry.previewWidthPx,
+        previewHeightPx: geometry.previewHeightPx
     };
 };

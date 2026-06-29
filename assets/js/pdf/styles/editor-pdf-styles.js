@@ -8,6 +8,9 @@
 // Inyecta dinámicamente las reglas de CSS en base a la configuración de maquetación actual
 function applyDynamicPDFStyles() {
     const settings = bookState.settings || {};
+    const geometry = typeof window.resolvePDFGeometry === 'function'
+        ? window.resolvePDFGeometry(settings)
+        : null;
     // Extract TOC chapter settings if it exists
     const tocChapter = bookState.chapters && bookState.chapters.find(c => c.is_toc === '1');
     const tocSettings = tocChapter ? {
@@ -65,19 +68,6 @@ function applyDynamicPDFStyles() {
     }
 
     const unit = settings.unit || 'cm';
-    let width  = parseFloat(settings.page_width)  || 21;
-    let height = parseFloat(settings.page_height) || 29.7;
-
-    if (settings.page_size === 'A4') {
-        width  = (unit === 'cm') ? 21.0  : (21.0  / 2.54);
-        height = (unit === 'cm') ? 29.7  : (29.7  / 2.54);
-    } else if (settings.page_size === 'Letter') {
-        width  = (unit === 'cm') ? (8.5  * 2.54) : 8.5;
-        height = (unit === 'cm') ? (11.0 * 2.54) : 11.0;
-    }
-
-    const bleeding = parseFloat(settings.bleeding) || 0;
-
     const cmToPx = 37.7952755906;
     const ptToPx = 1.3333333333;
 
@@ -87,12 +77,8 @@ function applyDynamicPDFStyles() {
         return isPt ? (parseFloat(value) * ptToPx) : (parseFloat(value) * (unit === 'cm' ? cmToPx : (cmToPx * 2.54)));
     };
 
-    const widthPx = toPx(width);
-    const heightPx = toPx(height);
-    const bleedingPx = toPx(bleeding);
-
     styleEl.innerHTML = `
-        ${getPDFStylesBase(settings, toPx, widthPx, heightPx, bleedingPx, unit)}
+        ${getPDFStylesBase(settings, geometry, toPx)}
         ${getPDFStylesChapters(settings, toPx)}
         ${getPDFStylesFlow(settings, toPx)}
         ${getPDFStylesTypography(settings, tocSettings, toPx)}

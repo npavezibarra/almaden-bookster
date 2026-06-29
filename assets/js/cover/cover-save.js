@@ -76,78 +76,51 @@ document.addEventListener('DOMContentLoaded', () => {
             const frontFlap = settings.front_flap_width || settings.front_flap;
             if (frontFlap) {
                 frontFlapWidth.value = frontFlap;
-                el.flapsContent.classList.remove('hidden');
-                el.flapsContent.classList.add('flex');
             }
             
             const backFlap = settings.back_flap_width || settings.back_flap;
             if (backFlap) {
                 backFlapWidth.value = backFlap;
-                el.flapsContent.classList.remove('hidden');
-                el.flapsContent.classList.add('flex');
             }
             
             if (settings.spread_image) {
                 act.applySpreadImage(settings.spread_image);
-                el.imagesContent.classList.remove('hidden');
-                el.imagesContent.classList.add('flex');
             } else {
                 if (settings.front_image) {
                     act.applyImageToCover(settings.front_image, el.frontCover, uploadFront, clearFront);
-                    el.imagesContent.classList.remove('hidden');
-                    el.imagesContent.classList.add('flex');
                 }
                 if (settings.back_image) {
                     act.applyImageToCover(settings.back_image, el.backCover, uploadBack, clearBack);
-                    el.imagesContent.classList.remove('hidden');
-                    el.imagesContent.classList.add('flex');
                 }
                 
                 if (settings.spine_image) {
                     act.applyImageToCover(settings.spine_image, el.spine, uploadSpine, clearSpine);
-                    el.imagesContent.classList.remove('hidden');
-                    el.imagesContent.classList.add('flex');
                 } else if (settings.spine_color && settings.spine_color !== '#f9fafb') {
                     spineColorPicker.value = settings.spine_color;
                     el.spine.style.backgroundColor = settings.spine_color;
                     el.spine.innerHTML = '';
                     clearSpine.classList.remove('hidden');
-                    el.imagesContent.classList.remove('hidden');
-                    el.imagesContent.classList.add('flex');
                 }
-            }
-            
-            if (parseFloat(settings.front_flap) > 0 || parseFloat(settings.back_flap) > 0) {
-                el.flapsContent.classList.remove('hidden');
-                el.flapsContent.classList.add('flex');
             }
             
             if (settings.front_flap_image) {
                 act.applyImageToCover(settings.front_flap_image, el.frontFlap, uploadFrontFlapImage, clearFrontFlap);
-                el.flapsContent.classList.remove('hidden');
-                el.flapsContent.classList.add('flex');
             } else if (settings.front_flap_color && settings.front_flap_color !== '#ffffff') {
                 frontFlapColorPicker.value = settings.front_flap_color;
                 el.frontFlap.style.backgroundColor = settings.front_flap_color;
                 const span = el.frontFlap.querySelector('span');
                 if (span) span.style.display = 'none';
                 clearFrontFlap.classList.remove('hidden');
-                el.flapsContent.classList.remove('hidden');
-                el.flapsContent.classList.add('flex');
             }
 
             if (settings.back_flap_image) {
                 act.applyImageToCover(settings.back_flap_image, el.backFlap, uploadBackFlapImage, clearBackFlap);
-                el.flapsContent.classList.remove('hidden');
-                el.flapsContent.classList.add('flex');
             } else if (settings.back_flap_color && settings.back_flap_color !== '#ffffff') {
                 backFlapColorPicker.value = settings.back_flap_color;
                 el.backFlap.style.backgroundColor = settings.back_flap_color;
                 const span = el.backFlap.querySelector('span');
                 if (span) span.style.display = 'none';
                 clearBackFlap.classList.remove('hidden');
-                el.flapsContent.classList.remove('hidden');
-                el.flapsContent.classList.add('flex');
             }
 
             if (settings.text_layers && Array.isArray(settings.text_layers)) {

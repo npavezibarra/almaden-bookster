@@ -49,25 +49,26 @@ function getFooterContent(type, isEven, bookTitle, settings) {
 }
 
 // ── Generador principal de estilos base ──
-function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit) {
+function getPDFStylesBase(settings, geometry, toPx) {
     const bookTitle = bookState.title || 'Libro';
-    const bleedPx = Math.max(parseFloat(globalBleedPx) || 0, 0);
-    const bleedValue = Math.max(parseFloat(settings.bleeding) || 0, 0);
+    const resolvedGeometry = geometry || (typeof window.resolvePDFGeometry === 'function'
+        ? window.resolvePDFGeometry(settings)
+        : null);
+    const unit = (resolvedGeometry && resolvedGeometry.unit) || settings.unit || 'cm';
+    const trimWidth = (resolvedGeometry && resolvedGeometry.width) || parseFloat(settings.page_width) || 14;
+    const trimHeight = (resolvedGeometry && resolvedGeometry.height) || parseFloat(settings.page_height) || 21;
+    const bleedValue = Math.max((resolvedGeometry && resolvedGeometry.bleed) || parseFloat(settings.bleeding) || 0, 0);
+    const bleedPx = Math.max((resolvedGeometry && resolvedGeometry.bleedPx) || toPx(bleedValue), 0);
+    const sheetWidth = (resolvedGeometry && resolvedGeometry.sheetWidth) || (trimWidth + (bleedValue * 2));
+    const sheetHeight = (resolvedGeometry && resolvedGeometry.sheetHeight) || (trimHeight + (bleedValue * 2));
+    const previewWidth = (resolvedGeometry && resolvedGeometry.previewWidth) || (trimWidth + bleedValue);
+    const previewHeight = (resolvedGeometry && resolvedGeometry.previewHeight) || (trimHeight + (bleedValue * 2));
+    const sheetWidthPx = (resolvedGeometry && resolvedGeometry.sheetWidthPx) || toPx(sheetWidth);
+    const sheetHeightPx = (resolvedGeometry && resolvedGeometry.sheetHeightPx) || toPx(sheetHeight);
+    const previewWidthPx = (resolvedGeometry && resolvedGeometry.previewWidthPx) || toPx(previewWidth);
+    const previewHeightPx = (resolvedGeometry && resolvedGeometry.previewHeightPx) || toPx(previewHeight);
     const bleedLength = `${bleedValue.toFixed(4)}${unit}`;
     const zeroLength = `0${unit}`;
-    const screenPageWidthPx = widthPx + bleedPx;
-    const screenPageHeightPx = heightPx + (bleedPx * 2);
-    
-    // Compute the width and height using unit
-    let width = parseFloat(settings.page_width) || 14;
-    let height = parseFloat(settings.page_height) || 21;
-    if (settings.page_size === 'A4') {
-        width = (unit === 'cm') ? 21.0 : (21.0 / 2.54);
-        height = (unit === 'cm') ? 29.7 : (29.7 / 2.54);
-    } else if (settings.page_size === 'Letter') {
-        width = (unit === 'cm') ? (8.5 * 2.54) : 8.5;
-        height = (unit === 'cm') ? (11.0 * 2.54) : 11.0;
-    }
 
     // Compute total header and footer dimensions to align the page margins using native units
     const ptToUnit = (pt) => {
@@ -86,18 +87,15 @@ function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit
     const totalHeaderHeight = headerMarginTop + ptToUnit(headerFontPt) + headerMarginBottom + paddingTop;
     const totalFooterHeight = footerMarginTop + ptToUnit(footerFontPt) + footerMarginBottom + paddingBottom;
 
-    // Convert total height back to px for screen preview variables
-    const totalHeaderHeightPx = toPx(totalHeaderHeight);
-    const totalFooterHeightPx = toPx(totalFooterHeight);
-    
-    // Pixel variables for header box paddings inside margins
-    const headerMarginTopPx = toPx(headerMarginTop);
-    const footerMarginBottomPx = toPx(footerMarginBottom);
+    const marginLeftOdd = parseFloat(settings.margin_left_odd ?? settings.margin_left ?? 2.0);
+    const marginRightOdd = parseFloat(settings.margin_right_odd ?? settings.margin_right ?? 2.0);
+    const marginLeftEven = parseFloat(settings.margin_left_even ?? settings.margin_left ?? 2.0);
+    const marginRightEven = parseFloat(settings.margin_right_even ?? settings.margin_right ?? 2.0);
 
     return `
         /* ── Reglas Paged Media de W3C ── */
         @page {
-            size: ${width}${unit} ${height}${unit};
+            size: ${trimWidth}${unit} ${trimHeight}${unit};
             margin-top: ${totalHeaderHeight.toFixed(4)}${unit};
             margin-bottom: ${totalFooterHeight.toFixed(4)}${unit};
             
@@ -110,7 +108,7 @@ function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit
                 text-transform: ${settings.header_text_transform || 'none'} !important;
                 letter-spacing: ${toPx(settings.header_letter_spacing || 0.1, true)}px !important;
                 color: #475569 !important;
-                padding-top: ${headerMarginTopPx}px !important;
+                padding-top: ${toPx(headerMarginTop)}px !important;
                 vertical-align: top !important;
                 box-sizing: border-box !important;
             }
@@ -122,7 +120,7 @@ function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit
                 text-transform: ${settings.header_text_transform || 'none'} !important;
                 letter-spacing: ${toPx(settings.header_letter_spacing || 0.1, true)}px !important;
                 color: #475569 !important;
-                padding-top: ${headerMarginTopPx}px !important;
+                padding-top: ${toPx(headerMarginTop)}px !important;
                 vertical-align: top !important;
                 box-sizing: border-box !important;
             }
@@ -134,7 +132,7 @@ function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit
                 text-transform: ${settings.header_text_transform || 'none'} !important;
                 letter-spacing: ${toPx(settings.header_letter_spacing || 0.1, true)}px !important;
                 color: #475569 !important;
-                padding-top: ${headerMarginTopPx}px !important;
+                padding-top: ${toPx(headerMarginTop)}px !important;
                 vertical-align: top !important;
                 box-sizing: border-box !important;
             }
@@ -148,7 +146,7 @@ function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit
                 text-transform: ${settings.footer_text_transform || 'none'} !important;
                 letter-spacing: ${toPx(settings.footer_letter_spacing || 0.0, true)}px !important;
                 color: #475569 !important;
-                padding-bottom: ${footerMarginBottomPx}px !important;
+                padding-bottom: ${toPx(footerMarginBottom)}px !important;
                 vertical-align: bottom !important;
                 box-sizing: border-box !important;
             }
@@ -160,7 +158,7 @@ function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit
                 text-transform: ${settings.footer_text_transform || 'none'} !important;
                 letter-spacing: ${toPx(settings.footer_letter_spacing || 0.0, true)}px !important;
                 color: #475569 !important;
-                padding-bottom: ${footerMarginBottomPx}px !important;
+                padding-bottom: ${toPx(footerMarginBottom)}px !important;
                 vertical-align: bottom !important;
                 box-sizing: border-box !important;
             }
@@ -172,7 +170,7 @@ function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit
                 text-transform: ${settings.footer_text_transform || 'none'} !important;
                 letter-spacing: ${toPx(settings.footer_letter_spacing || 0.0, true)}px !important;
                 color: #475569 !important;
-                padding-bottom: ${footerMarginBottomPx}px !important;
+                padding-bottom: ${toPx(footerMarginBottom)}px !important;
                 vertical-align: bottom !important;
                 box-sizing: border-box !important;
             }
@@ -180,14 +178,14 @@ function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit
         
         @page :left {
             bleed: ${bleedLength} ${zeroLength} ${bleedLength} ${bleedLength};
-            margin-left: ${settings.margin_left_even ?? settings.margin_left ?? 2.0}${unit};
-            margin-right: ${settings.margin_right_even ?? settings.margin_right ?? 2.0}${unit};
+            margin-left: ${marginLeftEven}${unit};
+            margin-right: ${marginRightEven}${unit};
         }
         
         @page :right {
             bleed: ${bleedLength} ${bleedLength} ${bleedLength} ${zeroLength};
-            margin-left: ${settings.margin_left_odd ?? settings.margin_left ?? 2.0}${unit};
-            margin-right: ${settings.margin_right_odd ?? settings.margin_right ?? 2.0}${unit};
+            margin-left: ${marginLeftOdd}${unit};
+            margin-right: ${marginRightOdd}${unit};
         }
         
         ${getHeaderFooterCSS(settings, bookTitle)}
@@ -305,35 +303,47 @@ function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit
         /* ── Estilos de Pantalla e Integración del Panel (editor-pdf-preview) ── */
         @media screen {
             :root {
-                --pagedjs-width: ${width}${unit} !important;
-                --pagedjs-height: ${height}${unit} !important;
-                --pagedjs-width-right: ${width}${unit} !important;
-                --pagedjs-height-right: ${height}${unit} !important;
-                --pagedjs-width-left: ${width}${unit} !important;
-                --pagedjs-height-left: ${height}${unit} !important;
-                
-                --pagedjs-pagebox-width: ${width}${unit} !important;
-                --pagedjs-pagebox-height: ${height}${unit} !important;
-                --pagedjs-pagebox-width-right: ${width}${unit} !important;
-                --pagedjs-pagebox-height-right: ${height}${unit} !important;
-                --pagedjs-pagebox-width-left: ${width}${unit} !important;
-                --pagedjs-pagebox-height-left: ${height}${unit} !important;
+                --pagedjs-width: ${previewWidth}${unit} !important;
+                --pagedjs-height: ${previewHeight}${unit} !important;
+                --pagedjs-width-right: ${previewWidth}${unit} !important;
+                --pagedjs-height-right: ${previewHeight}${unit} !important;
+                --pagedjs-width-left: ${previewWidth}${unit} !important;
+                --pagedjs-height-left: ${previewHeight}${unit} !important;
+
+                --pagedjs-pagebox-width: ${trimWidth}${unit} !important;
+                --pagedjs-pagebox-height: ${trimHeight}${unit} !important;
+                --pagedjs-pagebox-width-right: ${trimWidth}${unit} !important;
+                --pagedjs-pagebox-height-right: ${trimHeight}${unit} !important;
+                --pagedjs-pagebox-width-left: ${trimWidth}${unit} !important;
+                --pagedjs-pagebox-height-left: ${trimHeight}${unit} !important;
+                --pagedjs-bleed-top: ${bleedValue}${unit} !important;
+                --pagedjs-bleed-right: ${bleedValue}${unit} !important;
+                --pagedjs-bleed-bottom: ${bleedValue}${unit} !important;
+                --pagedjs-bleed-left: ${bleedValue}${unit} !important;
+                --pagedjs-bleed-right-top: ${bleedValue}${unit} !important;
+                --pagedjs-bleed-right-right: ${bleedValue}${unit} !important;
+                --pagedjs-bleed-right-bottom: ${bleedValue}${unit} !important;
+                --pagedjs-bleed-right-left: 0${unit} !important;
+                --pagedjs-bleed-left-top: ${bleedValue}${unit} !important;
+                --pagedjs-bleed-left-right: 0${unit} !important;
+                --pagedjs-bleed-left-bottom: ${bleedValue}${unit} !important;
+                --pagedjs-bleed-left-left: ${bleedValue}${unit} !important;
                 --bookster-screen-bleed: ${bleedPx}px !important;
-                --bookster-screen-page-width: ${screenPageWidthPx}px !important;
-                --bookster-screen-page-height: ${screenPageHeightPx}px !important;
+                --bookster-screen-page-width: ${previewWidthPx}px !important;
+                --bookster-screen-page-height: ${previewHeightPx}px !important;
             }
 
             /* Forzar el grid interno de Paged.js para que respete los márgenes guardados */
             .pagedjs_right_page {
-                --pagedjs-margin-left: ${settings.margin_left_odd ?? settings.margin_left ?? 2.0}${unit} !important;
-                --pagedjs-margin-right: ${settings.margin_right_odd ?? settings.margin_right ?? 2.0}${unit} !important;
+                --pagedjs-margin-left: ${marginLeftOdd}${unit} !important;
+                --pagedjs-margin-right: ${marginRightOdd}${unit} !important;
                 --pagedjs-margin-top: ${totalHeaderHeight.toFixed(4)}${unit} !important;
                 --pagedjs-margin-bottom: ${totalFooterHeight.toFixed(4)}${unit} !important;
             }
 
             .pagedjs_left_page {
-                --pagedjs-margin-left: ${settings.margin_left_even ?? settings.margin_left ?? 2.0}${unit} !important;
-                --pagedjs-margin-right: ${settings.margin_right_even ?? settings.margin_right ?? 2.0}${unit} !important;
+                --pagedjs-margin-left: ${marginLeftEven}${unit} !important;
+                --pagedjs-margin-right: ${marginRightEven}${unit} !important;
                 --pagedjs-margin-top: ${totalHeaderHeight.toFixed(4)}${unit} !important;
                 --pagedjs-margin-bottom: ${totalFooterHeight.toFixed(4)}${unit} !important;
             }
@@ -364,22 +374,9 @@ function getPDFStylesBase(settings, toPx, widthPx, heightPx, globalBleedPx, unit
                 margin-bottom: 40px !important;
                 box-sizing: border-box !important;
                 position: relative !important;
-                padding-top: var(--bookster-screen-bleed) !important;
-                padding-bottom: var(--bookster-screen-bleed) !important;
-                padding-left: 0 !important;
-                padding-right: 0 !important;
+                padding: 0 !important;
                 overflow: visible !important;
                 ${settings.export_grayscale == 1 ? 'filter: grayscale(100%) !important; -webkit-filter: grayscale(100%) !important;' : ''}
-            }
-
-            .pagedjs_page.pagedjs_left_page {
-                padding-left: var(--bookster-screen-bleed) !important;
-                padding-right: 0 !important;
-            }
-
-            .pagedjs_page.pagedjs_right_page {
-                padding-left: 0 !important;
-                padding-right: var(--bookster-screen-bleed) !important;
             }
 
             ${bleedPx > 0 ? `

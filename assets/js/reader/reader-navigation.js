@@ -356,6 +356,10 @@ function showChapterView(index) {
             }
         });
     }
+
+    if (typeof applyReaderHighlightsToCurrentChapter === 'function') {
+        applyReaderHighlightsToCurrentChapter();
+    }
     
     // Reset state
     document.getElementById('chapter-scroll-area').scrollTop = 0;

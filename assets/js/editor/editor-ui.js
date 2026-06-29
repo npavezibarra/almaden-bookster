@@ -195,42 +195,11 @@ window.renderRuler = function() {
     ruler.style.left = -scroller.scrollLeft + 'px';
     
     let center = totalWidth / 2;
+    const pagesContainer = scroller.querySelector('.pagedjs_pages');
     
-    // Exact spine calculation based on DOM
-    const pages = Array.from(scroller.querySelectorAll('.pagedjs_page'))
-        .filter((page) => page && page.offsetWidth > 0 && page.offsetHeight > 0 && page.style.display !== 'none');
-    const firstPage = pages[0];
-    
-    if (scroller.classList.contains('spread-view')) {
-        // En Paged.js, la primera página (página 1, impar/derecha) se muestra sola a la derecha en la vista spread,
-        // por lo que no tiene una página izquierda (even) acompañándola.
-        // Si hay una página par (left) e impar (right) visibles al mismo tiempo:
-        const evenPage = scroller.querySelector('.pagedjs_page.pagedjs_left_page');
-        const oddPage = scroller.querySelector('.pagedjs_page.pagedjs_right_page');
-        
-        if (evenPage && oddPage) {
-            // Caso normal de dos páginas contiguas: el 0 (lomo) es el borde izquierdo de la página derecha.
-            center = oddPage.offsetLeft;
-        } else if (firstPage) {
-            if (firstPage.classList.contains('pagedjs_right_page')) {
-                // Si solo se muestra la página 1 (derecha), el lomo divisor/0 va justo en su borde izquierdo
-                center = firstPage.offsetLeft;
-            } else if (firstPage.classList.contains('pagedjs_left_page')) {
-                // Si solo se muestra una página izquierda, el lomo divisor/0 va en su borde derecho
-                center = firstPage.offsetLeft + firstPage.offsetWidth;
-            }
-        }
-    } else {
-        // Vista de una sola página:
-        if (firstPage) {
-            if (firstPage.classList.contains('pagedjs_right_page')) {
-                center = firstPage.offsetLeft;
-            } else if (firstPage.classList.contains('pagedjs_left_page')) {
-                center = firstPage.offsetLeft + firstPage.offsetWidth;
-            } else {
-                center = firstPage.offsetLeft;
-            }
-        }
+    if (pagesContainer) {
+        // El lomo divisor o centro de la página siempre coincide exactamente con el centro del bloque contenedor .pagedjs_pages
+        center = pagesContainer.offsetLeft + (pagesContainer.offsetWidth / 2);
     }
 
     const maxUnitsRight = Math.ceil((totalWidth - center) / unitPixels) + 2;

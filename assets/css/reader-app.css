@@ -51,6 +51,336 @@ body, html {
     font-style: italic;
 }
 
+#chapter-content {
+    position: relative;
+}
+
+.reader-highlight-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.reader-highlight {
+    position: absolute;
+    background: rgba(250, 204, 21, 0.46);
+    border-radius: 0.28rem;
+    box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.08);
+    mix-blend-mode: multiply;
+}
+
+.reader-highlight.is-focus {
+    background: rgba(250, 204, 21, 0.68);
+    box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.18), inset 0 0 0 1px rgba(245, 158, 11, 0.1);
+}
+
+#highlight-toolbar {
+    transform: translate(-50%, -100%);
+    pointer-events: auto;
+    white-space: nowrap;
+}
+
+#highlight-toolbar.hidden {
+    display: none;
+}
+
+#highlight-toolbar button {
+    flex: 0 0 auto;
+}
+
+#highlight-comment-composer {
+    transform: translate(-50%, -100%);
+}
+
+#reader-highlights-panel {
+    backdrop-filter: blur(18px);
+}
+
+.reader-highlights-section {
+    border: 1px solid #f1f5f9;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.8) 0%, rgba(255, 255, 255, 1) 100%);
+}
+
+.reader-highlights-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #334155;
+    border-bottom: 1px solid #eef2f7;
+    background: rgba(255, 255, 255, 0.72);
+}
+
+.reader-highlights-badge {
+    min-width: 1.65rem;
+    height: 1.65rem;
+    padding: 0 0.45rem;
+    border-radius: 9999px;
+    background: #111827;
+    color: #fff;
+    font-size: 0.72rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reader-highlights-items {
+    padding: 0.75rem;
+}
+
+.reader-highlight-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.6rem 0.65rem;
+    border-radius: 1rem;
+    transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.reader-highlight-item:hover {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.reader-highlight-item-body {
+    flex: 1;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    min-width: 0;
+}
+
+.reader-highlight-item-quote {
+    font-family: Georgia, serif;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: #111827;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.reader-highlight-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding-top: 0.05rem;
+}
+
+.reader-highlight-comments-btn {
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #334155;
+    border-radius: 9999px;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.reader-highlight-comments-btn:hover {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+}
+
+.reader-highlight-delete-btn {
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #64748b;
+    border-radius: 9999px;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.reader-highlight-delete-btn:hover {
+    background: #fef2f2;
+    color: #b91c1c;
+    border-color: #fecaca;
+}
+
+.reader-highlight-comments-box {
+    flex: 0 0 100%;
+    width: 100%;
+    margin: 0.35rem 0 0;
+    padding: 0.45rem 0 0;
+    border-top: 1px solid #edf2f7;
+}
+
+.reader-highlight-comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin-bottom: 0.45rem;
+}
+
+.reader-highlight-comment-item {
+    position: relative;
+    padding: 0.5rem 1.9rem 0.6rem 0.15rem;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.75);
+}
+
+.reader-highlight-comment-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.35rem;
+}
+
+.reader-highlight-comment-author {
+    font-size: 0.76rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.reader-highlight-comment-date {
+    font-size: 0.72rem;
+    color: #94a3b8;
+}
+
+.reader-highlight-comment-text {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #334155;
+    white-space: pre-wrap;
+}
+
+.reader-highlight-comment-actions {
+    position: absolute;
+    top: 0.35rem;
+    right: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.22rem;
+}
+
+.reader-highlight-comment-edit-btn,
+.reader-highlight-comment-delete-btn {
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #64748b;
+    border-radius: 9999px;
+    width: 1.45rem;
+    height: 1.45rem;
+    padding: 0;
+    font-size: 0.62rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.reader-highlight-comment-edit-btn {
+    color: #334155;
+}
+
+.reader-highlight-comment-edit-btn:hover {
+    background: #f8fafc;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+.reader-highlight-comment-delete-btn:hover {
+    background: #fef2f2;
+    color: #b91c1c;
+    border-color: #fecaca;
+}
+
+.reader-highlight-comment-form {
+    margin-top: 0.35rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.reader-highlight-comment-input {
+    width: 100%;
+    resize: vertical;
+    min-height: 4.5rem;
+    border: 1px solid #dbe4f0;
+    background: #fff;
+    border-radius: 0.9rem;
+    padding: 0.8rem 0.9rem;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: #0f172a;
+    outline: none;
+}
+
+.reader-highlight-comment-input:focus {
+    border-color: #94a3b8;
+    box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.12);
+}
+
+.reader-highlight-comment-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    align-items: center;
+}
+
+.reader-highlight-comment-submit-btn {
+    border: 0;
+    background: #111827;
+    color: #fff;
+    border-radius: 9999px;
+    padding: 0.36rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.reader-highlight-comment-submit-btn:hover {
+    opacity: 0.9;
+}
+
+.reader-highlight-comment-submit-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.reader-highlight-comment-cancel-btn {
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #64748b;
+    border-radius: 9999px;
+    padding: 0.3rem 0.55rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1;
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.reader-highlight-comment-cancel-btn:hover {
+    background: #f8fafc;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
 /* Transitions */
 .fade-enter {
     opacity: 0;

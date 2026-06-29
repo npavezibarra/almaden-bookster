@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleImagesBtn.addEventListener('click', () => {
         el.imagesContent.classList.toggle('hidden');
         el.imagesContent.classList.toggle('flex');
-        document.getElementById('images-section-icon').classList.toggle('rotate-180');
+        document.getElementById('images-section-icon').classList.toggle('-rotate-90');
     });
 
     toggleFlapsBtn.addEventListener('click', () => {

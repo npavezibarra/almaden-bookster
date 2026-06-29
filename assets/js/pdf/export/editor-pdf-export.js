@@ -4,22 +4,16 @@
 // Depende de: editor-pdf-compiler.js (compilePDFPreview)
 // ============================================================
 
-// Resuelve el tamaño de página según la configuración actual del libro
 function getPageDimensions() {
     const settings = bookState.settings || {};
-    const unit = settings.unit || 'cm';
-    let width  = parseFloat(settings.page_width)  || 21;
-    let height = parseFloat(settings.page_height) || 29.7;
-
-    if (settings.page_size === 'A4') {
-        width  = (unit === 'cm') ? 21.0  : (21.0  / 2.54);
-        height = (unit === 'cm') ? 29.7  : (29.7  / 2.54);
-    } else if (settings.page_size === 'Letter') {
-        width  = (unit === 'cm') ? (8.5  * 2.54) : 8.5;
-        height = (unit === 'cm') ? (11.0 * 2.54) : 11.0;
-    }
-
-    return { width, height, unit };
+    return typeof window.resolvePDFGeometry === 'function'
+        ? window.resolvePDFGeometry(settings)
+        : {
+            unit: settings.unit || 'cm',
+            width: parseFloat(settings.page_width) || 21,
+            height: parseFloat(settings.page_height) || 29.7,
+            bleed: parseFloat(settings.bleeding) || 0
+        };
 }
 
 async function triggerPrint() {
@@ -54,13 +48,8 @@ async function triggerPrint() {
     // Llamar al compilador forzando el modo full
     await compilePDFPreview(false, 'pdf-scroller', true);
 
-    const { width, height, unit } = getPageDimensions();
-
-    const conversionFactor = (unit === 'cm') ? 37.7952755906 : (37.7952755906 * 2.54);
-    const toPx = (val) => val * conversionFactor;
-    const widthPx = toPx(width);
-    const heightPx = toPx(height);
-    const globalBleedPx = toPx(unit === 'cm' ? 0.5 : (0.5 / 2.54));
+    const geometry = getPageDimensions();
+    const { unit, sheetWidth, sheetHeight, sheetWidthPx, sheetHeightPx } = geometry;
 
     let styleEl = document.getElementById('print-export-style');
     if (!styleEl) {
@@ -71,24 +60,36 @@ async function triggerPrint() {
 
     styleEl.innerHTML = `
         @page {
-            size: ${width}${unit} ${height}${unit};
+            size: ${sheetWidth}${unit} ${sheetHeight}${unit};
             margin: 0;
         }
 
         @media print {
             :root {
-                --pagedjs-width: ${width}${unit};
-                --pagedjs-height: ${height}${unit};
-                --pagedjs-width-right: ${width}${unit};
-                --pagedjs-height-right: ${height}${unit};
-                --pagedjs-width-left: ${width}${unit};
-                --pagedjs-height-left: ${height}${unit};
-                --pagedjs-pagebox-width: ${width}${unit};
-                --pagedjs-pagebox-height: ${height}${unit};
-                --pagedjs-pagebox-width-right: ${width}${unit};
-                --pagedjs-pagebox-height-right: ${height}${unit};
-                --pagedjs-pagebox-width-left: ${width}${unit};
-                --pagedjs-pagebox-height-left: ${height}${unit};
+                --pagedjs-width: ${sheetWidth}${unit};
+                --pagedjs-height: ${sheetHeight}${unit};
+                --pagedjs-width-right: ${sheetWidth}${unit};
+                --pagedjs-height-right: ${sheetHeight}${unit};
+                --pagedjs-width-left: ${sheetWidth}${unit};
+                --pagedjs-height-left: ${sheetHeight}${unit};
+                --pagedjs-pagebox-width: ${geometry.width}${unit};
+                --pagedjs-pagebox-height: ${geometry.height}${unit};
+                --pagedjs-pagebox-width-right: ${geometry.width}${unit};
+                --pagedjs-pagebox-height-right: ${geometry.height}${unit};
+                --pagedjs-pagebox-width-left: ${geometry.width}${unit};
+                --pagedjs-pagebox-height-left: ${geometry.height}${unit};
+                --pagedjs-bleed-top: ${geometry.bleed}${unit};
+                --pagedjs-bleed-right: ${geometry.bleed}${unit};
+                --pagedjs-bleed-bottom: ${geometry.bleed}${unit};
+                --pagedjs-bleed-left: ${geometry.bleed}${unit};
+                --pagedjs-bleed-right-top: ${geometry.bleed}${unit};
+                --pagedjs-bleed-right-right: ${geometry.bleed}${unit};
+                --pagedjs-bleed-right-bottom: ${geometry.bleed}${unit};
+                --pagedjs-bleed-right-left: ${geometry.bleed}${unit};
+                --pagedjs-bleed-left-top: ${geometry.bleed}${unit};
+                --pagedjs-bleed-left-right: ${geometry.bleed}${unit};
+                --pagedjs-bleed-left-bottom: ${geometry.bleed}${unit};
+                --pagedjs-bleed-left-left: ${geometry.bleed}${unit};
             }
 
             header, aside, #editor-pane, .pdf-toolbar, #split-resizer {
@@ -112,6 +113,10 @@ async function triggerPrint() {
                 max-width: 100% !important;
                 position: static !important;
                 transform: none !important;
+            }
+            #pdf-scroller .pagedjs_page {
+                width: ${sheetWidthPx}px !important;
+                height: ${sheetHeightPx}px !important;
             }
             ${bookState.settings && bookState.settings.export_grayscale == 1 ? `
             #pdf-preview-pane,

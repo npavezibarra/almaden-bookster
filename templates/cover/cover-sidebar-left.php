@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     <!-- Section: Imágenes -->
     <div class="p-4 border-b border-gray-100 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition select-none" id="toggle-images-section">
         <h2 class="font-bold text-sm uppercase tracking-wider text-gray-800">Imágenes</h2>
-        <i class="fa-solid fa-chevron-down text-gray-400 transition-transform duration-200" id="images-section-icon"></i>
+        <i class="fa-solid fa-chevron-down text-gray-400 transition-transform duration-200 -rotate-90" id="images-section-icon"></i>
     </div>
     
     <div class="hidden flex-col gap-6 bg-white pb-4" id="images-section-content">

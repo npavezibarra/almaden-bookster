@@ -232,6 +232,7 @@ function almaden_bookster_handle_duplicate_book() {
 		'meta_input'   => array(
 			'book_author' => get_post_meta( $book_id, 'book_author', true ),
 			'_almaden_source_book_id' => $source_book_id,
+			'_almaden_wc_product_id' => get_post_meta( $book_id, '_almaden_wc_product_id', true ),
 		),
 	);
 

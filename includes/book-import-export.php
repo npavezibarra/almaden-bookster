@@ -80,6 +80,7 @@ function almaden_bookster_handle_download_book() {
 		'formats' => get_post_meta( $book_id, '_almaden_formats', true ),
 		'size'    => get_post_meta( $book_id, '_almaden_book_size', true ),
 		'is_published' => get_post_meta( $book_id, '_almaden_is_published', true ),
+		'wc_product_id' => (int) get_post_meta( $book_id, '_almaden_wc_product_id', true ),
 		'cover_settings' => get_post_meta( $book_id, '_almaden_cover_settings', true ),
 		'credits_blank_before' => (int) get_post_meta( $book_id, '_almaden_credits_blank_before', true ),
 		'credits_blank_after' => (int) get_post_meta( $book_id, '_almaden_credits_blank_after', true ),
@@ -341,6 +342,9 @@ function almaden_bookster_handle_upload_book() {
 	}
 	if ( ! empty( $book_info['size'] ) ) {
 		update_post_meta( $book_post_id, '_almaden_book_size', $book_info['size'] );
+	}
+	if ( ! empty( $book_info['wc_product_id'] ) ) {
+		update_post_meta( $book_post_id, '_almaden_wc_product_id', intval( $book_info['wc_product_id'] ) );
 	}
 	update_post_meta( $book_post_id, '_almaden_is_published', $book_info['is_published'] );
 	update_post_meta( $book_post_id, '_almaden_credits_blank_before', intval( $book_info['credits_blank_before'] ?? 0 ) );

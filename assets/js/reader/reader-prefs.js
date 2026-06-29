@@ -14,6 +14,9 @@ try {
 function savePrefs() {
     localStorage.setItem('almaden_bookster_prefs_v2', JSON.stringify(userPrefs));
     if (typeof generateDynamicStyles === 'function') generateDynamicStyles();
+    if (typeof applyReaderHighlightsToCurrentChapter === 'function') {
+        window.setTimeout(() => applyReaderHighlightsToCurrentChapter(), 0);
+    }
     
     if (typeof window.almadenAjaxUrl !== 'undefined') {
         const formData = new FormData();

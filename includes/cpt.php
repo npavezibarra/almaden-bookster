@@ -98,3 +98,66 @@ function almaden_bookster_register_cpt_chapters() {
 	register_post_type( 'book_chapter', $args );
 }
 add_action( 'init', 'almaden_bookster_register_cpt_chapters', 0 );
+
+function almaden_bookster_register_book_access_metabox() {
+	add_meta_box(
+		'almaden-book-access',
+		__( 'Acceso al Ebook', 'almaden-bookster' ),
+		'almaden_bookster_render_book_access_metabox',
+		'almaden-books',
+		'side',
+		'default'
+	);
+}
+add_action( 'add_meta_boxes_almaden-books', 'almaden_bookster_register_book_access_metabox' );
+
+function almaden_bookster_render_book_access_metabox( $post ) {
+	wp_nonce_field( 'almaden_book_access_meta_' . $post->ID, 'almaden_book_access_meta_nonce' );
+	$product_id = (int) get_post_meta( $post->ID, '_almaden_wc_product_id', true );
+	?>
+	<p>
+		<label for="almaden_wc_product_id" style="display:block; font-weight:600; margin-bottom:6px;">
+			<?php esc_html_e( 'WooCommerce Product ID', 'almaden-bookster' ); ?>
+		</label>
+		<input
+			type="number"
+			min="0"
+			step="1"
+			id="almaden_wc_product_id"
+			name="almaden_wc_product_id"
+			value="<?php echo esc_attr( $product_id ); ?>"
+			style="width:100%;"
+			placeholder="123"
+		/>
+	</p>
+	<p style="margin-bottom:0; color:#6b7280;">
+		<?php esc_html_e( 'Si se configura, solo podrán abrir el libro los usuarios que hayan comprado este producto.', 'almaden-bookster' ); ?>
+	</p>
+	<?php
+}
+
+function almaden_bookster_save_book_access_metabox( $post_id ) {
+	if ( get_post_type( $post_id ) !== 'almaden-books' ) {
+		return;
+	}
+
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+
+	if ( ! isset( $_POST['almaden_book_access_meta_nonce'] ) || ! wp_verify_nonce( $_POST['almaden_book_access_meta_nonce'], 'almaden_book_access_meta_' . $post_id ) ) {
+		return;
+	}
+
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+
+	$product_id = isset( $_POST['almaden_wc_product_id'] ) ? absint( $_POST['almaden_wc_product_id'] ) : 0;
+	if ( $product_id > 0 ) {
+		update_post_meta( $post_id, '_almaden_wc_product_id', $product_id );
+	} else {
+		delete_post_meta( $post_id, '_almaden_wc_product_id' );
+	}
+}
+add_action( 'save_post', 'almaden_bookster_save_book_access_metabox' );

@@ -72,6 +72,14 @@ if ( is_array( $cover_settings ) && !empty( $cover_settings['front_image'] ) ) {
     $fallback_cover_url = $cover_settings['spread_image'];
 }
 
+$has_reader_access = function_exists( 'almaden_bookster_user_can_access_book' ) ? almaden_bookster_user_can_access_book( $book_id ) : is_user_logged_in();
+$book_product_id = function_exists( 'almaden_bookster_get_book_product_id' ) ? almaden_bookster_get_book_product_id( $book_id ) : 0;
+$purchase_url = function_exists( 'almaden_bookster_get_book_purchase_url' ) ? almaden_bookster_get_book_purchase_url( $book_id ) : home_url( '/' );
+$book_highlights = array();
+if ( $has_reader_access && is_user_logged_in() && function_exists( 'almaden_bookster_get_user_book_highlights' ) ) {
+	$book_highlights = almaden_bookster_get_user_book_highlights( $book_id, get_current_user_id() );
+}
+
 // Get the layout wide size from WordPress
 $wide_size = '1300px';
 if ( function_exists( 'wp_get_global_settings' ) ) {
@@ -83,11 +91,16 @@ if ( function_exists( 'wp_get_global_settings' ) ) {
 
 // Encode to JSON for frontend
 $book_data_json = wp_json_encode( array(
+	'bookId' => $book_id,
 	'title'    => $book_title,
 	'author'   => $author,
 	'settings' => $book_settings,
 	'chapters' => $chapters,
 	'cover_url' => $fallback_cover_url,
+	'userCanAccess' => $has_reader_access,
+	'productId' => $book_product_id,
+	'purchaseUrl' => $purchase_url,
+	'highlights' => $book_highlights,
 ) );
 ?>
 <!DOCTYPE html>
@@ -139,6 +152,9 @@ $book_data_json = wp_json_encode( array(
     <script>
         const bookData = <?php echo $book_data_json; ?>;
         const almadenAjaxUrl = "<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>";
+        const almadenReaderHighlightNonce = "<?php echo esc_js( wp_create_nonce( 'almaden_book_highlight_' . $book_id ) ); ?>";
+        window.almadenAjaxUrl = almadenAjaxUrl;
+        window.almadenReaderHighlightNonce = almadenReaderHighlightNonce;
         const userDBPrefs = <?php
             if ( is_user_logged_in() ) {
                 $prefs = get_user_meta( get_current_user_id(), 'almaden_bookster_reader_prefs', true );
@@ -149,6 +165,7 @@ $book_data_json = wp_json_encode( array(
         ?>;
     </script>
 
+    <?php if ( $has_reader_access ) : ?>
     <!-- STATE: INDEX -->
     <div id="view-index" class="w-full h-full flex flex-col md:flex-row">
         <!-- Left Side: Cover -->
@@ -183,6 +200,9 @@ $book_data_json = wp_json_encode( array(
                 <!-- Preferences Button & Panel -->
                 <button id="btn-reader-prefs" onclick="togglePrefsPanel()" class="p-2 text-gray-800 hover:bg-gray-100 rounded text-base h-9 flex items-center justify-center transition-colors font-serif font-bold mr-2" title="Preferencias de Lectura">
                     aA
+                </button>
+                <button id="btn-reader-highlights" onclick="toggleReaderHighlightsPanel()" class="p-2 text-gray-800 hover:bg-gray-100 rounded text-sm w-9 h-9 flex items-center justify-center transition-colors mr-2" title="Mis highlights">
+                    <i class="fa-solid fa-bookmark"></i>
                 </button>
                 <div id="reader-prefs-panel" class="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 shadow-xl rounded-lg p-4 hidden flex-col gap-4 z-50">
                     <div class="flex justify-between items-center bg-gray-100 rounded p-1">
@@ -246,16 +266,78 @@ $book_data_json = wp_json_encode( array(
         </main>
     </div>
 
+    <!-- Highlights Drawer -->
+    <div id="reader-highlights-backdrop" class="fixed inset-0 bg-black/20 hidden z-40"></div>
+    <aside id="reader-highlights-panel" class="fixed right-4 top-20 w-[min(92vw,28rem)] max-h-[calc(100vh-6rem)] bg-white border border-gray-200 shadow-2xl rounded-3xl overflow-hidden hidden z-50 flex flex-col">
+        <div class="flex items-start justify-between gap-4 p-5 border-b border-gray-100">
+            <div>
+                <h4 class="text-lg font-semibold text-gray-900">Mis highlights</h4>
+            </div>
+            <button id="btn-close-reader-highlights" class="w-9 h-9 rounded-full border border-gray-200 text-gray-500 hover:text-black hover:bg-gray-50 transition-colors" title="Cerrar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div id="reader-highlights-list" class="p-4 overflow-y-auto space-y-3">
+            <div class="text-sm text-gray-400 italic px-1 py-2">Abre el panel para ver tus highlights guardados.</div>
+        </div>
+    </aside>
+
     <!-- Footnote Popup -->
     <div id="footnote-popup" class="fixed hidden z-50 bg-white border border-gray-200 shadow-xl rounded-lg p-4 text-sm text-gray-800 max-w-xs md:max-w-sm font-sans prose prose-sm transition-opacity duration-200 opacity-0 pointer-events-none" style="transform: translate(-50%, -100%); margin-top: -10px;">
         <div id="footnote-popup-content"></div>
         <div class="absolute w-3 h-3 bg-white border-b border-r border-gray-200 transform rotate-45 left-1/2 -ml-1.5 -bottom-1.5"></div>
     </div>
 
+    <!-- Highlight Toolbar -->
+    <div id="highlight-toolbar" class="fixed hidden z-50 bg-white border border-gray-200 shadow-lg rounded-full px-3 py-2 items-center gap-2 text-sm">
+        <button id="btn-save-highlight" class="w-10 h-10 rounded-full bg-yellow-300 hover:bg-yellow-400 text-gray-900 font-semibold transition-colors flex items-center justify-center shadow-sm" title="Resaltar" aria-label="Resaltar">
+            <span class="w-4 h-4 rounded-full bg-yellow-500 border border-yellow-600 inline-block"></span>
+        </button>
+        <button id="btn-open-comment-highlight" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition-colors flex items-center justify-center" title="Comentar aquí" aria-label="Comentar aquí">
+            <i class="fa-solid fa-comment-dots text-sm"></i>
+        </button>
+        <button id="btn-cancel-highlight" class="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition-colors flex items-center justify-center" title="Cancelar" aria-label="Cancelar">
+            <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+    </div>
+
+    <!-- Highlight Comment Composer -->
+    <div id="highlight-comment-composer" class="fixed hidden z-50 w-[min(92vw,26rem)] bg-white border border-gray-200 shadow-2xl rounded-3xl p-4">
+        <div class="flex items-start justify-between gap-3 mb-3">
+            <div>
+                <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-400">Comentar aquí</p>
+                <p class="text-sm text-gray-500 mt-1">Tu comentario también guardará el highlight.</p>
+            </div>
+            <button id="btn-close-comment-composer" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition-colors" title="Cerrar">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+        <textarea id="highlight-comment-input" rows="4" class="w-full resize-y rounded-2xl border border-gray-200 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-yellow-300" placeholder="Escribe tu comentario..."></textarea>
+        <div class="mt-3 flex justify-end gap-2">
+            <button id="btn-cancel-comment-composer" class="px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-sm transition-colors">Cancelar</button>
+            <button id="btn-save-comment-composer" class="px-4 py-2 rounded-full bg-black hover:bg-gray-800 text-white font-semibold text-sm transition-colors">Guardar comentario</button>
+        </div>
+    </div>
+
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-prefs.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-prefs.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-styles.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-styles.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/almaden-shortcodes.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/almaden-shortcodes.js' ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-highlights.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-highlights.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-navigation.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-navigation.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-app.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-app.js' ); ?>"></script>
+    <?php else : ?>
+        <div class="min-h-screen flex items-center justify-center bg-neutral-50 px-6 py-12">
+            <div class="w-full max-w-xl rounded-3xl border border-gray-200 bg-white p-8 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.25)]">
+                <p class="text-sm font-semibold uppercase tracking-[0.2em] text-gray-400 mb-3">Acceso restringido</p>
+                <h1 class="text-3xl font-bold text-gray-900 mb-4"><?php echo esc_html( $book_title ); ?></h1>
+                <p class="text-gray-600 leading-relaxed mb-8">
+                    Debes comprar este ebook para leerlo y guardar highlights en tu cuenta.
+                </p>
+                <a href="<?php echo esc_url( $purchase_url ); ?>" class="inline-flex items-center rounded-full bg-black px-5 py-3 text-white font-semibold hover:bg-gray-800 transition-colors">
+                    Ir a comprar
+                </a>
+            </div>
+        </div>
+    <?php endif; ?>
 </body>
 </html>
