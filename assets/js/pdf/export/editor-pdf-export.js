@@ -52,19 +52,49 @@ async function triggerPrint() {
     const { unit, previewWidth, previewHeight, previewWidthPx, previewHeightPx } = geometry;
 
     let styleEl = document.getElementById('print-export-style');
-    if (!styleEl) {
-        styleEl = document.createElement('style');
-        styleEl.id = 'print-export-style';
-        document.head.appendChild(styleEl);
+    if (styleEl) {
+        styleEl.remove();
     }
+    styleEl = document.createElement('style');
+    styleEl.id = 'print-export-style';
+    document.head.appendChild(styleEl);
 
     styleEl.innerHTML = `
         @page {
             size: ${previewWidth}${unit} ${previewHeight}${unit};
             margin: 0;
         }
+        @page :left {
+            size: ${previewWidth}${unit} ${previewHeight}${unit};
+            margin: 0;
+        }
+        @page :right {
+            size: ${previewWidth}${unit} ${previewHeight}${unit};
+            margin: 0;
+        }
+        @page :first {
+            size: ${previewWidth}${unit} ${previewHeight}${unit};
+            margin: 0;
+        }
 
         @media print {
+            @page {
+                size: ${previewWidth}${unit} ${previewHeight}${unit};
+                margin: 0;
+            }
+            @page :left {
+                size: ${previewWidth}${unit} ${previewHeight}${unit};
+                margin: 0;
+            }
+            @page :right {
+                size: ${previewWidth}${unit} ${previewHeight}${unit};
+                margin: 0;
+            }
+            @page :first {
+                size: ${previewWidth}${unit} ${previewHeight}${unit};
+                margin: 0;
+            }
+
             :root {
                 --pagedjs-width: ${previewWidth}${unit};
                 --pagedjs-height: ${previewHeight}${unit};
