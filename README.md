@@ -30,6 +30,24 @@ almaden-bookster/
 └── README.md              # Documentación principal de arquitectura
 ```
 
+### 🔗 Índices de Navegación del Plugin
+*   **Directrices del Agente**: [AGENT_GUIDELINES.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/AGENT_GUIDELINES.md)
+*   **Lógica PHP de Backend**: [includes/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/)
+*   **Manejadores AJAX de WordPress**: [includes/ajax/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/)
+*   **Vistas HTML y Plantillas PHP**: [templates/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/)
+    *   Taller: [templates/admin/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/admin/)
+    *   Editor de Libros: [templates/editor/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/editor/)
+    *   Lector eBook: [templates/reader/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/reader/)
+    *   Librería Pública: [templates/bookshelf/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/bookshelf/)
+    *   Editor de Portadas: [templates/cover/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/cover/)
+*   **Scripts JavaScript (Assets)**: [assets/js/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/)
+    *   Taller & Admin: [assets/js/admin/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/admin/)
+    *   Editor de Libros: [assets/js/editor/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/)
+    *   Lector eBook: [assets/js/reader/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/)
+    *   Editor de Portadas: [assets/js/cover/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/cover/)
+    *   Motor de PDF (General): [assets/js/pdf/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/)
+    *   Motor de PDF (Core): [assets/js/pdf/core/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/core/)
+
 ---
 
 ## 🛠️ Directrices para Crear Páginas Públicas Integradas con el Tema

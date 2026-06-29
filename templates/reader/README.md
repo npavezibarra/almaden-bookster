@@ -4,4 +4,4 @@ Este directorio contiene la plantilla del lector de eBooks (Web Reader).
 
 ## Archivos y Funcionalidades
 
-- **`reader-app.php`**: Renderiza el visor HTML interactivo para leer libros digitales. Permite navegar paginadamente, cambiar preferencias de lectura (colores, fuentes) y ver las notas al pie dinámicas.
+*   **[reader-app.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/reader/reader-app.php)**: Renderiza el visor HTML interactivo para leer libros digitales. Permite navegar paginadamente, cambiar preferencias de lectura (colores, fuentes) y ver las notas al pie dinámicas.
