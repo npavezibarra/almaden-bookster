@@ -124,16 +124,16 @@ $book_imported_error = isset( $_GET['book_imported_error'] ) ? sanitize_text_fie
                     </div>
                     
                     <div class="hidden sm:ml-8 sm:flex sm:space-x-6 items-center">
-                        <a href="<?php echo esc_url( home_url('/almaden-booklist/') ); ?>" class="border-b-2 border-black text-black px-1 pt-1 text-sm font-medium h-full flex items-center">
+                        <a href="<?php echo esc_url( home_url('/almaden-booklist/') ); ?>" id="nav-workshop-link" class="border-b-2 border-black text-black px-1 pt-1 text-sm font-medium h-full flex items-center">
                             Taller
                         </a>
-                        <a href="<?php echo esc_url( home_url('/bookshelf/') ); ?>" class="border-b-2 border-transparent text-gray-500 hover:text-black hover:border-gray-300 px-1 pt-1 text-sm font-medium h-full flex items-center transition-colors" target="_blank">
+                        <a href="<?php echo esc_url( home_url('/bookshelf/') ); ?>" id="nav-bookshelf-link" class="border-b-2 border-transparent text-gray-500 hover:text-black hover:border-gray-300 px-1 pt-1 text-sm font-medium h-full flex items-center transition-colors" target="_blank">
                             Bookshelf
                         </a>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="<?php echo esc_url( admin_url() ); ?>" class="text-sm font-medium text-gray-500 hover:text-black transition-colors">Volver a WP</a>
+                    <a href="<?php echo esc_url( admin_url() ); ?>" id="nav-back-wp-link" class="text-sm font-medium text-gray-500 hover:text-black transition-colors">Volver a WP</a>
 
                 </div>
             </div>
@@ -187,7 +187,7 @@ $book_imported_error = isset( $_GET['book_imported_error'] ) ? sanitize_text_fie
                     </svg>
                     Crear Libro
                 </button>
-                <button onclick="document.getElementById('upload-book-file').click();" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors shadow-sm ml-2">
+                <button id="upload-book-btn" onclick="document.getElementById('upload-book-file').click();" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors shadow-sm ml-2">
                     <svg class="mr-2 -ml-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
@@ -230,9 +230,8 @@ $book_imported_error = isset( $_GET['book_imported_error'] ) ? sanitize_text_fie
                     
                     // Estado de publicación
                     $is_published = get_post_meta( get_the_ID(), '_almaden_is_published', true ) === '1';
-                ?>
-                    <div class="book-card bg-white overflow-hidden border border-gray-200 rounded-xl flex flex-col sm:flex-row h-full group relative">
-                        <div class="w-full sm:w-2/5 flex-shrink-0 border-b sm:border-b-0 sm:border-r border-gray-200 bg-gray-50 flex items-center justify-center">
+                                  <div id="book-card-<?php echo get_the_ID(); ?>" class="book-card bg-white overflow-hidden border border-gray-200 rounded-xl flex flex-col sm:flex-row h-full group relative">
+                        <div id="book-cover-<?php echo get_the_ID(); ?>" class="w-full sm:w-2/5 flex-shrink-0 border-b sm:border-b-0 sm:border-r border-gray-200 bg-gray-50 flex items-center justify-center">
                             <?php if ( ! empty( $cover_thumbnail_html ) ) : ?>
                                 <div class="w-full h-full flex items-center relative">
                                     <?php echo str_replace('border-b', '', $cover_thumbnail_html); ?>
@@ -257,48 +256,48 @@ $book_imported_error = isset( $_GET['book_imported_error'] ) ? sanitize_text_fie
                                     <div class="flex items-center gap-2">
                                         <!-- Píldoras de info movidas al área de descripción -->
                                         <label class="relative inline-flex items-center cursor-pointer ml-2" title="Publicar en Bookshelf">
-                                            <input type="checkbox" class="sr-only peer" onchange="togglePublishBook(<?php echo get_the_ID(); ?>, !this.checked)" <?php checked( $is_published, true ); ?>>
+                                            <input type="checkbox" id="publish-toggle-<?php echo get_the_ID(); ?>" class="sr-only peer" onchange="togglePublishBook(<?php echo get_the_ID(); ?>, !this.checked)" <?php checked( $is_published, true ); ?>>
                                             <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
                                             <span class="ml-2 text-xs font-semibold <?php echo $is_published ? 'text-green-600' : 'text-gray-500'; ?> publish-text-<?php echo get_the_ID(); ?>"><?php echo $is_published ? 'Publicado' : 'Ebook Store'; ?></span>
                                             <i class="ml-2 fa-solid fa-spinner fa-spin hidden text-gray-500 publish-spinner-<?php echo get_the_ID(); ?>"></i>
                                         </label>
-
+ 
                                         <div class="relative z-10 dropdown-container ml-1">
-                                            <button type="button" onclick="this.nextElementSibling.classList.toggle('hidden');" class="text-gray-400 hover:text-gray-600 transition-colors bg-white rounded p-1 border border-transparent hover:border-gray-200 hover:bg-gray-50" title="Opciones">
+                                            <button type="button" id="options-trigger-<?php echo get_the_ID(); ?>" onclick="this.nextElementSibling.classList.toggle('hidden');" class="text-gray-400 hover:text-gray-600 transition-colors bg-white rounded p-1 border border-transparent hover:border-gray-200 hover:bg-gray-50" title="Opciones">
                                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                                                 </svg>
                                             </button>
-                                            <div class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none">
+                                            <div id="options-dropdown-<?php echo get_the_ID(); ?>" class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none">
                                                 <div class="py-1">
-                                                    <a href="#" onclick="openBookSettings(<?php echo get_the_ID(); ?>, '<?php echo wp_create_nonce('almaden_save_settings_nonce_' . get_the_ID()); ?>'); event.preventDefault();" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center"><span class="settings-text-<?php echo get_the_ID(); ?>">Settings</span><i class="fa-solid fa-spinner fa-spin hidden settings-spinner-<?php echo get_the_ID(); ?>"></i></a>
+                                                    <a href="#" id="option-settings-<?php echo get_the_ID(); ?>" onclick="openBookSettings(<?php echo get_the_ID(); ?>, '<?php echo wp_create_nonce('almaden_save_settings_nonce_' . get_the_ID()); ?>'); event.preventDefault();" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center"><span class="settings-text-<?php echo get_the_ID(); ?>">Settings</span><i class="fa-solid fa-spinner fa-spin hidden settings-spinner-<?php echo get_the_ID(); ?>"></i></a>
                                                     
                                                     <form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="POST">
                                                         <input type="hidden" name="action" value="almaden_duplicate_book">
                                                         <input type="hidden" name="book_id" value="<?php echo get_the_ID(); ?>">
                                                         <?php wp_nonce_field( 'almaden_duplicate_book_nonce', 'almaden_duplicate_nonce' ); ?>
-                                                        <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Duplicar</button>
+                                                        <button type="submit" id="option-duplicate-<?php echo get_the_ID(); ?>" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Duplicar</button>
                                                     </form>
                                                     <form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="POST">
                                                         <input type="hidden" name="action" value="almaden_export_epub">
                                                         <input type="hidden" name="book_id" value="<?php echo get_the_ID(); ?>">
                                                         <?php wp_nonce_field( 'almaden_export_epub_nonce', 'almaden_epub_nonce' ); ?>
-                                                        <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Export ePub</button>
+                                                        <button type="submit" id="option-export-epub-<?php echo get_the_ID(); ?>" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Export ePub</button>
                                                     </form>
                                                     <form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="POST">
                                                         <input type="hidden" name="action" value="almaden_download_book">
                                                         <input type="hidden" name="book_id" value="<?php echo get_the_ID(); ?>">
                                                         <?php wp_nonce_field( 'almaden_download_book_nonce', 'almaden_download_nonce' ); ?>
-                                                        <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Download Book (Backup)</button>
+                                                        <button type="submit" id="option-download-<?php echo get_the_ID(); ?>" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Download Book (Backup)</button>
                                                     </form>
-                                                    <a href="#" onclick="uploadBookToDrive(<?php echo get_the_ID(); ?>); event.preventDefault();" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center"><span class="drive-text-<?php echo get_the_ID(); ?>">Subir a Google Drive</span><i class="fa-solid fa-spinner fa-spin hidden drive-spinner-<?php echo get_the_ID(); ?>"></i></a>
+                                                    <a href="#" id="option-drive-<?php echo get_the_ID(); ?>" onclick="uploadBookToDrive(<?php echo get_the_ID(); ?>); event.preventDefault();" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center"><span class="drive-text-<?php echo get_the_ID(); ?>">Subir a Google Drive</span><i class="fa-solid fa-spinner fa-spin hidden drive-spinner-<?php echo get_the_ID(); ?>"></i></a>
                                                 </div>
                                                 <div class="py-1">
                                                     <form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este libro? Esta acción borrará el libro de forma permanente.');">
                                                         <input type="hidden" name="action" value="almaden_delete_book">
                                                         <input type="hidden" name="book_id" value="<?php echo get_the_ID(); ?>">
                                                         <?php wp_nonce_field( 'almaden_delete_book_nonce', 'almaden_delete_nonce' ); ?>
-                                                        <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50">Eliminar</button>
+                                                        <button type="submit" id="option-delete-<?php echo get_the_ID(); ?>" class="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50">Eliminar</button>
                                                     </form>
                                                 </div>
                                             </div>
@@ -306,16 +305,16 @@ $book_imported_error = isset( $_GET['book_imported_error'] ) ? sanitize_text_fie
                                     </div>
                                 </div>
                                 
-                                <h3 class="text-lg font-bold text-gray-900 serif leading-tight mb-1">
+                                <h3 id="book-title-<?php echo get_the_ID(); ?>" class="text-lg font-bold text-gray-900 serif leading-tight mb-1">
                                     <?php echo esc_html( get_the_title() ); ?>
                                 </h3>
                                 
                                 <?php if ( ! empty( $author ) ) : ?>
-                                    <p class="text-sm font-medium text-gray-500 mb-3">por <?php echo esc_html( $author ); ?></p>
+                                    <p id="book-author-<?php echo get_the_ID(); ?>" class="text-sm font-medium text-gray-500 mb-3">por <?php echo esc_html( $author ); ?></p>
                                 <?php endif; ?>
                                 
                                 <div class="flex-1 flex flex-col">
-                                    <p class="text-sm text-gray-600 line-clamp-3 mb-4">
+                                    <p id="book-preview-<?php echo get_the_ID(); ?>" class="text-sm text-gray-600 line-clamp-3 mb-4">
                                         <?php echo $content_preview ? esc_html($content_preview) : '<span class="italic text-gray-400">Sin descripción...</span>'; ?>
                                     </p>
                                     
@@ -332,12 +331,12 @@ $book_imported_error = isset( $_GET['book_imported_error'] ) ? sanitize_text_fie
                                         </div>
                                     </div>
                                 </div>
-
+ 
                                 <div class="mt-2 flex flex-col gap-2">
-                                    <a href="<?php echo esc_url( $editor_url ); ?>" class="w-full inline-flex justify-center items-center py-2 px-3 bg-black text-white text-xs font-semibold rounded-md hover:bg-gray-800 transition-colors">
+                                    <a href="<?php echo esc_url( $editor_url ); ?>" id="btn-edit-content-<?php echo get_the_ID(); ?>" class="w-full inline-flex justify-center items-center py-2 px-3 bg-black text-white text-xs font-semibold rounded-md hover:bg-gray-800 transition-colors">
                                         EDIT CONTENT
                                     </a>
-                                    <a href="<?php echo esc_url( home_url( '/almaden-book-cover/?book_id=' . get_the_ID() ) ); ?>" class="w-full inline-flex justify-center items-center py-2 px-3 bg-white text-gray-700 border border-gray-300 text-xs font-semibold rounded-md hover:bg-gray-50 transition-colors">
+                                    <a href="<?php echo esc_url( home_url( '/almaden-book-cover/?book_id=' . get_the_ID() ) ); ?>" id="btn-edit-cover-<?php echo get_the_ID(); ?>" class="w-full inline-flex justify-center items-center py-2 px-3 bg-white text-gray-700 border border-gray-300 text-xs font-semibold rounded-md hover:bg-gray-50 transition-colors">
                                         EDIT BOOK COVER
                                     </a>
                                 </div>
@@ -352,14 +351,14 @@ $book_imported_error = isset( $_GET['book_imported_error'] ) ? sanitize_text_fie
                 <?php endwhile; wp_reset_postdata(); ?>
             </div>
         <?php else : ?>
-            <div class="text-center py-20 bg-white border border-gray-200 border-dashed rounded-xl">
+            <div id="booklist-empty-state" class="text-center py-20 bg-white border border-gray-200 border-dashed rounded-xl">
                 <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
                 <h3 class="mt-2 text-sm font-semibold text-gray-900">No hay libros</h3>
                 <p class="mt-1 text-sm text-gray-500">Comienza creando tu primer proyecto editorial.</p>
                 <div class="mt-6">
-                    <button type="button" onclick="openModal()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900">
+                    <button type="button" id="empty-create-book-btn" onclick="openModal()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900">
                         <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
