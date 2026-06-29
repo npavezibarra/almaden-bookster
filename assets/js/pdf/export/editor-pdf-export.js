@@ -49,7 +49,7 @@ async function triggerPrint() {
     await compilePDFPreview(false, 'pdf-scroller', true);
 
     const geometry = getPageDimensions();
-    const { unit, sheetWidth, sheetHeight, sheetWidthPx, sheetHeightPx } = geometry;
+    const { unit, previewWidth, previewHeight, previewWidthPx, previewHeightPx } = geometry;
 
     let styleEl = document.getElementById('print-export-style');
     if (!styleEl) {
@@ -60,18 +60,18 @@ async function triggerPrint() {
 
     styleEl.innerHTML = `
         @page {
-            size: ${sheetWidth}${unit} ${sheetHeight}${unit};
+            size: ${previewWidth}${unit} ${previewHeight}${unit};
             margin: 0;
         }
 
         @media print {
             :root {
-                --pagedjs-width: ${sheetWidth}${unit};
-                --pagedjs-height: ${sheetHeight}${unit};
-                --pagedjs-width-right: ${sheetWidth}${unit};
-                --pagedjs-height-right: ${sheetHeight}${unit};
-                --pagedjs-width-left: ${sheetWidth}${unit};
-                --pagedjs-height-left: ${sheetHeight}${unit};
+                --pagedjs-width: ${previewWidth}${unit};
+                --pagedjs-height: ${previewHeight}${unit};
+                --pagedjs-width-right: ${previewWidth}${unit};
+                --pagedjs-height-right: ${previewHeight}${unit};
+                --pagedjs-width-left: ${previewWidth}${unit};
+                --pagedjs-height-left: ${previewHeight}${unit};
                 --pagedjs-pagebox-width: ${geometry.width}${unit};
                 --pagedjs-pagebox-height: ${geometry.height}${unit};
                 --pagedjs-pagebox-width-right: ${geometry.width}${unit};
@@ -85,9 +85,9 @@ async function triggerPrint() {
                 --pagedjs-bleed-right-top: ${geometry.bleed}${unit};
                 --pagedjs-bleed-right-right: ${geometry.bleed}${unit};
                 --pagedjs-bleed-right-bottom: ${geometry.bleed}${unit};
-                --pagedjs-bleed-right-left: ${geometry.bleed}${unit};
+                --pagedjs-bleed-right-left: 0${unit}; /* Sin sangre en lomo derecho */
                 --pagedjs-bleed-left-top: ${geometry.bleed}${unit};
-                --pagedjs-bleed-left-right: ${geometry.bleed}${unit};
+                --pagedjs-bleed-left-right: 0${unit}; /* Sin sangre en lomo izquierdo */
                 --pagedjs-bleed-left-bottom: ${geometry.bleed}${unit};
                 --pagedjs-bleed-left-left: ${geometry.bleed}${unit};
             }
@@ -115,8 +115,8 @@ async function triggerPrint() {
                 transform: none !important;
             }
             #pdf-scroller .pagedjs_page {
-                width: ${sheetWidthPx}px !important;
-                height: ${sheetHeightPx}px !important;
+                width: ${previewWidthPx}px !important;
+                height: ${previewHeightPx}px !important;
             }
             ${bookState.settings && bookState.settings.export_grayscale == 1 ? `
             #pdf-preview-pane,
