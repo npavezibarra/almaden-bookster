@@ -228,9 +228,9 @@ $book_imported_error = isset( $_GET['book_imported_error'] ) ? sanitize_text_fie
                     // Obtener configuración de la portada
                     $cover_thumbnail_html = almaden_get_cover_thumbnail_html( get_the_ID() );
                     
-                    // Estado de publicación
                     $is_published = get_post_meta( get_the_ID(), '_almaden_is_published', true ) === '1';
-                                  <div id="book-card-<?php echo get_the_ID(); ?>" class="book-card bg-white overflow-hidden border border-gray-200 rounded-xl flex flex-col sm:flex-row h-full group relative">
+                    ?>
+                    <div id="book-card-<?php echo get_the_ID(); ?>" class="book-card bg-white overflow-hidden border border-gray-200 rounded-xl flex flex-col sm:flex-row h-full group relative">
                         <div id="book-cover-<?php echo get_the_ID(); ?>" class="w-full sm:w-2/5 flex-shrink-0 border-b sm:border-b-0 sm:border-r border-gray-200 bg-gray-50 flex items-center justify-center">
                             <?php if ( ! empty( $cover_thumbnail_html ) ) : ?>
                                 <div class="w-full h-full flex items-center relative">
