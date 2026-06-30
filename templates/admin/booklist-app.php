@@ -141,7 +141,8 @@ $book_imported_error = isset( $_GET['book_imported_error'] ) ? sanitize_text_fie
     </nav>
 
     <!-- Main Content -->
-    <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <main class="flex-1 bg-gray-50">
+        <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         
         <?php if ( $book_created || $book_deleted || $book_imported || ! empty( $book_imported_error ) ) : ?>
         <div id="success-toast" class="mb-8 bg-black text-white p-4 rounded-lg shadow-lg flex items-center justify-between animate-fade-in-down">
@@ -367,6 +368,7 @@ $book_imported_error = isset( $_GET['book_imported_error'] ) ? sanitize_text_fie
                 </div>
             </div>
         <?php endif; ?>
+        </div>
     </main>
 
     <!-- Modal Form (Hidden by default) -->
