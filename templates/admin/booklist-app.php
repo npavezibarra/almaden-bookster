@@ -64,7 +64,7 @@ $book_imported_error = isset( $_GET['book_imported_error'] ) ? sanitize_text_fie
     <style>
         body {
             font-family: "Urbanist", sans-serif;
-            background-color: #fcfcfc;
+            background-color: #f9fafb;
             color: #111;
         }
         h1, h2, h3, .serif {
