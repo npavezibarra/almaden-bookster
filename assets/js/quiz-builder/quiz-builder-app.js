@@ -396,6 +396,237 @@
 		
 		return null;
 	}
+	function ensureLoadedQuiz() {
+		if (!loadedQuiz) return null;
+		if (!Array.isArray(loadedQuiz.questions) || loadedQuiz.questions.length === 0) {
+			loadedQuiz.questions = [createBlankQuestion(0)];
+		}
+		loadedQuiz.questions = loadedQuiz.questions.map((question, index) => {
+			const safeQuestion = question && typeof question === 'object' ? question : {};
+			const rawAnswers = Array.isArray(safeQuestion.answers) ? safeQuestion.answers : [];
+			let answers = rawAnswers
+				.filter((answer) => answer && typeof answer === 'object')
+				.map((answer, answerIndex) => ({
+					text: String(answer.text || ''),
+					correct: !!answer.correct,
+					sort_order: answerIndex
+				}))
+				.filter((answer) => answer.text.trim() !== '');
+
+			if (answers.length === 0) {
+				answers = [
+					{ text: 'Answer 1', correct: true },
+					{ text: 'Answer 2', correct: false }
+				];
+			}
+			if (!answers.some((answer) => answer.correct)) {
+				answers[0].correct = true;
+			}
+			return {
+				title: String(safeQuestion.title || 'Question ' + (index + 1)),
+				question_text: String(safeQuestion.question_text || ''),
+				answers: answers
+			};
+		});
+
+		if (activePreviewQuestionIndex >= loadedQuiz.questions.length) {
+			activePreviewQuestionIndex = loadedQuiz.questions.length - 1;
+		}
+		if (activePreviewQuestionIndex < 0) {
+			activePreviewQuestionIndex = 0;
+		}
+		return loadedQuiz;
+	}
+
+	function getActiveQuestion() {
+		if (!loadedQuiz || !Array.isArray(loadedQuiz.questions) || loadedQuiz.questions.length === 0) {
+			return null;
+		}
+		return loadedQuiz.questions[activePreviewQuestionIndex] || loadedQuiz.questions[0] || null;
+	}
+
+	function setActiveQuestion(index) {
+		if (!loadedQuiz || !Array.isArray(loadedQuiz.questions) || loadedQuiz.questions.length === 0) {
+			return;
+		}
+		const nextIndex = Math.max(0, Math.min(index, loadedQuiz.questions.length - 1));
+		activePreviewQuestionIndex = nextIndex;
+		renderPreview();
+	}
+
+	function addQuestion() {
+		if (!ensureLoadedQuiz()) return;
+		loadedQuiz.questions.push(createBlankQuestion(loadedQuiz.questions.length));
+		activePreviewQuestionIndex = loadedQuiz.questions.length - 1;
+		renderPreview();
+	}
+
+	function removeQuestion(index) {
+		if (!loadedQuiz || !Array.isArray(loadedQuiz.questions)) return;
+		if (loadedQuiz.questions.length <= 1) {
+			loadedQuiz.questions = [createBlankQuestion(0)];
+			activePreviewQuestionIndex = 0;
+			renderPreview();
+			return;
+		}
+		const nextIndex = Math.max(0, Math.min(index, loadedQuiz.questions.length - 1));
+		loadedQuiz.questions.splice(nextIndex, 1);
+		activePreviewQuestionIndex = Math.min(nextIndex, loadedQuiz.questions.length - 1);
+		renderPreview();
+	}
+
+	function duplicateQuestion(index) {
+		if (!loadedQuiz || !Array.isArray(loadedQuiz.questions) || !loadedQuiz.questions[index]) return;
+		const source = loadedQuiz.questions[index];
+		const cloneQuestion = {
+			title: String(source.title || 'Question ' + (loadedQuiz.questions.length + 1)),
+			question_text: String(source.question_text || ''),
+			answers: Array.isArray(source.answers)
+				? source.answers.map((answer, answerIndex) => ({
+					text: String(answer.text || ''),
+					correct: !!answer.correct,
+					sort_order: answerIndex
+				}))
+				: [{ text: 'Answer 1', correct: true }, { text: 'Answer 2', correct: false }]
+		};
+		loadedQuiz.questions.splice(index + 1, 0, cloneQuestion);
+		activePreviewQuestionIndex = index + 1;
+		renderPreview();
+	}
+
+	function addAnswer(questionIndex) {
+		if (!loadedQuiz || !Array.isArray(loadedQuiz.questions) || !loadedQuiz.questions[questionIndex]) return;
+		const question = loadedQuiz.questions[questionIndex];
+		question.answers = Array.isArray(question.answers) ? question.answers : [];
+		question.answers.push({ text: 'Answer ' + (question.answers.length + 1), correct: false });
+		renderPreview();
+	}
+
+	function removeAnswer(questionIndex, answerIndex) {
+		if (!loadedQuiz || !Array.isArray(loadedQuiz.questions) || !loadedQuiz.questions[questionIndex]) return;
+		const question = loadedQuiz.questions[questionIndex];
+		if (!Array.isArray(question.answers) || question.answers.length <= 2) return;
+		question.answers.splice(answerIndex, 1);
+		if (!question.answers.some((answer) => answer.correct)) {
+			question.answers[0].correct = true;
+		}
+		renderPreview();
+	}
+
+	function setAnswerCorrect(questionIndex, answerIndex, checked) {
+		if (!loadedQuiz || !Array.isArray(loadedQuiz.questions) || !loadedQuiz.questions[questionIndex]) return;
+		const question = loadedQuiz.questions[questionIndex];
+		if (!Array.isArray(question.answers) || !question.answers[answerIndex]) return;
+		if (checked) {
+			question.answers.forEach((answer, index) => {
+				answer.correct = index === answerIndex;
+			});
+		} else {
+			question.answers[answerIndex].correct = false;
+			if (!question.answers.some((answer) => answer.correct) && question.answers[0]) {
+				question.answers[0].correct = true;
+			}
+		}
+		renderPreview();
+	}
+
+	function escapeHtml(value) {
+		return String(value || '')
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#039;');
+	}
+
+	function renderPreview() {
+		if (!previewEmpty || !previewList || !previewSummary) return;
+		if (!loadedQuiz || !Array.isArray(loadedQuiz.questions) || loadedQuiz.questions.length === 0) {
+			previewEmpty.hidden = false;
+			previewList.hidden = true;
+			previewList.innerHTML = '';
+			previewSummary.textContent = 'No hay un quiz cargado todavía.';
+			return;
+		}
+		ensureLoadedQuiz();
+		previewEmpty.hidden = true;
+		previewList.hidden = false;
+		const activeQuestion = getActiveQuestion();
+		const loadedTitle = typeof loadedQuiz.quiz_title === 'string' && loadedQuiz.quiz_title.trim() !== ''
+			? loadedQuiz.quiz_title.trim()
+			: (typeof loadedQuiz.title === 'string' && loadedQuiz.title.trim() !== '' ? loadedQuiz.title.trim() : 'Quiz cargado');
+		previewSummary.textContent = loadedTitle + ' · ' + loadedQuiz.questions.length + ' preguntas';
+
+		const questionCount = loadedQuiz.questions.length;
+		const questionIndexDisplay = activePreviewQuestionIndex + 1;
+		const answers = activeQuestion && Array.isArray(activeQuestion.answers) ? activeQuestion.answers : [];
+		const dotHtml = loadedQuiz.questions.map((question, index) => {
+			const hasContent = !!((question && String(question.title || '').trim() !== '') || (question && String(question.question_text || '').trim() !== ''));
+			return '<button type="button" class="almaden-slide-dot' + (index === activePreviewQuestionIndex ? ' is-active' : '') + (hasContent ? ' is-filled' : '') + '" data-preview-go-to="' + index + '" aria-label="Go to question ' + (index + 1) + '"></button>';
+		}).join('');
+		const answerHtml = answers.map((answer, answerIndex) => {
+			return [
+				'<div class="almaden-answer-row">',
+				'  <input type="checkbox" data-preview-answer-correct="' + answerIndex + '"' + (answer.correct ? ' checked' : '') + '>',
+				'  <input type="text" data-preview-answer-text="' + answerIndex + '" value="' + escapeHtml(answer.text || '') + '" placeholder="Answer text">',
+				'  <button type="button" class="almaden-btn almaden-btn--ghost" data-preview-action="remove-answer" data-preview-answer-index="' + answerIndex + '">Remove</button>',
+				'</div>'
+			].join('');
+		}).join('');
+
+		previewList.innerHTML = [
+			'<div class="almaden-preview-shell">',
+			'  <div class="almaden-preview-nav">',
+			'    <div class="almaden-preview-nav-group">',
+			'      <button type="button" class="almaden-btn almaden-btn--ghost" data-preview-action="prev">Previous</button>',
+			'      <span class="almaden-slide-indicator">Slide ' + questionIndexDisplay + ' / ' + questionCount + '</span>',
+			'      <button type="button" class="almaden-btn almaden-btn--ghost" data-preview-action="next">Next</button>',
+			'    </div>',
+			'    <div class="almaden-preview-nav-group">',
+			'      <button type="button" class="almaden-btn almaden-btn--soft" data-preview-action="add-question">Add slide</button>',
+			'      <button type="button" class="almaden-btn almaden-btn--danger" data-preview-action="remove-question">Delete slide</button>',
+			'    </div>',
+			'  </div>',
+			'  <div class="almaden-slide-dots" aria-label="Question navigation">',
+			dotHtml,
+			'  </div>',
+			'  <div class="almaden-preview-card">',
+			'    <div class="almaden-slide-head">',
+			'      <div>',
+			'        <h4>' + escapeHtml(activeQuestion && activeQuestion.title ? activeQuestion.title : ('Question ' + questionIndexDisplay)) + '</h4>',
+			'        <p class="almaden-helper">Edita cada slide antes de guardar. Los cambios quedan en memoria para la siguiente fase.</p>',
+			'      </div>',
+			'      <div class="almaden-slide-actions">',
+			'        <button type="button" class="almaden-btn almaden-btn--ghost" data-preview-action="duplicate-question">Duplicate slide</button>',
+			'      </div>',
+			'    </div>',
+			'    <div class="almaden-slide-field">',
+			'      <label>Question title</label>',
+			'      <input type="text" data-preview-field="question-title" value="' + escapeHtml(activeQuestion && activeQuestion.title ? activeQuestion.title : '') + '">',
+			'    </div>',
+			'    <div class="almaden-slide-field">',
+			'      <label>Question text</label>',
+			'      <textarea data-preview-field="question-text">' + escapeHtml(activeQuestion && activeQuestion.question_text ? activeQuestion.question_text : '') + '</textarea>',
+			'    </div>',
+			'    <div class="almaden-slide-field">',
+			'      <div class="almaden-preview-nav">',
+			'        <label>Answers</label>',
+			'        <button type="button" class="almaden-btn almaden-btn--ghost" data-preview-action="add-answer">Add answer</button>',
+			'      </div>',
+			'      <div class="almaden-answer-list">',
+			answerHtml,
+			'      </div>',
+			'    </div>',
+			'  </div>',
+			'</div>'
+		].join('');
+
+		const questionCounter = activeQuestion && Array.isArray(activeQuestion.answers) ? activeQuestion.answers.filter((answer) => answer && answer.correct).length : 0;
+		if (previewSummary) {
+			previewSummary.textContent = loadedTitle + ' · ' + loadedQuiz.questions.length + ' preguntas · ' + questionCounter + ' correctas en esta slide';
+		}
+	}
+
 	function buildSavePayload() {
 		const chapter = currentChapter();
 		const chapterKey = chapter && chapter.key ? String(chapter.key) : ('chapter-' + (activeChapterIndex + 1));
