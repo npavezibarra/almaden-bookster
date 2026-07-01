@@ -1,5 +1,5 @@
 <?php
-require_once plugin_dir_path( dirname( __DIR__ ) ) . 'includes/editor-data-loader.php';
+require_once plugin_dir_path( dirname( __DIR__ ) ) . 'includes/helpers/editor-data-loader.php';
 
 // Prevent caching of the editor page
 if (!headers_sent()) {

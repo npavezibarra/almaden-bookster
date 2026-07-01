@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-require_once dirname( __FILE__ ) . '/../../includes/editor-data-loader.php';
+require_once dirname( __FILE__ ) . '/../../includes/helpers/editor-data-loader.php';
 
 // At this point $book, $book_title, $pdf_settings are available.
 $page_width = $pdf_settings['page_width'];

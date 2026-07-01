@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-require_once dirname( __FILE__ ) . '/../../includes/cover-thumbnail.php';
+require_once dirname( __FILE__ ) . '/../../includes/helpers/cover-thumbnail.php';
 
 // Fetch all books
 $args = array(

@@ -14,7 +14,7 @@ if ( empty( $source_book_id ) ) {
 }
 
 // Get the cover HTML
-require_once dirname( __FILE__ ) . '/../../includes/cover-thumbnail.php';
+require_once dirname( __FILE__ ) . '/../../includes/helpers/cover-thumbnail.php';
 $cover_html = almaden_get_cover_thumbnail_html( $book_id );
 $fonts_url = almaden_get_thumbnail_fonts_url();
 

@@ -14,12 +14,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // --- Módulos de Google Fonts (Admin) ---
-require_once plugin_dir_path( __FILE__ ) . 'includes/admin-fonts.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-fonts.php';
 require_once plugin_dir_path( __FILE__ ) . 'admin/admin-fonts-page.php';
-require_once plugin_dir_path( __FILE__ ) . 'includes/learni-integration.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/integrations/learni-integration.php';
 
 // Modulos CPT
-require_once plugin_dir_path( __FILE__ ) . 'includes/cpt.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/cpt/cpt.php';
 
 // --- Frontend Booklist y Creación Automática de Página ---
 require_once plugin_dir_path( __FILE__ ) . 'includes/frontend.php';
@@ -34,13 +34,13 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-cover.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-user-prefs.php';
 
 // --- Configuraciones Generales y Seguridad ---
-require_once plugin_dir_path( __FILE__ ) . 'includes/crypto.php';
-require_once plugin_dir_path( __FILE__ ) . 'includes/admin-settings.php';
-require_once plugin_dir_path( __FILE__ ) . 'includes/gdrive-client.php';
-require_once plugin_dir_path( __FILE__ ) . 'includes/epub-export.php';
-require_once plugin_dir_path( __FILE__ ) . 'includes/book-import-export.php';
-require_once plugin_dir_path( __FILE__ ) . 'includes/highlights.php';
-require_once plugin_dir_path( __FILE__ ) . 'includes/highlight-comments.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/helpers/crypto.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-settings.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/io/gdrive-client.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/io/epub-export.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/io/book-import-export.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/reader/highlights.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/reader/highlight-comments.php';
 
 
 // --- Crear Tabla Especial de Ajustes de PDF ---

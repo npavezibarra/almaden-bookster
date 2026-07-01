@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 function almaden_get_thumbnail_fonts_url() {
-    require_once dirname(__FILE__) . '/admin-fonts.php';
+    require_once dirname(__FILE__) . '/../admin/admin-fonts.php';
     if (!function_exists('almaden_bookster_get_installed_fonts_list')) return '';
     
     $installed_fonts = almaden_bookster_get_installed_fonts_list();

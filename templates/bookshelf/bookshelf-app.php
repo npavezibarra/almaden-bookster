@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // We need the helper for cover thumbnails
-require_once dirname( __FILE__ ) . '/../../includes/cover-thumbnail.php';
+require_once dirname( __FILE__ ) . '/../../includes/helpers/cover-thumbnail.php';
 
 // Query published books
 $args = array(
