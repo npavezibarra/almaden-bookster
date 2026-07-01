@@ -51,6 +51,7 @@ Si eres un agente o vas a modificar codigo, usa este orden:
 - [assets/js/cover/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/cover/README.md)
 - [assets/js/reader/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/README.md)
 - [assets/js/pdf/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/README.md)
+- [assets/js/quiz-builder/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/quiz-builder/README.md)
 
 ## Flujo de quiz con Learni
 

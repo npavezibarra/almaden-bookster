@@ -11,6 +11,7 @@ assets/js/
 ├── pdf/            # Motor de renderizado PDF (Virtual Pagination Engine)
 ├── reader/         # Lector público de eBooks (Web Reader)
 ├── cover/          # Editor de Portadas (Bookster Cover Editor)
+├── quiz-builder/   # Creador de evaluaciones interactivo (Quiz Builder)
 └── almaden-shortcodes.js # Procesamiento de shortcodes comunes
 ```
 
@@ -22,14 +23,8 @@ assets/js/
 *   **Motor PDF**: [assets/js/pdf/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/)
 *   **Lector eBook**: [assets/js/reader/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/)
 *   **Diseñador de Portadas**: [assets/js/cover/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/cover/)
+*   **Creador de Quizzes**: [assets/js/quiz-builder/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/quiz-builder/)
 *   **Shortcodes Comunes**: [almaden-shortcodes.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/almaden-shortcodes.js)
-
-## Punto importante para agentes
-
-El quiz builder de Bookster no vive como un modulo JS separado dentro de `assets/js/`. Su orquestacion principal esta en:
-
-*   [templates/quiz-builder/quiz-builder-app.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/quiz-builder/quiz-builder-app.php)
-*   [includes/learni-integration.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/learni-integration.php)
 
 ---
 
@@ -98,3 +93,12 @@ El quiz builder de Bookster no vive como un modulo JS separado dentro de `assets
 *   **[reader-prefs.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/reader-prefs.js)**: Preferencias persistentes en LocalStorage (fuente, tamaño, tema).
 *   **[reader-styles.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/reader-styles.js)**: Generador e inyector de CSS dinámico para la experiencia aislada de lectura.
 *   **[reader-navigation.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/reader-navigation.js)**: Navegación por páginas físicas en modo "Flip" doble página o scroll continuo.
+
+---
+
+## 5. Módulos del Quiz Builder ([quiz-builder/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/quiz-builder/))
+
+*   **[quiz-builder-app.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/quiz-builder/quiz-builder-app.js)**: Orquestador principal y núcleo del estado global (inicialización del payload, actualización de paneles de la barra lateral, guardado mediante AJAX, tabulador de UI y listeners de interacción global).
+*   **[quiz-builder-editor.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/quiz-builder/quiz-builder-editor.js)**: Inicialización de preguntas por defecto, inserción y duplicación de slides, remoción de respuestas, binding de estado y método principal `renderPreview()`.
+*   **[quiz-builder-parser.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/quiz-builder/quiz-builder-parser.js)**: Extracción de JSON desde texto plano, normalización de payloads y Question Recovery Parser inteligente si el JSON está incompleto.
+*   **[quiz-builder-preview.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/quiz-builder/quiz-builder-preview.js)**: Motor interactivo offline para previsualizar el quiz simulando al estudiante (`startInteractiveQuizPreview()`).
