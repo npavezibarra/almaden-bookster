@@ -8,43 +8,20 @@
 	let activeTab = 'prompt-settings';
 
 	const $ = (id) => document.getElementById(id);
-	const chapterList = $('almaden-chapter-list');
-	const activeTitle = $('almaden-active-chapter-title');
-	const activeCaption = $('almaden-active-chapter-caption');
-	const chapterRaw = $('almaden-chapter-raw');
-	const promptInput = $('almaden-prompt-input');
-	const loadPromptBtn = $('almaden-load-prompt');
-	const previewEmpty = $('almaden-preview-empty');
-	const previewList = $('almaden-preview-list');
-	const previewSummary = $('almaden-preview-summary');
-	const previewFocus = $('almaden-preview-focus');
-	const copyActivePromptBtn = $('almaden-copy-active-prompt');
-	const saveQuizBtn = $('almaden-save-quiz');
-	const saveQuizForm = $('almaden-book-quiz-save-form');
-	const saveQuizPayloadField = $('almaden-quiz-payload-json');
-	const quizIdField = $('almaden-quiz-id');
-	const previewQuizBtn = $('almaden-preview-quiz-btn');
-	const previewOverlay = $('almaden-quiz-preview-overlay');
-	const previewBody = $('almaden-quiz-preview-body');
-	const closeBackdrop = $('almaden-quiz-preview-close-backdrop');
-	const closeBtn = $('almaden-quiz-preview-close-btn');
-	const questionCountField = $('almaden-setting-question-count');
-	const alternativesCountField = $('almaden-setting-alternatives-count');
-	const difficultyField = $('almaden-setting-difficulty');
-	const styleField = $('almaden-setting-style');
+	const chapterList = $('almaden-chapter-list'), activeTitle = $('almaden-active-chapter-title'), activeCaption = $('almaden-active-chapter-caption'), chapterRaw = $('almaden-chapter-raw');
+	const promptInput = $('almaden-prompt-input'), loadPromptBtn = $('almaden-load-prompt'), previewEmpty = $('almaden-preview-empty'), previewList = $('almaden-preview-list');
+	const previewSummary = $('almaden-preview-summary'), previewFocus = $('almaden-preview-focus'), copyActivePromptBtn = $('almaden-copy-active-prompt'), saveQuizBtn = $('almaden-save-quiz');
+	const saveQuizForm = $('almaden-book-quiz-save-form'), saveQuizPayloadField = $('almaden-quiz-payload-json'), quizIdField = $('almaden-quiz-id'), previewChapterBtn = $('almaden-preview-chapter-btn');
+	const previewBookBtn = $('almaden-preview-book-btn'), previewOverlay = $('almaden-quiz-preview-overlay'), previewBody = $('almaden-quiz-preview-body'), closeBackdrop = $('almaden-quiz-preview-close-backdrop');
+	const closeBtn = $('almaden-quiz-preview-close-btn'), questionCountField = $('almaden-setting-question-count'), alternativesCountField = $('almaden-setting-alternatives-count');
+	const difficultyField = $('almaden-setting-difficulty'), styleField = $('almaden-setting-style');
 	const tabButtons = Array.from(document.querySelectorAll('[data-tab-target]'));
 	const tabPanels = Array.from(document.querySelectorAll('[data-tab-panel]'));
 
-	function clone(value) {
-		if (!value || typeof value !== 'object') return null;
-		try { return JSON.parse(JSON.stringify(value)); } catch (e) { return null; }
-	}
-	function currentChapter() {
-		return chapters[activeChapterIndex] || null;
-	}
+	function clone(v) { if (!v || typeof v !== 'object') return null; try { return JSON.parse(JSON.stringify(v)); } catch (e) { return null; } }
+	function currentChapter() { return chapters[activeChapterIndex] || null; }
 	function getPromptSettings() {
-		const q = questionCountField ? parseInt(questionCountField.value, 10) : 5;
-		const a = alternativesCountField ? parseInt(alternativesCountField.value, 10) : 4;
+		const q = questionCountField ? parseInt(questionCountField.value, 10) : 5, a = alternativesCountField ? parseInt(alternativesCountField.value, 10) : 4;
 		return {
 			questionCount: Number.isFinite(q) && q > 0 ? q : 5,
 			alternativesCount: Number.isFinite(a) && a > 0 ? a : 4,
@@ -52,14 +29,7 @@
 			style: styleField ? String(styleField.value || 'clear') : 'clear'
 		};
 	}
-	function esc(value) {
-		return String(value || '')
-			.replace(/&/g, '&amp;')
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;')
-			.replace(/"/g, '&quot;')
-			.replace(/'/g, '&#039;');
-	}
+	function esc(v) { return String(v || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'); }
 	function setActiveTab(name) {
 		activeTab = name;
 		tabButtons.forEach((button) => {
@@ -84,14 +54,17 @@
 		if (activeCaption) activeCaption.textContent = 'Chapter ' + (chapter.order || activeChapterIndex + 1);
 		if (chapterRaw) chapterRaw.textContent = chapter.content || 'Este capítulo no tiene contenido.';
 		if (quizIdField) quizIdField.value = chapter.quiz_id ? String(chapter.quiz_id) : '0';
-		if (previewQuizBtn) {
-			if (chapter.quiz_id && Number(chapter.quiz_id) > 0) {
-				previewQuizBtn.classList.remove('is-disabled');
-				previewQuizBtn.removeAttribute('title');
-			} else {
-				previewQuizBtn.classList.add('is-disabled');
-				previewQuizBtn.setAttribute('title', 'Por favor, guarda el quiz primero para poder previsualizarlo.');
-			}
+		
+		const hasQuiz = chapter.quiz_id && Number(chapter.quiz_id) > 0;
+		if (previewChapterBtn) {
+			previewChapterBtn.classList.toggle('is-disabled', !hasQuiz);
+			if (hasQuiz) previewChapterBtn.removeAttribute('title');
+			else previewChapterBtn.setAttribute('title', 'Guarda el quiz primero para poder previsualizar.');
+		}
+		if (previewBookBtn) {
+			previewBookBtn.classList.toggle('is-disabled', !hasQuiz);
+			if (hasQuiz) previewBookBtn.removeAttribute('title');
+			else previewBookBtn.setAttribute('title', 'Guarda el quiz primero para poder previsualizar.');
 		}
 	}
 	function activateChapter(index) {
@@ -393,9 +366,17 @@
 		if (loadPromptBtn) loadPromptBtn.addEventListener('click', loadPromptPayload);
 		if (previewFocus) previewFocus.addEventListener('click', () => setActiveTab('quiz-preview'));
 		if (saveQuizBtn) saveQuizBtn.addEventListener('click', saveQuiz);
-		if (previewQuizBtn) previewQuizBtn.addEventListener('click', (e) => {
+		
+		if (previewChapterBtn) previewChapterBtn.addEventListener('click', (e) => {
 			e.preventDefault(); if (QB.startInteractiveQuizPreview) QB.startInteractiveQuizPreview();
 		});
+		if (previewBookBtn) previewBookBtn.addEventListener('click', (e) => {
+			e.preventDefault();
+			const chapter = currentChapter();
+			const quizId = chapter && chapter.quiz_id ? Number(chapter.quiz_id) : 0;
+			if (QB.startInteractiveFullBookQuizPreview) QB.startInteractiveFullBookQuizPreview(cfg, quizId);
+		});
+
 		const hideOverlay = () => { if (previewOverlay) previewOverlay.style.display = 'none'; };
 		if (closeBtn) closeBtn.addEventListener('click', hideOverlay);
 		if (closeBackdrop) closeBackdrop.addEventListener('click', hideOverlay);

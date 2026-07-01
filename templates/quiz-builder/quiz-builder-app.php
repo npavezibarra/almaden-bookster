@@ -166,7 +166,8 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 		<div class="almaden-quiz-header-actions">
 			<a href="<?php echo esc_url( $booklist_url ); ?>" class="almaden-btn almaden-btn--ghost">Volver al taller</a>
 			<a href="<?php echo esc_url( $book_editor_url ); ?>" class="almaden-btn almaden-btn--ghost">Editar contenido</a>
-			<a href="#" class="almaden-btn almaden-btn--ghost" id="almaden-preview-quiz-btn">Preview Quiz</a>
+			<a href="#" class="almaden-btn almaden-btn--ghost" id="almaden-preview-chapter-btn">Preview Chapter</a>
+			<a href="#" class="almaden-btn almaden-btn--ghost" id="almaden-preview-book-btn">Preview Full Book</a>
 			<?php if ( $saved_notice ) : ?>
 				<span class="almaden-chip almaden-chip--success">Saved</span>
 			<?php endif; ?>

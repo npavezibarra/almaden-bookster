@@ -183,5 +183,67 @@
 		}
 	}
 
+	function startCustomQuizPreview(customQuiz) {
+		const bookTitle = QB.getBookTitle ? QB.getBookTitle() : '';
+		const previewOverlay = QB.getEl ? QB.getEl('almaden-quiz-preview-overlay') : document.getElementById('almaden-quiz-preview-overlay');
+
+		if (!customQuiz || !Array.isArray(customQuiz.questions) || customQuiz.questions.length === 0) {
+			window.alert('No hay preguntas en el quiz completo para previsualizar.');
+			return;
+		}
+
+		interactiveState = {
+			index: -1,
+			questions: clone(customQuiz.questions),
+			title: customQuiz.quiz_title || bookTitle,
+			answers: {}
+		};
+
+		if (previewOverlay) {
+			previewOverlay.style.display = 'flex';
+		}
+
+		renderInteractiveQuizStep();
+	}
+
+	function startInteractiveFullBookQuizPreview(cfg, quizId) {
+		const previewOverlay = QB.getEl ? QB.getEl('almaden-quiz-preview-overlay') : document.getElementById('almaden-quiz-preview-overlay');
+		const previewBody = QB.getEl ? QB.getEl('almaden-quiz-preview-body') : document.getElementById('almaden-quiz-preview-body');
+
+		if (!quizId) return;
+
+		if (previewOverlay) previewOverlay.style.display = 'flex';
+		if (previewBody) {
+			previewBody.innerHTML = '<div style="padding: 40px; text-align: center; font-weight: 500; font-family: \'Urbanist\', sans-serif;">Cargando quiz completo...</div>';
+		}
+
+		const formData = new FormData();
+		formData.append('action', 'almaden_get_quiz_data');
+		formData.append('quiz_id', quizId);
+
+		fetch(cfg.homeUrl + 'wp-admin/admin-ajax.php', {
+			method: 'POST',
+			body: formData
+		})
+		.then(res => res.json())
+		.then(res => {
+			if (res.success && res.data.quiz && Array.isArray(res.data.quiz.questions) && res.data.quiz.questions.length > 0) {
+				const quiz = res.data.quiz;
+				startCustomQuizPreview(quiz);
+			} else {
+				if (previewBody) {
+					previewBody.innerHTML = '<div style="padding: 40px; text-align: center; color: #dc2626; font-weight: 600; font-family: \'Urbanist\', sans-serif;">No hay preguntas guardadas en el quiz completo de este libro.</div>';
+				}
+			}
+		})
+		.catch(() => {
+			if (previewBody) {
+				previewBody.innerHTML = '<div style="padding: 40px; text-align: center; color: #dc2626; font-weight: 600; font-family: \'Urbanist\', sans-serif;">Error de red al cargar el quiz completo.</div>';
+			}
+		});
+	}
+
 	QB.startInteractiveQuizPreview = startInteractiveQuizPreview;
+	QB.startCustomQuizPreview = startCustomQuizPreview;
+	QB.startInteractiveFullBookQuizPreview = startInteractiveFullBookQuizPreview;
 })();
