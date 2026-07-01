@@ -145,6 +145,7 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 			'chapters' => $chapter_items,
 			'initialActiveChapterIndex' => $active_chapter_index,
 			'initialQuizData' => $active_quiz_data,
+			'quizFlowSettings' => almaden_bookster_learni_get_quiz_flow_settings( $book_id ),
 		) ); ?>;
 	</script>
 	<script src="<?php echo esc_url( $quiz_builder_parser_js ); ?>?v=<?php echo esc_attr( (string) filemtime( dirname( __DIR__, 2 ) . '/assets/js/quiz-builder/quiz-builder-parser.js' ) ); ?>" defer></script>

@@ -170,7 +170,45 @@ function almaden_bookster_render_learni_integration_page() {
 					<button type="submit" class="button button-primary">Guardar cambios</button>
 				</p>
 			</form>
-		</div>
 	</div>
 	<?php
 }
+
+function almaden_bookster_ajax_save_quiz_flow_settings() {
+	if ( ! is_user_logged_in() ) {
+		wp_send_json_error( __( 'Debes iniciar sesión.', 'almaden-bookster' ) );
+	}
+
+	$book_id = isset( $_POST['book_id'] ) ? absint( $_POST['book_id'] ) : 0;
+	if ( $book_id <= 0 ) {
+		wp_send_json_error( __( 'Libro inválido.', 'almaden-bookster' ) );
+	}
+
+	if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'edit_post', $book_id ) ) {
+		wp_send_json_error( __( 'No tienes permisos.', 'almaden-bookster' ) );
+	}
+
+	if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'almaden_save_book_quiz_' . $book_id ) ) {
+		wp_send_json_error( __( 'Verificación de seguridad fallida.', 'almaden-bookster' ) );
+	}
+
+	$settings = array(
+		'flow_mode'          => isset( $_POST['flow_mode'] ) ? sanitize_text_field( $_POST['flow_mode'] ) : 'every_chapter',
+		'interval_chapters'  => isset( $_POST['interval_chapters'] ) ? absint( $_POST['interval_chapters'] ) : 3,
+		'is_mandatory'       => isset( $_POST['is_mandatory'] ) ? absint( $_POST['is_mandatory'] ) : 0,
+		'passing_score'      => isset( $_POST['passing_score'] ) ? absint( $_POST['passing_score'] ) : 80,
+	);
+
+	$success = almaden_bookster_learni_set_quiz_flow_settings( $book_id, $settings );
+
+	if ( $success ) {
+		wp_send_json_success( array(
+			'message'  => __( 'Configuración de flujo de quizzes guardada con éxito.', 'almaden-bookster' ),
+			'settings' => almaden_bookster_learni_get_quiz_flow_settings( $book_id ),
+		) );
+	} else {
+		wp_send_json_error( __( 'Error al guardar la configuración.', 'almaden-bookster' ) );
+	}
+}
+add_action( 'wp_ajax_almaden_save_quiz_flow_settings', 'almaden_bookster_ajax_save_quiz_flow_settings' );
+

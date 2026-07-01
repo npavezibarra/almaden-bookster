@@ -52,6 +52,7 @@ if ( $chapters_query->have_posts() ) {
 			'subtitle_font_weight'     => get_post_meta( get_the_ID(), '_subtitle_font_weight', true ),
 			'subtitle_margin_top'      => get_post_meta( get_the_ID(), '_subtitle_margin_top', true ),
 			'subtitle_margin_bottom'   => get_post_meta( get_the_ID(), '_subtitle_margin_bottom', true ),
+			'quiz_id'                  => function_exists( 'almaden_bookster_learni_get_quiz_id_for_chapter' ) ? (int) almaden_bookster_learni_get_quiz_id_for_chapter( get_the_ID() ) : 0,
 		);
 		$page_counter++;
 	}
@@ -101,6 +102,7 @@ $book_data_json = wp_json_encode( array(
 	'productId' => $book_product_id,
 	'purchaseUrl' => $purchase_url,
 	'highlights' => $book_highlights,
+	'quizFlowSettings' => function_exists( 'almaden_bookster_learni_get_quiz_flow_settings' ) ? almaden_bookster_learni_get_quiz_flow_settings( $book_id ) : array(),
 ) );
 ?>
 <!DOCTYPE html>
