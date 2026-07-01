@@ -93,6 +93,7 @@ assets/js/
 *   **[reader-prefs.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/reader-prefs.js)**: Preferencias persistentes en LocalStorage (fuente, tamaño, tema).
 *   **[reader-styles.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/reader-styles.js)**: Generador e inyector de CSS dinámico para la experiencia aislada de lectura.
 *   **[reader-navigation.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/reader-navigation.js)**: Navegación por páginas físicas en modo "Flip" doble página o scroll continuo.
+*   **[reader-quizzes.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/reader-quizzes.js)**: Interceptor de navegación y reproductor interactivo de evaluaciones (quizzes) de Learni dentro del Ebook.
 
 ---
 

@@ -139,6 +139,7 @@ $book_data_json = wp_json_encode( array(
     <script src="https://cdn.jsdelivr.net/npm/markdown-it-footnote@3.0.3/dist/markdown-it-footnote.min.js"></script>
 
     <link rel="stylesheet" href="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/css/reader-app.css' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/css/reader-app.css' ); ?>">
+    <link rel="stylesheet" href="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/css/quiz-builder/quiz-builder-app.css' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/css/quiz-builder/quiz-builder-app.css' ); ?>">
     <style>
         
         /* User Requested Constraints */
@@ -321,11 +322,25 @@ $book_data_json = wp_json_encode( array(
         </div>
     </div>
 
+    <!-- Real Quiz Player Overlay -->
+    <div id="almaden-quiz-player-overlay" class="almaden-quiz-overlay" style="display: none; z-index: 9999;">
+        <div class="almaden-quiz-overlay-backdrop" id="almaden-quiz-player-close-backdrop"></div>
+        <div class="almaden-quiz-overlay-panel">
+            <div class="almaden-quiz-overlay-head">
+                <h3 class="almaden-quiz-overlay-title" id="almaden-quiz-player-title">Evaluación de Lectura</h3>
+                <button type="button" class="almaden-quiz-overlay-close" id="almaden-quiz-player-close-btn">&times;</button>
+            </div>
+            <div class="almaden-quiz-overlay-body learni-learner" id="almaden-quiz-player-body">
+            </div>
+        </div>
+    </div>
+
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-prefs.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-prefs.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-styles.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-styles.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/almaden-shortcodes.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/almaden-shortcodes.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-highlights.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-highlights.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-navigation.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-navigation.js' ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-quizzes.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-quizzes.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-app.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-app.js' ); ?>"></script>
     <?php else : ?>
         <div class="min-h-screen flex items-center justify-center bg-neutral-50 px-6 py-12">

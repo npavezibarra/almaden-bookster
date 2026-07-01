@@ -212,3 +212,19 @@ function almaden_bookster_ajax_save_quiz_flow_settings() {
 }
 add_action( 'wp_ajax_almaden_save_quiz_flow_settings', 'almaden_bookster_ajax_save_quiz_flow_settings' );
 
+function almaden_bookster_ajax_get_quiz_data() {
+	$quiz_id = isset( $_POST['quiz_id'] ) ? absint( $_POST['quiz_id'] ) : 0;
+	if ( $quiz_id <= 0 ) {
+		wp_send_json_error( __( 'ID de quiz inválido.', 'almaden-bookster' ) );
+	}
+
+	$quiz_data = almaden_bookster_learni_get_quiz_data_by_quiz_id( $quiz_id );
+	if ( $quiz_data ) {
+		wp_send_json_success( array( 'quiz' => $quiz_data ) );
+	} else {
+		wp_send_json_error( __( 'No se pudo obtener la información del quiz.', 'almaden-bookster' ) );
+	}
+}
+add_action( 'wp_ajax_almaden_get_quiz_data', 'almaden_bookster_ajax_get_quiz_data' );
+add_action( 'wp_ajax_nopriv_almaden_get_quiz_data', 'almaden_bookster_ajax_get_quiz_data' );
+
