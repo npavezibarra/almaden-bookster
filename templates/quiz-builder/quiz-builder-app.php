@@ -231,8 +231,9 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 					<button type="button" class="almaden-tab" role="tab" aria-selected="false" data-tab-target="enter-prompt">Enter Prompt</button>
 					<button type="button" class="almaden-tab" role="tab" aria-selected="false" data-tab-target="quiz-preview">Quiz Preview</button>
 					<button type="button" class="almaden-tab" role="tab" aria-selected="false" data-tab-target="chapter-content">Chapter Content</button>
+					<button type="button" class="almaden-tab" role="tab" aria-selected="false" data-tab-target="quiz-settings">Quiz Setting</button>
 				</div>
-
+ 
 				<div class="almaden-tabpanels">
 					<section class="almaden-tabpanel is-active" data-tab-panel="prompt-settings" role="tabpanel">
 						<div class="almaden-card">
@@ -267,10 +268,13 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 									<button type="button" class="almaden-btn almaden-btn--dark" id="almaden-copy-active-prompt">Copy Prompt</button>
 									<p class="almaden-settings-note" style="margin: 0;">Estos controles ya se usan para construir el prompt al copiarlo (no se guardan aún en el backend).</p>
 								</div>
-								
-								<hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 28px 0 20px;">
-								<h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #1e293b; font-family: 'Urbanist', sans-serif;">Reglas del Quiz en el Ebook</h3>
-								
+							</div>
+						</div>
+					</section>
+
+					<section class="almaden-tabpanel" data-tab-panel="quiz-settings" role="tabpanel">
+						<div class="almaden-card">
+							<div class="almaden-card-body">
 								<div class="almaden-grid almaden-grid--settings">
 									<div class="almaden-field">
 										<label for="almaden-flow-mode">Modo de distribución</label>
