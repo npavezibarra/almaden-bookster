@@ -23,6 +23,10 @@
 	const saveQuizPayloadField = $('almaden-quiz-payload-json');
 	const quizIdField = $('almaden-quiz-id');
 	const previewQuizBtn = $('almaden-preview-quiz-btn');
+	const previewOverlay = $('almaden-quiz-preview-overlay');
+	const previewIframe = $('almaden-quiz-preview-iframe');
+	const closeBackdrop = $('almaden-quiz-preview-close-backdrop');
+	const closeBtn = $('almaden-quiz-preview-close-btn');
 	const questionCountField = $('almaden-setting-question-count');
 	const alternativesCountField = $('almaden-setting-alternatives-count');
 	const difficultyField = $('almaden-setting-difficulty');
@@ -80,11 +84,11 @@
 		if (quizIdField) quizIdField.value = chapter.quiz_id ? String(chapter.quiz_id) : '0';
 		if (previewQuizBtn) {
 			if (chapter.quiz_id && Number(chapter.quiz_id) > 0) {
-				previewQuizBtn.style.display = '';
-				previewQuizBtn.href = (cfg.homeUrl || '/') + '?p=' + chapter.quiz_id;
+				previewQuizBtn.classList.remove('is-disabled');
+				previewQuizBtn.removeAttribute('title');
 			} else {
-				previewQuizBtn.style.display = 'none';
-				previewQuizBtn.href = '#';
+				previewQuizBtn.classList.add('is-disabled');
+				previewQuizBtn.setAttribute('title', 'Por favor, guarda el quiz primero para poder previsualizarlo.');
 			}
 		}
 	}
@@ -430,6 +434,30 @@
 		if (loadPromptBtn) loadPromptBtn.addEventListener('click', loadPromptPayload);
 		if (previewFocus) previewFocus.addEventListener('click', () => setActiveTab('quiz-preview'));
 		if (saveQuizBtn) saveQuizBtn.addEventListener('click', saveQuiz);
+		if (previewQuizBtn) {
+			previewQuizBtn.addEventListener('click', (event) => {
+				event.preventDefault();
+				const chapter = currentChapter();
+				if (chapter && chapter.quiz_id && Number(chapter.quiz_id) > 0) {
+					const url = (cfg.homeUrl || '/') + '?p=' + chapter.quiz_id;
+					if (previewIframe) previewIframe.src = url;
+					if (previewOverlay) previewOverlay.style.display = 'flex';
+				} else {
+					window.alert('Por favor, guarda el quiz primero para poder previsualizarlo.');
+				}
+			});
+		}
+		const hidePreviewOverlay = () => {
+			if (previewOverlay) previewOverlay.style.display = 'none';
+			if (previewIframe) previewIframe.src = 'about:blank';
+		};
+		if (closeBtn) closeBtn.addEventListener('click', hidePreviewOverlay);
+		if (closeBackdrop) closeBackdrop.addEventListener('click', hidePreviewOverlay);
+		window.addEventListener('keydown', (event) => {
+			if (event.key === 'Escape') {
+				hidePreviewOverlay();
+			}
+		});
 	}
 	if (loadedQuiz) {
 		loadedQuiz = normalizeQuizPayload(loadedQuiz) || loadedQuiz;

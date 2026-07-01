@@ -154,7 +154,7 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 		<div class="almaden-quiz-header-actions">
 			<a href="<?php echo esc_url( $booklist_url ); ?>" class="almaden-btn almaden-btn--ghost">Volver al taller</a>
 			<a href="<?php echo esc_url( $book_editor_url ); ?>" class="almaden-btn almaden-btn--ghost">Editar contenido</a>
-			<a href="#" target="_blank" class="almaden-btn almaden-btn--ghost" id="almaden-preview-quiz-btn" style="display: none;">Preview Quiz</a>
+			<a href="#" class="almaden-btn almaden-btn--ghost" id="almaden-preview-quiz-btn">Preview Quiz</a>
 			<?php if ( $saved_notice ) : ?>
 				<span class="almaden-chip almaden-chip--success">Saved</span>
 			<?php endif; ?>
@@ -306,6 +306,19 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 		<input type="hidden" name="quiz_payload_json" id="almaden-quiz-payload-json" value="">
 		<?php wp_nonce_field( 'almaden_save_book_quiz_' . $book_id ); ?>
 	</form>
+	<!-- Overlay para Previsualización de Quiz -->
+	<div id="almaden-quiz-preview-overlay" class="almaden-quiz-overlay" style="display: none;">
+		<div class="almaden-quiz-overlay-backdrop" id="almaden-quiz-preview-close-backdrop"></div>
+		<div class="almaden-quiz-overlay-panel">
+			<div class="almaden-quiz-overlay-head">
+				<h3 class="almaden-quiz-overlay-title">Preview Quiz</h3>
+				<button type="button" class="almaden-quiz-overlay-close" id="almaden-quiz-preview-close-btn">&times;</button>
+			</div>
+			<div class="almaden-quiz-overlay-body">
+				<iframe id="almaden-quiz-preview-iframe" src="about:blank"></iframe>
+			</div>
+		</div>
+	</div>
 </div>
 <?php wp_footer(); ?>
 </body>
