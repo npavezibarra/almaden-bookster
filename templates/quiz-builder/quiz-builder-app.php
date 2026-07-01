@@ -29,6 +29,9 @@ $book_editor_url      = home_url( '/almaden-book-editor/?book_id=' . $book_id );
 $booklist_url         = home_url( '/almaden-booklist/' );
 $plugin_file          = dirname( __DIR__, 2 ) . '/almaden-bookster.php';
 $quiz_builder_css     = plugins_url( 'assets/css/quiz-builder/quiz-builder-app.css', $plugin_file );
+$quiz_builder_parser_js = plugins_url( 'assets/js/quiz-builder/quiz-builder-parser.js', $plugin_file );
+$quiz_builder_editor_js = plugins_url( 'assets/js/quiz-builder/quiz-builder-editor.js', $plugin_file );
+$quiz_builder_preview_js = plugins_url( 'assets/js/quiz-builder/quiz-builder-preview.js', $plugin_file );
 $quiz_builder_js      = plugins_url( 'assets/js/quiz-builder/quiz-builder-app.js', $plugin_file );
 
 $quiz_settings = array(
@@ -144,6 +147,9 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 			'initialQuizData' => $active_quiz_data,
 		) ); ?>;
 	</script>
+	<script src="<?php echo esc_url( $quiz_builder_parser_js ); ?>?v=<?php echo esc_attr( (string) filemtime( dirname( __DIR__, 2 ) . '/assets/js/quiz-builder/quiz-builder-parser.js' ) ); ?>" defer></script>
+	<script src="<?php echo esc_url( $quiz_builder_editor_js ); ?>?v=<?php echo esc_attr( (string) filemtime( dirname( __DIR__, 2 ) . '/assets/js/quiz-builder/quiz-builder-editor.js' ) ); ?>" defer></script>
+	<script src="<?php echo esc_url( $quiz_builder_preview_js ); ?>?v=<?php echo esc_attr( (string) filemtime( dirname( __DIR__, 2 ) . '/assets/js/quiz-builder/quiz-builder-preview.js' ) ); ?>" defer></script>
 	<script src="<?php echo esc_url( $quiz_builder_js ); ?>?v=<?php echo esc_attr( (string) filemtime( dirname( __DIR__, 2 ) . '/assets/js/quiz-builder/quiz-builder-app.js' ) ); ?>" defer></script>
 	<?php wp_head(); ?>
 </head>
