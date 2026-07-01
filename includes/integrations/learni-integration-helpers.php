@@ -219,6 +219,8 @@ function almaden_bookster_learni_get_quiz_flow_settings( $book_id ) {
 		'interval_chapters'  => 3,
 		'is_mandatory'       => 0,
 		'passing_score'      => 80,
+		'question_order'     => 'ordered',       // ordered, random
+		'answer_order'       => 'ordered',       // ordered, random
 	);
 
 	$saved = get_post_meta( $book_id, '_almaden_quiz_flow_settings', true );
@@ -245,6 +247,8 @@ function almaden_bookster_learni_set_quiz_flow_settings( $book_id, $settings ) {
 		'interval_chapters'  => max( 1, absint( $settings['interval_chapters'] ?? 3 ) ),
 		'is_mandatory'       => ! empty( $settings['is_mandatory'] ) ? 1 : 0,
 		'passing_score'      => min( 100, max( 0, absint( $settings['passing_score'] ?? 80 ) ) ),
+		'question_order'     => in_array( $settings['question_order'] ?? '', array( 'ordered', 'random' ), true ) ? $settings['question_order'] : 'ordered',
+		'answer_order'       => in_array( $settings['answer_order'] ?? '', array( 'ordered', 'random' ), true ) ? $settings['answer_order'] : 'ordered',
 	);
 
 	return update_post_meta( $book_id, '_almaden_quiz_flow_settings', wp_slash( wp_json_encode( $sanitized ) ) );

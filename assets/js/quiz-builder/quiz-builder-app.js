@@ -415,6 +415,10 @@
 		if (flowMandatory) flowMandatory.value = flowSettings.is_mandatory ? '1' : '0';
 		if (flowPassingScore) flowPassingScore.value = flowSettings.passing_score || 80;
 
+		const flowQOrder = $('almaden-flow-question-order'), flowAOrder = $('almaden-flow-answer-order');
+		if (flowQOrder) flowQOrder.value = flowSettings.question_order || 'ordered';
+		if (flowAOrder) flowAOrder.value = flowSettings.answer_order || 'ordered';
+
 		const toggleInterval = () => {
 			if (flowIntervalCont) flowIntervalCont.style.display = flowMode.value === 'interval' ? 'block' : 'none';
 		};
@@ -436,6 +440,8 @@
 				formData.append('interval_chapters', flowInterval ? flowInterval.value : 3);
 				formData.append('is_mandatory', flowMandatory ? flowMandatory.value : 0);
 				formData.append('passing_score', flowPassingScore ? flowPassingScore.value : 80);
+				formData.append('question_order', flowQOrder ? flowQOrder.value : 'ordered');
+				formData.append('answer_order', flowAOrder ? flowAOrder.value : 'ordered');
 
 				const saveForm = $('almaden-book-quiz-save-form');
 				let nonce = '';

@@ -197,6 +197,8 @@ function almaden_bookster_ajax_save_quiz_flow_settings() {
 		'interval_chapters'  => isset( $_POST['interval_chapters'] ) ? absint( $_POST['interval_chapters'] ) : 3,
 		'is_mandatory'       => isset( $_POST['is_mandatory'] ) ? absint( $_POST['is_mandatory'] ) : 0,
 		'passing_score'      => isset( $_POST['passing_score'] ) ? absint( $_POST['passing_score'] ) : 80,
+		'question_order'     => isset( $_POST['question_order'] ) ? sanitize_text_field( $_POST['question_order'] ) : 'ordered',
+		'answer_order'       => isset( $_POST['answer_order'] ) ? sanitize_text_field( $_POST['answer_order'] ) : 'ordered',
 	);
 
 	$success = almaden_bookster_learni_set_quiz_flow_settings( $book_id, $settings );

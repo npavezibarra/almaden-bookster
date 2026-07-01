@@ -118,8 +118,18 @@
         onSuccess: null
     };
 
+    function shuffleArray(array) {
+        const arr = array.slice();
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            const temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
+        }
+        return arr;
+    }
+
     function startQuizPlayer(quizId, chapterTitle, onSuccess) {
-        // Fetch quiz data via AJAX
         const overlay = document.getElementById('almaden-quiz-player-overlay');
         const body = document.getElementById('almaden-quiz-player-body');
         if (!overlay || !body) return;
@@ -139,9 +149,20 @@
         .then(res => {
             if (res.success && res.data.quiz && Array.isArray(res.data.quiz.questions) && res.data.quiz.questions.length > 0) {
                 const quiz = res.data.quiz;
+                let loadedQuestions = quiz.questions;
+                if (flowSettings.question_order === 'random') {
+                    loadedQuestions = shuffleArray(loadedQuestions);
+                }
+                if (flowSettings.answer_order === 'random') {
+                    loadedQuestions.forEach(q => {
+                        if (Array.isArray(q.answers)) {
+                            q.answers = shuffleArray(q.answers);
+                        }
+                    });
+                }
                 playerState = {
                     index: -1,
-                    questions: quiz.questions,
+                    questions: loadedQuestions,
                     title: quiz.quiz_title || chapterTitle,
                     answers: {},
                     quizId: quizId,

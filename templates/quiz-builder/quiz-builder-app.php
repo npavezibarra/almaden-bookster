@@ -299,6 +299,20 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 										<label for="almaden-flow-passing-score">Aprobación mínima (%)</label>
 										<input id="almaden-flow-passing-score" type="number" min="0" max="100" value="80">
 									</div>
+									<div class="almaden-field">
+										<label for="almaden-flow-question-order">Orden de Preguntas</label>
+										<select id="almaden-flow-question-order">
+											<option value="ordered">Secuencial / Ordenado</option>
+											<option value="random">Aleatorio (Random)</option>
+										</select>
+									</div>
+									<div class="almaden-field">
+										<label for="almaden-flow-answer-order">Orden de Respuestas</label>
+										<select id="almaden-flow-answer-order">
+											<option value="ordered">Original / Ordenado</option>
+											<option value="random">Aleatorio (Random)</option>
+										</select>
+									</div>
 								</div>
 								
 								<div class="almaden-prompt-actions" style="margin-top: 20px; display: flex; align-items: center; gap: 16px;">
