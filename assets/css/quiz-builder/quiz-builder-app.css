@@ -142,17 +142,17 @@ a {
 }
 
 /* Reorganized Cards (Clean Minimalist Containers, No heavy shadow depths) */
-.almaden-sidebar-card, 
+.almaden-sidebar-card {
+	border: none;
+	background: transparent;
+}
+
 .almaden-workspace-card {
 	background: #ffffff;
 	border: 1px solid var(--qb-line);
 	border-radius: 12px;
 	overflow: hidden;
-}
-
-.almaden-sidebar-card {
-	border: none;
-	background: transparent;
+	max-width: 1000px;
 }
 
 .almaden-sidebar-card-head, 
