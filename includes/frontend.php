@@ -10,6 +10,7 @@ function almaden_bookster_create_page() {
 	$pages_to_create = [
 		'almaden-booklist' => 'Taller',
 		'bookshelf'        => 'Bookshelf',
+		'almaden-book-quiz' => 'Book Quiz',
 	];
 
 	foreach ( $pages_to_create as $page_slug => $page_title ) {
@@ -68,6 +69,22 @@ function almaden_bookster_load_bookshelf() {
 	}
 }
 add_action( 'template_redirect', 'almaden_bookster_load_bookshelf', 5 );
+
+// 3b. Interceptar la página almaden-book-quiz para cargar el builder de quizzes
+function almaden_bookster_load_quiz_builder() {
+	if ( is_page( 'almaden-book-quiz' ) && is_main_query() ) {
+		show_admin_bar( false );
+
+		$template_path = dirname( __FILE__ ) . '/../templates/quiz-builder/quiz-builder-app.php';
+		if ( file_exists( $template_path ) ) {
+			require_once $template_path;
+			exit;
+		} else {
+			wp_die( 'Plantilla del creador de quizzes no encontrada.' );
+		}
+	}
+}
+add_action( 'template_redirect', 'almaden_bookster_load_quiz_builder', 5 );
 
 // 4. Interceptar la vista individual de un libro publicado para cargar el Reader App
 function almaden_bookster_load_reader( $template ) {

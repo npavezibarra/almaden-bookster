@@ -102,4 +102,4 @@ add_filter( 'the_content', 'almaden_render_mi_pagina' );
 * **NO** debe cargar frameworks masivos como Tailwind CDN genérico en el frontend público a menos que esté estrictamente segmentado (preflight desactivado o prefijado), ya que reseteará los estilos globales del tema del usuario.
 
 ### Excepciones: Aplicaciones de Escritorio / Dashboards Internos
-Para páginas que actúan como aplicaciones web *standalone* (como el editor visual `Almaden Booklist` o `Almaden Book Editor`), **SÍ** se usa la técnica de `template_redirect` para omitir por completo el tema de WordPress (`exit;` después de cargar el template) y renderizar un entorno HTML limpio desde cero con Tailwind.
+Para páginas que actúan como aplicaciones web completas (como el editor visual `Almaden Booklist` o `Almaden Book Editor`), **SÍ** se usa la técnica de `template_redirect` para omitir por completo el tema de WordPress (`exit;` después de cargar el template) y renderizar un entorno HTML limpio desde cero con Tailwind.

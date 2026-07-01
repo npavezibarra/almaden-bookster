@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // --- Módulos de Google Fonts (Admin) ---
 require_once plugin_dir_path( __FILE__ ) . 'includes/admin-fonts.php';
 require_once plugin_dir_path( __FILE__ ) . 'admin/admin-fonts-page.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/learni-integration.php';
 
 // Modulos CPT
 require_once plugin_dir_path( __FILE__ ) . 'includes/cpt.php';

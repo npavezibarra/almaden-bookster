@@ -230,6 +230,13 @@ $book_imported_error = isset( $_GET['book_imported_error'] ) ? sanitize_text_fie
                     $cover_thumbnail_html = almaden_get_cover_thumbnail_html( get_the_ID() );
                     
                     $is_published = get_post_meta( get_the_ID(), '_almaden_is_published', true ) === '1';
+                    $can_manage_quiz = is_user_logged_in() && ( current_user_can( 'manage_options' ) || current_user_can( 'edit_post', get_the_ID() ) );
+                    $book_quiz_id = 0;
+                    $book_quiz_status_label = '';
+                    if ( $can_manage_quiz && function_exists( 'almaden_bookster_learni_integration_active' ) && almaden_bookster_learni_integration_active() ) {
+                        $book_quiz_id = function_exists( 'almaden_bookster_learni_get_quiz_id' ) ? (int) almaden_bookster_learni_get_quiz_id( get_the_ID() ) : 0;
+                        $book_quiz_status_label = $book_quiz_id > 0 ? 'Quiz vinculado' : 'Sin quiz';
+                    }
                     ?>
                     <div id="book-card-<?php echo get_the_ID(); ?>" class="book-card bg-white overflow-hidden border border-gray-200 rounded-xl flex flex-col sm:flex-row h-full group relative">
                         <div id="book-cover-<?php echo get_the_ID(); ?>" class="w-full sm:w-2/5 flex-shrink-0 border-b sm:border-b-0 sm:border-r border-gray-200 bg-gray-50 flex items-center justify-center">
@@ -330,6 +337,11 @@ $book_imported_error = isset( $_GET['book_imported_error'] ) ? sanitize_text_fie
                                             <span class="text-sm font-bold"><?php echo $chapter_count; ?></span>
                                             <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-500">cap.</span>
                                         </div>
+                                        <?php if ( $book_quiz_status_label !== '' ) : ?>
+                                            <div class="inline-flex items-baseline gap-1 px-2.5 py-1 rounded-full <?php echo $book_quiz_id > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'; ?> leading-none">
+                                                <span class="text-[10px] font-semibold uppercase tracking-wider"><?php echo esc_html( $book_quiz_status_label ); ?></span>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
  
@@ -340,6 +352,11 @@ $book_imported_error = isset( $_GET['book_imported_error'] ) ? sanitize_text_fie
                                     <a href="<?php echo esc_url( home_url( '/almaden-book-cover/?book_id=' . get_the_ID() ) ); ?>" id="btn-edit-cover-<?php echo get_the_ID(); ?>" class="w-full inline-flex justify-center items-center py-2 px-3 bg-white text-gray-700 border border-gray-300 text-xs font-semibold rounded-md hover:bg-gray-50 transition-colors">
                                         EDIT BOOK COVER
                                     </a>
+                                    <?php if ( $can_manage_quiz && function_exists( 'almaden_bookster_learni_integration_active' ) && almaden_bookster_learni_integration_active() ) : ?>
+                                        <a href="<?php echo esc_url( home_url( '/almaden-book-quiz/?book_id=' . get_the_ID() ) ); ?>" id="btn-create-quiz-<?php echo get_the_ID(); ?>" class="w-full inline-flex justify-center items-center py-2 px-3 <?php echo $book_quiz_id > 0 ? 'bg-slate-900' : 'bg-emerald-600'; ?> text-white text-xs font-semibold rounded-md <?php echo $book_quiz_id > 0 ? 'hover:bg-slate-800' : 'hover:bg-emerald-700'; ?> transition-colors shadow-sm">
+                                            <?php echo $book_quiz_id > 0 ? 'EDIT QUIZ' : 'CREATE QUIZ'; ?>
+                                        </a>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             
