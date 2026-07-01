@@ -192,9 +192,6 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 									<span class="almaden-question-count<?php echo (int) $chapter_item['question_count'] > 0 ? '' : ' is-empty'; ?>" data-chapter-count-label="<?php echo esc_attr( (string) $chapter_item['question_count'] ); ?>">
 										<?php echo (int) $chapter_item['question_count'] > 0 ? esc_html( (string) $chapter_item['question_count'] ) . ' ✓' : ''; ?>
 									</span>
-									<button type="button" class="almaden-chapter-copy" data-copy-chapter-index="<?php echo esc_attr( (string) $index ); ?>" title="Copy prompt" aria-label="Copy prompt">
-										<i class="fa-solid fa-copy"></i>
-									</button>
 								</div>
 							</div>
 						</div>
@@ -212,7 +209,6 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 						<p class="almaden-quiz-subtitle" id="almaden-active-chapter-caption">Chapter <?php echo esc_html( (string) $active_chapter['order'] ); ?> · <?php echo esc_html( $active_chapter['key'] ); ?></p>
 					</div>
 					<div class="almaden-workspace-actions">
-						<button type="button" class="almaden-btn almaden-btn--ghost" id="almaden-copy-active-prompt">Copy Prompt</button>
 						<button type="button" class="almaden-btn almaden-btn--dark" id="almaden-save-quiz">Save Quiz</button>
 					</div>
 				</div>
@@ -254,7 +250,10 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 										</select>
 									</div>
 								</div>
-								<p class="almaden-settings-note">Estos controles ya quedan listos para la siguiente fase. En esta base todavía no se guardan en backend, pero sí se usan para construir el prompt al copiarlo.</p>
+								<div class="almaden-prompt-actions" style="margin-top: 20px; display: flex; align-items: center; gap: 16px;">
+									<button type="button" class="almaden-btn almaden-btn--dark" id="almaden-copy-active-prompt">Copy Prompt</button>
+									<p class="almaden-settings-note" style="margin: 0;">Estos controles ya se usan para construir el prompt al copiarlo (no se guardan aún en el backend).</p>
+								</div>
 							</div>
 						</div>
 					</section>

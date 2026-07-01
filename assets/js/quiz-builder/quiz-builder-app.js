@@ -348,14 +348,6 @@
 		chapterList.addEventListener('click', (event) => {
 			const target = event.target;
 			if (!(target instanceof HTMLElement)) return;
-			const copyButton = target.closest('[data-copy-chapter-index]');
-			if (copyButton) {
-				event.stopPropagation();
-				const index = Number(copyButton.getAttribute('data-copy-chapter-index'));
-				const chapter = chapters[index];
-				if (chapter) copyText(chapterPrompt(chapter), copyButton);
-				return;
-			}
 			const item = target.closest('[data-chapter-index]');
 			if (!item) return;
 			activateChapter(Number(item.getAttribute('data-chapter-index')));
