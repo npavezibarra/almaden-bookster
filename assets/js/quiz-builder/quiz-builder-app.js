@@ -75,7 +75,7 @@
 		const chapter = currentChapter();
 		if (!chapter) return;
 		if (activeTitle) activeTitle.textContent = chapter.title || ('Chapter ' + (chapter.order || activeChapterIndex + 1));
-		if (activeCaption) activeCaption.textContent = 'Chapter ' + (chapter.order || activeChapterIndex + 1) + ' · ' + (chapter.key || '');
+		if (activeCaption) activeCaption.textContent = 'Chapter ' + (chapter.order || activeChapterIndex + 1);
 		if (chapterRaw) chapterRaw.textContent = chapter.content || 'Este capítulo no tiene contenido.';
 		if (quizIdField) quizIdField.value = chapter.quiz_id ? String(chapter.quiz_id) : '0';
 		if (previewQuizBtn) {

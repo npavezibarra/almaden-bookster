@@ -187,7 +187,7 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 							<div class="almaden-chapter-content">
 								<div>
 									<h3 class="almaden-chapter-title"><?php echo esc_html( $chapter_item['title'] !== '' ? $chapter_item['title'] : sprintf( 'Chapter %d', $chapter_item['order'] ) ); ?></h3>
-									<p class="almaden-chapter-subtitle">Chapter <?php echo esc_html( (string) $chapter_item['order'] ); ?> · <?php echo esc_html( $chapter_item['key'] ); ?></p>
+									<p class="almaden-chapter-subtitle">Chapter <?php echo esc_html( (string) $chapter_item['order'] ); ?></p>
 								</div>
 								<div class="almaden-chapter-meta">
 									<span class="almaden-question-count<?php echo (int) $chapter_item['question_count'] > 0 ? '' : ' is-empty'; ?>" data-chapter-count-label="<?php echo esc_attr( (string) $chapter_item['question_count'] ); ?>">
@@ -207,7 +207,7 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 					<div>
 						<p class="almaden-workspace-label">Quiz workspace</p>
 						<h2 class="almaden-workspace-title" id="almaden-active-chapter-title"><?php echo esc_html( $active_chapter['title'] ); ?></h2>
-						<p class="almaden-quiz-subtitle" id="almaden-active-chapter-caption">Chapter <?php echo esc_html( (string) $active_chapter['order'] ); ?> · <?php echo esc_html( $active_chapter['key'] ); ?></p>
+						<p class="almaden-quiz-subtitle" id="almaden-active-chapter-caption">Chapter <?php echo esc_html( (string) $active_chapter['order'] ); ?></p>
 					</div>
 					<div class="almaden-workspace-actions">
 						<button type="button" class="almaden-btn almaden-btn--dark" id="almaden-save-quiz">Save Quiz</button>
