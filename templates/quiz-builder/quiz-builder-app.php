@@ -133,6 +133,7 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 			'bookTitle' => $book_title,
 			'bookEditorUrl' => $book_editor_url,
 			'booklistUrl' => $booklist_url,
+			'homeUrl' => home_url( '/' ),
 			'chapters' => $chapter_items,
 			'initialActiveChapterIndex' => $active_chapter_index,
 			'initialQuizData' => $active_quiz_data,
@@ -151,14 +152,12 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 			<p class="almaden-quiz-subtitle">Diseño base del nuevo editor de quizzes para este libro.</p>
 		</div>
 		<div class="almaden-quiz-header-actions">
-			<a href="<?php echo esc_url( $booklist_url ); ?>" class="almaden-chip almaden-chip--ghost">Volver al taller</a>
-			<a href="<?php echo esc_url( $book_editor_url ); ?>" class="almaden-chip">Editar contenido</a>
+			<a href="<?php echo esc_url( $booklist_url ); ?>" class="almaden-btn almaden-btn--ghost">Volver al taller</a>
+			<a href="<?php echo esc_url( $book_editor_url ); ?>" class="almaden-btn almaden-btn--ghost">Editar contenido</a>
+			<a href="#" target="_blank" class="almaden-btn almaden-btn--ghost" id="almaden-preview-quiz-btn" style="display: none;">Preview Quiz</a>
 			<?php if ( $saved_notice ) : ?>
 				<span class="almaden-chip almaden-chip--success">Saved</span>
 			<?php endif; ?>
-			<span class="almaden-chip almaden-chip--success">Learni ready</span>
-			<span class="almaden-chip">Book ID <?php echo esc_html( (string) $book_id ); ?></span>
-			<span class="almaden-chip" id="almaden-active-quiz-chip">Quiz ID <?php echo esc_html( $active_quiz_id > 0 ? (string) $active_quiz_id : '0' ); ?></span>
 		</div>
 	</header>
 

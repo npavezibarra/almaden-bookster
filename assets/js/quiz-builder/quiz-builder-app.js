@@ -22,7 +22,7 @@
 	const saveQuizForm = $('almaden-book-quiz-save-form');
 	const saveQuizPayloadField = $('almaden-quiz-payload-json');
 	const quizIdField = $('almaden-quiz-id');
-	const activeQuizChip = $('almaden-active-quiz-chip');
+	const previewQuizBtn = $('almaden-preview-quiz-btn');
 	const questionCountField = $('almaden-setting-question-count');
 	const alternativesCountField = $('almaden-setting-alternatives-count');
 	const difficultyField = $('almaden-setting-difficulty');
@@ -78,7 +78,15 @@
 		if (activeCaption) activeCaption.textContent = 'Chapter ' + (chapter.order || activeChapterIndex + 1) + ' · ' + (chapter.key || '');
 		if (chapterRaw) chapterRaw.textContent = chapter.content || 'Este capítulo no tiene contenido.';
 		if (quizIdField) quizIdField.value = chapter.quiz_id ? String(chapter.quiz_id) : '0';
-		if (activeQuizChip) activeQuizChip.textContent = 'Quiz ID ' + (chapter.quiz_id ? String(chapter.quiz_id) : '0');
+		if (previewQuizBtn) {
+			if (chapter.quiz_id && Number(chapter.quiz_id) > 0) {
+				previewQuizBtn.style.display = '';
+				previewQuizBtn.href = (cfg.homeUrl || '/') + '?p=' + chapter.quiz_id;
+			} else {
+				previewQuizBtn.style.display = 'none';
+				previewQuizBtn.href = '#';
+			}
+		}
 	}
 	function activateChapter(index) {
 		if (!chapters[index]) return;
