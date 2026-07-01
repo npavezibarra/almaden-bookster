@@ -267,10 +267,15 @@ $book_data_json = wp_json_encode( array(
                 <!-- Markdown content will be rendered here -->
             </div>
             
-            <div id="chapter-footer-nav" class="max-w-[700px] mx-auto mt-20 pt-8 pb-12 border-t border-gray-100 flex justify-between">
+            <div id="chapter-footer-nav" class="max-w-[700px] mx-auto mt-20 pt-8 pb-12 border-t border-gray-100 flex items-center justify-between">
                 <button id="btn-prev-chapter" onclick="goToPrevChapter()" class="text-gray-500 hover:text-black flex items-center hidden font-medium transition-colors">
                     <i class="fa-solid fa-arrow-left mr-2"></i> Anterior
                 </button>
+                
+                <button id="btn-take-quiz" class="mx-auto hidden px-6 py-2.5 rounded-full bg-black hover:bg-gray-800 text-white font-semibold text-sm transition-all shadow-sm hover:shadow flex items-center gap-2">
+                    <i class="fa-solid fa-circle-question"></i> Tomar Quiz
+                </button>
+                
                 <button id="btn-next-chapter" onclick="goToNextChapter()" class="text-gray-500 hover:text-black flex items-center ml-auto hidden font-medium transition-colors">
                     Siguiente <i class="fa-solid fa-arrow-right ml-2"></i>
                 </button>

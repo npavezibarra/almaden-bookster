@@ -33,7 +33,9 @@
     const originalShowChapterView = window.showChapterView;
     window.showChapterView = function (index) {
         if (!flowSettings.is_mandatory) {
-            return originalShowChapterView(index);
+            originalShowChapterView(index);
+            updateTakeQuizButton(index);
+            return;
         }
 
         // We are jumping to a chapter at index. Let's see if there are any unpassed quizzes in the chapters prior to this index.
@@ -41,13 +43,14 @@
         if (unpassedQuizChapter) {
             alert('Debes aprobar la evaluación de lectura antes de avanzar a este capítulo.');
             startQuizPlayer(unpassedQuizChapter.quiz_id, unpassedQuizChapter.title, () => {
-                // Callback on pass: retry showing the target chapter!
                 originalShowChapterView(index);
+                updateTakeQuizButton(index);
             });
             return;
         }
 
         originalShowChapterView(index);
+        updateTakeQuizButton(index);
     };
 
     // Intercept goToNextChapter
@@ -346,6 +349,50 @@
         }
     }
 
+    function updateTakeQuizButton(index) {
+        const btn = document.getElementById('btn-take-quiz');
+        if (!btn) return;
+
+        const ch = chapters[index];
+        if (!ch || ch.is_toc === '1' || ch.is_credits === '1') {
+            btn.classList.add('hidden');
+            return;
+        }
+
+        const quizId = parseInt(ch.quiz_id, 10);
+        if (quizId <= 0) {
+            btn.classList.add('hidden');
+            return;
+        }
+
+        // Check if this matches flow_mode requirements.
+        if (flowSettings.flow_mode === 'interval') {
+            const chNumber = chapters.filter(c => c.is_toc !== '1' && c.is_credits !== '1' && chapters.indexOf(c) <= index).length;
+            const interval = parseInt(flowSettings.interval_chapters, 10) || 3;
+            if (chNumber % interval !== 0 && index !== chapters.length - 1) {
+                btn.classList.add('hidden');
+                return;
+            }
+        }
+
+        btn.classList.remove('hidden');
+
+        const approved = approvedQuizzes.includes(quizId);
+        if (approved) {
+            btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Quiz Aprobado';
+            btn.className = "mx-auto px-6 py-2.5 rounded-full bg-green-50 text-green-700 border border-green-200 font-semibold text-sm flex items-center gap-2 cursor-pointer transition-all";
+        } else {
+            btn.innerHTML = '<i class="fa-solid fa-circle-question"></i> Tomar Quiz';
+            btn.className = "mx-auto px-6 py-2.5 rounded-full bg-black hover:bg-gray-800 text-white font-semibold text-sm flex items-center gap-2 cursor-pointer transition-all";
+        }
+
+        btn.onclick = () => {
+            startQuizPlayer(quizId, ch.title, () => {
+                updateTakeQuizButton(index);
+            });
+        };
+    }
+
     // Modal close hooks
     const closeBtn = document.getElementById('almaden-quiz-player-close-btn');
     const closeBackdrop = document.getElementById('almaden-quiz-player-close-backdrop');
@@ -357,5 +404,12 @@
     if (closeBackdrop) closeBackdrop.onclick = hidePlayer;
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') hidePlayer();
+    });
+
+    // Run on initial load when page renders
+    window.addEventListener('load', () => {
+        if (typeof currentChapterIndex !== 'undefined' && currentChapterIndex >= 0) {
+            updateTakeQuizButton(currentChapterIndex);
+        }
     });
 })();
