@@ -379,7 +379,7 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 				<h3 class="almaden-quiz-overlay-title">Preview Quiz</h3>
 				<button type="button" class="almaden-quiz-overlay-close" id="almaden-quiz-preview-close-btn">&times;</button>
 			</div>
-			<div class="almaden-quiz-overlay-body learni-learner" id="almaden-quiz-preview-body">
+			<div class="almaden-quiz-overlay-body" id="almaden-quiz-preview-body">
 			</div>
 		</div>
 	</div>

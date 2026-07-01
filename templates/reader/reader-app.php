@@ -339,7 +339,7 @@ $book_data_json = wp_json_encode( array(
                 <h3 class="almaden-quiz-overlay-title" id="almaden-quiz-player-title">Evaluación de Lectura</h3>
                 <button type="button" class="almaden-quiz-overlay-close" id="almaden-quiz-player-close-btn">&times;</button>
             </div>
-            <div class="almaden-quiz-overlay-body learni-learner" id="almaden-quiz-player-body">
+            <div class="almaden-quiz-overlay-body" id="almaden-quiz-player-body">
             </div>
         </div>
     </div>
