@@ -51,12 +51,14 @@ $chapter_posts = get_posts(
 );
 
 $chapter_items = array();
+$content_chapter_counter = 1;
 foreach ( $chapter_posts as $index => $chapter ) {
 	if ( '1' === (string) get_post_meta( $chapter->ID, '_is_toc', true ) || '1' === (string) get_post_meta( $chapter->ID, '_is_credits', true ) ) {
 		continue;
 	}
 
-	$chapter_number = (int) $chapter->menu_order > 0 ? (int) $chapter->menu_order : ( $index + 1 );
+	$chapter_number = $content_chapter_counter;
+	$content_chapter_counter++;
 	$chapter_key    = sanitize_title( 'chapter ' . $chapter_number );
 	$chapter_item   = array(
 		'id'             => (int) $chapter->ID,
