@@ -227,7 +227,6 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 				<div class="almaden-tabpanels">
 					<section class="almaden-tabpanel is-active" data-tab-panel="prompt-settings" role="tabpanel">
 						<div class="almaden-card">
-							<div class="almaden-card-head"><h3>Prompt Settings</h3></div>
 							<div class="almaden-card-body">
 								<div class="almaden-grid almaden-grid--settings">
 									<div class="almaden-field">
@@ -262,7 +261,6 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 
 					<section class="almaden-tabpanel" data-tab-panel="enter-prompt" role="tabpanel">
 						<div class="almaden-card">
-							<div class="almaden-card-head"><h3>Enter Prompt</h3></div>
 							<div class="almaden-card-body">
 								<div class="almaden-field">
 									<label for="almaden-prompt-input">Pega aquí el JSON o el resultado bruto del LLM</label>
@@ -278,7 +276,6 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 
 					<section class="almaden-tabpanel" data-tab-panel="quiz-preview" role="tabpanel">
 						<div class="almaden-card">
-							<div class="almaden-card-head"><h3>Quiz Preview</h3></div>
 							<div class="almaden-card-body">
 								<div class="almaden-slide-empty-state" id="almaden-preview-empty">Aquí se mostrará la vista previa del quiz cargado.</div>
 								<div class="almaden-preview-list" id="almaden-preview-list" hidden></div>
@@ -292,7 +289,6 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 
 					<section class="almaden-tabpanel" data-tab-panel="chapter-content" role="tabpanel">
 						<div class="almaden-card">
-							<div class="almaden-card-head"><h3>Chapter Content</h3></div>
 							<div class="almaden-card-body">
 								<div class="almaden-raw" id="almaden-chapter-raw"><?php echo esc_html( $active_chapter['content'] ); ?></div>
 							</div>
