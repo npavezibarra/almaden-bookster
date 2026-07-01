@@ -1,10 +1,16 @@
 (function () {
-    // 1. Load approved quizzes from localStorage for Phase 3 testing
-    let approvedQuizzes = [];
-    try {
-        approvedQuizzes = JSON.parse(localStorage.getItem('almaden_approved_quizzes') || '[]');
-    } catch (e) {
-        approvedQuizzes = [];
+    const cfg = window.bookData || {};
+    const flowSettings = cfg.quizFlowSettings || {};
+    const chapters = Array.isArray(cfg.chapters) ? cfg.chapters : [];
+
+    // Load approved quizzes from backend context first, fallback to localStorage
+    let approvedQuizzes = Array.isArray(cfg.approvedQuizzes) ? cfg.approvedQuizzes.map(Number) : [];
+    if (approvedQuizzes.length === 0) {
+        try {
+            approvedQuizzes = JSON.parse(localStorage.getItem('almaden_approved_quizzes') || '[]');
+        } catch (e) {
+            approvedQuizzes = [];
+        }
     }
 
     // Export helpers
@@ -15,16 +21,13 @@
             localStorage.setItem('almaden_approved_quizzes', '[]');
         },
         approveQuiz: (quizId) => {
-            if (!approvedQuizzes.includes(quizId)) {
-                approvedQuizzes.push(quizId);
+            const id = Number(quizId);
+            if (!approvedQuizzes.includes(id)) {
+                approvedQuizzes.push(id);
                 localStorage.setItem('almaden_approved_quizzes', JSON.stringify(approvedQuizzes));
             }
         }
     };
-
-    const cfg = window.bookData || {};
-    const flowSettings = cfg.quizFlowSettings || {};
-    const chapters = Array.isArray(cfg.chapters) ? cfg.chapters : [];
 
     // Intercept showChapterView
     const originalShowChapterView = window.showChapterView;
@@ -184,6 +187,8 @@
         }
 
         if (playerState.index >= playerState.questions.length) {
+            body.innerHTML = '<div style="padding: 40px; text-align: center; font-weight: 500;">Enviando respuestas y calificando...</div>';
+
             let correctCount = 0;
             playerState.questions.forEach((q, qIdx) => {
                 const selIdx = playerState.answers[qIdx];
@@ -192,56 +197,76 @@
                 }
             });
             const percent = Math.round((correctCount / playerState.questions.length) * 100);
-            const required = parseInt(flowSettings.passing_score, 10) || 80;
-            const passed = percent >= required;
 
-            if (passed) {
-                // Register approval
-                window.ALMADEN_READER_QUIZZES.approveQuiz(playerState.quizId);
-                
-                body.innerHTML = `
-                    <div class="learni-quiz-results">
-                        <div class="learni-quiz-results__kicker" style="color: #16a34a;">¡FELICITACIONES! APROBADO</div>
-                        <div class="learni-quiz-results__score" style="font-size: 48px; font-weight: 800; text-align: center; margin: 24px 0; color: #16a34a;">
-                            ${percent}%
-                        </div>
-                        <div class="learni-quiz-results__text" style="text-align: center; margin-bottom: 24px;">
-                            Respondiste correctamente <strong>${correctCount} de ${playerState.questions.length}</strong> preguntas.<br>Has desbloqueado las siguientes páginas.
-                        </div>
-                        <div class="learni-quiz-actions" style="justify-content: center;">
-                            <button type="button" class="learni-btn" id="almaden-player-quiz-close">Continuar Lectura</button>
-                        </div>
-                    </div>
-                `;
-                document.getElementById('almaden-player-quiz-close').onclick = () => {
-                    overlay.style.display = 'none';
-                    if (playerState.onSuccess) playerState.onSuccess();
-                };
-            } else {
-                body.innerHTML = `
-                    <div class="learni-quiz-results">
-                        <div class="learni-quiz-results__kicker" style="color: #dc2626;">EVALUACIÓN REPROBADA</div>
-                        <div class="learni-quiz-results__score" style="font-size: 48px; font-weight: 800; text-align: center; margin: 24px 0; color: #dc2626;">
-                            ${percent}%
-                        </div>
-                        <div class="learni-quiz-results__text" style="text-align: center; margin-bottom: 24px;">
-                            Obtuviste <strong>${correctCount} de ${playerState.questions.length}</strong> correctas. Necesitas un mínimo de <strong>${required}%</strong> para avanzar.
-                        </div>
-                        <div class="learni-quiz-actions" style="justify-content: center;">
-                            <button type="button" class="learni-btn" id="almaden-player-quiz-retry">Reintentar</button>
-                            <button type="button" class="learni-btn secondary" id="almaden-player-quiz-close-fail">Estudiar Más</button>
-                        </div>
-                    </div>
-                `;
-                document.getElementById('almaden-player-quiz-retry').onclick = () => {
-                    playerState.index = 0;
-                    playerState.answers = {};
-                    renderPlayerStep();
-                };
-                document.getElementById('almaden-player-quiz-close-fail').onclick = () => {
-                    overlay.style.display = 'none';
-                };
-            }
+            // Send score to backend via AJAX
+            const formData = new FormData();
+            formData.append('action', 'almaden_submit_quiz_result');
+            formData.append('book_id', cfg.bookId);
+            formData.append('quiz_id', playerState.quizId);
+            formData.append('score', percent);
+
+            fetch(window.location.origin + '/wp-admin/admin-ajax.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    const passed = res.data.passed;
+                    const required = res.data.required_score;
+                    if (passed) {
+                        window.ALMADEN_READER_QUIZZES.approveQuiz(playerState.quizId);
+                        
+                        body.innerHTML = `
+                            <div class="learni-quiz-results">
+                                <div class="learni-quiz-results__kicker" style="color: #16a34a;">¡FELICITACIONES! APROBADO</div>
+                                <div class="learni-quiz-results__score" style="font-size: 48px; font-weight: 800; text-align: center; margin: 24px 0; color: #16a34a;">
+                                    ${percent}%
+                                </div>
+                                <div class="learni-quiz-results__text" style="text-align: center; margin-bottom: 24px;">
+                                    Respondiste correctamente <strong>${correctCount} de ${playerState.questions.length}</strong> preguntas.<br>Has desbloqueado las siguientes páginas.
+                                </div>
+                                <div class="learni-quiz-actions" style="justify-content: center;">
+                                    <button type="button" class="learni-btn" id="almaden-player-quiz-close">Continuar Lectura</button>
+                                </div>
+                            </div>
+                        `;
+                        document.getElementById('almaden-player-quiz-close').onclick = () => {
+                            overlay.style.display = 'none';
+                            if (playerState.onSuccess) playerState.onSuccess();
+                        };
+                    } else {
+                        body.innerHTML = `
+                            <div class="learni-quiz-results">
+                                <div class="learni-quiz-results__kicker" style="color: #dc2626;">EVALUACIÓN REPROBADA</div>
+                                <div class="learni-quiz-results__score" style="font-size: 48px; font-weight: 800; text-align: center; margin: 24px 0; color: #dc2626;">
+                                    ${percent}%
+                                </div>
+                                <div class="learni-quiz-results__text" style="text-align: center; margin-bottom: 24px;">
+                                    Obtuviste <strong>${correctCount} de ${playerState.questions.length}</strong> correctas. Necesitas un mínimo de <strong>${required}%</strong> para avanzar.
+                                </div>
+                                <div class="learni-quiz-actions" style="justify-content: center;">
+                                    <button type="button" class="learni-btn" id="almaden-player-quiz-retry">Reintentar</button>
+                                    <button type="button" class="learni-btn secondary" id="almaden-player-quiz-close-fail">Estudiar Más</button>
+                                </div>
+                            </div>
+                        `;
+                        document.getElementById('almaden-player-quiz-retry').onclick = () => {
+                            playerState.index = 0;
+                            playerState.answers = {};
+                            renderPlayerStep();
+                        };
+                        document.getElementById('almaden-player-quiz-close-fail').onclick = () => {
+                            overlay.style.display = 'none';
+                        };
+                    }
+                } else {
+                    body.innerHTML = `<div style="padding: 40px; text-align: center; color: #dc2626; font-weight: 600;">Error: ${res.data || 'No se pudo calificar.'}</div>`;
+                }
+            })
+            .catch(() => {
+                body.innerHTML = '<div style="padding: 40px; text-align: center; color: #dc2626; font-weight: 600;">Error de red al calificar.</div>';
+            });
             return;
         }
 

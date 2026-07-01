@@ -228,3 +228,40 @@ function almaden_bookster_ajax_get_quiz_data() {
 add_action( 'wp_ajax_almaden_get_quiz_data', 'almaden_bookster_ajax_get_quiz_data' );
 add_action( 'wp_ajax_nopriv_almaden_get_quiz_data', 'almaden_bookster_ajax_get_quiz_data' );
 
+function almaden_bookster_ajax_submit_quiz_result() {
+	if ( ! is_user_logged_in() ) {
+		wp_send_json_error( __( 'Debes iniciar sesión para registrar tu progreso.', 'almaden-bookster' ) );
+	}
+
+	$book_id = isset( $_POST['book_id'] ) ? absint( $_POST['book_id'] ) : 0;
+	$quiz_id = isset( $_POST['quiz_id'] ) ? absint( $_POST['quiz_id'] ) : 0;
+	$score   = isset( $_POST['score'] ) ? absint( $_POST['score'] ) : 0;
+
+	if ( $book_id <= 0 || $quiz_id <= 0 ) {
+		wp_send_json_error( __( 'Parámetros inválidos.', 'almaden-bookster' ) );
+	}
+
+	$flow_settings = almaden_bookster_learni_get_quiz_flow_settings( $book_id );
+	$required_score = isset( $flow_settings['passing_score'] ) ? intval( $flow_settings['passing_score'] ) : 80;
+
+	$passed = $score >= $required_score;
+	if ( $passed ) {
+		$user_id = get_current_user_id();
+		$passed_quizzes = get_user_meta( $user_id, '_almaden_passed_quizzes', true );
+		if ( ! is_array( $passed_quizzes ) ) {
+			$passed_quizzes = array();
+		}
+		if ( ! in_array( $quiz_id, $passed_quizzes, true ) ) {
+			$passed_quizzes[] = $quiz_id;
+			update_user_meta( $user_id, '_almaden_passed_quizzes', $passed_quizzes );
+		}
+	}
+
+	wp_send_json_success( array(
+		'passed' => $passed,
+		'score'  => $score,
+		'required_score' => $required_score,
+	) );
+}
+add_action( 'wp_ajax_almaden_submit_quiz_result', 'almaden_bookster_ajax_submit_quiz_result' );
+

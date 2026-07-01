@@ -81,6 +81,14 @@ if ( $has_reader_access && is_user_logged_in() && function_exists( 'almaden_book
 	$book_highlights = almaden_bookster_get_user_book_highlights( $book_id, get_current_user_id() );
 }
 
+$approved_quizzes = array();
+if ( is_user_logged_in() ) {
+	$approved_quizzes = get_user_meta( get_current_user_id(), '_almaden_passed_quizzes', true );
+	if ( ! is_array( $approved_quizzes ) ) {
+		$approved_quizzes = array();
+	}
+}
+
 // Get the layout wide size from WordPress
 $wide_size = '1300px';
 if ( function_exists( 'wp_get_global_settings' ) ) {
@@ -103,6 +111,7 @@ $book_data_json = wp_json_encode( array(
 	'purchaseUrl' => $purchase_url,
 	'highlights' => $book_highlights,
 	'quizFlowSettings' => function_exists( 'almaden_bookster_learni_get_quiz_flow_settings' ) ? almaden_bookster_learni_get_quiz_flow_settings( $book_id ) : array(),
+	'approvedQuizzes' => $approved_quizzes,
 ) );
 ?>
 <!DOCTYPE html>
