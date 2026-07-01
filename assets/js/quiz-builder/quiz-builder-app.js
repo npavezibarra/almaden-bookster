@@ -24,7 +24,7 @@
 	const quizIdField = $('almaden-quiz-id');
 	const previewQuizBtn = $('almaden-preview-quiz-btn');
 	const previewOverlay = $('almaden-quiz-preview-overlay');
-	const previewIframe = $('almaden-quiz-preview-iframe');
+	const previewBody = $('almaden-quiz-preview-body');
 	const closeBackdrop = $('almaden-quiz-preview-close-backdrop');
 	const closeBtn = $('almaden-quiz-preview-close-btn');
 	const questionCountField = $('almaden-setting-question-count');
@@ -768,6 +768,173 @@
 			}
 		});
 	}
+	let interactiveState = {
+		index: -1, // -1: intro, 0..N-1: question, N: results
+		questions: [],
+		title: '',
+		answers: {}
+	};
+
+	function startInteractiveQuizPreview() {
+		const chapter = currentChapter();
+		const chapterTitle = chapter && chapter.title ? String(chapter.title) : '';
+		const quizTitle = loadedQuiz && typeof loadedQuiz.quiz_title === 'string' && loadedQuiz.quiz_title.trim() !== ''
+			? loadedQuiz.quiz_title.trim()
+			: (chapterTitle || bookTitle);
+
+		ensureLoadedQuiz();
+
+		if (!loadedQuiz || !Array.isArray(loadedQuiz.questions) || loadedQuiz.questions.length === 0) {
+			window.alert('No hay preguntas cargadas en el quiz para previsualizar. Carga un JSON o edita el preview.');
+			return;
+		}
+
+		interactiveState = {
+			index: -1,
+			questions: clone(loadedQuiz.questions),
+			title: quizTitle,
+			answers: {}
+		};
+
+		if (previewOverlay) {
+			previewOverlay.style.display = 'flex';
+		}
+
+		renderInteractiveQuizStep();
+	}
+
+	function renderInteractiveQuizStep() {
+		if (!previewBody) return;
+
+		const escapeHtml = (s) => String(s || '')
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#039;');
+
+		if (interactiveState.index === -1) {
+			previewBody.innerHTML = `
+				<div class="learni-quiz-intro">
+					<div class="learni-quiz-intro__kicker">EVALUACIÓN DE PRUEBA</div>
+					<div class="learni-quiz-intro__title">${escapeHtml(interactiveState.title)}</div>
+					<div class="learni-quiz-intro__text">Este preview muestra el diseño y la experiencia de la evaluación para los alumnos. No se guardará progreso ni resultados.</div>
+					<div class="learni-quiz-actions">
+						<button type="button" class="learni-btn" id="almaden-preview-quiz-begin">Comenzar</button>
+						<button type="button" class="learni-btn secondary" id="almaden-preview-quiz-cancel">Cancelar</button>
+					</div>
+				</div>
+			`;
+
+			const beginBtn = $('almaden-preview-quiz-begin');
+			if (beginBtn) {
+				beginBtn.addEventListener('click', () => {
+					interactiveState.index = 0;
+					renderInteractiveQuizStep();
+				});
+			}
+
+			const cancelBtn = $('almaden-preview-quiz-cancel');
+			if (cancelBtn) {
+				cancelBtn.addEventListener('click', () => {
+					if (previewOverlay) previewOverlay.style.display = 'none';
+				});
+			}
+			return;
+		}
+
+		if (interactiveState.index >= interactiveState.questions.length) {
+			let correctCount = 0;
+			interactiveState.questions.forEach((q, qIdx) => {
+				const selectedIndex = interactiveState.answers[qIdx];
+				if (q.answers && q.answers[selectedIndex] && q.answers[selectedIndex].correct) {
+					correctCount++;
+				}
+			});
+			const percent = Math.round((correctCount / interactiveState.questions.length) * 100);
+
+			previewBody.innerHTML = `
+				<div class="learni-quiz-results">
+					<div class="learni-quiz-results__kicker">Evaluación completada</div>
+					<div class="learni-quiz-results__score" style="font-size: 48px; font-weight: 800; text-align: center; margin: 24px 0; color: #16a34a;">
+						${percent}%
+					</div>
+					<div class="learni-quiz-results__text" style="text-align: center; margin-bottom: 24px;">
+						Respondiste correctamente <strong>${correctCount} de ${interactiveState.questions.length}</strong> preguntas.
+					</div>
+					<div class="learni-quiz-actions" style="justify-content: center;">
+						<button type="button" class="learni-btn" id="almaden-preview-quiz-close">Cerrar Preview</button>
+					</div>
+				</div>
+			`;
+
+			const closeBtn = $('almaden-preview-quiz-close');
+			if (closeBtn) {
+				closeBtn.addEventListener('click', () => {
+					if (previewOverlay) previewOverlay.style.display = 'none';
+				});
+			}
+			return;
+		}
+
+		const index = interactiveState.index;
+		const q = interactiveState.questions[index];
+		const isLast = index === interactiveState.questions.length - 1;
+		const answers = Array.isArray(q.answers) ? q.answers : [];
+
+		let answersHtml = '';
+		answers.forEach((ans, aIndex) => {
+			const isChecked = interactiveState.answers[index] === aIndex ? ' checked="checked"' : '';
+			const choiceLabel = String.fromCharCode(65 + aIndex);
+			answersHtml += `
+				<label class="learni-quiz-a">
+					<input type="radio" name="q" value="${aIndex}"${isChecked}>
+					<span class="learni-quiz-a__label">${choiceLabel}</span>
+					<span class="learni-quiz-a__text">${escapeHtml(ans.text || '')}</span>
+				</label>
+			`;
+		});
+
+		previewBody.innerHTML = `
+			<form id="almaden-preview-quiz-form" class="learni-quiz-form">
+				<div class="learni-quiz-q">
+					<div class="learni-quiz-q__meta">Pregunta ${index + 1} de ${interactiveState.questions.length}</div>
+					<div class="learni-quiz-q__text">${escapeHtml(q.question_text || '')}</div>
+				</div>
+				<div class="learni-quiz-a-list">
+					${answersHtml}
+				</div>
+				<div class="learni-quiz-actions">
+					${index > 0 ? '<button type="button" class="learni-btn secondary" id="almaden-preview-quiz-back">Atrás</button>' : ''}
+					<button type="submit" class="learni-btn" id="almaden-preview-quiz-submit">${isLast ? 'Enviar' : 'Siguiente'}</button>
+				</div>
+			</form>
+		`;
+
+		const form = $('almaden-preview-quiz-form');
+		if (form) {
+			form.addEventListener('submit', (e) => {
+				e.preventDefault();
+				const chosen = form.querySelector('input[name="q"]:checked');
+				if (!chosen) {
+					window.alert('Por favor elige una respuesta.');
+					return;
+				}
+				interactiveState.answers[index] = Number(chosen.value);
+				interactiveState.index++;
+				renderInteractiveQuizStep();
+			});
+		}
+
+		const backBtn = $('almaden-preview-quiz-back');
+		if (backBtn) {
+			backBtn.addEventListener('click', () => {
+				interactiveState.index = Math.max(0, interactiveState.index - 1);
+				renderInteractiveQuizStep();
+			});
+		}
+	}
+
 	function bindGlobalEvents() {
 		tabButtons.forEach((button) => button.addEventListener('click', () => setActiveTab(button.getAttribute('data-tab-target') || 'prompt-settings')));
 		if (copyActivePromptBtn) copyActivePromptBtn.addEventListener('click', () => {
@@ -780,19 +947,11 @@
 		if (previewQuizBtn) {
 			previewQuizBtn.addEventListener('click', (event) => {
 				event.preventDefault();
-				const chapter = currentChapter();
-				if (chapter && chapter.quiz_id && Number(chapter.quiz_id) > 0) {
-					const url = (cfg.homeUrl || '/') + '?p=' + chapter.quiz_id;
-					if (previewIframe) previewIframe.src = url;
-					if (previewOverlay) previewOverlay.style.display = 'flex';
-				} else {
-					window.alert('Por favor, guarda el quiz primero para poder previsualizarlo.');
-				}
+				startInteractiveQuizPreview();
 			});
 		}
 		const hidePreviewOverlay = () => {
 			if (previewOverlay) previewOverlay.style.display = 'none';
-			if (previewIframe) previewIframe.src = 'about:blank';
 		};
 		if (closeBtn) closeBtn.addEventListener('click', hidePreviewOverlay);
 		if (closeBackdrop) closeBackdrop.addEventListener('click', hidePreviewOverlay);

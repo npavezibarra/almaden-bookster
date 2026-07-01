@@ -127,6 +127,11 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="<?php echo esc_url( $quiz_builder_css ); ?>?v=<?php echo esc_attr( (string) filemtime( dirname( __DIR__, 2 ) . '/assets/css/quiz-builder/quiz-builder-app.css' ) ); ?>">
+	<?php if ( defined( 'PL_LEARNI_URL' ) ) : ?>
+		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" rel="stylesheet">
+		<link rel="stylesheet" href="<?php echo esc_url( PL_LEARNI_URL . 'assets/learner.css' ); ?>">
+	<?php endif; ?>
 	<script>
 		window.ALMADEN_QUIZ_BUILDER_DATA = <?php echo wp_json_encode( array(
 			'bookId' => $book_id,
@@ -314,8 +319,7 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 				<h3 class="almaden-quiz-overlay-title">Preview Quiz</h3>
 				<button type="button" class="almaden-quiz-overlay-close" id="almaden-quiz-preview-close-btn">&times;</button>
 			</div>
-			<div class="almaden-quiz-overlay-body">
-				<iframe id="almaden-quiz-preview-iframe" src="about:blank"></iframe>
+			<div class="almaden-quiz-overlay-body learni-learner" id="almaden-quiz-preview-body">
 			</div>
 		</div>
 	</div>

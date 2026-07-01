@@ -730,11 +730,17 @@ a {
 	min-height: 0;
 	position: relative;
 	background: #f8fafc;
+	overflow-y: auto;
+	padding: 32px 24px;
+	display: flex;
+	justify-content: center;
 }
 
-.almaden-quiz-overlay-body iframe {
+.almaden-quiz-overlay-body .learni-quiz-intro,
+.almaden-quiz-overlay-body .learni-quiz-form,
+.almaden-quiz-overlay-body .learni-quiz-results {
 	width: 100%;
-	height: 100%;
-	border: none;
+	max-width: 600px;
+	margin: auto 0;
 }
 
