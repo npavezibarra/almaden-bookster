@@ -134,6 +134,22 @@
 		const chapterNumber = chapter.order || (activeChapterIndex + 1);
 		const chapterKey = chapter.key || ('chapter-' + chapterNumber);
 		const quizTitle = bookTitle + ' · ' + (chapter.title || ('Chapter ' + chapterNumber));
+
+		const flowSettings = QB.flowSettings || {};
+		let contentToUse = chapter.content || '';
+		let evaluatedChaptersText = '';
+
+		if (flowSettings.flow_mode === 'interval') {
+			const n = parseInt(flowSettings.interval_chapters, 10) || 3;
+			const startIndex = Math.max(0, activeChapterIndex - n + 1);
+			const rangeChapters = chapters.slice(startIndex, activeChapterIndex + 1);
+			contentToUse = rangeChapters.map(ch => `[CAPÍTULO ${ch.order || (chapters.indexOf(ch) + 1)}: ${ch.title}]\n${ch.content || ''}`).join('\n\n');
+			const chNumbers = rangeChapters.map(ch => ch.order || (chapters.indexOf(ch) + 1));
+			evaluatedChaptersText = `El quiz debe evaluar acumulativamente los capítulos: ${chNumbers.join(', ')}.`;
+		} else {
+			evaluatedChaptersText = `El quiz debe evaluar el capítulo ${chapter.order || (activeChapterIndex + 1)}.`;
+		}
+
 		const lines = [
 			'ACTÚA COMO UN DISEÑADOR EXPERTO DE QUIZZES PARA UN LIBRO.',
 			'Tu única tarea es crear un quiz basado en el contenido del capítulo indicado abajo.',
@@ -159,6 +175,7 @@
 			'- Capítulo: ' + (chapter.title || ('Chapter ' + chapterNumber)),
 			'- Identificador: ' + chapterKey,
 			'- Título sugerido del quiz: ' + quizTitle,
+			'- Alcance de evaluación: ' + evaluatedChaptersText,
 			'- Número de preguntas: ' + settings.questionCount,
 			'- Alternativas por pregunta: ' + settings.alternativesCount,
 			'- Dificultad: ' + settings.difficulty,
@@ -167,8 +184,8 @@
 			'- No incluyas texto fuera del JSON final.',
 			'- La salida debe ser un objeto JSON único y completo.',
 			'',
-			'Contenido del capítulo:',
-			chapter.content || '',
+			'Contenido del texto de referencia:',
+			contentToUse,
 			'',
 			'Formato de salida requerido:',
 			'{',
@@ -207,6 +224,7 @@
 	}
 
 	const QB = window.ALMADEN_QUIZ_BUILDER = window.ALMADEN_QUIZ_BUILDER || {};
+	QB.flowSettings = clone(cfg.quizFlowSettings) || {};
 	QB.getLoadedQuiz = () => loadedQuiz;
 	QB.setLoadedQuiz = (value) => { loadedQuiz = value; };
 	QB.getActivePreviewQuestionIndex = () => activePreviewQuestionIndex;
@@ -370,30 +388,93 @@
 	function bindGlobalEvents() {
 		tabButtons.forEach((button) => button.addEventListener('click', () => setActiveTab(button.getAttribute('data-tab-target') || 'prompt-settings')));
 		if (copyActivePromptBtn) copyActivePromptBtn.addEventListener('click', () => {
-			const chapter = currentChapter();
-			if (chapter) copyText(chapterPrompt(chapter), copyActivePromptBtn);
+			const c = currentChapter(); if (c) copyText(chapterPrompt(c), copyActivePromptBtn);
 		});
 		if (loadPromptBtn) loadPromptBtn.addEventListener('click', loadPromptPayload);
 		if (previewFocus) previewFocus.addEventListener('click', () => setActiveTab('quiz-preview'));
 		if (saveQuizBtn) saveQuizBtn.addEventListener('click', saveQuiz);
-		if (previewQuizBtn) {
-			previewQuizBtn.addEventListener('click', (event) => {
-				event.preventDefault();
-				if (QB.startInteractiveQuizPreview) {
-					QB.startInteractiveQuizPreview();
+		if (previewQuizBtn) previewQuizBtn.addEventListener('click', (e) => {
+			e.preventDefault(); if (QB.startInteractiveQuizPreview) QB.startInteractiveQuizPreview();
+		});
+		const hideOverlay = () => { if (previewOverlay) previewOverlay.style.display = 'none'; };
+		if (closeBtn) closeBtn.addEventListener('click', hideOverlay);
+		if (closeBackdrop) closeBackdrop.addEventListener('click', hideOverlay);
+		window.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideOverlay(); });
+	}
+
+	function initFlowSettingsUI() {
+		const flowMode = $('almaden-flow-mode'), flowIntervalCont = $('almaden-flow-interval-field');
+		const flowInterval = $('almaden-flow-interval'), flowMandatory = $('almaden-flow-mandatory');
+		const flowPassingScore = $('almaden-flow-passing-score'), saveBtn = $('almaden-save-flow-settings');
+		const statusText = $('almaden-flow-settings-status'), flowSettings = QB.flowSettings || {};
+
+		if (!flowMode) return;
+
+		flowMode.value = flowSettings.flow_mode || 'every_chapter';
+		if (flowInterval) flowInterval.value = flowSettings.interval_chapters || 3;
+		if (flowMandatory) flowMandatory.value = flowSettings.is_mandatory ? '1' : '0';
+		if (flowPassingScore) flowPassingScore.value = flowSettings.passing_score || 80;
+
+		const toggleInterval = () => {
+			if (flowIntervalCont) flowIntervalCont.style.display = flowMode.value === 'interval' ? 'block' : 'none';
+		};
+		flowMode.addEventListener('change', toggleInterval);
+		toggleInterval();
+
+		if (saveBtn) {
+			saveBtn.addEventListener('click', () => {
+				saveBtn.disabled = true;
+				if (statusText) {
+					statusText.textContent = 'Guardando...';
+					statusText.style.color = '#64748b';
 				}
+
+				const formData = new FormData();
+				formData.append('action', 'almaden_save_quiz_flow_settings');
+				formData.append('book_id', cfg.bookId);
+				formData.append('flow_mode', flowMode.value);
+				formData.append('interval_chapters', flowInterval ? flowInterval.value : 3);
+				formData.append('is_mandatory', flowMandatory ? flowMandatory.value : 0);
+				formData.append('passing_score', flowPassingScore ? flowPassingScore.value : 80);
+
+				const saveForm = $('almaden-book-quiz-save-form');
+				let nonce = '';
+				if (saveForm) {
+					const input = saveForm.querySelector('input[name="_wpnonce"]');
+					if (input) nonce = input.value;
+				}
+				formData.append('nonce', nonce);
+
+				fetch(cfg.homeUrl + 'wp-admin/admin-ajax.php', {
+					method: 'POST',
+					body: formData
+				})
+				.then(res => res.json())
+				.then(res => {
+					saveBtn.disabled = false;
+					if (res.success) {
+						QB.flowSettings = res.data.settings;
+						if (statusText) {
+							statusText.textContent = '✓ Guardado';
+							statusText.style.color = '#16a34a';
+							setTimeout(() => { statusText.textContent = ''; }, 3000);
+						}
+					} else {
+						if (statusText) {
+							statusText.textContent = '❌ ' + (res.data || 'Error');
+							statusText.style.color = '#dc2626';
+						}
+					}
+				})
+				.catch(() => {
+					saveBtn.disabled = false;
+					if (statusText) {
+						statusText.textContent = '❌ Error de red';
+						statusText.style.color = '#dc2626';
+					}
+				});
 			});
 		}
-		const hidePreviewOverlay = () => {
-			if (previewOverlay) previewOverlay.style.display = 'none';
-		};
-		if (closeBtn) closeBtn.addEventListener('click', hidePreviewOverlay);
-		if (closeBackdrop) closeBackdrop.addEventListener('click', hidePreviewOverlay);
-		window.addEventListener('keydown', (event) => {
-			if (event.key === 'Escape') {
-				hidePreviewOverlay();
-			}
-		});
 	}
 
 	if (loadedQuiz && QB.normalizeQuizPayload) {
@@ -402,6 +483,7 @@
 	bindChapterEvents();
 	bindPreviewEvents();
 	bindGlobalEvents();
+	initFlowSettingsUI();
 	updateChapterList();
 	updateChapterView();
 	setActiveTab(activeTab);
