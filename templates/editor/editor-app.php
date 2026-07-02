@@ -56,7 +56,7 @@ if (!headers_sent()) {
     <!-- CABECERA PRINCIPAL -->
     <header class="h-16 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] px-6 flex items-center justify-between z-10 no-print transition-all">
         <div class="flex items-center gap-3">
-            <a href="<?php echo esc_url( home_url( '/almaden-booklist/' ) ); ?>" class="mr-2 text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors flex items-center gap-1.5 text-sm font-semibold" title="Volver al Taller">
+            <a href="<?php echo esc_url( almaden_bookster_get_creator_page_url() ); ?>" class="mr-2 text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors flex items-center gap-1.5 text-sm font-semibold" title="Volver al Taller">
                 <i class="fa-solid fa-arrow-left"></i>
                 <span class="hidden sm:inline">Volver</span>
             </a>

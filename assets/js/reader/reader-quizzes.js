@@ -267,6 +267,9 @@
             formData.append('book_id', cfg.bookId);
             formData.append('quiz_id', playerState.quizId);
             formData.append('score', percent);
+            if (window.almadenReaderProgressNonce) {
+                formData.append('nonce', window.almadenReaderProgressNonce);
+            }
 
             fetch(window.location.origin + '/wp-admin/admin-ajax.php', {
                 method: 'POST',
@@ -275,6 +278,12 @@
             .then(res => res.json())
             .then(res => {
                 if (res.success) {
+                    if (res.data && res.data.progress && window.bookData && typeof window.bookData === 'object') {
+                        window.bookData.quizProgress = res.data.progress;
+                    }
+                    if (window.ALMADEN_READER_PROGRESS && typeof window.ALMADEN_READER_PROGRESS.syncFromState === 'function') {
+                        window.ALMADEN_READER_PROGRESS.syncFromState(res.data.progress || null);
+                    }
                     const passed = res.data.passed;
                     const required = res.data.required_score;
                     if (passed) {

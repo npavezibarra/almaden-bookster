@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const act = window.CoverEditor.actions;
 
     const saveCoverBtn = document.getElementById('save-cover-btn');
+    const spineWidthMode = document.getElementById('spine-width-mode');
+    const spineWidthMm = document.getElementById('spine-width-mm');
     const frontFlapWidth = document.getElementById('front-flap-width');
     const backFlapWidth = document.getElementById('back-flap-width');
     const uploadFront = document.getElementById('upload-front-cover');
@@ -31,6 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
         data.append('book_id', coverData.bookId);
         data.append('nonce', coverData.nonce);
         data.append('paper_type', el.paperTypeSelect.value);
+        data.append('spine_width_mode', spineWidthMode.value);
+        data.append('spine_width_mm', spineWidthMm.value);
         data.append('front_flap_width', frontFlapWidth.value);
         data.append('back_flap_width', backFlapWidth.value);
         data.append('front_image', uploadFront.value);
@@ -72,6 +76,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof coverData !== 'undefined' && coverData.settings) {
             const settings = coverData.settings;
             if (settings.paper_type) el.paperTypeSelect.value = settings.paper_type;
+
+            if (settings.spine_width_mode) {
+                spineWidthMode.value = settings.spine_width_mode;
+            }
+            if (settings.spine_width_mm !== undefined && settings.spine_width_mm !== null && settings.spine_width_mm !== '') {
+                spineWidthMm.value = settings.spine_width_mm;
+            }
             
             const frontFlap = settings.front_flap_width || settings.front_flap;
             if (frontFlap) {
@@ -127,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 s.textLayers = settings.text_layers.filter(l => l && typeof l === 'object' && l.id);
             }
         }
-        
+
         act.updateDimensions();
         act.renderTextLayers();
         act.renderLayersPanel();

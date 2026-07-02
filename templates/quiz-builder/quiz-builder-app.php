@@ -26,7 +26,7 @@ if ( empty( $source_book_id ) ) {
 $requested_chapter_id = isset( $_GET['chapter_id'] ) ? absint( $_GET['chapter_id'] ) : 0;
 $book_title           = get_the_title( $book_id );
 $book_editor_url      = home_url( '/almaden-book-editor/?book_id=' . $book_id );
-$booklist_url         = home_url( '/almaden-booklist/' );
+$booklist_url         = almaden_bookster_get_creator_page_url();
 $plugin_file          = dirname( __DIR__, 2 ) . '/almaden-bookster.php';
 $quiz_builder_css     = plugins_url( 'assets/css/quiz-builder/quiz-builder-app.css', $plugin_file );
 $quiz_builder_parser_js = plugins_url( 'assets/js/quiz-builder/quiz-builder-parser.js', $plugin_file );

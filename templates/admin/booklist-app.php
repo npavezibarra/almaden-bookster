@@ -124,11 +124,11 @@ $book_imported_error = isset( $_GET['book_imported_error'] ) ? sanitize_text_fie
                     </div>
                     
                     <div class="hidden sm:ml-8 sm:flex sm:space-x-6 items-center">
-                        <a href="<?php echo esc_url( home_url('/almaden-booklist/') ); ?>" id="nav-workshop-link" class="border-b-2 border-black text-black px-1 pt-1 text-sm font-medium h-full flex items-center">
+                        <a href="<?php echo esc_url( almaden_bookster_get_creator_page_url() ); ?>" id="nav-workshop-link" class="border-b-2 border-black text-black px-1 pt-1 text-sm font-medium h-full flex items-center">
                             Taller
                         </a>
-                        <a href="<?php echo esc_url( home_url('/bookshelf/') ); ?>" id="nav-bookshelf-link" class="border-b-2 border-transparent text-gray-500 hover:text-black hover:border-gray-300 px-1 pt-1 text-sm font-medium h-full flex items-center transition-colors" target="_blank">
-                            Bookshelf
+                        <a href="<?php echo esc_url( almaden_bookster_get_store_page_url() ); ?>" id="nav-bookshelf-link" class="border-b-2 border-transparent text-gray-500 hover:text-black hover:border-gray-300 px-1 pt-1 text-sm font-medium h-full flex items-center transition-colors" target="_blank">
+                            <?php echo esc_html( almaden_bookster_get_store_title() ); ?>
                         </a>
                     </div>
                 </div>
@@ -263,10 +263,10 @@ $book_imported_error = isset( $_GET['book_imported_error'] ) ? sanitize_text_fie
                                 <div class="flex items-start justify-end mb-4">
                                     <div class="flex items-center gap-2">
                                         <!-- Píldoras de info movidas al área de descripción -->
-                                        <label class="relative inline-flex items-center cursor-pointer ml-2" title="Publicar en Bookshelf">
+                                        <label class="relative inline-flex items-center cursor-pointer ml-2" title="Publicar en <?php echo esc_attr( almaden_bookster_get_store_title() ); ?>">
                                             <input type="checkbox" id="publish-toggle-<?php echo get_the_ID(); ?>" class="sr-only peer" onchange="togglePublishBook(<?php echo get_the_ID(); ?>, !this.checked)" <?php checked( $is_published, true ); ?>>
                                             <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
-                                            <span class="ml-2 text-xs font-semibold <?php echo $is_published ? 'text-green-600' : 'text-gray-500'; ?> publish-text-<?php echo get_the_ID(); ?>"><?php echo $is_published ? 'Publicado' : 'Ebook Store'; ?></span>
+                                            <span class="ml-2 text-xs font-semibold <?php echo $is_published ? 'text-green-600' : 'text-gray-500'; ?> publish-text-<?php echo get_the_ID(); ?>"><?php echo $is_published ? 'Publicado' : esc_html( almaden_bookster_get_store_title() ); ?></span>
                                             <i class="ml-2 fa-solid fa-spinner fa-spin hidden text-gray-500 publish-spinner-<?php echo get_the_ID(); ?>"></i>
                                         </label>
  

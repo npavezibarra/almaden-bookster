@@ -57,9 +57,15 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
             position: relative;
         }
         #cover-scaler {
+            position: relative;
+            overflow: visible;
             transform-origin: center center;
             transition: transform 0.2s ease;
             padding: 40px;
+        }
+        #cover-stage {
+            position: relative;
+            display: inline-block;
         }
         #cover-spread {
             position: relative;
@@ -70,6 +76,74 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
+        }
+        #ruler-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 35;
+            display: none;
+        }
+        #ruler-corner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #d1d5db 0%, #f8fafc 100%);
+            border-right: 1px solid #cbd5e1;
+            border-bottom: 1px solid #cbd5e1;
+            box-sizing: border-box;
+        }
+        #ruler-horizontal {
+            position: absolute;
+            top: 0;
+            left: 24px;
+            right: 0;
+            height: 24px;
+            border-bottom: 1px solid #cbd5e1;
+            background-color: rgba(248, 250, 252, 0.96);
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        #ruler-vertical {
+            position: absolute;
+            top: 24px;
+            left: 0;
+            bottom: 0;
+            width: 24px;
+            border-right: 1px solid #cbd5e1;
+            background-color: rgba(248, 250, 252, 0.96);
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .ruler-tick {
+            position: absolute;
+            background: rgba(15, 23, 42, 0.45);
+        }
+        .ruler-tick--minor {
+            opacity: 0.45;
+        }
+        .ruler-tick--major {
+            opacity: 0.8;
+        }
+        .ruler-label {
+            position: absolute;
+            color: #334155;
+            font-size: 10px;
+            line-height: 1;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            user-select: none;
+            pointer-events: none;
+        }
+        .ruler-label--horizontal {
+            top: 4px;
+            transform: translateX(-50%);
+        }
+        .ruler-label--vertical {
+            left: 4px;
+            transform: translateY(-50%);
         }
         .cover-part {
             position: relative;
@@ -108,7 +182,9 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
         const coverData = {
             bookId: <?php echo intval($book_id); ?>,
             nonce: "<?php echo esc_js($cover_nonce); ?>",
+            exportNonce: "<?php echo esc_js($cover_export_nonce); ?>",
             ajaxUrl: "<?php echo esc_url(admin_url('admin-ajax.php')); ?>",
+            exportUrl: "<?php echo esc_url(admin_url('admin-post.php')); ?>",
             pageWidthCm: <?php echo floatval($page_width); ?>,
             pageHeightCm: <?php echo floatval($page_height); ?>,
             settings: <?php echo json_encode($cover_settings); ?>,
@@ -136,6 +212,7 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
 
     <!-- Scripts Modulares -->
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-state.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-utils.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-dimensions.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-media.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-layers.js?v=' . time() ); ?>"></script>

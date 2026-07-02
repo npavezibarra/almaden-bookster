@@ -61,6 +61,25 @@ function almaden_get_thumbnail_fonts_url() {
     return 'https://fonts.googleapis.com/css2?' . implode( '&', array_map( function( $f ) { return 'family=' . $f; }, $font_families_for_cdn ) ) . '&display=swap';
 }
 
+function almaden_bookster_get_cover_spine_width_mm( $cover_settings, $pages ) {
+    $pages = intval( $pages );
+    if ( $pages < 20 ) {
+        $pages = 20;
+    }
+
+    $thickness = isset( $cover_settings['paper_type'] ) ? floatval( $cover_settings['paper_type'] ) : 0.06;
+    $auto_spine_width_mm = $thickness * $pages;
+
+    $spine_mode = isset( $cover_settings['spine_width_mode'] ) ? sanitize_text_field( $cover_settings['spine_width_mode'] ) : 'auto';
+    $manual_spine_width_mm = isset( $cover_settings['spine_width_mm'] ) ? floatval( $cover_settings['spine_width_mm'] ) : 0;
+
+    if ( $spine_mode === 'manual' && $manual_spine_width_mm > 0 ) {
+        return $manual_spine_width_mm;
+    }
+
+    return $auto_spine_width_mm;
+}
+
 function almaden_get_cover_thumbnail_html( $book_id ) {
     global $wpdb;
     $settings_table = $wpdb->prefix . 'almaden_book_settings';
@@ -86,8 +105,7 @@ function almaden_get_cover_thumbnail_html( $book_id ) {
     $pages = $total_pages ? intval( $total_pages ) : 20;
     if ($pages < 20) $pages = 20;
 
-    $thickness = isset($cover_settings['paper_type']) ? floatval($cover_settings['paper_type']) : 0.06;
-    $spineWidthMm = $thickness * $pages;
+    $spineWidthMm = almaden_bookster_get_cover_spine_width_mm( $cover_settings, $pages );
     
     $frontFlapMm = isset($cover_settings['front_flap_width']) ? floatval($cover_settings['front_flap_width']) : 0;
     $backFlapMm = isset($cover_settings['back_flap_width']) ? floatval($cover_settings['back_flap_width']) : 0;

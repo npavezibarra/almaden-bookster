@@ -12,6 +12,8 @@ function almaden_bookster_save_cover_ajax() {
 
 	$cover_data = array(
 		'paper_type'   => isset($_POST['paper_type']) ? sanitize_text_field($_POST['paper_type']) : '',
+		'spine_width_mode' => (isset($_POST['spine_width_mode']) && $_POST['spine_width_mode'] === 'manual') ? 'manual' : 'auto',
+		'spine_width_mm' => isset($_POST['spine_width_mm']) ? floatval($_POST['spine_width_mm']) : 0,
 		'front_flap'   => isset($_POST['front_flap']) ? floatval($_POST['front_flap']) : 0,
 		'back_flap'    => isset($_POST['back_flap']) ? floatval($_POST['back_flap']) : 0,
 		'front_image'  => isset($_POST['front_image']) ? esc_url_raw($_POST['front_image']) : '',
@@ -34,4 +36,3 @@ function almaden_bookster_save_cover_ajax() {
 }
 add_action( 'wp_ajax_almaden_save_cover_settings', 'almaden_bookster_save_cover_ajax' );
 add_action( 'wp_ajax_nopriv_almaden_save_cover_settings', 'almaden_bookster_save_cover_ajax' );
-

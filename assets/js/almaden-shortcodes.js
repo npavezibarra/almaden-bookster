@@ -155,8 +155,13 @@ window.AlmadenShortcodes = {
         const pagesEl = document.getElementById('total-pages-sidebar');
         let pages = pagesEl ? parseInt(pagesEl.textContent, 10) : 100;
         if (isNaN(pages) || pages < 20) pages = 100;
-        
-        const spineWidthMm = thicknessMmPerPage * pages;
+
+        const spineWidthMode = coverSettings.spine_width_mode || 'auto';
+        const autoSpineWidthMm = thicknessMmPerPage * pages;
+        const manualSpineWidthMm = parseFloat(coverSettings.spine_width_mm);
+        const spineWidthMm = (spineWidthMode === 'manual' && !isNaN(manualSpineWidthMm) && manualSpineWidthMm > 0)
+            ? manualSpineWidthMm
+            : autoSpineWidthMm;
         const spineWidthPx = (spineWidthMm / 10) * pxPerCm;
 
         const frontFlapMm = parseFloat(coverSettings.front_flap_width) || 0;

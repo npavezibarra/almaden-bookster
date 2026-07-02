@@ -20,7 +20,7 @@ function almaden_bookster_admin_menu() {
 	add_menu_page(
 		'AlmadenBookster',
 		'AlmadenBookster',
-		'manage_options',
+		'almaden_manage_books',
 		'almaden-bookster',
 		'almaden_bookster_fonts_page_render',
 		'dashicons-book-alt',
@@ -74,6 +74,20 @@ add_action( 'admin_enqueue_scripts', 'almaden_bookster_admin_enqueue' );
  * Render the Google Fonts admin page.
  */
 function almaden_bookster_fonts_page_render() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		$pages_url = admin_url( 'admin.php?page=almaden-bookster-pages' );
+		?>
+		<div class="wrap">
+			<h1>AlmadenBookster</h1>
+			<p>Este panel está disponible para administradores y editores de libros. Usa <strong>Pages</strong> para configurar la ruta del creador interno.</p>
+			<p>
+				<a class="button button-primary" href="<?php echo esc_url( $pages_url ); ?>">Abrir Pages</a>
+			</p>
+		</div>
+		<?php
+		return;
+	}
+
 	$api_key         = get_option( 'almaden_google_fonts_api_key', '' );
 	$installed_fonts = almaden_bookster_get_installed_fonts_list();
 

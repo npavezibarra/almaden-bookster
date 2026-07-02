@@ -3,57 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-function almaden_bookster_get_book_product_id( $book_id ) {
-	return absint( get_post_meta( $book_id, '_almaden_wc_product_id', true ) );
-}
-
-function almaden_bookster_get_book_purchase_url( $book_id ) {
-	$product_id = almaden_bookster_get_book_product_id( $book_id );
-	if ( $product_id > 0 ) {
-		$product = get_post( $product_id );
-		if ( $product && $product->post_status === 'publish' ) {
-			return get_permalink( $product_id );
-		}
-	}
-
-	if ( function_exists( 'wc_get_page_permalink' ) ) {
-		$shop_url = wc_get_page_permalink( 'shop' );
-		if ( $shop_url ) {
-			return $shop_url;
-		}
-	}
-
-	return home_url( '/' );
-}
-
-function almaden_bookster_user_can_access_book( $book_id, $user_id = null ) {
-	$book_id = absint( $book_id );
-	$user_id = $user_id ? absint( $user_id ) : get_current_user_id();
-
-	if ( ! $book_id ) {
-		return false;
-	}
-
-	if ( current_user_can( 'manage_options' ) || current_user_can( 'edit_post', $book_id ) ) {
-		return true;
-	}
-
-	$product_id = almaden_bookster_get_book_product_id( $book_id );
-	if ( $product_id <= 0 ) {
-		return true;
-	}
-
-	if ( $user_id <= 0 || ! function_exists( 'wc_customer_bought_product' ) ) {
-		return false;
-	}
-
-	$user = get_user_by( 'id', $user_id );
-	if ( ! $user ) {
-		return false;
-	}
-
-	return wc_customer_bought_product( $user->user_email, $user_id, $product_id );
-}
+require_once dirname( __FILE__ ) . '/../frontend/access-control.php';
 
 function almaden_bookster_get_user_book_highlights( $book_id, $user_id = null, $chapter_id = null ) {
 	global $wpdb;

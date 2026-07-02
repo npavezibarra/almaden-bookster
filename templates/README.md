@@ -7,5 +7,6 @@ Archivos y subdirectorios contenidos aquí:
 * bookshelf
 * cover
 * editor
+* ebook
 * quiz-builder
 * reader

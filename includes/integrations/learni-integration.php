@@ -454,5 +454,6 @@ function almaden_bookster_learni_set_quiz_id_for_chapter( $chapter_id, $quiz_id 
 	return true;
 }
 
+require_once dirname( __FILE__ ) . '/../progress/quiz-progress.php';
 require_once dirname( __FILE__ ) . '/learni-integration-helpers.php';
 require_once dirname( __FILE__ ) . '/learni-integration-actions.php';

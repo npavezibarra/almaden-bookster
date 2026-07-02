@@ -14,6 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // --- Módulos de Google Fonts (Admin) ---
+require_once plugin_dir_path( __FILE__ ) . 'includes/frontend/pages.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-pages.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-fonts.php';
 require_once plugin_dir_path( __FILE__ ) . 'admin/admin-fonts-page.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/integrations/learni-integration.php';
@@ -39,6 +41,8 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-settings.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/gdrive-client.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/epub-export.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/book-import-export.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/payments/woocommerce-integration.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/frontend/access-control.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/reader/highlights.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/reader/highlight-comments.php';
 
@@ -289,11 +293,31 @@ function almaden_bookster_create_highlight_comments_table() {
 add_action( 'init', 'almaden_bookster_create_highlight_comments_table' );
 
 function almaden_bookster_activate_plugin() {
+	almaden_bookster_sync_book_capabilities();
+	almaden_bookster_sync_creator_page();
+	almaden_bookster_sync_store_page();
 	almaden_bookster_create_settings_table();
 	almaden_bookster_create_highlights_table();
 	almaden_bookster_create_highlight_comments_table();
+	if ( function_exists( 'almaden_bookster_create_quiz_progress_tables' ) ) {
+		almaden_bookster_create_quiz_progress_tables();
+	}
 }
 register_activation_hook( __FILE__, 'almaden_bookster_activate_plugin' );
+
+function almaden_bookster_sync_book_capabilities() {
+	$roles = array( 'administrator', 'editor' );
+
+	foreach ( $roles as $role_key ) {
+		$role = get_role( $role_key );
+
+		if ( $role && ! $role->has_cap( 'almaden_manage_books' ) ) {
+			$role->add_cap( 'almaden_manage_books' );
+		}
+	}
+}
+
+add_action( 'init', 'almaden_bookster_sync_book_capabilities' );
 
 add_action('init', function() {
 	global $wpdb;

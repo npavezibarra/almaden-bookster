@@ -26,6 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
         zoomLevel: 1.0,
         textLayers: [],
         activeLayerId: null,
+        showRuler: false,
+        rulerSizePx: 24,
+        coverLayoutWidthPx: 0,
+        coverLayoutHeightPx: 0,
         isDragging: false,
         dragStartX: 0,
         dragStartY: 0,
@@ -37,11 +41,18 @@ document.addEventListener('DOMContentLoaded', () => {
     window.CoverEditor.elements = {
         paperTypeSelect: document.getElementById('paper-type'),
         pageCountInput: document.getElementById('page-count'),
+        spineWidthMode: document.getElementById('spine-width-mode'),
+        spineWidthMm: document.getElementById('spine-width-mm'),
         zoomInBtn: document.getElementById('zoom-in'),
         zoomOutBtn: document.getElementById('zoom-out'),
         zoomLevelText: document.getElementById('zoom-level'),
         
         coverScaler: document.getElementById('cover-scaler'),
+        coverStage: document.getElementById('cover-stage'),
+        rulerOverlay: document.getElementById('ruler-overlay'),
+        rulerCorner: document.getElementById('ruler-corner'),
+        rulerHorizontal: document.getElementById('ruler-horizontal'),
+        rulerVertical: document.getElementById('ruler-vertical'),
         coverSpread: document.getElementById('cover-spread'),
         backCover: document.getElementById('back-cover'),
         spine: document.getElementById('spine'),
@@ -50,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         backFlap: document.getElementById('back-flap'),
         bleedGuide: document.getElementById('bleed-guide'),
         workspaceContainer: document.getElementById('workspace-container'),
+        rulerToggleBtn: document.getElementById('ruler-toggle-btn'),
 
         // Panels
         imagesContent: document.getElementById('images-section-content'),

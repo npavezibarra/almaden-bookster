@@ -17,6 +17,29 @@ if ( empty( $source_book_id ) ) {
 require_once dirname( __FILE__ ) . '/../../includes/helpers/cover-thumbnail.php';
 $cover_html = almaden_get_cover_thumbnail_html( $book_id );
 $fonts_url = almaden_get_thumbnail_fonts_url();
+$book_excerpt = get_post_field( 'post_excerpt', $book_id );
+if ( empty( $book_excerpt ) ) {
+	$book_excerpt = wp_trim_words( wp_strip_all_tags( get_post_field( 'post_content', $book_id ) ), 42 );
+}
+
+$book_categories = get_the_terms( $book_id, 'category' );
+$book_category_names = array();
+if ( ! is_wp_error( $book_categories ) && is_array( $book_categories ) ) {
+	foreach ( $book_categories as $category ) {
+		$book_category_names[] = $category->name;
+	}
+}
+
+$terms_url = '';
+if ( function_exists( 'wc_get_page_permalink' ) ) {
+	$terms_url = wc_get_page_permalink( 'terms' );
+}
+if ( empty( $terms_url ) && function_exists( 'get_privacy_policy_url' ) ) {
+	$terms_url = get_privacy_policy_url();
+}
+if ( empty( $terms_url ) ) {
+	$terms_url = home_url( '/' );
+}
 
 // Fetch chapters
 $chapters_query = new WP_Query( array(
@@ -110,9 +133,19 @@ $book_data_json = wp_json_encode( array(
 	'productId' => $book_product_id,
 	'purchaseUrl' => $purchase_url,
 	'highlights' => $book_highlights,
+	'quizProgress' => function_exists( 'almaden_bookster_get_book_quiz_progress_payload' ) ? almaden_bookster_get_book_quiz_progress_payload( $book_id ) : array(),
 	'quizFlowSettings' => function_exists( 'almaden_bookster_learni_get_quiz_flow_settings' ) ? almaden_bookster_learni_get_quiz_flow_settings( $book_id ) : array(),
 	'approvedQuizzes' => $approved_quizzes,
 ) );
+
+$public_chapters = array_values(
+	array_filter(
+		$chapters,
+		function ( $chapter ) {
+			return '1' !== (string) $chapter['is_toc'] && '1' !== (string) $chapter['is_credits'];
+		}
+	)
+);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -161,13 +194,17 @@ $book_data_json = wp_json_encode( array(
     </style>
 </head>
 <body>
+
+    <?php if ( $has_reader_access ) : ?>
     <script>
         const bookData = <?php echo $book_data_json; ?>;
         const almadenAjaxUrl = "<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>";
         const almadenReaderHighlightNonce = "<?php echo esc_js( wp_create_nonce( 'almaden_book_highlight_' . $book_id ) ); ?>";
+        const almadenReaderProgressNonce = "<?php echo esc_js( wp_create_nonce( 'almaden_book_progress_' . $book_id ) ); ?>";
         window.bookData = bookData;
         window.almadenAjaxUrl = almadenAjaxUrl;
         window.almadenReaderHighlightNonce = almadenReaderHighlightNonce;
+        window.almadenReaderProgressNonce = almadenReaderProgressNonce;
         const userDBPrefs = <?php
             if ( is_user_logged_in() ) {
                 $prefs = get_user_meta( get_current_user_id(), 'almaden_bookster_reader_prefs', true );
@@ -177,8 +214,6 @@ $book_data_json = wp_json_encode( array(
             }
         ?>;
     </script>
-
-    <?php if ( $has_reader_access ) : ?>
     <!-- STATE: INDEX -->
     <div id="view-index" class="w-full h-full flex flex-col md:flex-row">
         <!-- Left Side: Cover -->
@@ -192,7 +227,7 @@ $book_data_json = wp_json_encode( array(
         <div id="reader-index-panel" class="w-full md:w-1/2 h-1/2 md:h-full overflow-y-auto p-8 md:p-16 lg:p-24 relative">
             <div id="reader-index-header" class="flex justify-between items-center mb-12">
                 <h2 id="reader-book-title" class="text-2xl md:text-3xl font-bold text-gray-900"><?php echo esc_html( $book_title ); ?></h2>
-                <a id="reader-btn-back" href="<?php echo esc_url( home_url( '/bookshelf/' ) ); ?>" class="px-5 py-2 bg-transparent border border-gray-200 hover:bg-black/5 rounded-full text-sm font-semibold text-gray-700 shadow-sm transition-colors">Volver</a>
+                <a id="reader-btn-back" href="<?php echo esc_url( almaden_bookster_get_store_page_url() ); ?>" class="px-5 py-2 bg-transparent border border-gray-200 hover:bg-black/5 rounded-full text-sm font-semibold text-gray-700 shadow-sm transition-colors">Volver</a>
             </div>
 
             <div class="space-y-1" id="chapters-list">
@@ -360,20 +395,90 @@ $book_data_json = wp_json_encode( array(
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-highlights-events.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-highlights-events.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-navigation.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-navigation.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-quizzes.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-quizzes.js' ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-progress.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-progress.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-app.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-app.js' ); ?>"></script>
     <?php else : ?>
-        <div class="min-h-screen flex items-center justify-center bg-neutral-50 px-6 py-12">
-            <div class="w-full max-w-xl rounded-3xl border border-gray-200 bg-white p-8 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.25)]">
-                <p class="text-sm font-semibold uppercase tracking-[0.2em] text-gray-400 mb-3">Acceso restringido</p>
-                <h1 class="text-3xl font-bold text-gray-900 mb-4"><?php echo esc_html( $book_title ); ?></h1>
-                <p class="text-gray-600 leading-relaxed mb-8">
-                    Debes comprar este ebook para leerlo y guardar highlights en tu cuenta.
-                </p>
-                <a href="<?php echo esc_url( $purchase_url ); ?>" class="inline-flex items-center rounded-full bg-black px-5 py-3 text-white font-semibold hover:bg-gray-800 transition-colors">
-                    Ir a comprar
-                </a>
+        <div class="min-h-screen bg-neutral-50 px-6 py-10 md:py-14">
+            <div class="mx-auto w-full max-w-6xl">
+                <div class="grid gap-8 lg:grid-cols-[minmax(280px,360px)_1fr]">
+                    <div class="rounded-[2rem] bg-white p-6 shadow-[0_24px_80px_-35px_rgba(0,0,0,0.35)] border border-gray-100">
+                        <div class="overflow-hidden rounded-[1.5rem]">
+                            <?php echo $cover_html; ?>
+                        </div>
+                    </div>
+                    <div class="rounded-[2rem] bg-white p-7 md:p-10 shadow-[0_24px_80px_-35px_rgba(0,0,0,0.18)] border border-gray-100">
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-400 mb-3">Ficha del ebook</p>
+                        <h1 class="text-3xl md:text-5xl font-bold text-gray-900 leading-tight"><?php echo esc_html( $book_title ); ?></h1>
+                        <p class="mt-3 text-base md:text-lg text-gray-500 font-medium"><?php echo esc_html( $author ); ?></p>
+                        <?php if ( ! empty( $book_category_names ) ) : ?>
+                            <div class="mt-5 flex flex-wrap gap-2">
+                                <?php foreach ( $book_category_names as $category_name ) : ?>
+                                    <span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-600"><?php echo esc_html( $category_name ); ?></span>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                        <div class="mt-7 text-gray-700 leading-8 text-base md:text-lg max-w-3xl">
+                            <?php echo wpautop( esc_html( $book_excerpt ) ); ?>
+                        </div>
+
+                        <div class="mt-8 rounded-3xl border border-gray-200 bg-gray-50 p-5">
+                            <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-gray-500 mb-4">Capítulos incluidos</h2>
+                            <?php if ( ! empty( $public_chapters ) ) : ?>
+                                <div class="grid gap-2 md:grid-cols-2">
+                                    <?php foreach ( $public_chapters as $chapter_index => $chapter ) : ?>
+                                        <div class="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3">
+                                            <span class="font-medium text-gray-800"><?php echo esc_html( $chapter['title'] ); ?></span>
+                                            <span class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-400">Bloqueado</span>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else : ?>
+                                <p class="text-sm text-gray-500">Todavía no hay capítulos cargados para este ebook.</p>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="mt-8 rounded-3xl border border-gray-900 bg-black p-6 text-white">
+                            <div class="flex flex-col gap-5">
+                                <div>
+                                    <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/60">Compra segura</p>
+                                    <p class="mt-2 text-sm leading-6 text-white/85">
+                                        Antes de comprar, debes aceptar los términos y condiciones.
+                                        <a href="<?php echo esc_url( $terms_url ); ?>" class="underline decoration-white/40 underline-offset-4 hover:decoration-white" target="_blank" rel="noreferrer">Ver términos</a>.
+                                        Luego podrás leer el ebook completo, resolver quizzes y ver tu progreso.
+                                    </p>
+                                </div>
+                                <label class="flex items-start gap-3 text-sm text-white/85">
+                                    <input id="almaden-terms-checkbox" type="checkbox" class="mt-1 h-4 w-4 rounded border-white/30 bg-transparent text-black focus:ring-white">
+                                    <span>Acepto los términos y condiciones de compra.</span>
+                                </label>
+                                <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                                    <a id="almaden-buy-ebook-btn" href="<?php echo esc_url( $purchase_url ); ?>" aria-disabled="true" class="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 font-semibold text-black opacity-40 pointer-events-none transition-colors hover:bg-gray-100">
+                                        Comprar Ebook
+                                    </a>
+                                    <a href="<?php echo esc_url( almaden_bookster_get_store_page_url() ); ?>" class="inline-flex items-center justify-center rounded-full border border-white/20 px-5 py-3 font-semibold text-white/90 hover:bg-white/10 transition-colors">
+                                        Volver al catálogo
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+        <script>
+            (function () {
+                const checkbox = document.getElementById('almaden-terms-checkbox');
+                const button = document.getElementById('almaden-buy-ebook-btn');
+                if (!checkbox || !button) return;
+
+                checkbox.addEventListener('change', function () {
+                    const enabled = checkbox.checked;
+                    button.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+                    button.classList.toggle('pointer-events-none', !enabled);
+                    button.classList.toggle('opacity-40', !enabled);
+                });
+            })();
+        </script>
     <?php endif; ?>
 </body>
 </html>

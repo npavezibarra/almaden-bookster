@@ -10,9 +10,9 @@ Si eres un agente o vas a modificar codigo, usa este orden:
 2. Este [README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/README.md)
 3. [includes/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/README.md)
 4. La carpeta que corresponda al area a tocar:
-   - [templates/editor/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/editor/README.md)
-   - [templates/cover/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/cover/README.md)
-   - [templates/bookshelf/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/bookshelf/README.md)
+- [templates/editor/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/editor/README.md)
+- [templates/cover/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/cover/README.md)
+- [templates/bookshelf/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/bookshelf/README.md)
    - [templates/reader/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/reader/README.md)
    - [templates/quiz-builder/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/quiz-builder/README.md)
 5. [assets/js/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/README.md)
@@ -22,6 +22,7 @@ Si eres un agente o vas a modificar codigo, usa este orden:
 - CPTs de libros y capitulos.
 - Editor de contenido de libros.
 - Editor de portadas.
+- Configuracion interna de rutas y paginas del creador.
 - Libreria publica.
 - Reader publico.
 - Integracion con Learni para quizzes de libro y quizzes por capitulo.
@@ -40,7 +41,7 @@ Si eres un agente o vas a modificar codigo, usa este orden:
 - Taller / admin: [templates/admin/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/admin/README.md)
 - Book editor: [templates/editor/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/editor/README.md)
 - Cover editor: [templates/cover/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/cover/README.md)
-- Bookshelf: [templates/bookshelf/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/bookshelf/README.md)
+- Catálogo público: [templates/bookshelf/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/bookshelf/README.md)
 - Reader: [templates/reader/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/reader/README.md)
 - Quiz builder: [templates/quiz-builder/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/quiz-builder/README.md)
 

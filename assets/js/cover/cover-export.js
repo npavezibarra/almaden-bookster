@@ -2,146 +2,118 @@
 document.addEventListener('DOMContentLoaded', () => {
     const s = window.CoverEditor.state;
     const el = window.CoverEditor.elements;
+    const utils = window.CoverEditor.utils;
     
     const exportPdfBtn = document.getElementById('export-pdf-btn');
     if (!exportPdfBtn) return;
+    const EXPORT_FORM_ID = 'cover-export-download-form';
+    let exportBusyUntil = 0;
 
-    // References to UI that affects dimensions (same as cover-dimensions.js)
-    const frontFlapWidth = document.getElementById('front-flap-width');
-    const backFlapWidth = document.getElementById('back-flap-width');
-
-    function triggerPrint() {
-        const thicknessMmPerPage = parseFloat(el.paperTypeSelect.value) || 0.06;
-        let pages = parseInt(el.pageCountInput.value, 10);
-        if (isNaN(pages) || pages < 20) pages = 20;
-        
-        // Spine width
-        const spineWidthMm = thicknessMmPerPage * pages;
-
-        // Bleed (5mm)
-        const BLEED_MM = 5;
-
-        // Cover width
-        const coverWidthMm = s.pageWidthCm * 10;
-        const heightMm = s.pageHeightCm * 10;
-
-        // Flaps calculation
-        const frontFlapMm = parseFloat(frontFlapWidth.value) || 0;
-        const backFlapMm = parseFloat(backFlapWidth.value) || 0;
-
-        // Total dimensions
-        const totalWidthMm = frontFlapMm + coverWidthMm + spineWidthMm + coverWidthMm + backFlapMm + (BLEED_MM * 2);
-        const totalHeightMm = heightMm + (BLEED_MM * 2);
-
-        // We need to ensure the transform scale is temporarily removed for printing
-        // but we can do that safely with CSS media print properties.
-        let styleEl = document.getElementById('print-export-style');
-        if (!styleEl) {
-            styleEl = document.createElement('style');
-            styleEl.id = 'print-export-style';
-            document.head.appendChild(styleEl);
+    function ensureDownloadTargets() {
+        let form = document.getElementById(EXPORT_FORM_ID);
+        if (!form) {
+            form = document.createElement('form');
+            form.id = EXPORT_FORM_ID;
+            form.method = 'POST';
+            form.action = coverData.exportUrl || (window.location.origin + '/wp-admin/admin-post.php');
+            form.target = '_self';
+            form.style.display = 'none';
+            document.body.appendChild(form);
         }
 
-        styleEl.innerHTML = `
-            @media print {
-                nav, aside {
-                    display: none !important;
-                }
-                html, body {
-                    height: auto !important;
-                    overflow: visible !important;
-                    background: white !important;
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    -webkit-print-color-adjust: exact !important;
-                    print-color-adjust: exact !important;
-                }
-                #workspace-container {
-                    display: block !important;
-                    height: auto !important;
-                    overflow: visible !important;
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    background: white !important;
-                    width: 100% !important;
-                    max-width: 100% !important;
-                    position: static !important;
-                    transform: none !important;
-                    justify-content: flex-start !important;
-                    align-items: flex-start !important;
-                }
-                #cover-scaler {
-                    padding: 0 !important;
-                    transform: none !important;
-                    margin: 0 !important;
-                }
-                #cover-spread {
-                    box-shadow: none !important;
-                    margin: 0 !important;
-                    border: none !important;
-                    /* Ensure exact mm physical dimensions on paper */
-                    width: ${totalWidthMm}mm !important;
-                    height: ${totalHeightMm}mm !important;
-                }
-                
-                /* The bleed guides shouldn't print */
-                #bleed-guide {
-                    display: none !important;
-                }
-                
-                /* Remove visual dashed borders from cover parts */
-                .cover-part {
-                    border: none !important;
-                    outline: none !important;
-                }
-                
-                /* Hide any inner dashed lines (spine/flap folds) */
-                .cover-part > div.border-dashed {
-                    display: none !important;
-                }
-                
-                /* Ensure active layer highlighting doesn't print */
-                .text-layer {
-                    border: none !important;
-                    outline: none !important;
-                    box-shadow: none !important;
-                }
-                .text-layer.bg-indigo-50 {
-                    background-color: transparent !important;
-                }
-
-                #cover-spread,
-                .cover-part,
-                .text-layer,
-                .cover-media-image {
-                    -webkit-print-color-adjust: exact !important;
-                    print-color-adjust: exact !important;
-                }
-
-                @page {
-                    size: ${totalWidthMm}mm ${totalHeightMm}mm;
-                    margin: 0px;
-                }
-            }
-        `;
-
-        // Small delay to allow the browser to apply the styles before opening print dialog
-        setTimeout(() => {
-            // Deselect any active layer so borders don't show
-            const sActive = window.CoverEditor.state.activeLayerId;
-            if (sActive) {
-                // To avoid rewriting selectLayer here, we just fake a click on workspace
-                const mousedownEvent = new MouseEvent('mousedown', {
-                    bubbles: true,
-                    cancelable: true,
-                    view: window
-                });
-                el.workspaceContainer.dispatchEvent(mousedownEvent);
-            }
-
-            window.print();
-        }, 300);
+        return { form };
     }
 
-    exportPdfBtn.addEventListener('click', triggerPrint);
+    function buildExportPayload() {
+        const getFieldValue = (id, fallback = '') => {
+            const field = document.getElementById(id);
+            return field && field.value !== undefined ? field.value : fallback;
+        };
+
+        return {
+            paper_type: getFieldValue('paper-type', el.paperTypeSelect ? el.paperTypeSelect.value : '0.06'),
+            page_count: getFieldValue('page-count', el.pageCountInput ? el.pageCountInput.value : '0'),
+            spine_width_mode: utils.getSpineWidthMode ? utils.getSpineWidthMode() : 'auto',
+            spine_width_mm: getFieldValue('spine-width-mm', ''),
+            front_flap_width: getFieldValue('front-flap-width', '0'),
+            back_flap_width: getFieldValue('back-flap-width', '0'),
+            front_image: getFieldValue('upload-front-cover', ''),
+            back_image: getFieldValue('upload-back-cover', ''),
+            spine_image: getFieldValue('upload-spine-image', ''),
+            spine_color: getFieldValue('spine-color-picker', '#f9fafb'),
+            spread_image: getFieldValue('upload-full-spread', ''),
+            front_flap_image: getFieldValue('upload-front-flap-image', ''),
+            front_flap_color: getFieldValue('front-flap-color-picker', '#ffffff'),
+            back_flap_image: getFieldValue('upload-back-flap-image', ''),
+            back_flap_color: getFieldValue('back-flap-color-picker', '#ffffff'),
+            text_layers: JSON.parse(JSON.stringify(s.textLayers || [])),
+            page_width_cm: s.pageWidthCm,
+            page_height_cm: s.pageHeightCm
+        };
+    }
+
+    async function triggerExport() {
+        const exportPdfBtn = document.getElementById('export-pdf-btn');
+        const originalLabel = exportPdfBtn ? exportPdfBtn.innerHTML : '';
+        const coverDataRef = (typeof coverData !== 'undefined' && coverData) ? coverData : (window.coverData || {});
+        const now = Date.now();
+
+        if (now < exportBusyUntil) {
+            return;
+        }
+
+        const exportNonce = coverDataRef.exportNonce || coverDataRef.nonce || '';
+        const { form } = ensureDownloadTargets();
+
+        if (exportPdfBtn) {
+            exportPdfBtn.disabled = true;
+            exportPdfBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-red-500"></i> Generando PDF...';
+        }
+        exportBusyUntil = now + 120000;
+
+        try {
+            Array.from(form.querySelectorAll('input[name]')).forEach(input => input.remove());
+
+            const fields = {
+                action: 'almaden_export_cover_pdf',
+                book_id: coverDataRef.bookId || 0,
+                nonce: exportNonce,
+                cover_payload: JSON.stringify(buildExportPayload())
+            };
+
+            Object.entries(fields).forEach(([name, value]) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = value;
+                form.appendChild(input);
+            });
+
+            form.action = coverDataRef.exportUrl || form.action;
+            form.target = '_self';
+            form.submit();
+
+            window.setTimeout(() => {
+                if (Date.now() < exportBusyUntil) {
+                    exportBusyUntil = 0;
+                    if (exportPdfBtn) {
+                        exportPdfBtn.disabled = false;
+                        exportPdfBtn.innerHTML = originalLabel || '<i class="fa-solid fa-file-pdf text-red-500"></i> Descargar PDF';
+                    }
+                }
+            }, 2000);
+        } catch (error) {
+            console.error(error);
+            const message = error && error.message ? error.message : 'No se pudo generar el PDF CMYK.';
+            alert(message);
+            exportBusyUntil = 0;
+        } finally {
+            if (exportPdfBtn && Date.now() >= exportBusyUntil) {
+                exportPdfBtn.disabled = false;
+                exportPdfBtn.innerHTML = originalLabel || '<i class="fa-solid fa-file-pdf text-red-500"></i> Descargar PDF';
+            }
+        }
+    }
+
+    exportPdfBtn.addEventListener('click', triggerExport);
 });

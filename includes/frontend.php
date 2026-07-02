@@ -7,11 +7,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // 1. Crear la página física automáticamente si no existe
 function almaden_bookster_create_page() {
-	$pages_to_create = [
-		'almaden-booklist' => 'Taller',
-		'bookshelf'        => 'Bookshelf',
+	almaden_bookster_sync_creator_page();
+	almaden_bookster_sync_store_page();
+
+	$pages_to_create = array(
 		'almaden-book-quiz' => 'Book Quiz',
-	];
+	);
 
 	foreach ( $pages_to_create as $page_slug => $page_title ) {
 		$page = get_page_by_path( $page_slug );
@@ -28,9 +29,17 @@ function almaden_bookster_create_page() {
 }
 add_action( 'init', 'almaden_bookster_create_page' );
 
-// 2. Interceptar la página almaden-booklist para cargar nuestra app independiente
+// 2. Interceptar la página configurada para cargar nuestra app independiente
 function almaden_bookster_load_booklist() {
-	if ( is_page( 'almaden-booklist' ) && is_main_query() ) {
+	if ( is_page( almaden_bookster_get_creator_slug() ) && is_main_query() ) {
+		if ( ! is_user_logged_in() ) {
+			auth_redirect();
+		}
+
+		if ( ! almaden_bookster_user_can_manage_books() ) {
+			wp_die( 'No tienes permisos para acceder al taller de libros.' );
+		}
+
 		// Ocultar barra de administración de WordPress
 		show_admin_bar( false );
 		
@@ -53,9 +62,9 @@ function almaden_bookster_load_booklist() {
 }
 add_action( 'template_redirect', 'almaden_bookster_load_booklist', 5 );
 
-// 3. Interceptar la página bookshelf para cargar nuestra app independiente
+// 3. Interceptar la página del catálogo público para cargar nuestra app independiente
 function almaden_bookster_load_bookshelf() {
-	if ( is_page( 'bookshelf' ) && is_main_query() ) {
+	if ( is_page( almaden_bookster_get_store_slug() ) && is_main_query() ) {
 		// Ocultar barra de administración de WordPress
 		show_admin_bar( false );
 		
@@ -91,7 +100,7 @@ function almaden_bookster_load_reader( $template ) {
 	if ( is_singular( 'almaden-books' ) ) {
 		// Ocultar barra de administración de WordPress
 		show_admin_bar( false );
-		$new_template = dirname( __FILE__ ) . '/../templates/reader/reader-app.php';
+		$new_template = dirname( __FILE__ ) . '/../templates/ebook/ebook-single-app.php';
 		if ( file_exists( $new_template ) ) {
 			return $new_template;
 		}
@@ -179,9 +188,7 @@ function almaden_bookster_handle_create_book() {
 		}
 
 		// Redirigir de vuelta con mensaje de éxito
-		$redirect_url = add_query_arg( 'book_created', '1', wp_get_referer() );
-		// Redireccionar al listado con un flag de éxito
-		$redirect_url = home_url( '/almaden-booklist/?book_created=1' );
+		$redirect_url = almaden_bookster_get_creator_page_url( array( 'book_created' => '1' ) );
 		wp_safe_redirect( $redirect_url );
 		exit;
 	} else {
@@ -210,7 +217,7 @@ function almaden_bookster_handle_delete_book() {
 	wp_delete_post( $book_id, true );
 
 	// Redireccionar al listado
-	$redirect_url = home_url( '/almaden-booklist/?book_deleted=1' );
+	$redirect_url = almaden_bookster_get_creator_page_url( array( 'book_deleted' => '1' ) );
 	wp_safe_redirect( $redirect_url );
 	exit;
 }
@@ -272,7 +279,7 @@ function almaden_bookster_handle_duplicate_book() {
 			$wpdb->insert( $settings_table, $db_settings );
 		}
 
-		$redirect_url = home_url( '/almaden-booklist/?book_duplicated=1' );
+		$redirect_url = almaden_bookster_get_creator_page_url( array( 'book_duplicated' => '1' ) );
 		wp_safe_redirect( $redirect_url );
 		exit;
 	} else {
@@ -348,6 +355,7 @@ function almaden_bookster_load_cover_editor() {
 			$cover_settings = array();
 		}
 		$cover_nonce = wp_create_nonce( 'almaden_save_cover_nonce_' . $book_id );
+		$cover_export_nonce = wp_create_nonce( 'almaden_export_cover_pdf_' . $book_id );
 		
 		// Load installed fonts
 		$installed_fonts = get_option( 'almaden_fonts_library', array() );

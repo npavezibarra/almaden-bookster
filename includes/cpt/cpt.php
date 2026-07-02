@@ -114,10 +114,12 @@ add_action( 'add_meta_boxes_almaden-books', 'almaden_bookster_register_book_acce
 function almaden_bookster_render_book_access_metabox( $post ) {
 	wp_nonce_field( 'almaden_book_access_meta_' . $post->ID, 'almaden_book_access_meta_nonce' );
 	$product_id = (int) get_post_meta( $post->ID, '_almaden_wc_product_id', true );
+	$product_link = $product_id > 0 ? get_edit_post_link( $product_id ) : '';
+	$create_new_product = false;
 	?>
 	<p>
 		<label for="almaden_wc_product_id" style="display:block; font-weight:600; margin-bottom:6px;">
-			<?php esc_html_e( 'WooCommerce Product ID', 'almaden-bookster' ); ?>
+			<?php esc_html_e( 'WooCommerce Product ID existente', 'almaden-bookster' ); ?>
 		</label>
 		<input
 			type="number"
@@ -130,9 +132,25 @@ function almaden_bookster_render_book_access_metabox( $post ) {
 			placeholder="123"
 		/>
 	</p>
-	<p style="margin-bottom:0; color:#6b7280;">
+	<p style="margin:0 0 12px; color:#6b7280;">
 		<?php esc_html_e( 'Si se configura, solo podrán abrir el libro los usuarios que hayan comprado este producto.', 'almaden-bookster' ); ?>
 	</p>
+	<p style="margin:0 0 12px;">
+		<label style="display:flex; gap:8px; align-items:flex-start; font-weight:600;">
+			<input type="checkbox" name="almaden_create_wc_product" value="1" <?php checked( $create_new_product ); ?> />
+			<span><?php esc_html_e( 'Crear un producto WooCommerce nuevo para este ebook si no existe uno vinculado.', 'almaden-bookster' ); ?></span>
+		</label>
+	</p>
+	<p style="margin:0; color:#6b7280;">
+		<?php esc_html_e( 'El producto se creará como borrador para que puedas revisar precio, descripción y publicación antes de venderlo.', 'almaden-bookster' ); ?>
+	</p>
+	<?php if ( $product_link ) : ?>
+		<p style="margin-bottom:0;">
+			<a href="<?php echo esc_url( $product_link ); ?>" target="_blank" rel="noopener noreferrer">
+				<?php esc_html_e( 'Editar producto vinculado', 'almaden-bookster' ); ?>
+			</a>
+		</p>
+	<?php endif; ?>
 	<?php
 }
 
@@ -154,7 +172,14 @@ function almaden_bookster_save_book_access_metabox( $post_id ) {
 	}
 
 	$product_id = isset( $_POST['almaden_wc_product_id'] ) ? absint( $_POST['almaden_wc_product_id'] ) : 0;
+	$create_wc_product = ! empty( $_POST['almaden_create_wc_product'] );
+	if ( $product_id <= 0 && $create_wc_product && function_exists( 'almaden_bookster_get_or_create_book_product_id' ) ) {
+		$product_id = almaden_bookster_get_or_create_book_product_id( $post_id, true, 'draft' );
+	}
 	if ( $product_id > 0 ) {
+		if ( function_exists( 'almaden_bookster_sync_book_product_link' ) ) {
+			almaden_bookster_sync_book_product_link( $post_id, $product_id );
+		}
 		update_post_meta( $post_id, '_almaden_wc_product_id', $product_id );
 	} else {
 		delete_post_meta( $post_id, '_almaden_wc_product_id' );
