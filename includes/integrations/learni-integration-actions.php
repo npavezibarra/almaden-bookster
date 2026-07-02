@@ -30,7 +30,8 @@ function almaden_bookster_handle_save_learni_quiz() {
 		wp_die( esc_html__( 'El payload del quiz no es JSON válido.', 'almaden-bookster' ) );
 	}
 
-	if ( ! class_exists( '\\Learni\\QuizEditor\\QuizEditor' ) ) {
+	$editor_class = function_exists( 'almaden_bookster_learni_quiz_editor_class' ) ? almaden_bookster_learni_quiz_editor_class() : '';
+	if ( $editor_class === '' ) {
 		wp_die( esc_html__( 'Learni no está disponible para guardar el quiz.', 'almaden-bookster' ) );
 	}
 
@@ -44,15 +45,15 @@ function almaden_bookster_handle_save_learni_quiz() {
 		$resolved_quiz_id = almaden_bookster_learni_get_quiz_id_for_chapter( $chapter_id );
 		if ( $resolved_quiz_id > 0 ) {
 			$payload['quiz_id'] = $resolved_quiz_id;
-			$result = \Learni\QuizEditor\QuizEditor::save_quiz( $payload );
+			$result = $editor_class::save_quiz( $payload );
 		} else {
-			$result = \Learni\QuizEditor\QuizEditor::create_quiz( $payload );
+			$result = $editor_class::create_quiz( $payload );
 		}
 	} elseif ( $quiz_id > 0 ) {
 		$payload['quiz_id'] = $quiz_id;
-		$result = \Learni\QuizEditor\QuizEditor::save_quiz( $payload );
+		$result = $editor_class::save_quiz( $payload );
 	} else {
-		$result = \Learni\QuizEditor\QuizEditor::create_quiz( $payload );
+		$result = $editor_class::create_quiz( $payload );
 	}
 
 	if ( is_wp_error( $result ) ) {
@@ -230,6 +231,22 @@ function almaden_bookster_ajax_get_quiz_data() {
 add_action( 'wp_ajax_almaden_get_quiz_data', 'almaden_bookster_ajax_get_quiz_data' );
 add_action( 'wp_ajax_nopriv_almaden_get_quiz_data', 'almaden_bookster_ajax_get_quiz_data' );
 
+function almaden_bookster_ajax_get_quiz_id_for_chapter() {
+	$chapter_id = isset( $_POST['chapter_id'] ) ? absint( $_POST['chapter_id'] ) : 0;
+	if ( $chapter_id <= 0 ) {
+		wp_send_json_error( __( 'ID de capítulo inválido.', 'almaden-bookster' ) );
+	}
+
+	$quiz_id = almaden_bookster_learni_get_quiz_id_for_chapter( $chapter_id );
+	wp_send_json_success(
+		array(
+			'quiz_id' => (int) $quiz_id,
+		)
+	);
+}
+add_action( 'wp_ajax_almaden_get_quiz_id_for_chapter', 'almaden_bookster_ajax_get_quiz_id_for_chapter' );
+add_action( 'wp_ajax_nopriv_almaden_get_quiz_id_for_chapter', 'almaden_bookster_ajax_get_quiz_id_for_chapter' );
+
 function almaden_bookster_ajax_submit_quiz_result() {
 	if ( ! is_user_logged_in() ) {
 		wp_send_json_error( __( 'Debes iniciar sesión para registrar tu progreso.', 'almaden-bookster' ) );
@@ -266,4 +283,3 @@ function almaden_bookster_ajax_submit_quiz_result() {
 	) );
 }
 add_action( 'wp_ajax_almaden_submit_quiz_result', 'almaden_bookster_ajax_submit_quiz_result' );
-

@@ -1,7 +1,33 @@
 (function () {
-    const cfg = window.bookData || {};
-    const flowSettings = cfg.quizFlowSettings || {};
-    const chapters = Array.isArray(cfg.chapters) ? cfg.chapters : [];
+    function getRuntimeBookData() {
+        if (window.bookData && typeof window.bookData === 'object') {
+            return window.bookData;
+        }
+        if (typeof bookData !== 'undefined' && bookData && typeof bookData === 'object') {
+            return bookData;
+        }
+        return {};
+    }
+
+    function getRuntimeChapters() {
+        const cfg = getRuntimeBookData();
+        return Array.isArray(cfg.chapters) ? cfg.chapters : [];
+    }
+
+    function getRuntimeFlowSettings() {
+        const cfg = getRuntimeBookData();
+        return cfg.quizFlowSettings || {};
+    }
+
+    let cfg = getRuntimeBookData();
+    let flowSettings = getRuntimeFlowSettings();
+    let chapters = getRuntimeChapters();
+    const chapterQuizIdCache = {};
+    const debugQuiz = (message, data) => {
+        if (window.console && console.log) {
+            console.log(`[AlmadenBookster Reader] ${message}`, data || {});
+        }
+    };
 
     // Load approved quizzes from backend context first, fallback to localStorage
     let approvedQuizzes = Array.isArray(cfg.approvedQuizzes) ? cfg.approvedQuizzes.map(Number) : [];
@@ -26,12 +52,23 @@
                 approvedQuizzes.push(id);
                 localStorage.setItem('almaden_approved_quizzes', JSON.stringify(approvedQuizzes));
             }
-        }
+        },
+        updateTakeQuizButton: (index) => updateTakeQuizButton(index)
     };
+
+    function refreshRuntimeContext() {
+        cfg = getRuntimeBookData();
+        flowSettings = getRuntimeFlowSettings();
+        chapters = getRuntimeChapters();
+        if (Array.isArray(cfg.approvedQuizzes) && cfg.approvedQuizzes.length > 0) {
+            approvedQuizzes = cfg.approvedQuizzes.map(Number);
+        }
+    }
 
     // Intercept showChapterView
     const originalShowChapterView = window.showChapterView;
     window.showChapterView = function (index) {
+        refreshRuntimeContext();
         if (!flowSettings.is_mandatory) {
             originalShowChapterView(index);
             updateTakeQuizButton(index);
@@ -78,6 +115,7 @@
     };
 
     function getNextChapterIndex() {
+        refreshRuntimeContext();
         if (typeof currentChapterIndex === 'undefined' || currentChapterIndex < 0) return -1;
         let nextIndex = currentChapterIndex + 1;
         while (nextIndex < chapters.length && (chapters[nextIndex].is_toc === '1' || chapters[nextIndex].is_credits === '1')) {
@@ -87,6 +125,7 @@
     }
 
     function findUnpassedQuizChapterBefore(targetIndex) {
+        refreshRuntimeContext();
         // Look from index 0 up to targetIndex - 1 (inclusive)
         // If there's any chapter with a quiz_id that is NOT approved, return it
         for (let i = 0; i < targetIndex; i++) {
@@ -350,18 +389,84 @@
     }
 
     function updateTakeQuizButton(index) {
+        refreshRuntimeContext();
         const btn = document.getElementById('btn-take-quiz');
         if (!btn) return;
 
         const ch = chapters[index];
         if (!ch || ch.is_toc === '1' || ch.is_credits === '1') {
+            debugQuiz('Ocultando botón Take Quiz por capítulo no elegible', {
+                index,
+                chapterId: ch ? ch.id : null,
+                title: ch ? ch.title : null,
+                isToc: ch ? ch.is_toc : null,
+                isCredits: ch ? ch.is_credits : null
+            });
             btn.classList.add('hidden');
             return;
         }
 
         const quizId = parseInt(ch.quiz_id, 10);
+        debugQuiz('Evaluando botón Take Quiz', {
+            index,
+            chapterId: ch.id,
+            title: ch.title,
+            quizId,
+            flowSettings
+        });
         if (quizId <= 0) {
-            btn.classList.add('hidden');
+            const chapterId = parseInt(ch.id, 10) || 0;
+            if (chapterId > 0 && !chapterQuizIdCache[chapterId]) {
+                chapterQuizIdCache[chapterId] = true;
+                debugQuiz('Quiz ID ausente en bookData; consultando AJAX por chapter_id', {
+                    index,
+                    chapterId
+                });
+                const formData = new FormData();
+                formData.append('action', 'almaden_get_quiz_id_for_chapter');
+                formData.append('chapter_id', chapterId);
+
+                fetch(window.location.origin + '/wp-admin/admin-ajax.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(res => {
+                    const resolvedQuizId = res && res.success && res.data ? parseInt(res.data.quiz_id, 10) || 0 : 0;
+                    debugQuiz('Respuesta AJAX almaden_get_quiz_id_for_chapter', {
+                        index,
+                        chapterId,
+                        response: res,
+                        resolvedQuizId
+                    });
+                    if (resolvedQuizId > 0 && chapters[index]) {
+                        chapters[index].quiz_id = resolvedQuizId;
+                        delete chapterQuizIdCache[chapterId];
+                        updateTakeQuizButton(index);
+                    } else {
+                        debugQuiz('AJAX no resolvió quiz_id', {
+                            index,
+                            chapterId,
+                            response: res
+                        });
+                        btn.classList.add('hidden');
+                    }
+                })
+                .catch(() => {
+                    debugQuiz('Error AJAX resolviendo quiz_id', {
+                        index,
+                        chapterId
+                    });
+                    delete chapterQuizIdCache[chapterId];
+                    btn.classList.add('hidden');
+                });
+            } else {
+                console.warn('[AlmadenBookster Reader] Quiz ID sigue ausente y el capítulo ya estaba en cache pendiente', {
+                    index,
+                    chapterId: ch.id
+                });
+                btn.classList.add('hidden');
+            }
             return;
         }
 
@@ -370,19 +475,31 @@
             const chNumber = chapters.filter(c => c.is_toc !== '1' && c.is_credits !== '1' && chapters.indexOf(c) <= index).length;
             const interval = parseInt(flowSettings.interval_chapters, 10) || 3;
             if (chNumber % interval !== 0 && index !== chapters.length - 1) {
+                console.warn('[AlmadenBookster Reader] Botón oculto por regla interval', {
+                    index,
+                    chapterId: ch.id,
+                    chNumber,
+                    interval
+                });
                 btn.classList.add('hidden');
                 return;
             }
         }
 
         btn.classList.remove('hidden');
+        debugQuiz('Mostrando botón Take Quiz', {
+            index,
+            chapterId: ch.id,
+            quizId,
+            approved: approvedQuizzes.includes(quizId)
+        });
 
         const approved = approvedQuizzes.includes(quizId);
         if (approved) {
             btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Quiz Aprobado';
             btn.className = "mx-auto px-6 py-2.5 rounded-full bg-green-50 text-green-700 border border-green-200 font-semibold text-sm flex items-center gap-2 cursor-pointer transition-all";
         } else {
-            btn.innerHTML = '<i class="fa-solid fa-circle-question"></i> Tomar Quiz';
+            btn.innerHTML = '<i class="fa-solid fa-circle-question"></i> TAKE QUIZ';
             btn.className = "mx-auto px-6 py-2.5 rounded-full bg-black hover:bg-gray-800 text-white font-semibold text-sm flex items-center gap-2 cursor-pointer transition-all";
         }
 
@@ -408,7 +525,11 @@
 
     // Run on initial load when page renders
     window.addEventListener('load', () => {
+        refreshRuntimeContext();
         if (typeof currentChapterIndex !== 'undefined' && currentChapterIndex >= 0) {
+            debugQuiz('Load inicial del reader, actualizando botón con currentChapterIndex', {
+                currentChapterIndex
+            });
             updateTakeQuizButton(currentChapterIndex);
         }
     });

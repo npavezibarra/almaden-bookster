@@ -49,8 +49,9 @@ function almaden_bookster_learni_ensure_quiz_for_book( $book_id ) {
 	);
 
 	$result = null;
-	if ( class_exists( '\\Learni\\QuizEditor\\QuizEditor' ) ) {
-		$result = \Learni\QuizEditor\QuizEditor::create_quiz( $quiz_args );
+	$editor_class = function_exists( 'almaden_bookster_learni_quiz_editor_class' ) ? almaden_bookster_learni_quiz_editor_class() : '';
+	if ( $editor_class !== '' && method_exists( $editor_class, 'create_quiz' ) ) {
+		$result = $editor_class::create_quiz( $quiz_args );
 	}
 
 	if ( null === $result ) {
@@ -83,8 +84,9 @@ function almaden_bookster_learni_get_quiz_data( $book_id ) {
 		return null;
 	}
 
-	if ( class_exists( '\\Learni\\QuizEditor\\QuizEditor' ) ) {
-		return \Learni\QuizEditor\QuizEditor::get_quiz_data( $quiz_id );
+	$editor_class = function_exists( 'almaden_bookster_learni_quiz_editor_class' ) ? almaden_bookster_learni_quiz_editor_class() : '';
+	if ( $editor_class !== '' && method_exists( $editor_class, 'get_quiz_data' ) ) {
+		return $editor_class::get_quiz_data( $quiz_id );
 	}
 
 	return null;

@@ -163,6 +163,16 @@ function showIndexView() {
 function showChapterView(index) {
     currentChapterIndex = index;
     const chapter = bookData.chapters[index];
+    if (window.console && console.log) {
+        console.log('[AlmadenBookster Reader] showChapterView', {
+            index,
+            chapterId: chapter ? chapter.id : null,
+            title: chapter ? chapter.title : null,
+            quizId: chapter ? chapter.quiz_id : null,
+            isToc: chapter ? chapter.is_toc : null,
+            isCredits: chapter ? chapter.is_credits : null
+        });
+    }
     
     document.getElementById('view-index').classList.add('hidden');
     const viewChapter = document.getElementById('view-chapter');
@@ -397,6 +407,10 @@ function showChapterView(index) {
         btnNext.classList.remove('hidden');
     } else {
         btnNext.classList.add('hidden');
+    }
+
+    if (window.ALMADEN_READER_QUIZZES && typeof window.ALMADEN_READER_QUIZZES.updateTakeQuizButton === 'function') {
+        window.ALMADEN_READER_QUIZZES.updateTakeQuizButton(index);
     }
     
     // Animation
