@@ -38,6 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const propTextContent = document.getElementById('prop-text-content');
     const propFontFamily = document.getElementById('prop-font-family');
     const propFontSize = document.getElementById('prop-font-size');
+    const propFontWeight = document.getElementById('prop-font-weight');
+    const propLineHeight = document.getElementById('prop-line-height');
+    const propLetterSpacing = document.getElementById('prop-letter-spacing');
     const propRotation = document.getElementById('prop-rotation');
     const propWidth = document.getElementById('prop-width');
     const propHeight = document.getElementById('prop-height');
@@ -58,23 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function generateId() {
-        return Math.random().toString(36).substr(2, 9);
-    }
-
-    function hexToRgba(hex, opacity) {
-        let r = 0, g = 0, b = 0;
-        if (hex.length === 4) {
-            r = parseInt(hex[1] + hex[1], 16);
-            g = parseInt(hex[2] + hex[2], 16);
-            b = parseInt(hex[3] + hex[3], 16);
-        } else if (hex.length === 7) {
-            r = parseInt(hex.substring(1, 3), 16);
-            g = parseInt(hex.substring(3, 5), 16);
-            b = parseInt(hex.substring(5, 7), 16);
-        }
-        return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
-    }
     window.CoverEditor.actions.selectLayer = function(id) {
         s.activeLayerId = id;
         if (window.CoverEditor.actions.renderTextLayers) {
@@ -138,6 +124,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     propTextContent.value = layer.text || '';
                     propFontFamily.value = layer.fontFamily || (coverData.installedFonts && coverData.installedFonts[0] ? coverData.installedFonts[0].family : 'Inter');
                     propFontSize.value = layer.fontSize;
+                    propFontWeight.value = layer.fontWeight || 400;
+                    propLineHeight.value = layer.lineHeight || 1.2;
+                    propLetterSpacing.value = layer.letterSpacing || 0;
                     propTextColor.value = layer.color;
                     propTextColorHex.value = layer.color;
                     propHyphens.checked = !!layer.hyphens;
@@ -172,54 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Drag Logic
-    document.addEventListener('mousemove', (e) => {
-        if (!s.isDragging || !s.activeLayerId) return;
-
-        const dx = e.clientX - s.dragStartX;
-        const dy = e.clientY - s.dragStartY;
-        
-        const activeLayer = s.textLayers.find(l => l.id === s.activeLayerId);
-        if (activeLayer) {
-            const rect = el.coverSpread.getBoundingClientRect();
-            const spreadWidthPx = rect.width / s.zoomLevel;
-            const spreadHeightPx = rect.height / s.zoomLevel;
-
-            const deltaXPercent = (dx / s.zoomLevel / spreadWidthPx) * 100;
-            const deltaYPercent = (dy / s.zoomLevel / spreadHeightPx) * 100;
-
-            if (activeLayer.type === 'group') {
-                // Arrastrar grupo: mover todos los hijos
-                const children = s.textLayers.filter(l => l.parentId === activeLayer.id);
-                children.forEach(child => {
-                    if (child._origX === undefined) {
-                        child._origX = child.x;
-                        child._origY = child.y;
-                    }
-                    child.x = child._origX + deltaXPercent;
-                    child.y = child._origY + deltaYPercent;
-                });
-            } else {
-                // Arrastrar capa normal
-                if (activeLayer._origX === undefined) {
-                    activeLayer._origX = activeLayer.x;
-                    activeLayer._origY = activeLayer.y;
-                }
-                activeLayer.x = activeLayer._origX + deltaXPercent;
-                activeLayer.y = activeLayer._origY + deltaYPercent;
-            }
-            window.CoverEditor.actions.renderTextLayers();
-        }
-    });
-
-    document.addEventListener('mouseup', () => {
-        s.isDragging = false;
-        s.textLayers.forEach(l => {
-            delete l._origX;
-            delete l._origY;
-        });
-    });
-
     el.workspaceContainer.addEventListener('mousedown', (e) => {
         if (e.target === el.workspaceContainer || e.target === el.coverScaler || e.target === el.coverSpread || e.target.classList.contains('cover-part')) {
             window.CoverEditor.actions.selectLayer(null);
@@ -235,13 +176,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     addTextLayerBtn.addEventListener('click', () => {
         const newLayer = {
-            id: generateId(),
+            id: window.CoverEditor.utils.generateId(),
             type: 'text',
             text: 'Nuevo Texto',
             x: 50,
             y: 50,
             fontFamily: coverData.installedFonts && coverData.installedFonts[0] ? coverData.installedFonts[0].family : 'Inter',
             fontSize: 48,
+            fontWeight: 400,
+            fontStyle: 'normal',
+            lineHeight: 1.2,
+            letterSpacing: 0,
             rotation: 0,
             width: null,
             height: null,
@@ -261,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.CoverEditor.actions.openMediaUploader) {
                 window.CoverEditor.actions.openMediaUploader('Seleccionar Imagen para Capa', (url) => {
                     const newLayer = {
-                        id: generateId(),
+                        id: window.CoverEditor.utils.generateId(),
                         type: 'image',
                         url: url,
                         x: 50,
@@ -283,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addShapeLayerBtn) {
         addShapeLayerBtn.addEventListener('click', () => {
             const newLayer = {
-                id: generateId(),
+                id: window.CoverEditor.utils.generateId(),
                 type: 'shape',
                 shapeType: 'rectangle',
                 color1: '#cccccc',
@@ -309,8 +254,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     deleteTextBtn.addEventListener('click', () => {
         if (!s.activeLayerId) return;
-        s.textLayers = s.textLayers.filter(l => l.id !== s.activeLayerId);
-        window.CoverEditor.actions.selectLayer(null);
+        if (window.CoverEditor.actions.deleteLayer) {
+            window.CoverEditor.actions.deleteLayer(s.activeLayerId);
+        }
     });
 
     // Binding Inputs
@@ -325,6 +271,18 @@ document.addEventListener('DOMContentLoaded', () => {
     propFontSize.addEventListener('input', (e) => {
         const layer = s.textLayers.find(l => l.id === s.activeLayerId);
         if (layer) { layer.fontSize = parseInt(e.target.value) || 12; window.CoverEditor.actions.renderTextLayers(); }
+    });
+    propFontWeight.addEventListener('input', (e) => {
+        const layer = s.textLayers.find(l => l.id === s.activeLayerId);
+        if (layer) { layer.fontWeight = parseInt(e.target.value, 10) || 400; window.CoverEditor.actions.renderTextLayers(); }
+    });
+    propLineHeight.addEventListener('input', (e) => {
+        const layer = s.textLayers.find(l => l.id === s.activeLayerId);
+        if (layer) { layer.lineHeight = parseFloat(e.target.value) || 1.2; window.CoverEditor.actions.renderTextLayers(); }
+    });
+    propLetterSpacing.addEventListener('input', (e) => {
+        const layer = s.textLayers.find(l => l.id === s.activeLayerId);
+        if (layer) { layer.letterSpacing = parseFloat(e.target.value) || 0; window.CoverEditor.actions.renderTextLayers(); }
     });
     propRotation.addEventListener('input', (e) => {
         const layer = s.textLayers.find(l => l.id === s.activeLayerId);

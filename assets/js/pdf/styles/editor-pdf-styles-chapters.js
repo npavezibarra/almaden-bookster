@@ -7,6 +7,11 @@
 function getPDFStylesChapters(settings, toPx) {
     const bookTitle = bookState.title || 'Libro';
     let chapterCSSRules = '';
+    const unit = settings.unit || 'cm';
+    const resolveMargin = (value, fallback) => {
+        const parsed = parseFloat(value);
+        return Number.isFinite(parsed) ? parsed : fallback;
+    };
     const getEffectiveOpeningPageMode = window.getEffectiveOpeningPageMode || function(chapter) {
         const configuredMode = chapter && chapter.opening_page_mode ? chapter.opening_page_mode : 'auto';
         if (configuredMode === 'auto') {
@@ -126,9 +131,28 @@ function getPDFStylesChapters(settings, toPx) {
             const hideCreditsPageNumber = ch.is_credits === '1' && ch.credits_hide_page_number === '1';
             const hideTocPageNumber = ch.is_toc === '1' && ch.toc_hide_page_numbers === '1';
             const hideChapterPageNumber = hideCreditsPageNumber || hideTocPageNumber;
+            const globalMarginTop = resolveMargin(settings.margin_top, 2.5);
+            const globalMarginBottom = resolveMargin(settings.margin_bottom, 2.5);
+            const creditsMarginTop = ch.is_credits === '1'
+                ? resolveMargin(ch.credits_margin_top, globalMarginTop)
+                : globalMarginTop;
+            const creditsMarginBottom = ch.is_credits === '1'
+                ? resolveMargin(ch.credits_margin_bottom, globalMarginBottom)
+                : globalMarginBottom;
+
+            if (ch.is_credits === '1') {
+                chapterCSSRules += `
+                    @page chapter-${ch.id} {
+                        margin-top: ${creditsMarginTop}${unit};
+                        margin-bottom: ${creditsMarginBottom}${unit};
+                    }
+                `;
+            }
             
             chapterCSSRules += `
                 @page chapter-${ch.id}:first {
+                    ${ch.is_credits === '1' ? `margin-top: ${creditsMarginTop}${unit};
+                    margin-bottom: ${creditsMarginBottom}${unit};` : ''}
                     @top-left { content: ${hideTocHeader ? '""' : (firstHeaderType === 'custom' ? `"${firstHeaderCustom.replace(/"/g, '\\"')}"` : '""')}; }
                     @top-center { content: ${hideTocHeader ? '""' : (firstHeaderType === 'chapter_title' ? 'string(chapter-title)' : (firstHeaderType === 'book_title' ? `"${bookTitle.replace(/"/g, '\\"')}"` : '""'))}; }
                     @top-right { content: ""; }

@@ -16,39 +16,11 @@ if ( ! defined( 'ABSPATH' ) ) {
     </div>
     
     <div class="flex items-center gap-6">
-        <!-- Paper Type Selector -->
-        <div class="flex items-center gap-2">
-            <label for="paper-type" class="text-xs font-medium text-gray-500 uppercase tracking-wider">Papel Interior:</label>
-            <select id="paper-type" class="text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-black focus:border-black cursor-pointer">
-                <option value="0.06">Crema 90g (0.06mm/pág)</option>
-                <option value="0.05">Blanco 80g (0.05mm/pág)</option>
-                <option value="0.045">Fino 70g (0.045mm/pág)</option>
-            </select>
-        </div>
-        
-        <!-- Page Count -->
-        <div class="flex items-center gap-2">
-            <label for="page-count" class="text-xs font-medium text-gray-500 uppercase tracking-wider">Páginas:</label>
-            <input type="number" id="page-count" value="<?php echo esc_attr( $total_pages > 0 ? $total_pages : 0 ); ?>" class="w-20 text-sm border border-gray-300 rounded-md px-2 py-1.5 text-center bg-gray-100 cursor-not-allowed text-gray-500" readonly title="Este valor se calcula automáticamente desde el Content Editor.">
-        </div>
-
-        <div class="h-6 w-px bg-gray-300"></div>
-
-        <!-- Spine Width -->
-        <div class="flex items-center gap-2">
-            <label for="spine-width-mode" class="text-xs font-medium text-gray-500 uppercase tracking-wider">Lomo:</label>
-            <select id="spine-width-mode" class="text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-black focus:border-black cursor-pointer bg-white">
-                <option value="auto">Auto</option>
-                <option value="manual">Manual</option>
-            </select>
-            <input type="number" id="spine-width-mm" min="0" step="0.01" inputmode="decimal" class="w-24 text-sm border border-gray-300 rounded-md px-2 py-1.5 text-center bg-gray-100 text-gray-600" readonly title="Se calcula automáticamente en modo Auto.">
-            <span class="text-xs text-gray-400 uppercase tracking-wider">mm</span>
-        </div>
-
-        <div class="h-6 w-px bg-gray-300"></div>
-
         <!-- Zoom Controls -->
         <div class="flex items-center gap-1 bg-gray-100 rounded-md p-1">
+            <button id="guide-toggle-btn" class="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-white hover:shadow-sm transition" title="Mostrar/ocultar guías" aria-pressed="true">
+                <i class="fa-solid fa-eye text-xs"></i>
+            </button>
             <button id="ruler-toggle-btn" class="w-8 h-8 flex items-center justify-center rounded text-gray-600 hover:bg-white hover:shadow-sm transition" title="Mostrar/ocultar regla" aria-pressed="false">
                 <i class="fa-solid fa-ruler-combined text-xs"></i>
             </button>

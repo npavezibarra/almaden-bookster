@@ -103,6 +103,8 @@ function openChapterSettingsModal() {
         document.getElementById('chapter_credits_letter_spacing').value = activeChapter.credits_letter_spacing || '';
         document.getElementById('chapter_credits_font_weight').value = activeChapter.credits_font_weight || '';
         document.getElementById('chapter_credits_hide_page_number').checked = activeChapter.credits_hide_page_number === '1';
+        document.getElementById('chapter_credits_margin_top').value = activeChapter.credits_margin_top ?? '';
+        document.getElementById('chapter_credits_margin_bottom').value = activeChapter.credits_margin_bottom ?? '';
         
         normalContainer.classList.add('hidden');
         tocContainer.classList.add('hidden');
@@ -251,6 +253,8 @@ function saveChapterSettings() {
         activeChapter.credits_letter_spacing = cleanFloat('chapter_credits_letter_spacing');
         activeChapter.credits_font_weight = document.getElementById('chapter_credits_font_weight').value;
         activeChapter.credits_hide_page_number = document.getElementById('chapter_credits_hide_page_number').checked ? '1' : '0';
+        activeChapter.credits_margin_top = cleanFloat('chapter_credits_margin_top');
+        activeChapter.credits_margin_bottom = cleanFloat('chapter_credits_margin_bottom');
     } else {
         // Leer valores del formulario
         activeChapter.opening_page_mode = document.getElementById('chapter_opening_page_mode').value;

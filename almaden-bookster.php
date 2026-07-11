@@ -40,7 +40,11 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/helpers/crypto.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-settings.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/gdrive-client.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/epub-export.php';
-require_once plugin_dir_path( __FILE__ ) . 'includes/io/book-import-export.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/helpers/cover-thumbnail.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/io/process-utils.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/io/book-import.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/io/book-export.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/io/cover-pdf-export.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/payments/woocommerce-integration.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/frontend/access-control.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/reader/highlights.php';
@@ -55,7 +59,7 @@ function almaden_bookster_create_settings_table() {
 	
 	$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) === $table_name;
 	
-	if ( get_option( 'almaden_bookster_db_version' ) !== '2.0.0' || ! $table_exists ) {
+	if ( get_option( 'almaden_bookster_db_version' ) !== '2.4.0' || ! $table_exists ) {
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE $table_name (
@@ -149,6 +153,11 @@ function almaden_bookster_create_settings_table() {
 			footnote_padding_bottom float DEFAULT 0.15 NOT NULL,
 			footnote_padding_left float DEFAULT 0.0 NOT NULL,
 			footnote_padding_right float DEFAULT 0.0 NOT NULL,
+			footnote_separator_show tinyint(1) DEFAULT 0 NOT NULL,
+			footnote_separator_align varchar(10) DEFAULT 'left' NOT NULL,
+			footnote_separator_width varchar(10) DEFAULT '100' NOT NULL,
+			footnote_separator_thickness float DEFAULT 0.25 NOT NULL,
+			footnote_separator_margin_bottom float DEFAULT 0.15 NOT NULL,
 			first_page_header_type varchar(50) DEFAULT 'blank' NOT NULL,
 			first_page_header_custom varchar(255) DEFAULT '' NOT NULL,
 			first_page_footer_type varchar(50) DEFAULT 'page_number' NOT NULL,
@@ -217,7 +226,7 @@ function almaden_bookster_create_settings_table() {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 
-		update_option( 'almaden_bookster_db_version', '2.0.0' );
+		update_option( 'almaden_bookster_db_version', '2.4.0' );
 	}
 }
 add_action( 'init', 'almaden_bookster_create_settings_table' );

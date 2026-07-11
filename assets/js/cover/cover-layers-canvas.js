@@ -3,20 +3,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const s = window.CoverEditor.state;
     const el = window.CoverEditor.elements;
 
-    function hexToRgba(hex, opacity) {
-        let r = 0, g = 0, b = 0;
-        if (hex.length === 4) {
-            r = parseInt(hex[1] + hex[1], 16);
-            g = parseInt(hex[2] + hex[2], 16);
-            b = parseInt(hex[3] + hex[3], 16);
-        } else if (hex.length === 7) {
-            r = parseInt(hex.substring(1, 3), 16);
-            g = parseInt(hex.substring(3, 5), 16);
-            b = parseInt(hex.substring(5, 7), 16);
-        }
-        return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
-    }
-
     window.CoverEditor.actions.renderTextLayers = function() {
         const existingLayers = el.coverSpread.querySelectorAll('.text-layer');
         existingLayers.forEach(layer => layer.remove());
@@ -57,8 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (layer.shapeType === 'circle') div.style.borderRadius = '50%';
                 else div.style.borderRadius = '0';
                 
-                const c1 = hexToRgba(layer.color1 || '#000000', layer.color1Opacity !== undefined ? layer.color1Opacity : 100);
-                const c2 = hexToRgba(layer.color2 || '#ffffff', layer.color2Opacity !== undefined ? layer.color2Opacity : 100);
+                const c1 = window.CoverEditor.utils.hexToRgba(layer.color1 || '#000000', layer.color1Opacity !== undefined ? layer.color1Opacity : 100);
+                const c2 = window.CoverEditor.utils.hexToRgba(layer.color2 || '#ffffff', layer.color2Opacity !== undefined ? layer.color2Opacity : 100);
 
                 if (layer.isGradient) {
                     div.style.background = `linear-gradient(${layer.gradientAngle || 90}deg, ${c1}, ${c2})`;
@@ -70,10 +56,14 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 div.style.fontFamily = `'${layer.fontFamily}', serif`;
                 div.style.fontSize = `${layer.fontSize}px`;
+                div.style.fontWeight = layer.fontWeight || 400;
+                div.style.fontStyle = layer.fontStyle || 'normal';
+                div.style.lineHeight = layer.lineHeight || 1.2;
+                div.style.letterSpacing = `${layer.letterSpacing || 0}px`;
                 div.style.color = layer.color;
                 div.style.textAlign = layer.textAlign;
                 div.style.whiteSpace = 'pre-wrap';
-                div.style.lineHeight = '1.2';
+                div.style.fontSynthesis = 'none';
                 
                 if (layer.hyphens) {
                     div.style.hyphens = 'auto';
@@ -97,6 +87,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (e.target !== div) return; 
                 if (window.CoverEditor.actions.selectLayer) {
                     window.CoverEditor.actions.selectLayer(layer.id);
+                }
+                if (window.CoverEditor.utils.isLayerLocked && window.CoverEditor.utils.isLayerLocked(layer)) {
+                    e.stopPropagation();
+                    return;
                 }
                 s.isDragging = true;
                 s.dragStartX = e.clientX;

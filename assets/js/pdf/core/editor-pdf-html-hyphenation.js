@@ -295,56 +295,97 @@ function almadenHyphenateSpanishWord(word, exceptionSet) {
 
 function almadenApplyHyphenationToText(text, exceptionSet) {
     if (!text) return text;
-    return text.replace(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+(?:['’][A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*/g, (match) => {
+    const cleanText = String(text).replace(/\u00AD/g, '');
+    return cleanText.replace(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+(?:['’][A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*/g, (match) => {
         return almadenHyphenateSpanishWord(match, exceptionSet);
     });
 }
 
 window.almadenApplyHyphenationToHtml = function(html, settings) {
-    const language = String(settings.content_language || 'es').toLowerCase();
-    const hyphenationEnabled = !(settings.content_hyphenation === 0 || settings.content_hyphenation === '0');
-    if (!hyphenationEnabled || !language.startsWith('es')) {
+    if (!html || !settings || settings.content_hyphenation != 1) {
         return html;
     }
 
-    const exceptionsRaw = String(settings.content_hyphenation_exceptions || '');
+    const defaultLanguage = String(settings.content_language || 'es').trim().toLowerCase();
+    if (!defaultLanguage.startsWith('es')) {
+        return html;
+    }
+
+    if (typeof document === 'undefined') {
+        return html;
+    }
+
     const exceptionSet = new Set(
-        exceptionsRaw
-            .split(/[\n,;]+/)
-            .map((word) => almadenNormalizeHyphenationKey(word))
+        String(settings.content_hyphenation_exceptions || '')
+            .split(/[,;\n]/g)
+            .map((item) => almadenNormalizeHyphenationKey(item))
             .filter(Boolean)
     );
 
-    const container = document.createElement('div');
-    container.innerHTML = html;
+    const template = document.createElement('template');
+    template.innerHTML = html;
 
-    const targets = container.querySelectorAll('p, li, blockquote, .chapter-subtitle, .credits-page-content p');
-    targets.forEach((element) => {
-        const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
-        const textNodes = [];
-        let node;
-        while ((node = walker.nextNode())) {
-            if (node.nodeValue && node.nodeValue.trim()) {
-                textNodes.push(node);
+    const skipSelector = [
+        'script',
+        'style',
+        'noscript',
+        'code',
+        'pre',
+        'kbd',
+        'samp',
+        'svg',
+        'math',
+        'textarea',
+        'input',
+        'select',
+        'option',
+        '.chapter-prefix-text',
+        '.chapter-prefix-number',
+        '.chapter-main-title',
+        '.chapter-subtitle',
+        '.toc-item',
+        '.toc-title',
+        '.toc-page',
+        '[data-footnote-id]',
+        '[data-footnote-call]'
+    ].join(',');
+
+    const walker = document.createTreeWalker(
+        template.content,
+        NodeFilter.SHOW_TEXT,
+        {
+            acceptNode(node) {
+                if (!node || !node.nodeValue || !node.nodeValue.trim()) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+
+                const parent = node.parentElement;
+                if (!parent || parent.closest(skipSelector)) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+
+                const nearestLangHost = parent.closest('[lang]');
+                const effectiveLang = nearestLangHost
+                    ? String(nearestLangHost.getAttribute('lang') || '').trim().toLowerCase()
+                    : defaultLanguage;
+
+                if (!effectiveLang.startsWith('es')) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+
+                return NodeFilter.FILTER_ACCEPT;
             }
         }
+    );
 
-        textNodes.forEach((textNode) => {
-            const langCarrier = textNode.parentElement && textNode.parentElement.closest('[lang]');
-            if (langCarrier) {
-                const nodeLang = String(langCarrier.getAttribute('lang') || '').toLowerCase();
-                if (nodeLang && !nodeLang.startsWith(language)) {
-                    return;
-                }
-            }
+    const textNodes = [];
+    while (walker.nextNode()) {
+        textNodes.push(walker.currentNode);
+    }
 
-            const original = textNode.nodeValue;
-            const hyphenated = almadenApplyHyphenationToText(original, exceptionSet);
-            if (hyphenated !== original) {
-                textNode.nodeValue = hyphenated;
-            }
-        });
+    textNodes.forEach((node) => {
+        node.nodeValue = almadenApplyHyphenationToText(node.nodeValue, exceptionSet);
     });
 
-    return container.innerHTML;
+    return template.innerHTML;
 };

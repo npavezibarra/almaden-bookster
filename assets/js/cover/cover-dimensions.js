@@ -7,10 +7,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // References to UI that affects dimensions
     const frontFlapWidth = document.getElementById('front-flap-width');
     const backFlapWidth = document.getElementById('back-flap-width');
+    const foldXWrapper = el.foldXWrapper;
+    const foldXMm = el.foldXMm;
 
     function updateRulerOverlay(totalSpreadWidth, actualHeightPx) {
         const rulerSizePx = s.rulerSizePx || 24;
-        const showRuler = !!s.showRuler;
+        const showGuides = s.showGuides !== false;
+        const showRuler = !!s.showRuler && showGuides;
         const extraPx = showRuler ? rulerSizePx : 0;
         const layoutWidthPx = totalSpreadWidth + extraPx;
         const layoutHeightPx = actualHeightPx + extraPx;
@@ -33,6 +36,12 @@ document.addEventListener('DOMContentLoaded', () => {
             el.rulerOverlay.style.width = `${layoutWidthPx}px`;
             el.rulerOverlay.style.height = `${layoutHeightPx}px`;
         }
+
+        if (el.bleedGuide) {
+            el.bleedGuide.style.display = showGuides ? 'block' : 'none';
+        }
+
+        document.body.classList.toggle('cover-guides-hidden', !showGuides);
 
         if (showRuler) {
             if (el.rulerHorizontal) {
@@ -82,6 +91,19 @@ document.addEventListener('DOMContentLoaded', () => {
             el.rulerToggleBtn.classList.toggle('text-indigo-600', showRuler);
             el.rulerToggleBtn.classList.toggle('text-gray-600', !showRuler);
         }
+
+        if (el.guideToggleBtn) {
+            el.guideToggleBtn.setAttribute('aria-pressed', showGuides ? 'true' : 'false');
+            el.guideToggleBtn.classList.toggle('bg-white', showGuides);
+            el.guideToggleBtn.classList.toggle('shadow-sm', showGuides);
+            el.guideToggleBtn.classList.toggle('text-indigo-600', showGuides);
+            el.guideToggleBtn.classList.toggle('text-gray-600', !showGuides);
+            const icon = el.guideToggleBtn.querySelector('i');
+            if (icon) {
+                icon.classList.toggle('fa-eye', showGuides);
+                icon.classList.toggle('fa-eye-slash', !showGuides);
+            }
+        }
     }
 
     function updateDimensions() {
@@ -92,26 +114,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const spineWidthMode = utils.getSpineWidthMode ? utils.getSpineWidthMode() : 'auto';
         const autoSpineWidthMm = thicknessMmPerPage * pages;
+        const roundUpMm = utils.roundUpMm || function roundUpMm(value) {
+            const num = parseFloat(value);
+            return Number.isFinite(num) && num > 0 ? Math.ceil(num) : 0;
+        };
         let spineWidthMm = autoSpineWidthMm;
 
         if (spineWidthMode === 'manual') {
             const manualSpineWidthMm = parseFloat(el.spineWidthMm.value);
             spineWidthMm = (!isNaN(manualSpineWidthMm) && manualSpineWidthMm > 0) ? manualSpineWidthMm : autoSpineWidthMm;
-            if (isNaN(manualSpineWidthMm) || manualSpineWidthMm <= 0) {
-                el.spineWidthMm.value = autoSpineWidthMm.toFixed(2).replace(/\.00$/, '');
-            }
+            el.spineWidthMm.value = roundUpMm(spineWidthMm);
             el.spineWidthMm.readOnly = false;
             el.spineWidthMm.classList.remove('bg-gray-100', 'text-gray-600');
             el.spineWidthMm.classList.add('bg-white', 'text-gray-800');
             el.spineWidthMm.title = 'Ingresa un ancho manual en mm.';
         } else {
-            el.spineWidthMm.value = autoSpineWidthMm.toFixed(2).replace(/\.00$/, '');
+            spineWidthMm = autoSpineWidthMm;
+            el.spineWidthMm.value = roundUpMm(autoSpineWidthMm);
             el.spineWidthMm.readOnly = true;
             el.spineWidthMm.classList.add('bg-gray-100', 'text-gray-600');
             el.spineWidthMm.classList.remove('bg-white', 'text-gray-800');
             el.spineWidthMm.title = 'Se calcula automáticamente en modo Auto.';
         }
 
+        spineWidthMm = roundUpMm(spineWidthMm);
         const spineWidthCm = spineWidthMm / 10;
         const spineWidthPx = spineWidthCm * s.pxPerCm;
 
@@ -131,14 +157,20 @@ document.addEventListener('DOMContentLoaded', () => {
         el.spine.style.height = `${actualHeightPx}px`;
 
         // Flaps calculation
-        const frontFlapMm = parseFloat(frontFlapWidth.value) || 0;
-        const backFlapMm = parseFloat(backFlapWidth.value) || 0;
+        const frontFlapMm = roundUpMm(parseFloat(frontFlapWidth.value) || 0);
+        const backFlapMm = roundUpMm(parseFloat(backFlapWidth.value) || 0);
+        const hasFlaps = frontFlapMm > 0 || backFlapMm > 0;
+        const foldXValueMm = hasFlaps ? roundUpMm(parseFloat(foldXMm ? foldXMm.value : 0) || 0) : 0;
+
+        if (foldXWrapper) {
+            foldXWrapper.classList.toggle('hidden', !hasFlaps);
+        }
         
         let frontFlapPx = (frontFlapMm / 10) * s.pxPerCm;
         let backFlapPx = (backFlapMm / 10) * s.pxPerCm;
         
-        let frontCoverPx = s.pageWidthPx;
-        let backCoverPx = s.pageWidthPx;
+        let frontCoverPx = s.pageWidthPx + ((foldXValueMm / 10) * s.pxPerCm);
+        let backCoverPx = s.pageWidthPx + ((foldXValueMm / 10) * s.pxPerCm);
         
         if (frontFlapMm > 0) {
             frontFlapPx += bleedPx; // Outer bleed on flap
@@ -213,10 +245,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const actualHeightPx = s.pageHeightPx + (2 * bleedPx);
 
         const estimatedSpinePx = ((utils.getSpineWidthMm ? utils.getSpineWidthMm() : (0.06 * 150)) / 10) * s.pxPerCm;
-        const frontFlapPx = ((parseFloat(frontFlapWidth.value) || 0) / 10) * s.pxPerCm;
-        const backFlapPx = ((parseFloat(backFlapWidth.value) || 0) / 10) * s.pxPerCm;
+        const roundUpMm = utils.roundUpMm || function roundUpMm(value) {
+            const num = parseFloat(value);
+            return Number.isFinite(num) && num > 0 ? Math.ceil(num) : 0;
+        };
+        const frontFlapPx = (roundUpMm(frontFlapWidth.value) / 10) * s.pxPerCm;
+        const backFlapPx = (roundUpMm(backFlapWidth.value) / 10) * s.pxPerCm;
+        const hasFlaps = frontFlapPx > 0 || backFlapPx > 0;
+        const foldXValueMm = hasFlaps && foldXMm ? roundUpMm(foldXMm.value) : 0;
+        const foldXPx = (foldXValueMm / 10) * s.pxPerCm;
 
-        const baseWidthPx = (s.pageWidthPx * 2) + estimatedSpinePx + frontFlapPx + backFlapPx + (2 * bleedPx);
+        const baseWidthPx = (s.pageWidthPx * 2) + (2 * foldXPx) + estimatedSpinePx + frontFlapPx + backFlapPx + (2 * bleedPx);
         const totalWidthPx = s.coverLayoutWidthPx || baseWidthPx;
         const totalHeightPx = s.coverLayoutHeightPx || actualHeightPx;
 
@@ -251,11 +290,21 @@ document.addEventListener('DOMContentLoaded', () => {
             fitToScreen();
         });
     }
+    if (el.guideToggleBtn) {
+        el.guideToggleBtn.addEventListener('click', () => {
+            s.showGuides = !s.showGuides;
+            updateDimensions();
+            fitToScreen();
+        });
+    }
     el.zoomInBtn.addEventListener('click', zoomIn);
     el.zoomOutBtn.addEventListener('click', zoomOut);
     
     frontFlapWidth.addEventListener('input', updateFlaps);
     backFlapWidth.addEventListener('input', updateFlaps);
+    if (foldXMm) {
+        foldXMm.addEventListener('input', updateFlaps);
+    }
 
     el.workspaceContainer.addEventListener('wheel', (e) => {
         if (e.ctrlKey || e.metaKey) {

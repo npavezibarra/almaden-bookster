@@ -18,6 +18,7 @@ This document maps the canonical source of truth for the current book layout sys
 | Global PDF | Chapter flow | Table `almaden_book_settings` | `chapter_start_parity`, `chapter_page_one_vertical` |
 | Global PDF | Chapter title style | Table `almaden_book_settings` | `chapter_title_*` |
 | Global PDF | Chapter prefix style | Table `almaden_book_settings` | `chapter_prefix_*` |
+| Global PDF | Footnote separator | Table `almaden_book_settings` | `footnote_separator_*` |
 | Global PDF | Subtitle defaults | `post_meta` on book | `_almaden_chapter_subtitle_*` |
 | Global Ebook | Ebook typography / chapter opener | Table `almaden_book_settings` | `ebook_*`, `ebook_chapter_*` |
 | Global Ebook | Ebook subtitle defaults | `post_meta` on book | `_almaden_ebook_subtitle_*` |

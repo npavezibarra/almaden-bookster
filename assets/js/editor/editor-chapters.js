@@ -50,6 +50,8 @@ function renderSidebar() {
     const listContainer = document.getElementById('chapters-list');
     if (!listContainer) return;
     listContainer.innerHTML = '';
+    listContainer.classList.remove('space-y-1');
+    listContainer.classList.add('divide-y', 'divide-[var(--border-color)]', 'space-y-0');
 
     let chapterDisplayNumber = 1;
 
@@ -57,10 +59,10 @@ function renderSidebar() {
         const isActive = chapter.id === bookState.activeChapterId;
         
         const chapterEl = document.createElement('div');
-        chapterEl.className = `group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all border ${
-            isActive 
-            ? 'bg-neutral-100 border-neutral-300 dark:bg-neutral-800 dark:border-neutral-700' 
-            : 'border-transparent hover:bg-[var(--bg-app)]'
+        chapterEl.className = `group flex items-stretch justify-between w-full cursor-pointer transition-colors ${
+            isActive
+                ? 'bg-neutral-100 dark:bg-neutral-800'
+                : 'bg-transparent hover:bg-[var(--bg-app)]'
         }`;
         chapterEl.setAttribute('onclick', `selectChapter('${chapter.id}')`);
 
@@ -77,7 +79,7 @@ function renderSidebar() {
         }
 
         chapterEl.innerHTML = `
-            <div class="flex items-center gap-3 overflow-hidden w-full">
+            <div class="flex items-center gap-3 overflow-hidden flex-1 px-2 py-3">
                 <span class="text-xs font-bold text-neutral-500/80 dark:text-neutral-400/80 group-hover:scale-110 transition-transform">${displayStr}</span>
                 <div class="truncate flex-1">
                     <div class="flex items-center justify-between gap-2">
@@ -89,7 +91,7 @@ function renderSidebar() {
                 </div>
             </div>
             <!-- Acciones del Capítulo -->
-            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity no-print">
+            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity no-print pr-2 self-center">
                 <button onclick="event.stopPropagation(); moveChapterUp(${index})" class="p-1 hover:text-black dark:hover:text-white text-[var(--text-muted)] transition" title="Subir capítulo">
                     <i class="fa-solid fa-chevron-up text-xs"></i>
                 </button>
@@ -126,14 +128,12 @@ function renderSidebar() {
         chapterEl.addEventListener('dragenter', (e) => {
             e.preventDefault();
             if (draggedChapterIndex !== null && draggedChapterIndex !== index) {
-                chapterEl.classList.add('ring-2', 'ring-black', 'ring-offset-1', 'scale-[1.02]', 'bg-neutral-100', 'dark:bg-neutral-850/40');
-                chapterEl.classList.remove('border-transparent');
+                chapterEl.classList.add('ring-2', 'ring-black', 'ring-offset-1', 'scale-[1.01]');
             }
         });
 
         chapterEl.addEventListener('dragleave', (e) => {
-            chapterEl.classList.remove('ring-2', 'ring-black', 'ring-offset-1', 'scale-[1.02]', 'bg-neutral-100', 'dark:bg-neutral-850/40');
-            if (!isActive) chapterEl.classList.add('border-transparent');
+            chapterEl.classList.remove('ring-2', 'ring-black', 'ring-offset-1', 'scale-[1.01]');
         });
 
         chapterEl.addEventListener('drop', (e) => {
@@ -259,7 +259,9 @@ function createNewChapter(isToc = false, isCredits = false) {
         is_toc: isToc ? '1' : '0',
         is_credits: isCredits ? '1' : '0',
         start_parity: isToc ? 'even' : 'any',
-        credits_hide_page_number: '0'
+        credits_hide_page_number: '0',
+        credits_margin_top: '',
+        credits_margin_bottom: ''
     };
 
     bookState.chapters.push(newChapter);

@@ -28,11 +28,11 @@
                 <div id="custom-page-dimensions" class="grid grid-cols-2 gap-4 hidden">
                     <div>
                         <label class="block text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">Ancho (<span class="unit-label">cm</span>)</label>
-                        <input id="setting-page-width" type="number" step="0.01" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:ring-2 focus:ring-black focus:outline-none">
+                        <input id="setting-page-width" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:ring-2 focus:ring-black focus:outline-none">
                     </div>
                     <div>
                         <label class="block text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">Alto (<span class="unit-label">cm</span>)</label>
-                        <input id="setting-page-height" type="number" step="0.01" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:ring-2 focus:ring-black focus:outline-none">
+                        <input id="setting-page-height" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:ring-2 focus:ring-black focus:outline-none">
                     </div>
                 </div>
 
@@ -41,11 +41,11 @@
                     <div class="grid grid-cols-2 gap-2 mb-3">
                         <div>
                             <label class="block text-[9px] text-[var(--text-muted)] mb-1">Arriba (<span class="unit-label">cm</span>)</label>
-                            <input id="setting-margin-top" type="number" step="0.01" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                            <input id="setting-margin-top" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
                         </div>
                         <div>
                             <label class="block text-[9px] text-[var(--text-muted)] mb-1">Abajo (<span class="unit-label">cm</span>)</label>
-                            <input id="setting-margin-bottom" type="number" step="0.01" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                            <input id="setting-margin-bottom" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
                         </div>
                     </div>
                     
@@ -56,11 +56,11 @@
                             <div class="grid grid-cols-2 gap-2">
                                 <div>
                                     <label class="block text-[9px] text-[var(--text-muted)] mb-1">Interior/Izq (<span class="unit-label">cm</span>)</label>
-                                    <input id="setting-margin-left-odd" type="number" step="0.01" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                                    <input id="setting-margin-left-odd" type="number" step="0.1" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
                                 </div>
                                 <div>
                                     <label class="block text-[9px] text-[var(--text-muted)] mb-1">Exterior/Der (<span class="unit-label">cm</span>)</label>
-                                    <input id="setting-margin-right-odd" type="number" step="0.01" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                                    <input id="setting-margin-right-odd" type="number" step="0.1" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
                                 </div>
                             </div>
                         </div>
@@ -69,11 +69,11 @@
                             <div class="grid grid-cols-2 gap-2">
                                 <div>
                                     <label class="block text-[9px] text-[var(--text-muted)] mb-1">Exterior/Izq (<span class="unit-label">cm</span>)</label>
-                                    <input id="setting-margin-left-even" type="number" step="0.01" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                                    <input id="setting-margin-left-even" type="number" step="0.1" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
                                 </div>
                                 <div>
                                     <label class="block text-[9px] text-[var(--text-muted)] mb-1">Interior/Der (<span class="unit-label">cm</span>)</label>
-                                    <input id="setting-margin-right-even" type="number" step="0.01" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                                    <input id="setting-margin-right-even" type="number" step="0.1" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
                                 </div>
                             </div>
                         </div>
@@ -85,19 +85,19 @@
                     <div class="grid grid-cols-4 gap-2">
                         <div>
                             <label class="block text-[9px] text-[var(--text-muted)] mb-1">Arriba (<span class="unit-label">cm</span>)</label>
-                            <input id="setting-padding-top" type="number" step="0.01" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                            <input id="setting-padding-top" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
                         </div>
                         <div>
                             <label class="block text-[9px] text-[var(--text-muted)] mb-1">Abajo (<span class="unit-label">cm</span>)</label>
-                            <input id="setting-padding-bottom" type="number" step="0.01" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                            <input id="setting-padding-bottom" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
                         </div>
                         <div>
                             <label class="block text-[9px] text-[var(--text-muted)] mb-1">Izquierda (<span class="unit-label">cm</span>)</label>
-                            <input id="setting-padding-left" type="number" step="0.01" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                            <input id="setting-padding-left" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
                         </div>
                         <div>
                             <label class="block text-[9px] text-[var(--text-muted)] mb-1">Derecha (<span class="unit-label">cm</span>)</label>
-                            <input id="setting-padding-right" type="number" step="0.01" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                            <input id="setting-padding-right" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
                         </div>
                     </div>
                 </div>
@@ -107,7 +107,7 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Espacio de Sangría (<span class="unit-label">cm</span>)</label>
-                            <input id="setting-bleeding" type="number" step="0.01" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:ring-2 focus:ring-black focus:outline-none">
+                            <input id="setting-bleeding" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:ring-2 focus:ring-black focus:outline-none">
                         </div>
                     </div>
                 </div>

@@ -73,6 +73,11 @@
         "footnote_padding_bottom": 0.15,
         "footnote_padding_left": 0,
         "footnote_padding_right": 0,
+        "footnote_separator_show": 0,
+        "footnote_separator_align": "left",
+        "footnote_separator_width": "100",
+        "footnote_separator_thickness": 0.25,
+        "footnote_separator_margin_bottom": 0.15,
         "credits_blank_before": 0,
         "credits_blank_after": 0,
         

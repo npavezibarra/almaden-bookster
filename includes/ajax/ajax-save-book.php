@@ -78,10 +78,12 @@ function almaden_bookster_save_book_ajax() {
 		// Credits metadata
 		$credits_font_family   = isset( $chapter['credits_font_family'] ) ? sanitize_text_field( $chapter['credits_font_family'] ) : '';
 		$credits_align         = isset( $chapter['credits_align'] ) ? sanitize_text_field( $chapter['credits_align'] ) : '';
-		$credits_font_size     = isset( $chapter['credits_font_size'] ) ? sanitize_text_field( $chapter['credits_font_size'] ) : '';
-		$credits_letter_spacing = isset( $chapter['credits_letter_spacing'] ) ? sanitize_text_field( $chapter['credits_letter_spacing'] ) : '';
-		$credits_font_weight   = isset( $chapter['credits_font_weight'] ) ? sanitize_text_field( $chapter['credits_font_weight'] ) : '';
-		$credits_hide_page_number = isset( $chapter['credits_hide_page_number'] ) ? sanitize_text_field( $chapter['credits_hide_page_number'] ) : '0';
+			$credits_font_size     = isset( $chapter['credits_font_size'] ) ? sanitize_text_field( $chapter['credits_font_size'] ) : '';
+			$credits_letter_spacing = isset( $chapter['credits_letter_spacing'] ) ? sanitize_text_field( $chapter['credits_letter_spacing'] ) : '';
+			$credits_font_weight   = isset( $chapter['credits_font_weight'] ) ? sanitize_text_field( $chapter['credits_font_weight'] ) : '';
+			$credits_hide_page_number = isset( $chapter['credits_hide_page_number'] ) ? sanitize_text_field( $chapter['credits_hide_page_number'] ) : '0';
+			$credits_margin_top    = isset( $chapter['credits_margin_top'] ) ? sanitize_text_field( $chapter['credits_margin_top'] ) : '';
+			$credits_margin_bottom = isset( $chapter['credits_margin_bottom'] ) ? sanitize_text_field( $chapter['credits_margin_bottom'] ) : '';
 		
 		// TOC metadata
 		$toc_font_family       = isset( $chapter['toc_font_family'] ) ? sanitize_text_field( $chapter['toc_font_family'] ) : '';
@@ -171,10 +173,12 @@ function almaden_bookster_save_book_ajax() {
 			update_post_meta( $post_id, '_is_credits', $is_credits );
 			update_post_meta( $post_id, '_credits_font_family', $credits_font_family );
 			update_post_meta( $post_id, '_credits_align', $credits_align );
-			update_post_meta( $post_id, '_credits_font_size', $credits_font_size );
-			update_post_meta( $post_id, '_credits_letter_spacing', $credits_letter_spacing );
-			update_post_meta( $post_id, '_credits_font_weight', $credits_font_weight );
-			update_post_meta( $post_id, '_credits_hide_page_number', $credits_hide_page_number );
+				update_post_meta( $post_id, '_credits_font_size', $credits_font_size );
+				update_post_meta( $post_id, '_credits_letter_spacing', $credits_letter_spacing );
+				update_post_meta( $post_id, '_credits_font_weight', $credits_font_weight );
+				update_post_meta( $post_id, '_credits_hide_page_number', $credits_hide_page_number );
+				update_post_meta( $post_id, '_credits_margin_top', $credits_margin_top );
+				update_post_meta( $post_id, '_credits_margin_bottom', $credits_margin_bottom );
 			
 			// TOC metadata
 			update_post_meta( $post_id, '_toc_font_family', $toc_font_family );
@@ -242,11 +246,13 @@ function almaden_bookster_save_book_ajax() {
 				'is_credits'            => $is_credits,
 				'credits_font_family'   => $credits_font_family,
 				'credits_align'         => $credits_align,
-				'credits_font_size'     => $credits_font_size,
-				'credits_letter_spacing' => $credits_letter_spacing,
-				'credits_font_weight'   => $credits_font_weight,
-				'credits_hide_page_number' => $credits_hide_page_number,
-				'toc_font_family'       => $toc_font_family,
+					'credits_font_size'     => $credits_font_size,
+					'credits_letter_spacing' => $credits_letter_spacing,
+					'credits_font_weight'   => $credits_font_weight,
+					'credits_hide_page_number' => $credits_hide_page_number,
+					'credits_margin_top'    => $credits_margin_top,
+					'credits_margin_bottom' => $credits_margin_bottom,
+					'toc_font_family'       => $toc_font_family,
 				'toc_font_size'         => $toc_font_size,
 				'toc_enumerate'         => $toc_enumerate,
 				'toc_font_style'        => $toc_font_style,

@@ -7,18 +7,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnBack = document.getElementById('btn-back-cover');
     const btnSpine = document.getElementById('btn-spine-image');
     const btnSpread = document.getElementById('btn-full-spread');
-    
+
     const uploadFront = document.getElementById('upload-front-cover');
     const uploadBack = document.getElementById('upload-back-cover');
     const uploadSpine = document.getElementById('upload-spine-image');
     const spineColorPicker = document.getElementById('spine-color-picker');
     const uploadSpread = document.getElementById('upload-full-spread');
-    
+
     const clearFront = document.getElementById('clear-front-cover');
     const clearBack = document.getElementById('clear-back-cover');
     const clearSpine = document.getElementById('clear-spine');
     const clearSpread = document.getElementById('clear-full-spread');
-    
+
     const toggleImagesBtn = document.getElementById('toggle-images-section');
     const toggleFlapsBtn = document.getElementById('toggle-flaps-section');
     const flapsIcon = document.getElementById('flaps-section-icon');
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadFrontFlapImage = document.getElementById('upload-front-flap-image');
     const frontFlapColorPicker = document.getElementById('front-flap-color-picker');
     const clearFrontFlap = document.getElementById('clear-front-flap');
-    
+
     const btnBackFlapImage = document.getElementById('btn-back-flap-image');
     const uploadBackFlapImage = document.getElementById('upload-back-flap-image');
     const backFlapColorPicker = document.getElementById('back-flap-color-picker');
@@ -55,6 +55,12 @@ document.addEventListener('DOMContentLoaded', () => {
         mediaImg.src = url;
     }
 
+    function refreshImageDiagnostics() {
+        if (window.CoverEditor.actions && typeof window.CoverEditor.actions.refreshCoverImageDiagnostics === 'function') {
+            window.CoverEditor.actions.refreshCoverImageDiagnostics();
+        }
+    }
+
     function clearMediaImage(targetEl) {
         const mediaImg = targetEl.querySelector(':scope > img.cover-media-image');
         if (mediaImg) {
@@ -73,12 +79,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 multiple: false
             });
         }
-        
+
         mediaFrame.on('select', function() {
             const attachment = mediaFrame.state().get('selection').first().toJSON();
-            onSelect(attachment.url);
+            const imageUrl = attachment.originalImageURL || attachment.url;
+            onSelect(imageUrl);
         });
-        
+
         mediaFrame.open();
     }
 
@@ -87,18 +94,19 @@ document.addEventListener('DOMContentLoaded', () => {
         setMediaImage(targetEl, url, 'cover');
         inputEl.value = url;
         clearBtn.classList.remove('hidden');
+        refreshImageDiagnostics();
     }
 
     function applySpreadImage(url) {
         setMediaImage(el.coverSpread, url, 'cover');
         uploadSpread.value = url;
         clearSpread.classList.remove('hidden');
-        
+
         // clear individuals visually but keep their hidden values empty
         if (uploadFront.value) clearFront.click();
         if (uploadBack.value) clearBack.click();
         if (uploadSpine.value || spineColorPicker.value !== '#f9fafb') clearSpine.click();
-        
+
         // make the parts transparent
         el.frontCover.style.backgroundColor = 'transparent';
         el.backCover.style.backgroundColor = 'transparent';
@@ -106,11 +114,12 @@ document.addEventListener('DOMContentLoaded', () => {
         el.frontCover.style.border = 'none';
         el.backCover.style.border = 'none';
         el.spine.style.border = 'none';
-        
+
         // hide texts
         el.frontCover.innerHTML = '';
         el.backCover.innerHTML = '';
         el.spine.innerHTML = '';
+        refreshImageDiagnostics();
     }
 
     // Bind Image Buttons
@@ -179,8 +188,9 @@ document.addEventListener('DOMContentLoaded', () => {
         spineColorPicker.value = '#f9fafb';
         el.spine.innerHTML = '<div class="spine-text text-xs text-gray-400 font-semibold uppercase tracking-wider rotate-90 whitespace-nowrap">Lomo</div>';
         clearSpine.classList.add('hidden');
+        refreshImageDiagnostics();
     });
-    
+
     clearFrontFlap.addEventListener('click', () => {
         el.frontFlap.style.backgroundImage = '';
         clearMediaImage(el.frontFlap);
@@ -190,6 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const span = el.frontFlap.querySelector('span');
         if (span) span.style.display = 'block';
         clearFrontFlap.classList.add('hidden');
+        refreshImageDiagnostics();
     });
 
     clearBackFlap.addEventListener('click', () => {
@@ -201,14 +212,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const span = el.backFlap.querySelector('span');
         if (span) span.style.display = 'block';
         clearBackFlap.classList.add('hidden');
+        refreshImageDiagnostics();
     });
-    
+
     clearSpread.addEventListener('click', () => {
         el.coverSpread.style.backgroundImage = 'none';
         clearMediaImage(el.coverSpread);
         uploadSpread.value = '';
         clearSpread.classList.add('hidden');
-        
+
         // restore parts
         el.frontCover.style.backgroundColor = 'white';
         el.backCover.style.backgroundColor = 'white';
@@ -217,11 +229,11 @@ document.addEventListener('DOMContentLoaded', () => {
         el.backCover.style.border = '1px dashed #d1d5db';
         el.spine.style.borderLeft = '1px solid #e5e7eb';
         el.spine.style.borderRight = '1px solid #e5e7eb';
-        
+
         el.frontCover.innerHTML = '<span class="text-xl font-semibold uppercase tracking-widest text-gray-200">Portada</span>';
         el.backCover.innerHTML = '<span class="text-xl font-semibold uppercase tracking-widest text-gray-200">Contraportada</span>';
         el.spine.innerHTML = '<div class="spine-text text-xs text-gray-400 font-semibold uppercase tracking-wider rotate-90 whitespace-nowrap">Lomo</div>';
-        
+
         // If there are images in the individuals, re-trigger them visually
         if (uploadFrontFlapImage.value) applyImageToCover(uploadFrontFlapImage.value, el.frontFlap, uploadFrontFlapImage, clearFrontFlap);
         if (uploadBackFlapImage.value) applyImageToCover(uploadBackFlapImage.value, el.backFlap, uploadBackFlapImage, clearBackFlap);
@@ -235,6 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
             el.spine.innerHTML = '';
             clearSpine.classList.remove('hidden');
         }
+        refreshImageDiagnostics();
     });
 
     // Accordions

@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 <!-- Right Sidebar (Layers Panel) -->
-<aside class="w-64 bg-white border-l border-gray-200 flex flex-col shrink-0 shadow-sm z-10 text-gray-800">
+<aside class="w-64 bg-white border-l border-gray-200 flex flex-col shrink-0 shadow-sm z-10 text-gray-800 min-h-0">
     <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
         <h2 class="font-bold text-sm uppercase tracking-wider text-gray-800">Capas (Layers)</h2>
     </div>
@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
         </button>
     </div>
 
-    <div id="layers-list" class="flex-1 overflow-y-auto bg-gray-50 flex flex-col p-2 gap-1">
+    <div id="layers-list" class="flex-1 min-h-0 overflow-y-auto bg-gray-50 flex flex-col p-2 pb-4 gap-1">
         <!-- Layers will be rendered here via JS -->
     </div>
 </aside>

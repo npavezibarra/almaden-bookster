@@ -4,12 +4,6 @@
 // ============================================================
 
 function getPDFStylesSemantic(settings) {
-    const smartSpanishHyphenation = !['0', 0].includes(settings.content_hyphenation)
-        && String(settings.content_language || 'es').toLowerCase().startsWith('es');
-    const contentHyphenationMode = (settings.content_hyphenation === 0 || settings.content_hyphenation === '0')
-        ? 'none'
-        : (smartSpanishHyphenation ? 'manual' : 'auto');
-
     return `
         .pdf-content .pdf-page-break {
             display: block !important;
@@ -77,8 +71,8 @@ function getPDFStylesSemantic(settings) {
             text-align: left !important;
             text-align-last: auto !important;
             text-indent: 0 !important;
-            hyphens: ${contentHyphenationMode} !important;
-            -webkit-hyphens: ${contentHyphenationMode} !important;
+            hyphens: none !important;
+            -webkit-hyphens: none !important;
             word-spacing: normal !important;
         }
 

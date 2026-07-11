@@ -251,7 +251,6 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 									<div class="almaden-field">
 										<label for="almaden-setting-difficulty">Nivel de dificultad</label>
 										<select id="almaden-setting-difficulty">
-											<option value="easy">Fácil</option>
 											<option value="medium" selected>Media</option>
 											<option value="hard">Difícil</option>
 										</select>

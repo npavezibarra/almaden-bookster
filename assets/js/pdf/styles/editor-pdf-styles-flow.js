@@ -24,11 +24,36 @@ function getPDFStylesFlow(settings, toPx) {
     const footnotePaddingBottom = settings.footnote_padding_bottom !== undefined ? settings.footnote_padding_bottom : 0.15;
     const footnotePaddingLeft = settings.footnote_padding_left !== undefined ? settings.footnote_padding_left : 0;
     const footnotePaddingRight = settings.footnote_padding_right !== undefined ? settings.footnote_padding_right : 0;
-    const smartSpanishHyphenation = !['0', 0].includes(settings.content_hyphenation) && String(settings.content_language || 'es').toLowerCase().startsWith('es');
-    const contentHyphenationMode = (settings.content_hyphenation === 0 || settings.content_hyphenation === '0')
-        ? 'none'
-        : (smartSpanishHyphenation ? 'manual' : 'auto');
+    const footnoteSeparatorEnabled = Number(settings.footnote_separator_show || 0) === 1;
+    const footnoteSeparatorAlign = ['left', 'center', 'right'].includes(String(settings.footnote_separator_align || '').toLowerCase())
+        ? String(settings.footnote_separator_align).toLowerCase()
+        : 'left';
+    const footnoteSeparatorWidth = ['100', '75', '50', '25'].includes(String(settings.footnote_separator_width || '100'))
+        ? String(settings.footnote_separator_width)
+        : '100';
+    const footnoteSeparatorThickness = settings.footnote_separator_thickness !== undefined && settings.footnote_separator_thickness !== ''
+        ? parseFloat(settings.footnote_separator_thickness)
+        : 0.25;
+    const footnoteSeparatorMarginBottom = settings.footnote_separator_margin_bottom !== undefined && settings.footnote_separator_margin_bottom !== ''
+        ? settings.footnote_separator_margin_bottom
+        : 0.15;
+    const footnoteSeparatorCss = footnoteSeparatorEnabled ? `
+        .pagedjs_pagebox > .pagedjs_area > .pagedjs_footnote_area > .pagedjs_footnote_content::before {
+            content: "";
+            display: block;
+            width: ${footnoteSeparatorWidth}%;
+            height: ${footnoteSeparatorThickness}pt;
+            background-color: #cbd5e1;
+            margin: 0 0 ${toPx(footnoteSeparatorMarginBottom, false)}px 0;
+            margin-left: ${footnoteSeparatorAlign === 'center' ? 'auto' : footnoteSeparatorAlign === 'right' ? 'auto' : '0'};
+            margin-right: ${footnoteSeparatorAlign === 'center' ? 'auto' : footnoteSeparatorAlign === 'left' ? 'auto' : '0'};
+            flex: 0 0 auto;
+        }
 
+        .pagedjs_pagebox > .pagedjs_area > .pagedjs_footnote_area > .pagedjs_footnote_content.pagedjs_footnote_empty::before {
+            display: none;
+        }
+    ` : '';
     return `
         .pdf-content .split-paragraph-start {
             margin-bottom: 0px !important;
@@ -71,6 +96,8 @@ function getPDFStylesFlow(settings, toPx) {
             float: footnote !important;
             footnote-policy: auto !important;
             footnote-display: block !important;
+            hyphens: none !important;
+            -webkit-hyphens: none !important;
         }
 
         .pagedjs_area [data-footnote-call] {
@@ -97,6 +124,7 @@ function getPDFStylesFlow(settings, toPx) {
         }
 
         .pagedjs_pagebox > .pagedjs_area > .pagedjs_footnote_area > .pagedjs_footnote_content {
+            position: relative !important;
             padding-top: ${toPx(footnotePaddingTop, false)}px !important;
             padding-bottom: ${toPx(footnotePaddingBottom, false)}px !important;
             padding-left: ${toPx(footnotePaddingLeft, false)}px !important;
@@ -104,6 +132,7 @@ function getPDFStylesFlow(settings, toPx) {
             box-sizing: border-box !important;
             width: 100% !important;
         }
+        ${footnoteSeparatorCss}
 
         .pagedjs_pagebox > .pagedjs_area > .pagedjs_footnote_area > .pagedjs_footnote_content > .pagedjs_footnote_inner_content {
             font-family: '${footnoteFontFamily}', serif !important;
@@ -112,8 +141,8 @@ function getPDFStylesFlow(settings, toPx) {
             line-height: 1.35 !important;
             text-align: ${footnoteAlign} !important;
             text-align-last: ${footnoteAlignLast} !important;
-            hyphens: ${contentHyphenationMode} !important;
-            -webkit-hyphens: ${contentHyphenationMode} !important;
+            hyphens: none !important;
+            -webkit-hyphens: none !important;
             color: #475569 !important;
             width: 100% !important;
         }
@@ -128,6 +157,8 @@ function getPDFStylesFlow(settings, toPx) {
             text-align: ${footnoteAlign} !important;
             text-align-last: ${footnoteAlignLast} !important;
             color: #475569 !important;
+            hyphens: none !important;
+            -webkit-hyphens: none !important;
         }
 
         .pagedjs_footnote_area [data-note='footnote'] p,

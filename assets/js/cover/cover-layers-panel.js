@@ -29,14 +29,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function renderItemRow(layer, isChild = false) {
+        const isLocked = window.CoverEditor.utils.isLayerLocked ? window.CoverEditor.utils.isLayerLocked(layer) : !!layer.locked;
         const btn = document.createElement('div');
         btn.className = `w-full text-left px-3 py-2 text-xs rounded border transition flex items-center gap-2 cursor-move ${
             s.activeLayerId === layer.id 
                 ? 'bg-indigo-50 border-indigo-200 text-indigo-800 font-semibold shadow-sm shadow-indigo-50' 
                 : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-100'
-        } ${isChild ? 'ml-6 w-[calc(100%-1.5rem)]' : ''}`;
+        } ${isChild ? 'ml-6 w-[calc(100%-1.5rem)]' : ''} ${isLocked ? 'opacity-75' : ''}`;
         
-        btn.draggable = true;
+        btn.draggable = !isLocked;
         btn.dataset.layerId = layer.id;
 
         // Checkbox de selección (no mostrar para grupos, solo para elementos agrupables)
@@ -72,10 +73,20 @@ document.addEventListener('DOMContentLoaded', () => {
             nameHtml = `<span class="truncate flex-1 pointer-events-none">${layer.type === 'image' ? 'Imagen' : (layer.type === 'shape' ? 'Forma' : (layer.text || 'Texto vacío'))}</span>`;
         }
 
+        const lockIcon = isLocked ? 'fa-lock' : 'fa-unlock';
+        const lockTitle = isLocked ? 'Desbloquear capa' : 'Bloquear capa';
+        const deleteDisabled = isLocked ? 'opacity-40 cursor-not-allowed' : 'hover:bg-red-50 hover:text-red-600';
+
         btn.innerHTML = `
             ${checkboxHtml}
             ${iconHtml}
             ${nameHtml}
+            <button type="button" class="layer-lock-btn w-6 h-6 rounded flex items-center justify-center text-gray-400 transition ${isLocked ? 'bg-gray-100 text-gray-600' : 'hover:bg-gray-100'}" title="${lockTitle}" aria-label="${lockTitle}" onclick="event.stopPropagation(); window.CoverEditor.actions.toggleLayerLock('${layer.id}');">
+                <i class="fa-solid ${lockIcon} text-[10px]"></i>
+            </button>
+            <button type="button" class="layer-delete-btn w-6 h-6 rounded flex items-center justify-center text-gray-400 transition ${deleteDisabled}" title="Eliminar capa" aria-label="Eliminar capa" onclick="event.stopPropagation(); window.CoverEditor.actions.deleteLayer('${layer.id}');">
+                <i class="fa-solid fa-trash text-[10px]"></i>
+            </button>
             <i class="fa-solid fa-grip-vertical text-gray-300 ml-auto pointer-events-none"></i>
         `;
 
@@ -101,6 +112,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Drag and drop logic
         btn.addEventListener('dragstart', (e) => {
+            if (isLocked) {
+                e.preventDefault();
+                return;
+            }
             e.dataTransfer.setData('text/plain', layer.id);
             btn.classList.add('opacity-50');
         });
@@ -112,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         btn.addEventListener('dragover', (e) => {
+            if (isLocked) return;
             e.preventDefault();
             btn.classList.add('border-t-2', 'border-indigo-500');
         });
@@ -121,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         btn.addEventListener('drop', (e) => {
+            if (isLocked) return;
             e.preventDefault();
             btn.classList.remove('border-t-2', 'border-indigo-500');
             const draggedId = e.dataTransfer.getData('text/plain');
@@ -164,6 +181,51 @@ document.addEventListener('DOMContentLoaded', () => {
         const group = s.textLayers.find(l => l.id === groupId);
         if (group && group.type === 'group') {
             group.collapsed = !group.collapsed;
+            window.CoverEditor.actions.renderLayersPanel();
+        }
+    };
+
+    window.CoverEditor.actions.toggleLayerLock = function(layerId) {
+        const layer = s.textLayers.find(l => l.id === layerId);
+        if (!layer) {
+            return;
+        }
+
+        layer.locked = !layer.locked;
+        if (s.activeLayerId === layerId && window.CoverEditor.actions.renderTextLayers) {
+            window.CoverEditor.actions.renderTextLayers();
+        }
+        window.CoverEditor.actions.renderLayersPanel();
+    };
+
+    window.CoverEditor.actions.deleteLayer = function(layerId) {
+        const layer = s.textLayers.find(l => l.id === layerId);
+        if (!layer) {
+            return;
+        }
+
+        if (window.CoverEditor.utils.isLayerLocked && window.CoverEditor.utils.isLayerLocked(layer)) {
+            alert('Esta capa está bloqueada. Desbloquéala antes de eliminarla.');
+            return;
+        }
+
+        if (layer.type === 'group') {
+            s.textLayers.forEach(item => {
+                if (item.parentId === layer.id) {
+                    item.parentId = null;
+                }
+            });
+        }
+
+        s.textLayers = s.textLayers.filter(item => item.id !== layerId);
+        s.selectedLayerIds = (s.selectedLayerIds || []).filter(id => id !== layerId);
+
+        if (s.activeLayerId === layerId) {
+            window.CoverEditor.actions.selectLayer(null);
+        } else {
+            if (window.CoverEditor.actions.renderTextLayers) {
+                window.CoverEditor.actions.renderTextLayers();
+            }
             window.CoverEditor.actions.renderLayersPanel();
         }
     };

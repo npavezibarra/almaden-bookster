@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const s = window.CoverEditor.state;
     const el = window.CoverEditor.elements;
     const utils = window.CoverEditor.utils;
-    
+
     const exportPdfBtn = document.getElementById('export-pdf-btn');
     if (!exportPdfBtn) return;
     const EXPORT_FORM_ID = 'cover-export-download-form';
@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
             spine_width_mm: getFieldValue('spine-width-mm', ''),
             front_flap_width: getFieldValue('front-flap-width', '0'),
             back_flap_width: getFieldValue('back-flap-width', '0'),
+            fold_x: getFieldValue('fold-x', '0'),
             front_image: getFieldValue('upload-front-cover', ''),
             back_image: getFieldValue('upload-back-cover', ''),
             spine_image: getFieldValue('upload-spine-image', ''),
@@ -46,10 +47,51 @@ document.addEventListener('DOMContentLoaded', () => {
             front_flap_color: getFieldValue('front-flap-color-picker', '#ffffff'),
             back_flap_image: getFieldValue('upload-back-flap-image', ''),
             back_flap_color: getFieldValue('back-flap-color-picker', '#ffffff'),
-            text_layers: JSON.parse(JSON.stringify(s.textLayers || [])),
+            text_layers: JSON.parse(JSON.stringify(s.textLayers || [])).map(layer => ({
+                ...layer,
+                fontWeight: layer.fontWeight || 400,
+                fontStyle: layer.fontStyle || 'normal',
+                lineHeight: layer.lineHeight || 1.2,
+                letterSpacing: layer.letterSpacing || 0
+            })),
             page_width_cm: s.pageWidthCm,
             page_height_cm: s.pageHeightCm
         };
+    }
+
+    function getPreflightSummary() {
+        if (window.CoverEditor.actions && typeof window.CoverEditor.actions.getCoverPreflightSummary === 'function') {
+            return window.CoverEditor.actions.getCoverPreflightSummary();
+        }
+
+        return {
+            ready: false,
+            front: null,
+            back: null,
+            failing: [],
+            hasFailingIssues: false,
+            lastUpdatedAt: 0,
+            lastStatus: 'unknown'
+        };
+    }
+
+    function buildPreflightMessage(summary) {
+        const items = [];
+        if (summary.front && summary.front.issues && summary.front.issues.length) {
+            items.push(`Portada: ${summary.front.issues.join(', ')}`);
+        }
+        if (summary.back && summary.back.issues && summary.back.issues.length) {
+            items.push(`Contraportada: ${summary.back.issues.join(', ')}`);
+        }
+        if (summary.editorial && summary.editorial.hardIssues && summary.editorial.hardIssues.length) {
+            items.push(`Preflight general: ${summary.editorial.hardIssues.join(', ')}`);
+        }
+
+        if (items.length === 0) {
+            items.push('Hay advertencias que revisar antes de exportar.');
+        }
+
+        return items.join('\n');
     }
 
     async function triggerExport() {
@@ -64,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const exportNonce = coverDataRef.exportNonce || coverDataRef.nonce || '';
         const { form } = ensureDownloadTargets();
+        const preflight = getPreflightSummary();
 
         if (exportPdfBtn) {
             exportPdfBtn.disabled = true;
@@ -72,6 +115,34 @@ document.addEventListener('DOMContentLoaded', () => {
         exportBusyUntil = now + 120000;
 
         try {
+            if (preflight.hasFailingIssues) {
+                const shouldContinue = window.confirm(
+                    'El preflight detectó problemas en la portada o contraportada.\n\n' +
+                    buildPreflightMessage(preflight) +
+                    '\n\n¿Igual quieres exportar el PDF?'
+                );
+                if (!shouldContinue) {
+                    exportBusyUntil = 0;
+                    if (exportPdfBtn) {
+                        exportPdfBtn.disabled = false;
+                        exportPdfBtn.innerHTML = originalLabel || '<i class="fa-solid fa-file-pdf text-red-500"></i> Descargar PDF';
+                    }
+                    return;
+                }
+            } else if (!preflight.ready) {
+                const shouldContinue = window.confirm(
+                    'Aún no tengo un preflight completo de portada/contraportada.\n\n¿Quieres exportar de todos modos?'
+                );
+                if (!shouldContinue) {
+                    exportBusyUntil = 0;
+                    if (exportPdfBtn) {
+                        exportPdfBtn.disabled = false;
+                        exportPdfBtn.innerHTML = originalLabel || '<i class="fa-solid fa-file-pdf text-red-500"></i> Descargar PDF';
+                    }
+                    return;
+                }
+            }
+
             Array.from(form.querySelectorAll('input[name]')).forEach(input => input.remove());
 
             const fields = {

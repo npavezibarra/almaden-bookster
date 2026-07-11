@@ -87,7 +87,9 @@ p:first-of-type { text-indent: 0; }
 		$content = str_replace( array('<u\>', '</u>'), array('<u>', '</u>'), $content );
 		$content = preg_replace( '/\*\*(.*?)\*\*/s', '<strong>$1</strong>', $content );
 		$content = preg_replace( '/\*(.*?)\*/s', '<em>$1</em>', $content );
-		$content = preg_replace( '/\[lang:([a-zA-Z]{2})\]([\s\S]*?)\[\/lang\]/s', '<span lang="$1"><em>$2</em></span>', $content );
+		$content = preg_replace( '/\[lang:([a-zA-Z-]{2,10})\]([\s\S]*?)\[\/lang\]/s', '<span class="almaden-foreign" lang="$1"><em>$2</em></span>', $content );
+		$content = preg_replace( '/<foreign\s+lang=(?:"|\')([a-zA-Z-]{2,10})(?:"|\')\s*>([\s\S]*?)<\/foreign>/i', '<span class="almaden-foreign" lang="$1"><em>$2</em></span>', $content );
+		$content = preg_replace( '/<lang\s+code=(?:"|\')([a-zA-Z-]{2,10})(?:"|\')\s*>([\s\S]*?)<\/lang>/i', '<span class="almaden-foreign" lang="$1"><em>$2</em></span>', $content );
 		$content = preg_replace( '/\[size=([0-9]+(?:\.[0-9]+)?)(px|pt|em|rem)?\]([\s\S]*?)\[\/size\]/is', '<span style="font-size: $1$2;">$3</span>', $content );
 		$content = preg_replace( '/\[font=(?:&quot;|&#039;|"|\')([^\]]+?)(?:&quot;|&#039;|"|\')\]([\s\S]*?)\[\/font\]/is', '<span style="font-family: \'$1\', serif;">$2</span>', $content );
 		

@@ -38,6 +38,7 @@ function setViewMode(mode) {
 // Cambia el tema visual del editor (Claro, Sepia, Oscuro)
 function changeTheme(themeName) {
     const body = document.body;
+    const isSidebarCollapsed = body.classList.contains('sidebar-collapsed');
     body.className = ''; // Limpiar clases
     
     if (themeName === 'light') {
@@ -47,31 +48,51 @@ function changeTheme(themeName) {
     } else if (themeName === 'dark') {
         body.classList.add('theme-dark', 'h-full', 'overflow-hidden', 'flex', 'flex-col');
     }
+
+    if (isSidebarCollapsed) {
+        body.classList.add('sidebar-collapsed');
+    }
     
     bookState.theme = themeName;
     localStorage.setItem('bookcraft_theme', themeName);
 }
 
-// Mostrar / Ocultar la barra lateral de capítulos
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar-panel');
+function applySidebarCollapsedState(isCollapsed) {
+    const body = document.body;
+    const sidebar = document.getElementById('sidebar');
     const toggleIcon = document.getElementById('sidebar-toggle-icon');
-    
-    if (sidebar && toggleIcon) {
-        if (sidebar.classList.contains('w-80')) {
-            // Contraer lateral
-            sidebar.classList.remove('w-80', 'opacity-100');
-            sidebar.classList.add('w-0', 'opacity-0', 'pointer-events-none');
-            toggleIcon.classList.remove('fa-chevron-left');
-            toggleIcon.classList.add('fa-chevron-right');
-        } else {
-            // Expandir lateral
-            sidebar.classList.remove('w-0', 'opacity-0', 'pointer-events-none');
-            sidebar.classList.add('w-80', 'opacity-100');
-            toggleIcon.classList.remove('fa-chevron-right');
-            toggleIcon.classList.add('fa-chevron-left');
+    const toggleButton = document.getElementById('sidebar-toggle-btn');
+    const toolbarSlot = document.getElementById('sidebar-toggle-toolbar-slot');
+    const sidebarSlot = document.getElementById('sidebar-toggle-sidebar-slot');
+
+    body.classList.toggle('sidebar-collapsed', isCollapsed);
+    localStorage.setItem('almaden_sidebar_collapsed', isCollapsed ? 'true' : 'false');
+
+    if (sidebar) {
+        sidebar.setAttribute('aria-hidden', isCollapsed ? 'true' : 'false');
+    }
+
+    if (toggleButton) {
+        const targetSlot = isCollapsed ? toolbarSlot : sidebarSlot;
+        if (targetSlot && toggleButton.parentElement !== targetSlot) {
+            targetSlot.appendChild(toggleButton);
         }
     }
+
+    if (toggleIcon) {
+        toggleIcon.className = isCollapsed ? 'fa-solid fa-chevron-right text-[13px]' : 'fa-solid fa-bars text-[13px]';
+    }
+
+    if (toggleButton) {
+        toggleButton.title = isCollapsed ? 'Mostrar capítulos' : 'Ocultar capítulos';
+        toggleButton.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+    }
+}
+
+// Mostrar / Ocultar la barra lateral de capítulos
+function toggleSidebar() {
+    const isCollapsed = !document.body.classList.contains('sidebar-collapsed');
+    applySidebarCollapsedState(isCollapsed);
 }
 
 // Spread View Logic
@@ -110,6 +131,11 @@ function initSpreadView() {
         }
         if (btn) btn.innerHTML = '<i class="fa-solid fa-book-open"></i>';
     }
+}
+
+function initSidebarCollapseState() {
+    const isCollapsed = localStorage.getItem('almaden_sidebar_collapsed') === 'true';
+    applySidebarCollapsedState(isCollapsed);
 }
 
 // Muestra notificaciones personalizadas dinámicas de la aplicación
@@ -157,6 +183,10 @@ document.addEventListener('click', function(event) {
     if (addChapterWrapper && addChapterDropdown && !addChapterWrapper.contains(event.target)) {
         addChapterDropdown.classList.add('hidden');
     }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    initSidebarCollapseState();
 });
 
 // Ruler Logic

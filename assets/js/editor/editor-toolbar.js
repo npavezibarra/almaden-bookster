@@ -76,12 +76,15 @@ function openMediaUploader() {
 
     mediaUploader.on('select', function() {
         const attachment = mediaUploader.state().get('selection').first().toJSON();
-        const imgUrl = attachment.url;
+        const fullSizeUrl = attachment.sizes && attachment.sizes.full && attachment.sizes.full.url
+            ? attachment.sizes.full.url
+            : '';
+        const imgUrl = attachment.originalImageURL || fullSizeUrl || attachment.url;
         const imgAlt = attachment.alt || attachment.title || 'Imagen del libro';
         
-        // El wrapper HTML con tamaño pequeño para el editor, que el compilador pasará tal cual
-        const imageTag = `\n<img src="${imgUrl}" alt="${imgAlt}" width="150" class="pdf-book-image" />\n`;
-        
+        // Guardamos la fuente más grande disponible y dejamos que el layout del PDF limite el ancho.
+        const imageTag = `\n<img src="${imgUrl}" alt="${imgAlt}" class="pdf-book-image" />\n`;
+
         insertAtCursor(imageTag);
     });
 
@@ -180,15 +183,53 @@ function triggerEditorUpdate() {
 }
 
 function applyLanguage(langCode) {
-    wrapText(`[lang:${langCode}]`, '[/lang]');
+    wrapText(`<foreign lang="${langCode}">`, '</foreign>');
     const dropdown = document.getElementById('lang-dropdown');
     if (dropdown) dropdown.classList.add('hidden');
 }
 
 function removeLanguage() {
-    if (typeof showToast === 'function') {
-        showToast("Borra las etiquetas [lang] manualmente en el editor.", "fa-solid fa-circle-info");
+    const textarea = document.getElementById('editor-textarea');
+    if (!textarea) return;
+
+    if (document.activeElement !== textarea && typeof window.editorLastSelection !== 'undefined') {
+        textarea.selectionStart = window.editorLastSelection.start || 0;
+        textarea.selectionEnd = window.editorLastSelection.end || 0;
     }
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    if (start === end) {
+        if (typeof showToast === 'function') {
+            showToast("Selecciona el fragmento con marca de idioma para quitarla.", "fa-solid fa-circle-info");
+        }
+        const dropdown = document.getElementById('lang-dropdown');
+        if (dropdown) dropdown.classList.add('hidden');
+        return;
+    }
+
+    const selectedText = textarea.value.substring(start, end);
+    const cleanedText = selectedText
+        .replace(/^\s*\[lang:[a-zA-Z-]{2,10}\]/i, '')
+        .replace(/\[\/lang\]\s*$/i, '')
+        .replace(/^\s*<foreign\s+lang=(?:"|')([a-zA-Z-]{2,10})(?:"|')\s*>/i, '')
+        .replace(/<\/foreign>\s*$/i, '')
+        .replace(/^\s*<lang\s+code=(?:"|')([a-zA-Z-]{2,10})(?:"|')\s*>/i, '')
+        .replace(/<\/lang>\s*$/i, '');
+
+    if (cleanedText === selectedText) {
+        if (typeof showToast === 'function') {
+            showToast("Selecciona incluyendo la etiqueta de idioma para quitarla.", "fa-solid fa-circle-info");
+        }
+    } else {
+        textarea.value = textarea.value.substring(0, start) + cleanedText + textarea.value.substring(end);
+        textarea.selectionStart = start;
+        textarea.selectionEnd = start + cleanedText.length;
+        textarea.focus();
+        triggerEditorUpdate();
+    }
+
     const dropdown = document.getElementById('lang-dropdown');
     if (dropdown) dropdown.classList.add('hidden');
 }

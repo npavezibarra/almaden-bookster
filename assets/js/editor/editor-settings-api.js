@@ -160,6 +160,11 @@ window.savePDFSettings = function(silent = false) {
     data.append('footnote_padding_bottom', getCleanVal('setting-footnote-padding-bottom'));
     data.append('footnote_padding_left', getCleanVal('setting-footnote-padding-left'));
     data.append('footnote_padding_right', getCleanVal('setting-footnote-padding-right'));
+    data.append('footnote_separator_show', getChecked('setting-footnote-separator-show'));
+    data.append('footnote_separator_align', getVal('setting-footnote-separator-align'));
+    data.append('footnote_separator_width', getVal('setting-footnote-separator-width'));
+    data.append('footnote_separator_thickness', getCleanVal('setting-footnote-separator-thickness'));
+    data.append('footnote_separator_margin_bottom', getCleanVal('setting-footnote-separator-margin-bottom'));
 
     data.append('header_margin_top', getCleanVal('setting-header-margin-top'));
     data.append('header_margin_bottom', getCleanVal('setting-header-margin-bottom'));
@@ -361,6 +366,11 @@ window.savePDFSettings = function(silent = false) {
                 footnote_padding_bottom: parseVal('setting-footnote-padding-bottom', 0.15),
                 footnote_padding_left: parseVal('setting-footnote-padding-left', 0),
                 footnote_padding_right: parseVal('setting-footnote-padding-right', 0),
+                footnote_separator_show: getChecked('setting-footnote-separator-show'),
+                footnote_separator_align: getVal('setting-footnote-separator-align') || 'left',
+                footnote_separator_width: getVal('setting-footnote-separator-width') || '100',
+                footnote_separator_thickness: parseVal('setting-footnote-separator-thickness', 0.25),
+                footnote_separator_margin_bottom: parseVal('setting-footnote-separator-margin-bottom', 0.15),
 
                 header_margin_top: parseVal('setting-header-margin-top', 1.0),
                 header_margin_bottom: parseVal('setting-header-margin-bottom', 0.5),

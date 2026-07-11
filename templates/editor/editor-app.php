@@ -73,8 +73,6 @@ if (!headers_sent()) {
 
         <!-- Opciones de Vista & Configuración -->
         <div class="flex items-center gap-4">
-
-
             <!-- Toggles de Visualización -->
             <div class="hidden md:flex bg-[var(--bg-app)] rounded-lg p-1 border border-[var(--border-color)] text-xs font-semibold">
                 <button id="view-split-btn" onclick="setViewMode('split')" class="px-3 py-1.5 rounded-md bg-black text-white shadow-sm transition">
@@ -103,18 +101,20 @@ if (!headers_sent()) {
 
     <!-- CUERPO PRINCIPAL CONTENEDOR -->
     <div class="flex flex-1 overflow-hidden relative">
-
         <!-- BARRA LATERAL IZQUIERDA -->
         <aside id="sidebar" class="w-80 border-r border-[var(--border-color)] bg-[var(--bg-sidebar)] flex flex-col justify-between transition-all z-20 no-print h-full">
-            <div class="p-4 shrink-0 pb-2 relative" id="add-chapter-dropdown-wrapper">
-                <button onclick="toggleAddChapterDropdown()" class="w-full py-3 px-2 bg-black hover:bg-neutral-800 text-white font-bold rounded-[6px] shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
-                    <i class="fa-solid fa-plus"></i>
-                    Añadir
-                    <i class="fa-solid fa-chevron-down text-[10px] ml-1 opacity-80"></i>
-                </button>
+            <div class="pl-4 pr-0 pt-0 pb-0 shrink-0 relative" id="add-chapter-dropdown-wrapper">
+                <div class="flex items-center gap-2">
+                    <div id="sidebar-toggle-sidebar-slot"></div>
+                    <button id="add-chapter-main-btn" onclick="toggleAddChapterDropdown()" class="flex-1 h-12 px-2 bg-black hover:bg-neutral-800 text-white font-bold rounded-none shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm leading-none">
+                        <i class="fa-solid fa-plus"></i>
+                        Añadir
+                        <i class="fa-solid fa-chevron-down text-[10px] ml-1 opacity-80"></i>
+                    </button>
+                </div>
                 
                 <!-- Dropdown Menú -->
-                <div id="add-chapter-dropdown" class="hidden absolute top-full left-4 right-4 mt-1 bg-[var(--bg-app)] border border-[var(--border-color)] rounded-xl shadow-xl z-50 overflow-hidden text-sm">
+                <div id="add-chapter-dropdown" class="hidden absolute top-full left-4 right-0 mt-1 bg-[var(--bg-app)] border border-[var(--border-color)] rounded-xl shadow-xl z-50 overflow-hidden text-sm">
                     <button onclick="createNewChapter(false); toggleAddChapterDropdown()" class="w-full text-left px-4 py-3 hover:bg-[var(--bg-sidebar)] transition flex items-center gap-3 text-[var(--text-main)] font-medium border-b border-[var(--border-color)]">
                         <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 flex items-center justify-center">
                             <i class="fa-solid fa-file-lines"></i>
@@ -136,7 +136,7 @@ if (!headers_sent()) {
                 </div>
             </div>
 
-            <div class="px-4 pb-4 flex flex-col flex-1 overflow-y-auto">
+            <div id="sidebar-chapters-section" class="px-4 pb-4 flex flex-col flex-1 overflow-y-auto">
                 <!-- Listado de Capítulos -->
                 <div class="flex-1 mt-2">
                     <div class="flex items-center justify-between mb-3 px-2">
@@ -144,14 +144,14 @@ if (!headers_sent()) {
                         <span id="chapter-count" class="text-xs bg-neutral-200 text-neutral-850 dark:bg-slate-800 dark:text-neutral-400 font-bold px-2 py-0.5 rounded-full">0</span>
                     </div>
 
-                    <div id="chapters-list" class="space-y-1">
+                    <div id="chapters-list" class="divide-y divide-[var(--border-color)] space-y-0">
                         <!-- Generado dinámicamente -->
                     </div>
                 </div>
             </div>
 
             <!-- Footer Sidebar con Información Adicional -->
-            <div class="p-4 border-t border-[var(--border-color)] bg-[var(--bg-app)]/50">
+            <div id="sidebar-footer" class="p-4 border-t border-[var(--border-color)] bg-[var(--bg-app)]/50">
                 <div class="flex items-center justify-between text-xs text-[var(--text-muted)] mb-2">
                     <span>Estado del Libro:</span>
                     <span id="save-status" class="flex items-center gap-1 font-semibold text-emerald-600">
@@ -166,12 +166,6 @@ if (!headers_sent()) {
                     <span>Páginas Totales:</span>
                     <span id="total-pages-sidebar" class="font-bold text-[var(--text-main)]"><?php echo esc_html( get_post_meta( $book_id, '_almaden_total_pages', true ) ?: '-' ); ?></span>
                 </div>
-                <!-- Mini manual rápido -->
-                <div class="mt-3 p-2 bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg text-[10px] text-[var(--text-muted)] leading-relaxed">
-                    <p class="font-bold mb-1"><i class="fa-solid fa-info-circle mr-1"></i> Formato Rápido (Markdown):</p>
-                    <p># Capítulo | ## Subtítulo | **Negrita**</p>
-                    <p>*Itálica* | > Cita | - Lista</p>
-                </div>
             </div>
         </aside>
 
@@ -183,6 +177,11 @@ if (!headers_sent()) {
                 <!-- Barra de Herramientas de Edición -->
                 <div class="h-12 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] px-4 flex items-center justify-between text-[var(--text-muted)]">
                     <div class="flex items-center gap-0.5 sm:gap-1">
+                        <div id="sidebar-toggle-toolbar-slot">
+                            <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="w-7 h-7 flex items-center justify-center hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition border border-transparent" title="Ocultar capítulos" aria-expanded="true">
+                                <i id="sidebar-toggle-icon" class="fa-solid fa-bars text-[13px]"></i>
+                            </button>
+                        </div>
                         <button onclick="wrapText('**', '**')" class="w-7 h-7 flex items-center justify-center hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] rounded transition" title="Negrita">
                             <i class="fa-solid fa-bold text-[13px]"></i>
                         </button>

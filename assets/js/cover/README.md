@@ -16,6 +16,12 @@ Este directorio alberga la arquitectura modular del **Editor de Portadas**. Ante
 *   **[cover-layers-panel.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/cover/cover-layers-panel.js)**: 
     Maneja la UI del "Panel de Capas" lateral izquierdo. Renderiza la lista visual de elementos, permite su ocultamiento/visualización y gestiona íntegramente la re-ordenación Z-Index mediante la funcionalidad Drag & Drop interactiva (`Sortable` o lógica nativa).
 
+*   **[cover-book-format.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/cover/cover-book-format.js)**: 
+    Controla la sección plegable de `Formato del libro` en el panel izquierdo, donde viven papel interior, páginas y ancho del lomo.
+
+*   **[cover-layers-interactions.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/cover/cover-layers-interactions.js)**: 
+    Centraliza las interacciones sobre capas ya seleccionadas, incluyendo arrastre con mouse, movimiento fino con teclado y cancelación segura del drag cuando el foco cambia.
+
 *   **[cover-dimensions.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/cover/cover-dimensions.js)**: 
     Responsable del entorno espacial del lienzo. Contiene las matemáticas detrás de calcular los márgenes de sangría (bleed), espinas de libros (spine width), zoom interactivo, la grilla magnética (grid snapping) y re-ajuste (resize) de los contenedores.
 

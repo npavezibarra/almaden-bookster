@@ -141,6 +141,12 @@ function generateDynamicStyles() {
             margin-bottom: 0.5rem;
             color: ${readerHeadingColor} !important;
         }
+
+        .reader-chapter-prefix .chapter-prefix-number {
+            display: inline-block;
+            margin-left: 0.25em;
+            white-space: nowrap;
+        }
         
         .reader-chapter-prefix.prefix-below {
             margin-top: 0.5rem;

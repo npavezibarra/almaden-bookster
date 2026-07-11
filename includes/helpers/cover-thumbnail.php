@@ -61,6 +61,15 @@ function almaden_get_thumbnail_fonts_url() {
     return 'https://fonts.googleapis.com/css2?' . implode( '&', array_map( function( $f ) { return 'family=' . $f; }, $font_families_for_cdn ) ) . '&display=swap';
 }
 
+function almaden_bookster_round_up_mm( $value ) {
+    $value = floatval( $value );
+    if ( $value <= 0 ) {
+        return 0;
+    }
+
+    return (int) ceil( $value );
+}
+
 function almaden_bookster_get_cover_spine_width_mm( $cover_settings, $pages ) {
     $pages = intval( $pages );
     if ( $pages < 20 ) {
@@ -74,10 +83,15 @@ function almaden_bookster_get_cover_spine_width_mm( $cover_settings, $pages ) {
     $manual_spine_width_mm = isset( $cover_settings['spine_width_mm'] ) ? floatval( $cover_settings['spine_width_mm'] ) : 0;
 
     if ( $spine_mode === 'manual' && $manual_spine_width_mm > 0 ) {
-        return $manual_spine_width_mm;
+        return almaden_bookster_round_up_mm( $manual_spine_width_mm );
     }
 
-    return $auto_spine_width_mm;
+    return almaden_bookster_round_up_mm( $auto_spine_width_mm );
+}
+
+function almaden_bookster_get_cover_fold_x_mm( $cover_settings ) {
+    $fold_x_mm = isset( $cover_settings['fold_x'] ) ? floatval( $cover_settings['fold_x'] ) : ( isset( $cover_settings['fold_x_mm'] ) ? floatval( $cover_settings['fold_x_mm'] ) : 0 );
+    return $fold_x_mm > 0 ? almaden_bookster_round_up_mm( $fold_x_mm ) : 0;
 }
 
 function almaden_get_cover_thumbnail_html( $book_id ) {
@@ -107,8 +121,9 @@ function almaden_get_cover_thumbnail_html( $book_id ) {
 
     $spineWidthMm = almaden_bookster_get_cover_spine_width_mm( $cover_settings, $pages );
     
-    $frontFlapMm = isset($cover_settings['front_flap_width']) ? floatval($cover_settings['front_flap_width']) : 0;
-    $backFlapMm = isset($cover_settings['back_flap_width']) ? floatval($cover_settings['back_flap_width']) : 0;
+    $frontFlapMm = isset($cover_settings['front_flap_width']) ? almaden_bookster_round_up_mm( $cover_settings['front_flap_width'] ) : 0;
+    $backFlapMm = isset($cover_settings['back_flap_width']) ? almaden_bookster_round_up_mm( $cover_settings['back_flap_width'] ) : 0;
+    $foldXMm = function_exists( 'almaden_bookster_get_cover_fold_x_mm' ) ? almaden_bookster_get_cover_fold_x_mm( $cover_settings ) : 0;
     
     $pxPerCm = 37.7952755906;
     $bleedPx = (5 / 10) * $pxPerCm; 
@@ -124,6 +139,12 @@ function almaden_get_cover_thumbnail_html( $book_id ) {
 
     $frontCoverPx = $pageWidthPx;
     $backCoverPx = $pageWidthPx;
+
+    if ( $foldXMm > 0 && ( $frontFlapMm > 0 || $backFlapMm > 0 ) ) {
+        $foldXPx = ( $foldXMm / 10 ) * $pxPerCm;
+        $frontCoverPx += $foldXPx;
+        $backCoverPx += $foldXPx;
+    }
 
     if ($frontFlapMm > 0) $frontFlapPx += $bleedPx; else $frontCoverPx += $bleedPx;
     if ($backFlapMm > 0) $backFlapPx += $bleedPx; else $backCoverPx += $bleedPx;
@@ -219,6 +240,10 @@ function almaden_get_cover_thumbnail_html( $book_id ) {
                     } else {
                         // text
                         $fontSize = isset($layer['fontSize']) ? floatval($layer['fontSize']) : 12;
+                        $fontWeight = isset($layer['fontWeight']) ? sanitize_text_field($layer['fontWeight']) : '400';
+                        $fontStyle = isset($layer['fontStyle']) ? sanitize_text_field($layer['fontStyle']) : 'normal';
+                        $lineHeight = isset($layer['lineHeight']) && $layer['lineHeight'] !== '' ? floatval($layer['lineHeight']) : 1.2;
+                        $letterSpacing = isset($layer['letterSpacing']) && $layer['letterSpacing'] !== '' ? floatval($layer['letterSpacing']) : 0;
                         $color = isset($layer['color']) ? esc_attr($layer['color']) : '#000000';
                         $fontFamily = isset($layer['fontFamily']) ? esc_attr($layer['fontFamily']) : 'Inter';
                         $textAlign = isset($layer['textAlign']) ? esc_attr($layer['textAlign']) : 'center';
@@ -227,7 +252,7 @@ function almaden_get_cover_thumbnail_html( $book_id ) {
                         $text = isset($layer['text']) ? esc_html($layer['text']) : '';
                         $hyphens = !empty($layer['hyphens']) ? 'auto' : 'none';
 
-                        $style .= "width: {$w}; height: {$h}; font-size: {$fontSize}px; color: {$color}; font-family: '{$fontFamily}', sans-serif; text-align: {$textAlign}; white-space: pre-wrap; line-height: 1.2; hyphens: {$hyphens}; -webkit-hyphens: {$hyphens};";
+                        $style .= "width: {$w}; height: {$h}; font-size: {$fontSize}px; font-weight: {$fontWeight}; font-style: {$fontStyle}; color: {$color}; font-family: '{$fontFamily}', sans-serif; text-align: {$textAlign}; white-space: pre-wrap; line-height: {$lineHeight}; letter-spacing: {$letterSpacing}px; font-synthesis: none; hyphens: {$hyphens}; -webkit-hyphens: {$hyphens};";
                         echo "<div style=\"{$style}\">{$text}</div>";
                     }
                 }

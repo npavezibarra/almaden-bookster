@@ -2,6 +2,42 @@
 
 window.AlmadenShortcodes = {
 
+    renderLanguageSpan: function(langCode, content) {
+        const safeLang = String(langCode || '').trim().toLowerCase();
+        if (!safeLang) return content;
+        return `<span class="almaden-foreign" lang="${safeLang}"><em>${content}</em></span>`;
+    },
+
+    parseLanguageMarkup: function(text) {
+        let t = text;
+
+        // Legacy shortcode: [lang:la] ... [/lang]
+        t = t.replace(/\[lang:([a-zA-Z-]{2,10})\]([\s\S]*?)\[\/lang\]/gi, (match, langCode, content) => {
+            return window.AlmadenShortcodes.renderLanguageSpan(langCode, content);
+        });
+
+        // New canonical markup written directly in the editor or pasted from an LLM.
+        t = t.replace(/<foreign\s+lang=(?:&quot;|&#039;|"|')([a-zA-Z-]{2,10})(?:&quot;|&#039;|"|')\s*>([\s\S]*?)<\/foreign>/gi, (match, langCode, content) => {
+            return window.AlmadenShortcodes.renderLanguageSpan(langCode, content);
+        });
+
+        // Alternative import-friendly markup.
+        t = t.replace(/<lang\s+code=(?:&quot;|&#039;|"|')([a-zA-Z-]{2,10})(?:&quot;|&#039;|"|')\s*>([\s\S]*?)<\/lang>/gi, (match, langCode, content) => {
+            return window.AlmadenShortcodes.renderLanguageSpan(langCode, content);
+        });
+
+        // Escaped forms appear in the custom markdown compiler after HTML escaping.
+        t = t.replace(/&lt;foreign\s+lang=(?:&quot;|&#039;|"|')([a-zA-Z-]{2,10})(?:&quot;|&#039;|"|')\s*&gt;([\s\S]*?)&lt;\/foreign&gt;/gi, (match, langCode, content) => {
+            return window.AlmadenShortcodes.renderLanguageSpan(langCode, content);
+        });
+
+        t = t.replace(/&lt;lang\s+code=(?:&quot;|&#039;|"|')([a-zA-Z-]{2,10})(?:&quot;|&#039;|"|')\s*&gt;([\s\S]*?)&lt;\/lang&gt;/gi, (match, langCode, content) => {
+            return window.AlmadenShortcodes.renderLanguageSpan(langCode, content);
+        });
+
+        return t;
+    },
+
     /**
      * Parse inline shortcodes like [lang], [size], [font]
      * These can be used inside paragraphs or headings.
@@ -9,8 +45,7 @@ window.AlmadenShortcodes = {
     parseInline: function(text) {
         let t = text;
 
-        // [lang:es] ... [/lang]
-        t = t.replace(/\[lang:([a-zA-Z]{2})\]([\s\S]*?)\[\/lang\]/gi, '<span lang="$1"><em>$2</em></span>');
+        t = window.AlmadenShortcodes.parseLanguageMarkup(t);
         
         // [size=12px] ... [/size]
         t = t.replace(/\[size=([0-9]+(?:\.[0-9]+)?)(px|pt|em|rem)?\]([\s\S]*?)\[\/size\]/gi, (match, val, unit, content) => {
@@ -166,12 +201,14 @@ window.AlmadenShortcodes = {
 
         const frontFlapMm = parseFloat(coverSettings.front_flap_width) || 0;
         const backFlapMm = parseFloat(coverSettings.back_flap_width) || 0;
+        const foldXMm = parseFloat(coverSettings.fold_x !== undefined ? coverSettings.fold_x : coverSettings.fold_x_mm) || 0;
         
         const frontFlapPx = frontFlapMm > 0 ? ((frontFlapMm / 10) * pxPerCm) + bleedPx : 0;
         const backFlapPx = backFlapMm > 0 ? ((backFlapMm / 10) * pxPerCm) + bleedPx : 0;
         
-        const frontCoverPx = pageWidthPx + (frontFlapMm > 0 ? 0 : bleedPx);
-        const backCoverPx = pageWidthPx + (backFlapMm > 0 ? 0 : bleedPx);
+        const foldXPx = (foldXMm > 0 && (frontFlapMm > 0 || backFlapMm > 0)) ? (foldXMm / 10) * pxPerCm : 0;
+        const frontCoverPx = pageWidthPx + foldXPx + (frontFlapMm > 0 ? 0 : bleedPx);
+        const backCoverPx = pageWidthPx + foldXPx + (backFlapMm > 0 ? 0 : bleedPx);
         
         const totalSpreadWidth = frontCoverPx + backCoverPx + spineWidthPx + frontFlapPx + backFlapPx;
 

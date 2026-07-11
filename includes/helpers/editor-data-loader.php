@@ -66,6 +66,8 @@ if ( $chapter_posts ) {
 			'credits_letter_spacing'   => get_post_meta( $cp->ID, '_credits_letter_spacing', true ),
 			'credits_font_weight'      => get_post_meta( $cp->ID, '_credits_font_weight', true ),
 			'credits_hide_page_number' => get_post_meta( $cp->ID, '_credits_hide_page_number', true ),
+			'credits_margin_top'       => get_post_meta( $cp->ID, '_credits_margin_top', true ),
+			'credits_margin_bottom'    => get_post_meta( $cp->ID, '_credits_margin_bottom', true ),
 			'toc_font_family'          => get_post_meta( $cp->ID, '_toc_font_family', true ),
 			'toc_font_size'            => get_post_meta( $cp->ID, '_toc_font_size', true ),
 			'toc_enumerate'            => get_post_meta( $cp->ID, '_toc_enumerate', true ),

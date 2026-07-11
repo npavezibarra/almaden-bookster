@@ -176,8 +176,23 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
         .cover-media-image--contain {
             object-fit: contain;
         }
+        body.cover-guides-hidden #ruler-overlay,
+        body.cover-guides-hidden #bleed-guide {
+            display: none !important;
+        }
+        body.cover-guides-hidden .cover-part {
+            border-color: transparent !important;
+        }
+        body.cover-guides-hidden #spine {
+            border-left-color: transparent !important;
+            border-right-color: transparent !important;
+        }
+        body.cover-guides-hidden .cover-part > span,
+        body.cover-guides-hidden #spine .spine-text {
+            opacity: 0;
+        }
     </style>
-    
+
     <script>
         const coverData = {
             bookId: <?php echo intval($book_id); ?>,
@@ -187,6 +202,9 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
             exportUrl: "<?php echo esc_url(admin_url('admin-post.php')); ?>",
             pageWidthCm: <?php echo floatval($page_width); ?>,
             pageHeightCm: <?php echo floatval($page_height); ?>,
+            bleedMm: 5,
+            safeMarginMm: 4,
+            minPrintDpi: 300,
             settings: <?php echo json_encode($cover_settings); ?>,
             installedFonts: <?php echo json_encode($installed_fonts); ?>
         };
@@ -213,11 +231,14 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
     <!-- Scripts Modulares -->
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-state.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-utils.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-book-format.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-dimensions.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-media.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-image-diagnostics.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-layers.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-layers-canvas.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-layers-panel.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-layers-interactions.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-save.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-export.js?v=' . time() ); ?>"></script>
     <?php wp_footer(); ?>

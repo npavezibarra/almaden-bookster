@@ -20,6 +20,8 @@
         'u',
         'span[lang]',
         'span[style]',
+        'span[data-footnote-id]',
+        'a[data-footnote-call]',
         '.almaden-inline'
     ].join(',');
 
@@ -60,6 +62,22 @@
         return 0;
     }
 
+    function previousSoftHyphenOffset(text, offset) {
+        for (let i = Math.min(offset, text.length) - 1; i >= 0; i--) {
+            const ch = text.charAt(i);
+
+            if (ch === SOFT_HYPHEN) {
+                return i + 1;
+            }
+
+            if (SAFE_BOUNDARY_RE.test(ch)) {
+                break;
+            }
+        }
+
+        return null;
+    }
+
     function getSafeOffsetForTextNode(node, offset) {
         if (!isTextNode(node)) {
             return offset;
@@ -73,6 +91,11 @@
         }
 
         if (isUnsafeWordOffset(text, normalizedOffset)) {
+            const softHyphenOffset = previousSoftHyphenOffset(text, normalizedOffset);
+            if (softHyphenOffset !== null) {
+                return softHyphenOffset;
+            }
+
             const safeOffset = previousSafeOffset(text, normalizedOffset);
             return safeOffset > 0 ? safeOffset : normalizedOffset;
         }
@@ -94,9 +117,16 @@
                 return overflow;
             }
 
-            const safeOffset = getSafeOffsetForTextNode(overflow.startContainer, overflow.startOffset);
+            const safeOffset = getSafeOffsetForTextNode(
+                overflow.startContainer,
+                overflow.startOffset
+            );
 
-            if (safeOffset < overflow.startOffset) {
+            if (
+                Number.isInteger(safeOffset) &&
+                safeOffset > 0 &&
+                safeOffset < overflow.startOffset
+            ) {
                 overflow.setStart(overflow.startContainer, safeOffset);
             }
 

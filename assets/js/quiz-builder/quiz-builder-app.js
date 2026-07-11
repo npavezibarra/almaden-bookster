@@ -20,12 +20,40 @@
 
 	function clone(v) { if (!v || typeof v !== 'object') return null; try { return JSON.parse(JSON.stringify(v)); } catch (e) { return null; } }
 	function currentChapter() { return chapters[activeChapterIndex] || null; }
+	function normalizeDifficulty(value) {
+		const normalized = String(value || '').trim().toLowerCase();
+		if (normalized === 'hard' || normalized === 'difícil' || normalized === 'dificil') return 'hard';
+		return 'medium';
+	}
+	function getDifficultyPromptRules(difficulty) {
+		if (difficulty === 'hard') {
+			return [
+				'Aplica un nivel ALTO de deducibilidad controlada: el estudiante no debe poder inferir la respuesta correcta solo mirando las alternativas.',
+				'Todas las alternativas deben pertenecer exactamente al mismo dominio semántico y usar un registro lingüístico similar.',
+				'Evita cualquier diferencia visible en longitud, precisión, tecnicismo, estructura gramatical o patrón de escritura entre la respuesta correcta y los distractores.',
+				'Los distractores deben ser plausibles, cercanos y conceptualmente confundibles con la respuesta correcta.',
+				'No uses opciones ridículas, humorísticas, absurdas, fuera de categoría o fácilmente descartables por inspección.',
+				'La única forma razonable de responder correctamente debe ser conocer el contenido, no detectar pistas en las alternativas.'
+			];
+		}
+		return [
+			'Aplica un nivel MEDIO de deducibilidad controlada: la respuesta correcta no debe ser evidente a primera vista, pero un lector con conocimientos parciales puede descartar una o dos alternativas por razonamiento.',
+			'Todas las alternativas deben pertenecer a la misma categoría conceptual.',
+			'La longitud de las respuestas debe ser similar y todas deben tener un nivel comparable de detalle.',
+			'Evita que una sola alternativa use un lenguaje mucho más técnico, específico o serio que las demás.',
+			'Los distractores deben ser plausibles para alguien que conoce parcialmente el tema.',
+			'No uses opciones absurdas, humorísticas o claramente fuera de categoría.'
+		];
+	}
+	function getDifficultyLabel(difficulty) {
+		return difficulty === 'hard' ? 'Difícil' : 'Media';
+	}
 	function getPromptSettings() {
 		const q = questionCountField ? parseInt(questionCountField.value, 10) : 5, a = alternativesCountField ? parseInt(alternativesCountField.value, 10) : 4;
 		return {
 			questionCount: Number.isFinite(q) && q > 0 ? q : 5,
 			alternativesCount: Number.isFinite(a) && a > 0 ? a : 4,
-			difficulty: difficultyField ? String(difficultyField.value || 'medium') : 'medium',
+			difficulty: normalizeDifficulty(difficultyField ? difficultyField.value : 'medium'),
 			style: styleField ? String(styleField.value || 'clear') : 'clear'
 		};
 	}
@@ -127,14 +155,16 @@
 			'ACTÚA COMO UN DISEÑADOR EXPERTO DE QUIZZES PARA UN LIBRO.',
 			'Tu única tarea es crear un quiz basado en el contenido del capítulo indicado abajo.',
 			'Usa únicamente el contenido del capítulo como fuente. No agregues información externa ni inventes datos.',
+			'Cuando recibas esta instrucción, responde de inmediato con un objeto JSON válido.',
+			'Tu respuesta debe comenzar inmediatamente con `{` y no debe incluir ningún texto antes ni después del JSON.',
+			'No hagas preguntas, no pidas confirmación, no ofrezcas opciones, no expliques tu razonamiento y no respondas con conversación general.',
+			'Si algo parece ambiguo, asume la interpretación más razonable y continúa. Nunca preguntes "qué quieres que haga" ni pidas que te aclaren la tarea.',
 			'Genera exactamente ' + settings.questionCount + ' preguntas.',
 			'Cada pregunta debe tener exactamente ' + settings.alternativesCount + ' alternativas.',
-			'La dificultad objetivo es: ' + settings.difficulty + '.',
+			'La dificultad objetivo es: ' + getDifficultyLabel(settings.difficulty) + '.',
 			'El estilo deseado es: ' + settings.style + '.',
 			'Prioriza comprensión, relaciones entre ideas, causas, consecuencias e interpretación por sobre memoria literal.',
-			'Evita preguntas cuya respuesta pueda deducirse por longitud, tecnicismo o singularidad de una alternativa.',
-			'Todas las alternativas deben pertenecer a la misma categoría semántica.',
-			'Las alternativas deben tener longitudes parecidas.',
+			...getDifficultyPromptRules(settings.difficulty),
 			'No uses "Todas las anteriores", "Ninguna de las anteriores", "Siempre" ni "Nunca".',
 			'Distribuye la respuesta correcta de forma variada entre las alternativas.',
 			'Cada pregunta debe evaluar una sola idea.',
@@ -151,7 +181,7 @@
 			'- Alcance de evaluación: ' + evaluatedChaptersText,
 			'- Número de preguntas: ' + settings.questionCount,
 			'- Alternativas por pregunta: ' + settings.alternativesCount,
-			'- Dificultad: ' + settings.difficulty,
+			'- Dificultad: ' + getDifficultyLabel(settings.difficulty),
 			'- Estilo: ' + settings.style,
 			'- El JSON final debe seguir el formato de Learni/Bookster.',
 			'- No incluyas texto fuera del JSON final.',

@@ -230,6 +230,11 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-footnote-padding-bottom')) document.getElementById('setting-footnote-padding-bottom').value = settings.footnote_padding_bottom ?? 0.15;
     if (document.getElementById('setting-footnote-padding-left')) document.getElementById('setting-footnote-padding-left').value = settings.footnote_padding_left ?? 0;
     if (document.getElementById('setting-footnote-padding-right')) document.getElementById('setting-footnote-padding-right').value = settings.footnote_padding_right ?? 0;
+    if (document.getElementById('setting-footnote-separator-show')) document.getElementById('setting-footnote-separator-show').checked = settings.footnote_separator_show == 1;
+    if (document.getElementById('setting-footnote-separator-align')) document.getElementById('setting-footnote-separator-align').value = settings.footnote_separator_align || 'left';
+    if (document.getElementById('setting-footnote-separator-width')) document.getElementById('setting-footnote-separator-width').value = settings.footnote_separator_width || '100';
+    if (document.getElementById('setting-footnote-separator-thickness')) document.getElementById('setting-footnote-separator-thickness').value = settings.footnote_separator_thickness ?? 0.25;
+    if (document.getElementById('setting-footnote-separator-margin-bottom')) document.getElementById('setting-footnote-separator-margin-bottom').value = settings.footnote_separator_margin_bottom ?? 0.15;
 
     if (document.getElementById('setting-header-margin-top')) document.getElementById('setting-header-margin-top').value = settings.header_margin_top !== undefined ? settings.header_margin_top : 1.0;
     if (document.getElementById('setting-header-margin-bottom')) document.getElementById('setting-header-margin-bottom').value = settings.header_margin_bottom !== undefined ? settings.header_margin_bottom : 0.5;

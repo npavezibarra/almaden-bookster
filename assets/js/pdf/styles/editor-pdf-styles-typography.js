@@ -7,6 +7,10 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
     const contentTextAlign = settings.content_text_align || 'justify';
     const contentTextAlignLast = settings.content_text_align_last
         || (contentTextAlign === 'justify' ? 'left' : contentTextAlign);
+    const contentLanguage = String(settings.content_language || 'es').toLowerCase();
+    const contentHyphenation = settings.content_hyphenation == 1
+        ? (contentLanguage.startsWith('es') ? 'manual' : 'auto')
+        : 'none';
     const tocItemAlign = ['left', 'center', 'right'].includes(String(tocSettings.itemAlign || '').toLowerCase())
         ? String(tocSettings.itemAlign).toLowerCase()
         : 'left';
@@ -19,11 +23,6 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
     const chapterTitleJustify = chapterTitleAlign === 'left'
         ? 'flex-start'
         : (chapterTitleAlign === 'right' ? 'flex-end' : 'center');
-    const smartSpanishHyphenation = !['0', 0].includes(settings.content_hyphenation) && String(settings.content_language || 'es').toLowerCase().startsWith('es');
-    const contentHyphenationMode = (settings.content_hyphenation === 0 || settings.content_hyphenation === '0')
-        ? 'none'
-        : (smartSpanishHyphenation ? 'manual' : 'auto');
-
     let styles = `
         /* ── Contenido ── */
         .pdf-content {
@@ -48,18 +47,26 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             line-height: ${settings.line_height_content || 1.65} !important;
             text-align: ${contentTextAlign} !important;
             text-align-last: ${contentTextAlignLast} !important;
-            hyphens: ${contentHyphenationMode} !important;
-            -webkit-hyphens: ${contentHyphenationMode} !important;
-            hyphenate-limit-chars: 6 3 3 !important;
+            hyphens: ${contentHyphenation} !important;
+            -webkit-hyphens: ${contentHyphenation} !important;
+            hyphenate-limit-chars: auto !important;
             hyphenate-limit-lines: 2 !important;
-            -webkit-hyphenate-limit-before: 3 !important;
-            -webkit-hyphenate-limit-after: 3 !important;
+            -webkit-hyphenate-limit-before: auto !important;
+            -webkit-hyphenate-limit-after: auto !important;
+            orphans: 2 !important;
+            widows: 2 !important;
             text-rendering: geometricPrecision !important;
             -webkit-font-smoothing: antialiased !important;
         }
         .pdf-content p {
             margin-bottom: ${toPx(settings.content_paragraph_spacing !== undefined ? settings.content_paragraph_spacing : 14.0, true)}px !important;
             text-indent: ${toPx(settings.content_paragraph_indent !== undefined ? settings.content_paragraph_indent : 0.0, true)}px !important;
+        }
+
+        .pdf-content .almaden-foreign,
+        .pdf-content .almaden-foreign * {
+            hyphens: auto !important;
+            -webkit-hyphens: auto !important;
         }
 
         .pdf-content .almaden-align-center, .pdf-content .almaden-align-center * {
@@ -104,6 +111,7 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
 
         /* ── Imágenes ── */
         .pdf-content img.pdf-book-image {
+            width: auto !important;
             max-width: 100% !important;
             height: auto !important;
             display: block !important;
@@ -391,6 +399,8 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
         }
 
         .pdf-content .chapter-prefix-number {
+            display: inline-block !important;
+            margin-left: 0.25em !important;
             letter-spacing: 0 !important;
             word-spacing: normal !important;
             white-space: nowrap !important;
@@ -400,6 +410,8 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             word-spacing: normal !important;
             text-align-last: auto !important;
             text-wrap: balance !important;
+            hyphens: none !important;
+            -webkit-hyphens: none !important;
         }
 
         /* ── Encabezados h1/h2/h3 ── */

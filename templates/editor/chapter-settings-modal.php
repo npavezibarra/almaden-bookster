@@ -102,6 +102,21 @@
                             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
                         </label>
                     </div>
+
+                    <div class="grid grid-cols-1 gap-4">
+                        <h4 class="font-bold border-b border-[var(--border-color)] pb-2">Márgenes de la Página de Créditos</h4>
+                        <p class="text-xs text-[var(--text-muted)] -mt-2">Deja estos campos vacíos para usar los márgenes globales del libro.</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Margen superior (<span class="unit-label">cm</span>)</label>
+                            <input type="number" step="0.1" id="chapter_credits_margin_top" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Global">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Margen inferior (<span class="unit-label">cm</span>)</label>
+                            <input type="number" step="0.1" id="chapter_credits_margin_bottom" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Global">
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>

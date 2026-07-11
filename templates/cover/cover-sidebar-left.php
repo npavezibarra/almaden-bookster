@@ -5,17 +5,60 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 <!-- Sidebar Izquierdo -->
 <aside class="w-72 bg-white border-r border-gray-200 flex flex-col shrink-0 shadow-sm z-10 overflow-y-auto text-gray-800">
+    <!-- Section: Formato del libro -->
+    <div class="p-4 border-b border-gray-100 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition select-none" id="toggle-book-format-section">
+        <h2 class="font-bold text-sm uppercase tracking-wider text-gray-800">Formato del libro</h2>
+        <i class="fa-solid fa-chevron-down text-gray-400 transition-transform duration-200" id="book-format-section-icon"></i>
+    </div>
+
+    <div class="flex flex-col gap-4 bg-white pb-4" id="book-format-section-content">
+        <div class="px-4 pt-4">
+            <p class="text-xs text-gray-500">Define la base física de la portada y el lomo.</p>
+        </div>
+
+        <div class="px-4 flex flex-col gap-4">
+            <!-- Paper Type Selector -->
+            <div class="flex flex-col gap-1.5">
+                <label for="paper-type" class="text-xs font-medium text-gray-500 uppercase tracking-wider">Papel Interior:</label>
+                <select id="paper-type" class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-black focus:border-black cursor-pointer">
+                    <option value="0.06">Crema 90g (0.06mm/pág)</option>
+                    <option value="0.05">Blanco 80g (0.05mm/pág)</option>
+                    <option value="0.045">Fino 70g (0.045mm/pág)</option>
+                </select>
+            </div>
+
+            <!-- Page Count -->
+            <div class="flex flex-col gap-1.5">
+                <label for="page-count" class="text-xs font-medium text-gray-500 uppercase tracking-wider">Páginas:</label>
+                <input type="number" id="page-count" value="<?php echo esc_attr( $total_pages > 0 ? $total_pages : 0 ); ?>" class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 text-center bg-gray-100 cursor-not-allowed text-gray-500" readonly title="Este valor se calcula automáticamente desde el Content Editor.">
+            </div>
+
+            <!-- Spine Width -->
+            <div class="flex flex-col gap-1.5">
+                <label for="spine-width-mode" class="text-xs font-medium text-gray-500 uppercase tracking-wider">Lomo:</label>
+                <div class="flex items-center gap-2">
+                    <select id="spine-width-mode" class="text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-black focus:border-black cursor-pointer bg-white">
+                        <option value="auto">Auto</option>
+                        <option value="manual">Manual</option>
+                    </select>
+                    <input type="number" id="spine-width-mm" min="0" step="1" inputmode="numeric" class="w-24 text-sm border border-gray-300 rounded-md px-2 py-1.5 text-center bg-gray-100 text-gray-600" readonly title="Se calcula automáticamente en modo Auto.">
+                    <span class="text-xs text-gray-400 uppercase tracking-wider">mm</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Section: Imágenes -->
-    <div class="p-4 border-b border-gray-100 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition select-none" id="toggle-images-section">
+    <div class="p-4 border-y border-gray-100 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition select-none" id="toggle-images-section">
         <h2 class="font-bold text-sm uppercase tracking-wider text-gray-800">Imágenes</h2>
         <i class="fa-solid fa-chevron-down text-gray-400 transition-transform duration-200 -rotate-90" id="images-section-icon"></i>
     </div>
-    
+
     <div class="hidden flex-col gap-6 bg-white pb-4" id="images-section-content">
         <div class="px-4 pt-4">
             <p class="text-xs text-gray-500">Asigna las imágenes para la cubierta del libro.</p>
         </div>
-        
+
         <div class="px-4 flex flex-col gap-6">
             <!-- Portada -->
             <div>
@@ -25,8 +68,12 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </button>
                 <input type="hidden" id="upload-front-cover" />
                 <button id="clear-front-cover" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Eliminar Portada</button>
+                <div id="front-cover-diagnostics" class="mt-3 rounded-xl border border-dashed border-gray-200 bg-gray-50/80 px-3 py-3 text-[11px] leading-relaxed text-gray-600">
+                    <div class="font-semibold text-gray-700 uppercase tracking-wider mb-1">Validación de impresión</div>
+                    <div class="text-gray-500">Selecciona una imagen para ver si cumple con 14 x 21 cm a 300 dpi.</div>
+                </div>
             </div>
-            
+
             <div class="h-px bg-gray-200"></div>
 
             <!-- Contraportada -->
@@ -37,6 +84,20 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </button>
                 <input type="hidden" id="upload-back-cover" />
                 <button id="clear-back-cover" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Eliminar Contraportada</button>
+                <div id="back-cover-diagnostics" class="mt-3 rounded-xl border border-dashed border-gray-200 bg-gray-50/80 px-3 py-3 text-[11px] leading-relaxed text-gray-600">
+                    <div class="font-semibold text-gray-700 uppercase tracking-wider mb-1">Validación de impresión</div>
+                    <div class="text-gray-500">Selecciona una imagen para ver si cumple con 14 x 21 cm a 300 dpi.</div>
+                </div>
+            </div>
+
+            <div class="h-px bg-gray-200"></div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Preflight General</label>
+                <div id="cover-editorial-diagnostics" class="mt-1 rounded-xl border border-dashed border-gray-200 bg-gray-50/80 px-3 py-3 text-[11px] leading-relaxed text-gray-600">
+                    <div class="font-semibold text-gray-700 uppercase tracking-wider mb-1">Verificación de preprensa</div>
+                    <div class="text-gray-500">Revisando sangrado, área segura, tipografías y uso de color.</div>
+                </div>
             </div>
 
             <div class="h-px bg-gray-200"></div>
@@ -79,16 +140,16 @@ if ( ! defined( 'ABSPATH' ) ) {
         <h2 class="font-bold text-sm uppercase tracking-wider text-gray-800">Solapas</h2>
         <i class="fa-solid fa-chevron-down text-gray-400 transition-transform duration-200 -rotate-90" id="flaps-section-icon"></i>
     </div>
-    
+
     <div class="hidden flex-col gap-6 bg-white pb-4" id="flaps-section-content">
         <div class="px-4 pt-4">
             <p class="text-xs text-gray-500">Agrega solapas a tu cubierta (ancho en mm).</p>
         </div>
-        
+
         <div class="px-4 flex flex-col gap-4">
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Solapa Portada (mm)</label>
-                <input type="number" id="front-flap-width" value="0" min="0" class="block w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-black focus:border-black mb-2" />
+                <input type="number" id="front-flap-width" value="0" min="0" step="1" inputmode="numeric" class="block w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-black focus:border-black mb-2" />
                 <div class="flex gap-2 mb-2">
                     <div class="flex-1">
                         <button type="button" id="btn-front-flap-image" class="block w-full text-xs font-semibold bg-gray-100 text-gray-700 py-2 px-2 rounded-md border border-gray-300 hover:bg-gray-200 transition text-center">
@@ -105,7 +166,7 @@ if ( ! defined( 'ABSPATH' ) ) {
             </div>
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Solapa Contraportada (mm)</label>
-                <input type="number" id="back-flap-width" value="0" min="0" class="block w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-black focus:border-black mb-2" />
+                <input type="number" id="back-flap-width" value="0" min="0" step="1" inputmode="numeric" class="block w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-black focus:border-black mb-2" />
                 <div class="flex gap-2 mb-2">
                     <div class="flex-1">
                         <button type="button" id="btn-back-flap-image" class="block w-full text-xs font-semibold bg-gray-100 text-gray-700 py-2 px-2 rounded-md border border-gray-300 hover:bg-gray-200 transition text-center">
@@ -120,6 +181,12 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </div>
                 <button id="clear-back-flap" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Limpiar Fondo</button>
             </div>
+
+            <div id="fold-x-wrapper" class="hidden">
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Fold-X (mm)</label>
+                <input type="number" id="fold-x" value="0" min="0" step="1" inputmode="numeric" class="block w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-black focus:border-black" />
+                <p class="text-[10px] text-gray-500 mt-1">Se suma a portada y contraportada solo cuando hay solapa.</p>
+            </div>
         </div>
     </div>
 
@@ -133,7 +200,7 @@ if ( ! defined( 'ABSPATH' ) ) {
         <div class="px-4 pt-4">
             <p class="text-[10px] text-gray-500 leading-tight">Haz clic en un texto de la portada o en el panel de capas (derecha) para editar sus propiedades.</p>
         </div>
-        
+
         <!-- Text & Image & Shape Properties Panel -->
         <div id="text-properties-panel" class="hidden px-4 flex-col gap-3 pt-2 border-t border-gray-100">
             <div class="flex justify-between items-center mb-1">
@@ -164,6 +231,22 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <label class="block text-xs font-semibold text-gray-700 mb-1">Tamaño (px)</label>
                     <input type="number" id="prop-font-size" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-black focus:border-black" />
                 </div>
+            </div>
+
+            <div class="flex gap-2 text-only-prop">
+                <div class="flex-1">
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Peso</label>
+                    <input type="number" id="prop-font-weight" min="100" max="900" step="100" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-black focus:border-black" />
+                </div>
+                <div class="flex-1">
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Line Height</label>
+                    <input type="number" id="prop-line-height" min="0.5" step="0.05" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-black focus:border-black" />
+                </div>
+            </div>
+
+            <div class="text-only-prop">
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Letter Space (px)</label>
+                <input type="number" id="prop-letter-spacing" step="0.1" class="block w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:ring-black focus:border-black" />
             </div>
 
             <div class="flex gap-2">
@@ -232,12 +315,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
             <div class="shape-only-prop hidden">
                 <label class="block text-xs font-semibold text-gray-700 mb-2">Fondo (Background)</label>
-                
+
                 <div class="flex items-center gap-2 mb-2">
                     <input type="checkbox" id="prop-shape-is-gradient" class="rounded border-gray-300 text-black focus:ring-black cursor-pointer" />
                     <label for="prop-shape-is-gradient" class="text-xs font-semibold text-gray-700 cursor-pointer">Usar Degradado Lineal</label>
                 </div>
-                
+
                 <div class="flex items-center justify-between gap-2 mb-2">
                     <div class="flex flex-col items-center flex-1">
                         <span class="text-[10px] text-gray-500 uppercase font-bold mb-1" id="label-color-1">Color 1</span>
