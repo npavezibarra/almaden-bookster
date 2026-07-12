@@ -87,11 +87,24 @@ function escapeTextValue(value) {
         .replace(/\r/g, '\n');
 }
 
+function normalizeSerializedTextValue(node, value) {
+    let text = escapeTextValue(value);
+    if (!text) return text;
+
+    // Paged.js inserts its own hyphen glyph at layout breaks. Strip only that
+    // generated marker so we keep real author hyphens untouched.
+    if (node && node.parentElement && node.parentElement.closest('.pagedjs_hyphen')) {
+        text = text.replace(/[\u00AD\u2010\u2011]+$/g, '');
+    }
+
+    return text.replace(/\u00AD/g, '');
+}
+
 function serializeInlineNode(node) {
     if (!node) return '';
 
     if (node.nodeType === Node.TEXT_NODE) {
-        return escapeTextValue(node.textContent || '');
+        return normalizeSerializedTextValue(node, node.textContent || '');
     }
 
     if (node.nodeType !== Node.ELEMENT_NODE) {
@@ -140,9 +153,9 @@ function serializeInlineChildren(node) {
 
 function serializeTextOnlyChildren(node) {
     return Array.from(node.childNodes || []).map((child) => {
-        if (child.nodeType === Node.TEXT_NODE) return escapeTextValue(child.textContent || '');
+        if (child.nodeType === Node.TEXT_NODE) return normalizeSerializedTextValue(child, child.textContent || '');
         if (child.nodeType === Node.ELEMENT_NODE && child.tagName.toLowerCase() === 'br') return '\n';
-        return escapeTextValue(child.textContent || '');
+        return normalizeSerializedTextValue(child, child.textContent || '');
     }).join('');
 }
 
@@ -156,7 +169,7 @@ function serializeBlockNode(node) {
     if (!node) return '';
 
     if (node.nodeType === Node.TEXT_NODE) {
-        const text = escapeTextValue(node.textContent || '').trim();
+        const text = normalizeSerializedTextValue(node, node.textContent || '').trim();
         return text;
     }
 
