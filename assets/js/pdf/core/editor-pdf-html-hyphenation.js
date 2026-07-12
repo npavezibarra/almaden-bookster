@@ -5,6 +5,11 @@
 // ============================================================
 
 window.ALMADEN_SOFT_HYPHEN = '\u00AD';
+// Evita fragmentos colgantes demasiado cortos al final de línea.
+// Conserva hyphenation global, pero bloquea cortes que producen restos como "acto-".
+const ALMADEN_MIN_HYPHEN_WORD_LENGTH = 6;
+const ALMADEN_MIN_CHARS_BEFORE_HYPHEN = 4;
+const ALMADEN_MIN_CHARS_AFTER_HYPHEN = 3;
 
 window.almadenGetSpanishEditionLabel = function(editionValue) {
     const editionNumber = parseInt(String(editionValue || '').trim(), 10);
@@ -263,7 +268,7 @@ function almadenIsSingleSpanishVowelSyllable(syllable) {
 function almadenHyphenateSpanishWord(word, exceptionSet) {
     const normalized = String(word || '').normalize('NFC');
     const exceptionKey = almadenNormalizeHyphenationKey(normalized);
-    if (!normalized || normalized.length < 6 || !/[aeiouáéíóúü]/i.test(normalized) || exceptionSet.has(exceptionKey)) {
+    if (!normalized || normalized.length < ALMADEN_MIN_HYPHEN_WORD_LENGTH || !/[aeiouáéíóúü]/i.test(normalized) || exceptionSet.has(exceptionKey)) {
         return normalized;
     }
 
@@ -275,18 +280,26 @@ function almadenHyphenateSpanishWord(word, exceptionSet) {
     const parts = [];
     for (let i = 0; i < syllables.length; i++) {
         const syllable = syllables[i];
-        parts.push(syllable);
-
         const nextSyllable = syllables[i + 1];
         if (!nextSyllable) {
+            parts.push(syllable);
             continue;
         }
 
         // Never leave a single vowel dangling at the end of a line.
         if (almadenIsSingleSpanishVowelSyllable(syllable)) {
+            parts.push(syllable);
             continue;
         }
 
+        const leftLength = syllables.slice(0, i + 1).join('').length;
+        const rightLength = syllables.slice(i + 1).join('').length;
+        if (leftLength < ALMADEN_MIN_CHARS_BEFORE_HYPHEN || rightLength < ALMADEN_MIN_CHARS_AFTER_HYPHEN) {
+            parts.push(syllable);
+            continue;
+        }
+
+        parts.push(syllable);
         parts.push(window.ALMADEN_SOFT_HYPHEN);
     }
 

@@ -160,8 +160,22 @@ async function triggerPrint() {
             #pdf-container,
             #pdf-scroller,
             .pagedjs_pages,
+            .pagedjs_page {
+                background-color: #fff !important;
+            }
+
             .pagedjs_page,
             .pagedjs_page * {
+                color: #000 !important;
+                -webkit-text-fill-color: #000 !important;
+                text-shadow: none !important;
+                box-shadow: none !important;
+            }
+
+            .pagedjs_page img,
+            .pagedjs_page svg,
+            .pagedjs_page canvas,
+            .pagedjs_page video {
                 filter: grayscale(100%) !important;
                 -webkit-filter: grayscale(100%) !important;
             }

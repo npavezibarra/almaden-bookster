@@ -47,6 +47,7 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             line-height: ${settings.line_height_content || 1.65} !important;
             text-align: ${contentTextAlign} !important;
             text-align-last: ${contentTextAlignLast} !important;
+            text-wrap: wrap !important;
             hyphens: ${contentHyphenation} !important;
             -webkit-hyphens: ${contentHyphenation} !important;
             hyphenate-limit-chars: auto !important;

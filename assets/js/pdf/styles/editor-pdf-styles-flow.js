@@ -72,11 +72,36 @@ function getPDFStylesFlow(settings, toPx) {
             padding-bottom: 0 !important;
         }
 
-        /* Solo los fragmentos que continúan un párrafo justificado deben cerrar a la derecha. */
+        /*
+         * El fragmento anterior a un salto de página no es el final semántico
+         * del párrafo. Si el cuerpo está justificado, su última línea visible
+         * debe justificarse igual que cualquier línea intermedia.
+         */
         .pdf-content p[data-split-to],
         .pdf-content li[data-split-to],
         .pdf-content div[data-split-to] {
             text-align-last: ${contentTextAlign === 'justify' ? 'justify' : contentTextAlignLast} !important;
+        }
+
+        /* Las alineaciones editoriales explícitas prevalecen sobre el cuerpo. */
+        .pdf-content .almaden-align-left[data-split-to],
+        .pdf-content .almaden-align-left [data-split-to] {
+            text-align-last: left !important;
+        }
+
+        .pdf-content .almaden-align-center[data-split-to],
+        .pdf-content .almaden-align-center [data-split-to] {
+            text-align-last: center !important;
+        }
+
+        .pdf-content .almaden-align-right[data-split-to],
+        .pdf-content .almaden-align-right [data-split-to] {
+            text-align-last: right !important;
+        }
+
+        .pdf-content .almaden-align-justify[data-split-to],
+        .pdf-content .almaden-align-justify [data-split-to] {
+            text-align-last: justify !important;
         }
 
         /* Las citas nunca deben recibir el estiramiento artificial del último renglón. */

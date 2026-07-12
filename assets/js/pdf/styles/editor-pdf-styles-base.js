@@ -376,8 +376,27 @@ function getPDFStylesBase(settings, geometry, toPx) {
                 position: relative !important;
                 padding: 0 !important;
                 overflow: visible !important;
-                ${settings.export_grayscale == 1 ? 'filter: grayscale(100%) !important; -webkit-filter: grayscale(100%) !important;' : ''}
+                ${settings.export_grayscale == 1 ? 'background-color: #fff !important; color: #000 !important;' : ''}
             }
+
+            ${settings.export_grayscale == 1 ? `
+            .pagedjs_page *,
+            .pagedjs_page *::before,
+            .pagedjs_page *::after {
+                color: #000 !important;
+                -webkit-text-fill-color: #000 !important;
+                text-shadow: none !important;
+                box-shadow: none !important;
+            }
+
+            .pagedjs_page img,
+            .pagedjs_page svg,
+            .pagedjs_page canvas,
+            .pagedjs_page video {
+                filter: grayscale(100%) !important;
+                -webkit-filter: grayscale(100%) !important;
+            }
+            ` : ''}
 
             ${bleedPx > 0 ? `
             .pagedjs_page::after {
