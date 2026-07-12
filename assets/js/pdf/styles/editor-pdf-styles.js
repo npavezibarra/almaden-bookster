@@ -85,5 +85,9 @@ function applyDynamicPDFStyles() {
         ${getPDFStylesSemantic(settings, toPx)}
     `;
 
-    compilePDFPreview();
+    if (typeof refreshEditorDisplay === 'function') {
+        refreshEditorDisplay(false);
+    } else if (typeof compilePDFPreview === 'function') {
+        compilePDFPreview();
+    }
 }

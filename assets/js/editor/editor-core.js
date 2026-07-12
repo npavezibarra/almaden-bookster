@@ -7,6 +7,7 @@ function trackEditorSelection() {
     if (textarea && document.activeElement === textarea) {
         window.editorLastSelection.start = textarea.selectionStart;
         window.editorLastSelection.end = textarea.selectionEnd;
+        window.editorSelectionSurface = 'raw';
     }
 }
 
@@ -71,10 +72,11 @@ window.onload = function() {
     if (window.currentPreviewMode === 'active' && typeof window.calculateAllPagesBackground === 'function') {
         setTimeout(async () => {
             await window.calculateAllPagesBackground();
-            // Después de calcular todas las páginas, re-renderizamos la vista activa
-            // para que actualice los números de página (especialmente útil si estamos viendo el Índice)
-            if (typeof compilePDFPreview === 'function') {
-                compilePDFPreview(false, 'pdf-scroller', false);
+            // Después de calcular todas las páginas, re-renderizamos solo la superficie visible
+            if (bookState.viewMode === 'split' && typeof refreshSplitPreview === 'function') {
+                refreshSplitPreview(false);
+            } else if (typeof refreshEditorDisplay === 'function') {
+                refreshEditorDisplay(false);
             }
         }, 1000); // Dar 1 segundo para que la página cargue completa
     }
@@ -113,6 +115,12 @@ function initEventListeners() {
             if (chapter) {
                 chapter.content = textarea.value;
                 updateWordCounts();
+                if (typeof updateVisualEditorFromState === 'function' && bookState.viewMode === 'split') {
+                    updateVisualEditorFromState();
+                }
+                if (bookState.viewMode === 'split' && typeof scheduleSplitPreviewRefresh === 'function') {
+                    scheduleSplitPreviewRefresh(false);
+                }
                 saveStateToLocalStorage();
             }
         });
@@ -137,6 +145,9 @@ function initEventListeners() {
             if (chapter) {
                 chapter.title = chapterTitle.value;
                 renderSidebar(); // Actualiza el sidebar en tiempo real
+                if (bookState.viewMode === 'split' && typeof scheduleSplitPreviewRefresh === 'function') {
+                    scheduleSplitPreviewRefresh(false);
+                }
                 saveStateToLocalStorage();
             }
         });
@@ -145,6 +156,9 @@ function initEventListeners() {
     if (bookTitle) {
         bookTitle.addEventListener('input', () => {
             bookState.title = bookTitle.value;
+            if (bookState.viewMode === 'split' && typeof scheduleSplitPreviewRefresh === 'function') {
+                scheduleSplitPreviewRefresh(false);
+            }
             saveStateToLocalStorage();
         });
     }
@@ -172,7 +186,3 @@ function initEventListeners() {
         });
     }
 }
-
-
-
-

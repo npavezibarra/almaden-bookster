@@ -56,6 +56,22 @@ body.sidebar-collapsed #sidebar-footer {
     background-color: var(--bg-pdf-container);
 }
 
+#pdf-scroller.visual-editor-mode {
+    position: relative;
+}
+
+.visual-editor-mode [data-editor-content="chapter"][contenteditable="true"] {
+    cursor: text;
+    user-select: text;
+    caret-color: #111111;
+    outline: none;
+}
+
+.visual-editor-mode [data-editor-content="chapter"] ::selection {
+    background: rgba(59, 130, 246, 0.24);
+    color: inherit;
+}
+
 /* Dimensiones exactas con proporción A4 para la visualización en pantalla */
 .pdf-page {
     width: 210mm;

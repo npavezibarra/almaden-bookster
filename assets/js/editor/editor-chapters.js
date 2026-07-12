@@ -8,9 +8,8 @@ function getWordCount(text) {
 
 // Cuenta y actualiza las palabras en tiempo real
 function updateWordCounts() {
-    const textEl = document.getElementById('editor-textarea');
-    if (!textEl) return;
-    const text = textEl.value;
+    const activeChapter = bookState.chapters.find(c => c.id === bookState.activeChapterId);
+    const text = activeChapter ? (activeChapter.content || '') : '';
     const wordCount = getWordCount(text);
     
     const currentWordCountEl = document.getElementById('current-word-count');
@@ -214,7 +213,11 @@ function loadActiveChapter() {
             }
         }
         updateWordCounts();
-        compilePDFPreview(true);
+        if (bookState.viewMode === 'preview' && typeof compilePDFPreview === 'function') {
+            compilePDFPreview(true);
+        } else if (typeof refreshEditorDisplay === 'function') {
+            refreshEditorDisplay(false);
+        }
     } else if (bookState.chapters.length > 0) {
         // Si el activo no existe pero hay capítulos, seleccionar el primero
         bookState.activeChapterId = bookState.chapters[0].id;
@@ -224,7 +227,11 @@ function loadActiveChapter() {
         if (titleInput) titleInput.value = '';
         if (textInput) textInput.value = '';
         updateWordCounts();
-        compilePDFPreview(true);
+        if (bookState.viewMode === 'preview' && typeof compilePDFPreview === 'function') {
+            compilePDFPreview(true);
+        } else if (typeof refreshEditorDisplay === 'function') {
+            refreshEditorDisplay(false);
+        }
     }
 }
 
@@ -357,11 +364,34 @@ function saveStateToLocalStorage(immediate = false) {
             statusIndicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs mr-1"></i> Guardando...';
             statusIndicator.className = 'flex items-center gap-1 font-semibold text-amber-500';
         }
+
+        // Asegura que la última edición visual se vuelque al capítulo activo antes de serializar.
+        let visualChapterContent = null;
+        if (bookState && bookState.viewMode === 'split' && typeof getVisualEditorSurface === 'function' && typeof serializeVisualEditorSurface === 'function') {
+            if (typeof syncVisualEditorToState === 'function') {
+                syncVisualEditorToState();
+            }
+            const surface = getVisualEditorSurface();
+            if (surface) {
+                visualChapterContent = serializeVisualEditorSurface(surface);
+                const activeChapter = bookState.chapters.find(ch => ch.id === bookState.activeChapterId);
+                if (activeChapter) {
+                    activeChapter.content = visualChapterContent;
+                }
+                const textarea = document.getElementById('editor-textarea');
+                if (textarea && visualChapterContent !== null) {
+                    textarea.value = visualChapterContent;
+                }
+            }
+        } else if (typeof syncRawEditorToState === 'function') {
+            syncRawEditorToState();
+        }
+        const saveRevision = window.visualEditorRevision || 0;
         
         let totalPages = 0;
         
-        // Compilar PDF JUSTO ANTES de guardar (para que refleje los cambios recientes)
-        if (typeof compilePDFPreview === 'function') {
+        // Compilar PDF JUSTO ANTES de guardar cuando estamos en modo de vista previa.
+        if (typeof compilePDFPreview === 'function' || typeof refreshEditorDisplay === 'function') {
             if (immediate && typeof calculateAllPagesBackground === 'function') {
                 // 1. Calcular las páginas reales totales de fondo SOLO en guardado manual
                 // Esto actualiza window.bookChapterPages con las posiciones correctas
@@ -374,13 +404,9 @@ function saveStateToLocalStorage(immediate = false) {
                 }
             }
             
-            // 2. Actualizar la vista principal normalmente AHORA (esto solo compila el capítulo activo en modo 'active')
-            compilePDFPreview();
-        }
-
-        // Guardar ajustes simultáneamente sin mostrar loading extra (silent = true)
-        if (typeof savePDFSettings === 'function') {
-            savePDFSettings(true);
+            if (bookState.viewMode === 'preview' && typeof compilePDFPreview === 'function') {
+                compilePDFPreview();
+            }
         }
 
         const data = new FormData();
@@ -388,7 +414,15 @@ function saveStateToLocalStorage(immediate = false) {
         data.append('book_id', bookState.bookId);
         data.append('nonce', bookState.nonce);
         data.append('title', bookState.title);
-        data.append('chapters', JSON.stringify(bookState.chapters));
+        const chaptersPayload = Array.isArray(bookState.chapters)
+            ? bookState.chapters.map((chapter) => {
+                if (visualChapterContent !== null && chapter.id === bookState.activeChapterId) {
+                    return { ...chapter, content: visualChapterContent };
+                }
+                return chapter;
+            })
+            : [];
+        data.append('chapters', JSON.stringify(chaptersPayload));
         data.append('total_pages', totalPages || 0);
 
         fetch(bookState.ajaxUrl, {
@@ -398,9 +432,20 @@ function saveStateToLocalStorage(immediate = false) {
         .then(response => response.json())
         .then(res => {
             if (res.success) {
-                if (statusIndicator) {
-                    statusIndicator.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-xs mr-1"></i> Guardado';
-                    statusIndicator.className = 'flex items-center gap-1 font-semibold text-emerald-600';
+                const isLatestVisualRevision = saveRevision === (window.visualEditorRevision || 0);
+                if (isLatestVisualRevision) {
+                    window.visualEditorIsDirty = false;
+                    const activeElement = document.activeElement;
+                    window.visualEditorIsEditing = typeof isVisualEditorSurface === 'function'
+                        ? isVisualEditorSurface(activeElement)
+                        : false;
+                    if (statusIndicator) {
+                        statusIndicator.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-xs mr-1"></i> Guardado';
+                        statusIndicator.className = 'flex items-center gap-1 font-semibold text-emerald-600';
+                    }
+                } else if (statusIndicator) {
+                    statusIndicator.innerHTML = '<i class="fa-solid fa-pen text-xs mr-1"></i> Editando...';
+                    statusIndicator.className = 'flex items-center gap-1 font-semibold text-slate-500';
                 }
                 
                 // Update temporary chapter IDs with real database IDs to prevent metadata loss
@@ -442,6 +487,7 @@ function saveStateToLocalStorage(immediate = false) {
     if (immediate) {
         executeSave();
     } else {
-        saveTimeout = setTimeout(executeSave, 15000); // 15 segundos de autosave
+        const autosaveDelay = (bookState && bookState.viewMode === 'split') ? 1200 : 15000;
+        saveTimeout = setTimeout(executeSave, autosaveDelay);
     }
 }

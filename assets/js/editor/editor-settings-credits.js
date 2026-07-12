@@ -15,7 +15,7 @@ window.addCustomCreditRow = function(role = '', name = '') {
 
     const updateCustomCredits = () => {
         bookState.settings.credits_custom = getCustomCreditsJSON();
-        if (typeof compilePDFPreview === 'function') compilePDFPreview();
+        if (typeof refreshEditorDisplay === 'function') refreshEditorDisplay(false);
     };
 
     row.querySelector('.credit-role').addEventListener('input', updateCustomCredits);
@@ -88,7 +88,7 @@ window.initCreditsForm = function() {
                 // Determine the property name in settings by replacing 'setting-' and dashes with underscores
                 const key = id.replace('setting-', '').replace(/-/g, '_');
                 bookState.settings[key] = el.value;
-                if (typeof compilePDFPreview === 'function') compilePDFPreview();
+                if (typeof refreshEditorDisplay === 'function') refreshEditorDisplay(false);
             });
         }
     });

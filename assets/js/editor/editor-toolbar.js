@@ -1,12 +1,70 @@
 // editor-toolbar.js
 
-// Funciones para la barra de formato Markdown
-function wrapText(prefix, suffix) {
+function getToolbarSurface() {
     const textarea = document.getElementById('editor-textarea');
-    if (!textarea) return;
-    
-    // Si el textarea no tiene el foco (ej: se hizo clic en un botón de la toolbar),
-    // restaurar la última selección conocida
+    const visualSurface = typeof getVisualEditorSurface === 'function' ? getVisualEditorSurface() : null;
+
+    if (window.editorSelectionSurface === 'visual' && visualSurface) return visualSurface;
+    if (window.editorSelectionSurface === 'raw' && textarea) return textarea;
+    if (document.activeElement === visualSurface) return visualSurface;
+    if (document.activeElement === textarea) return textarea;
+    if (bookState && bookState.viewMode === 'split' && visualSurface) return visualSurface;
+    return textarea;
+}
+
+function restoreToolbarSelection(surface) {
+    if (!surface) return;
+    if (surface.id === 'editor-textarea' && typeof window.editorLastSelection !== 'undefined') {
+        surface.selectionStart = window.editorLastSelection.start || 0;
+        surface.selectionEnd = window.editorLastSelection.end || 0;
+    }
+    if (surface.id === 'visual-editor-surface' && typeof restoreVisualSelectionFromRange === 'function') {
+        restoreVisualSelectionFromRange(surface);
+    }
+}
+
+function refreshAfterEditorMutation(source = 'raw') {
+    if (typeof updateWordCounts === 'function') updateWordCounts();
+    if (typeof saveStateToLocalStorage === 'function') saveStateToLocalStorage();
+    if (bookState && bookState.viewMode === 'split') {
+        if (typeof scheduleSplitPreviewRefresh === 'function') {
+            scheduleSplitPreviewRefresh(true);
+        } else if (typeof refreshSplitPreview === 'function') {
+            refreshSplitPreview(true);
+        } else if (typeof compilePDFPreview === 'function') {
+            compilePDFPreview(true);
+        }
+    }
+}
+
+function wrapText(prefix, suffix) {
+    const surface = getToolbarSurface();
+    if (!surface) return;
+
+    if (surface.id === 'visual-editor-surface' && typeof execVisualCommand === 'function') {
+        restoreToolbarSelection(surface);
+
+        if (prefix === '**' && suffix === '**') {
+            execVisualCommand('bold');
+        } else if (prefix === '*' && suffix === '*') {
+            execVisualCommand('italic');
+        } else if (prefix === '<u>' && suffix === '</u>') {
+            execVisualCommand('underline');
+        } else if (/^<foreign\s+lang=/.test(prefix) && suffix === '</foreign>') {
+            const match = prefix.match(/^<foreign\s+lang=(?:"|')?([a-zA-Z-]{2,10})(?:"|')?>/i);
+            const lang = match ? match[1] : 'la';
+            if (typeof wrapSelectionInVisualSpan === 'function') {
+                wrapSelectionInVisualSpan('almaden-foreign', { lang });
+            }
+        } else {
+            document.execCommand('insertHTML', false, `${prefix}${suffix}`);
+        }
+
+        refreshAfterEditorMutation('visual');
+        return;
+    }
+
+    const textarea = surface;
     if (document.activeElement !== textarea && typeof window.editorLastSelection !== 'undefined') {
         textarea.selectionStart = window.editorLastSelection.start || 0;
         textarea.selectionEnd = window.editorLastSelection.end || 0;
@@ -15,42 +73,59 @@ function wrapText(prefix, suffix) {
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const text = textarea.value;
-    
-    // Si hay texto seleccionado, lo envuelve
+
     if (start !== end) {
         const selectedText = text.substring(start, end);
         textarea.value = text.substring(0, start) + prefix + selectedText + suffix + text.substring(end);
         textarea.selectionStart = start + prefix.length;
         textarea.selectionEnd = end + prefix.length;
     } else {
-        // Si no hay selección, inserta los marcadores y pone el cursor en medio
         textarea.value = text.substring(0, start) + prefix + suffix + text.substring(start);
         textarea.selectionStart = textarea.selectionEnd = start + prefix.length;
     }
-    
+
     textarea.focus();
-    triggerEditorUpdate();
+    triggerEditorUpdate('raw');
 }
 
 function addPrefix(prefix) {
-    const textarea = document.getElementById('editor-textarea');
-    if (!textarea) return;
-    
+    const surface = getToolbarSurface();
+    if (!surface) return;
+
+    if (surface.id === 'visual-editor-surface') {
+        restoreToolbarSelection(surface);
+
+        if (prefix === '# ') {
+            execVisualCommand('formatBlock', 'h1');
+        } else if (prefix === '## ') {
+            execVisualCommand('formatBlock', 'h2');
+        } else if (prefix === '> ') {
+            execVisualCommand('formatBlock', 'blockquote');
+        } else if (prefix === '- ') {
+            execVisualCommand('insertUnorderedList');
+        } else {
+            document.execCommand('insertHTML', false, prefix);
+        }
+
+        refreshAfterEditorMutation('visual');
+        return;
+    }
+
+    const textarea = surface;
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const text = textarea.value;
-    
-    // Encontrar el inicio de la línea donde está el cursor
+
     let lineStart = text.lastIndexOf('\n', start - 1);
     lineStart = lineStart === -1 ? 0 : lineStart + 1;
-    
+
     textarea.value = text.substring(0, lineStart) + prefix + text.substring(lineStart);
-    
+
     textarea.selectionStart = start + prefix.length;
     textarea.selectionEnd = end + prefix.length;
     textarea.focus();
-    
-    triggerEditorUpdate();
+
+    triggerEditorUpdate('raw');
 }
 
 let mediaUploader;
@@ -81,10 +156,7 @@ function openMediaUploader() {
             : '';
         const imgUrl = attachment.originalImageURL || fullSizeUrl || attachment.url;
         const imgAlt = attachment.alt || attachment.title || 'Imagen del libro';
-        
-        // Guardamos la fuente más grande disponible y dejamos que el layout del PDF limite el ancho.
         const imageTag = `\n<img src="${imgUrl}" alt="${imgAlt}" class="pdf-book-image" />\n`;
-
         insertAtCursor(imageTag);
     });
 
@@ -122,20 +194,18 @@ function openParityImageUploader() {
     parityMediaUploader.on('select', function() {
         const attachment = parityMediaUploader.state().get('selection').first().toJSON();
         const imgUrl = attachment.url;
-        
+
         const chapter = bookState.chapters.find(c => c.id === bookState.activeChapterId);
         if (chapter) {
             chapter.parity_image = imgUrl;
             if (typeof showToast === 'function') {
                 showToast("Imagen de paridad asignada al capítulo", "fa-solid fa-image");
             }
-            
-            // Mark as dirty and auto-save
-            triggerEditorUpdate();
-            
-            // Si el motor ya está compilando, podríamos forzar un refresco
-            if (typeof compilePDFPreview === 'function') {
-                compilePDFPreview();
+
+            triggerEditorUpdate('raw');
+
+            if (typeof refreshEditorDisplay === 'function') {
+                refreshEditorDisplay(false);
             }
         }
     });
@@ -146,7 +216,7 @@ function openParityImageUploader() {
 function updateParityButtonVisibility() {
     const btn = document.getElementById('btn-parity-image');
     if (!btn) return;
-    
+
     if (bookState && bookState.settings && bookState.settings.chapter_start_parity === 'odd') {
         btn.classList.remove('hidden');
     } else {
@@ -155,42 +225,89 @@ function updateParityButtonVisibility() {
 }
 
 function insertAtCursor(text) {
-    const textarea = document.getElementById('editor-textarea');
-    if (!textarea) return;
-    
+    const surface = getToolbarSurface();
+    if (!surface) return;
+
+    if (surface.id === 'visual-editor-surface') {
+        restoreToolbarSelection(surface);
+        document.execCommand('insertHTML', false, text);
+        triggerEditorUpdate('visual');
+        return;
+    }
+
+    const textarea = surface;
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const value = textarea.value;
-    
+
     textarea.value = value.substring(0, start) + text + value.substring(end);
     textarea.selectionStart = textarea.selectionEnd = start + text.length;
     textarea.focus();
-    triggerEditorUpdate();
+    triggerEditorUpdate('raw');
 }
 
-function triggerEditorUpdate() {
+function triggerEditorUpdate(source = 'auto') {
     const textarea = document.getElementById('editor-textarea');
-    if (!textarea) return;
-    
+    const visualSurface = typeof getVisualEditorSurface === 'function' ? getVisualEditorSurface() : null;
     const activeId = bookState.activeChapterId;
     const chapter = bookState.chapters.find(c => c.id === activeId);
-    if (chapter) {
-        chapter.content = textarea.value;
-        if (typeof updateWordCounts === 'function') updateWordCounts();
-        if (typeof compilePDFPreview === 'function') compilePDFPreview();
-        if (typeof saveStateToLocalStorage === 'function') saveStateToLocalStorage();
+    if (!chapter) return;
+
+    const resolvedSource = source === 'auto'
+        ? (window.editorSelectionSurface === 'visual' && visualSurface ? 'visual' : 'raw')
+        : source;
+
+    if (resolvedSource === 'visual' && visualSurface && typeof syncVisualEditorToState === 'function') {
+        syncVisualEditorToState();
+    } else if (textarea && typeof syncRawEditorToState === 'function') {
+        syncRawEditorToState();
     }
+
+    if (typeof updateWordCounts === 'function') updateWordCounts();
+    if (bookState.viewMode === 'split') {
+        if (typeof scheduleSplitPreviewRefresh === 'function') {
+            scheduleSplitPreviewRefresh(true);
+        } else if (typeof refreshSplitPreview === 'function') {
+            refreshSplitPreview(true);
+        } else if (typeof compilePDFPreview === 'function') {
+            compilePDFPreview(true);
+        }
+    }
+    if (typeof saveStateToLocalStorage === 'function') saveStateToLocalStorage();
 }
 
 function applyLanguage(langCode) {
-    wrapText(`<foreign lang="${langCode}">`, '</foreign>');
+    const surface = getToolbarSurface();
+    if (surface && surface.id === 'visual-editor-surface') {
+        restoreToolbarSelection(surface);
+        if (typeof wrapSelectionInVisualSpan === 'function') {
+            wrapSelectionInVisualSpan('almaden-foreign', { lang: langCode });
+        }
+        triggerEditorUpdate('visual');
+    } else {
+        wrapText(`<foreign lang="${langCode}">`, '</foreign>');
+    }
+
     const dropdown = document.getElementById('lang-dropdown');
     if (dropdown) dropdown.classList.add('hidden');
 }
 
 function removeLanguage() {
-    const textarea = document.getElementById('editor-textarea');
-    if (!textarea) return;
+    const surface = getToolbarSurface();
+    if (!surface) return;
+
+    if (surface.id === 'visual-editor-surface') {
+        restoreToolbarSelection(surface);
+        if (typeof execVisualCommand === 'function') {
+            execVisualCommand('removeFormat');
+        }
+        triggerEditorUpdate('visual');
+        const dropdown = document.getElementById('lang-dropdown');
+        if (dropdown) dropdown.classList.add('hidden');
+        return;
+    }
+
+    const textarea = surface;
 
     if (document.activeElement !== textarea && typeof window.editorLastSelection !== 'undefined') {
         textarea.selectionStart = window.editorLastSelection.start || 0;
@@ -227,32 +344,47 @@ function removeLanguage() {
         textarea.selectionStart = start;
         textarea.selectionEnd = start + cleanedText.length;
         textarea.focus();
-        triggerEditorUpdate();
+        triggerEditorUpdate('raw');
     }
 
     const dropdown = document.getElementById('lang-dropdown');
     if (dropdown) dropdown.classList.add('hidden');
 }
 
-// Funciones para aplicar estilos desde la barra de herramientas
 function applyFontSize() {
     const input = document.getElementById('toolbar-font-size');
-    if (input && input.value) {
+    if (!input || !input.value) return;
+
+    const surface = getToolbarSurface();
+    if (surface && surface.id === 'visual-editor-surface') {
+        restoreToolbarSelection(surface);
+        if (typeof wrapSelectionInVisualSpan === 'function') {
+            wrapSelectionInVisualSpan('', { style: `font-size: ${input.value}px;` });
+        }
+        triggerEditorUpdate('visual');
+    } else {
         wrapText(`[size=${input.value}]`, '[/size]');
-        // Devolvemos el foco al editor
         const textarea = document.getElementById('editor-textarea');
         if (textarea) textarea.focus();
     }
 }
 
 function applyFontFamily(fontName) {
-    if (fontName) {
+    if (!fontName) return;
+
+    const surface = getToolbarSurface();
+    if (surface && surface.id === 'visual-editor-surface') {
+        restoreToolbarSelection(surface);
+        if (typeof wrapSelectionInVisualSpan === 'function') {
+            wrapSelectionInVisualSpan('', { style: `font-family: '${fontName}', serif;` });
+        }
+        triggerEditorUpdate('visual');
+    } else {
         wrapText(`[font="${fontName}"]`, '[/font]');
-        // Reset the select box to show "Fuente..." again
-        const select = document.getElementById('toolbar-font-family');
-        if (select) select.selectedIndex = 0;
-        
         const textarea = document.getElementById('editor-textarea');
         if (textarea) textarea.focus();
     }
+
+    const select = document.getElementById('toolbar-font-family');
+    if (select) select.selectedIndex = 0;
 }

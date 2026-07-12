@@ -430,8 +430,8 @@ window.savePDFSettings = function(silent = false) {
                 } catch (styleErr) {
                     console.error("Error al aplicar los estilos dinámicos del PDF:", styleErr);
                 }
-            } else if (typeof compilePDFPreview === 'function') {
-                compilePDFPreview(); // Solo si no existe applyDynamicPDFStyles (que ya la llama)
+            } else if (typeof refreshEditorDisplay === 'function') {
+                refreshEditorDisplay(false);
             }
             if (typeof updateParityButtonVisibility === 'function') updateParityButtonVisibility();
 

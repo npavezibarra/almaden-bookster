@@ -2,6 +2,16 @@
 
 Este directorio contiene los módulos JavaScript del núcleo del motor de paginación y compilación PDF de **Almaden Bookster**. Todos los archivos de este directorio están diseñados bajo la regla estricta de **límite de 500 líneas de código** para garantizar la mantenibilidad y modularidad.
 
+## Actualizacion reciente: compatibilidad con el editor visual del PDF
+
+La compilacion PDF ahora convive con una superficie editable en `Dividido` sin romper la maqueta de Paged.js. El flujo actual conserva el HTML semantico del capitulo mientras la vista visual permite edicion inline, y solo recompila cuando la edicion ya se ha sincronizado.
+
+Puntos clave del cambio:
+
+- `editor-pdf-compiler.js` respeta el estado de edicion y evita recompilaciones durante la interaccion activa.
+- `editor-pdf-html.js` ahora marca bloques editables con identificadores estables para poder serializar fragmentos repartidos por Paged.js.
+- La recompilacion posterior al guardado se aplaza hasta que el contenido ya quedo persistido.
+
 ---
 
 ## Estructura de Módulos y Flujo de Compilación

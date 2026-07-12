@@ -4,6 +4,15 @@
 // convertirlo en HTML con títulos, subtítulos, prefijos y TOC.
 // ============================================================
 
+function markEditableChapterBlocks(html) {
+    const container = document.createElement('div');
+    container.innerHTML = html;
+    Array.from(container.children).forEach((block, index) => {
+        block.setAttribute('data-editor-block-id', `block-${index}`);
+    });
+    return container.innerHTML;
+}
+
 window.buildChapterHTML = function(chapter, index, settings, bookState) {
     let compiledHtml = '';
     const chapterTitleAlign = ['left', 'center', 'right'].includes(String(settings.chapter_title_align || '').toLowerCase())
@@ -129,7 +138,8 @@ window.buildChapterHTML = function(chapter, index, settings, bookState) {
         creditsHtml += '</div></div>';
         compiledHtml = creditsHtml;
     } else {
-        compiledHtml = compileMarkdownToHTML(chapter.content);
+        const editableHtml = markEditableChapterBlocks(compileMarkdownToHTML(chapter.content));
+        compiledHtml = `<div class="chapter-editable-content" data-editor-content="chapter">${editableHtml}</div>`;
     }
     
     // Letra Capitular (Drop Cap)

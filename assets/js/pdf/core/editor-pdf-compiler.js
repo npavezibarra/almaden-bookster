@@ -292,6 +292,14 @@ window._isPdfCompiling = false;
 window._pdfCompilePending = null;
 
 async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf-scroller', forceFull = false) {
+    if (
+        targetScrollerId === 'pdf-scroller' &&
+        !forceFull &&
+        (window.visualEditorIsEditing || window.visualEditorIsDirty)
+    ) {
+        return Promise.resolve();
+    }
+
     if (window._isPdfCompiling) {
         window._pdfCompilePending = { scrollToActive, targetScrollerId, forceFull };
         return;

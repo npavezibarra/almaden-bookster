@@ -320,8 +320,8 @@ function saveChapterSettings() {
             // Actualizar estilos dinámicos del PDF y re-renderizar
             if (typeof applyDynamicPDFStyles === 'function') {
                 applyDynamicPDFStyles();
-            } else if (typeof compilePDFPreview === 'function') {
-                compilePDFPreview();
+            } else if (typeof refreshEditorDisplay === 'function') {
+                refreshEditorDisplay(false);
             }
 
             // Marcar como pendiente de guardado y forzar actualización del PDF
