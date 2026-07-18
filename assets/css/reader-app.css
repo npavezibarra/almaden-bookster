@@ -393,16 +393,16 @@ body, html {
 }
 
 /* Hide scrollbar */
-#chapter-scroll-area::-webkit-scrollbar {
+#almaden-chapter-scroll-area::-webkit-scrollbar {
     display: none;
 }
-#chapter-scroll-area {
+#almaden-chapter-scroll-area {
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
 
 /* Flip Mode CSS */
-.mode-flip #chapter-scroll-area {
+.mode-flip #almaden-chapter-scroll-area {
     overflow: hidden !important;
     display: flex;
     align-items: center;

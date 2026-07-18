@@ -47,7 +47,7 @@ function almaden_bookster_handle_export_cover_pdf() {
 		wp_send_json_error( array( 'message' => 'Validación de seguridad fallida.' ), 403 );
 	}
 
-	if ( ! almaden_bookster_user_can_manage_books() ) {
+	if ( function_exists( 'almaden_bookster_user_can_manage_book' ) ? ! almaden_bookster_user_can_manage_book( $book_id ) : ! almaden_bookster_user_can_manage_books() ) {
 		wp_send_json_error( array( 'message' => 'No tienes permisos para exportar esta portada.' ), 403 );
 	}
 
@@ -426,4 +426,3 @@ function almaden_bookster_handle_export_cover_pdf() {
 	almaden_bookster_rrmdir( $temp_dir );
 	exit;
 }
-

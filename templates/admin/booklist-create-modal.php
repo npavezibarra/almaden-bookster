@@ -41,8 +41,9 @@
                                             <div>
                                                 <label for="book_author" class="block text-sm font-medium leading-6 text-gray-900">Autor(es) <span class="text-red-500">*</span></label>
                                                 <div class="mt-1">
-                                                    <input type="text" name="book_author" id="book_author" required class="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6 bg-gray-50/50">
+                                                    <input type="text" name="book_author" id="book_author" required placeholder="correo@editorial.com, usuario2" class="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6 bg-gray-50/50">
                                                 </div>
+                                                <p class="mt-1 text-xs text-gray-500">Separa varios autores con coma. Para vincular permisos, usa correos o nombres de usuario.</p>
                                             </div>
                                         </div>
                                         

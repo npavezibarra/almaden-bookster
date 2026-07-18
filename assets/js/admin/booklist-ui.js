@@ -156,6 +156,11 @@
 
         // Function to toggle publish status
         function togglePublishBook(bookId, isPublished) {
+            const checkbox = document.getElementById('publish-toggle-' + bookId);
+            if (checkbox && checkbox.disabled) {
+                return;
+            }
+
             const spinner = document.querySelector('.publish-spinner-' + bookId);
             const textSpan = document.querySelector('.publish-text-' + bookId);
             

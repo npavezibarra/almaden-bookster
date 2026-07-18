@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Get the current book
 $book_id = get_the_ID();
 $book_title = get_the_title();
-$author = get_post_meta( $book_id, '_almaden_book_author', true );
+$author = function_exists( 'almaden_bookster_get_book_author_display_label' ) ? almaden_bookster_get_book_author_display_label( $book_id, get_post_meta( $book_id, '_almaden_book_author', true ) ) : get_post_meta( $book_id, '_almaden_book_author', true );
 
 $source_book_id = get_post_meta( $book_id, '_almaden_source_book_id', true );
 if ( empty( $source_book_id ) ) {
@@ -95,6 +95,8 @@ if ( is_array( $cover_settings ) && !empty( $cover_settings['front_image'] ) ) {
 } elseif ( is_array( $cover_settings ) && !empty( $cover_settings['spread_image'] ) ) {
     $fallback_cover_url = $cover_settings['spread_image'];
 }
+$snapshot_cover_url = function_exists( 'almaden_bookster_get_cover_thumbnail_snapshot_url' ) ? almaden_bookster_get_cover_thumbnail_snapshot_url( $book_id ) : '';
+$reader_cover_url = ! empty( $snapshot_cover_url ) ? $snapshot_cover_url : $fallback_cover_url;
 
 $has_reader_access = function_exists( 'almaden_bookster_user_can_access_book' ) ? almaden_bookster_user_can_access_book( $book_id ) : is_user_logged_in();
 $book_product_id = function_exists( 'almaden_bookster_get_book_product_id' ) ? almaden_bookster_get_book_product_id( $book_id ) : 0;
@@ -128,7 +130,7 @@ $book_data_json = wp_json_encode( array(
 	'author'   => $author,
 	'settings' => $book_settings,
 	'chapters' => $chapters,
-	'cover_url' => $fallback_cover_url,
+	'cover_url' => $reader_cover_url,
 	'userCanAccess' => $has_reader_access,
 	'productId' => $book_product_id,
 	'purchaseUrl' => $purchase_url,
@@ -185,9 +187,9 @@ $public_chapters = array_values(
     <style>
         
         /* User Requested Constraints */
-        div#view-index,
+        div#almaden-view-index,
         header#chapter-navbar,
-        main#chapter-scroll-area {
+        main#almaden-chapter-scroll-area {
             max-width: <?php echo esc_attr( $wide_size ); ?>;
             margin: auto;
         }
@@ -215,7 +217,7 @@ $public_chapters = array_values(
         ?>;
     </script>
     <!-- STATE: INDEX -->
-    <div id="view-index" class="w-full h-full flex flex-col md:flex-row">
+    <div id="almaden-view-index" class="w-full h-full flex flex-col md:flex-row">
         <!-- Left Side: Cover -->
         <div id="reader-cover-panel" class="w-full md:w-1/2 h-1/2 md:h-full flex items-center md:items-start justify-center p-8 md:p-16 lg:p-24 border-b md:border-b-0 md:border-r border-gray-200">
             <div id="reader-cover-wrapper" class="w-full max-w-sm" style="box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
@@ -237,7 +239,7 @@ $public_chapters = array_values(
     </div>
 
     <!-- STATE: CHAPTER -->
-    <div id="view-chapter" class="w-full h-full flex flex-col hidden">
+    <div id="almaden-view-chapter" class="w-full h-full flex flex-col hidden">
         <!-- Sticky Top Navigation -->
         <header id="chapter-navbar" class="w-full h-16 border-b border-gray-100 flex items-center justify-between px-6 backdrop-blur sticky top-0 z-50 transition-colors" style="background-color: inherit;">
             <button onclick="showIndexView()" class="flex items-center text-gray-500 hover:text-black transition-colors font-medium" title="Índice">
@@ -291,7 +293,7 @@ $public_chapters = array_values(
         </header>
 
         <!-- Chapter Content Area -->
-        <main class="flex-1 overflow-y-auto p-6 md:p-12 relative" id="chapter-scroll-area">
+        <main class="flex-1 overflow-y-auto p-6 md:p-12 relative" id="almaden-chapter-scroll-area">
             <!-- Flip Controls -->
             <button id="btn-flip-prev" onclick="flipPrev()" class="absolute left-0 top-1/2 transform -translate-y-1/2 p-4 text-gray-300 hover:text-black hidden z-10 text-3xl transition-colors">
                 <i class="fa-solid fa-chevron-left"></i>
@@ -398,8 +400,8 @@ $public_chapters = array_values(
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-progress.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-progress.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-app.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-app.js' ); ?>"></script>
     <?php else : ?>
-        <div class="min-h-screen bg-neutral-50 px-6 py-10 md:py-14">
-            <div class="mx-auto w-full max-w-6xl">
+        <div class="min-h-screen px-6 py-10 md:py-14" style="background-color: #f5f5f5;">
+            <div class="mx-auto w-full max-w-7xl">
                 <div class="grid gap-8 lg:grid-cols-[minmax(280px,360px)_1fr]">
                     <div class="rounded-[2rem] bg-white p-6 shadow-[0_24px_80px_-35px_rgba(0,0,0,0.35)] border border-gray-100">
                         <div class="overflow-hidden rounded-[1.5rem]">

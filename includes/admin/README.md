@@ -6,3 +6,5 @@ Archivos y subdirectorios contenidos aquí:
 * admin-pages.php
 * admin-fonts.php
 * admin-settings.php
+
+* admin-filesize.php

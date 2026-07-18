@@ -54,8 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
         zoomLevelText: document.getElementById('zoom-level'),
         guideToggleBtn: document.getElementById('guide-toggle-btn'),
         
-        coverScaler: document.getElementById('cover-scaler'),
-        coverStage: document.getElementById('cover-stage'),
+        coverScaler: document.getElementById('almaden-cover-scaler'),
+        coverStage: document.getElementById('almaden-cover-stage'),
         rulerOverlay: document.getElementById('ruler-overlay'),
         rulerCorner: document.getElementById('ruler-corner'),
         rulerHorizontal: document.getElementById('ruler-horizontal'),
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
         frontFlap: document.getElementById('front-flap'),
         backFlap: document.getElementById('back-flap'),
         bleedGuide: document.getElementById('bleed-guide'),
-        workspaceContainer: document.getElementById('workspace-container'),
+        workspaceContainer: document.getElementById('almaden-cover-workspace'),
         rulerToggleBtn: document.getElementById('ruler-toggle-btn'),
 
         // Panels

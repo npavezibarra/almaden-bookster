@@ -186,9 +186,9 @@ function almaden_bookster_save_settings_ajax() {
 			'ebook_subtitle_font_weight', 'ebook_subtitle_padding_top', 'ebook_subtitle_padding_bottom',
 			'ebook_subtitle_letter_spacing'
 		];
-			foreach ($subtitle_fields as $field) {
-				if (isset($_POST[$field])) {
-					$val = $_POST[$field];
+		foreach ($subtitle_fields as $field) {
+			if (isset($_POST[$field])) {
+				$val = $_POST[$field];
 					if (in_array($field, ['chapter_subtitle_show', 'ebook_subtitle_show'])) {
 						$val = intval($val);
 					} elseif (strpos($field, '_margin_') !== false || strpos($field, '_padding_') !== false || strpos($field, '_font_size') !== false || strpos($field, '_letter_spacing') !== false) {
@@ -197,9 +197,19 @@ function almaden_bookster_save_settings_ajax() {
 						$val = in_array($val, ['left', 'center', 'right'], true) ? sanitize_text_field($val) : 'center';
 					} else {
 						$val = sanitize_text_field($val);
-					}
-					update_post_meta($book_id, '_almaden_' . $field, $val);
 				}
+				update_post_meta($book_id, '_almaden_' . $field, $val);
+			}
+		}
+
+		$book_authors = isset( $_POST['book_authors'] ) ? sanitize_textarea_field( wp_unslash( $_POST['book_authors'] ) ) : '';
+		if ( '' !== trim( $book_authors ) ) {
+			if ( function_exists( 'almaden_bookster_sync_book_authors_from_input' ) ) {
+				almaden_bookster_sync_book_authors_from_input( $book_id, $book_authors );
+			} else {
+				update_post_meta( $book_id, 'book_author', $book_authors );
+				update_post_meta( $book_id, '_almaden_book_author', $book_authors );
+			}
 		}
 
 		wp_send_json_success( array( 'message' => 'Configuración de maquetación guardada con éxito.' ) );

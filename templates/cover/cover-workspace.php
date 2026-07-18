@@ -4,9 +4,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 <!-- Workspace -->
-<main id="workspace-container" class="flex-1">
-    <div id="cover-scaler">
-        <div id="cover-stage">
+<main id="almaden-cover-workspace" class="flex-1">
+    <div id="almaden-cover-scaler">
+        <div id="almaden-cover-stage">
             <div id="ruler-overlay" aria-hidden="true">
                 <div id="ruler-corner"></div>
                 <div id="ruler-horizontal"></div>

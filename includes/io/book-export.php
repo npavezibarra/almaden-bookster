@@ -74,7 +74,8 @@ function almaden_bookster_handle_download_book() {
 	$book_data = array(
 		'title'   => $book_post->post_title,
 		'content' => $book_post->post_content,
-		'author'  => get_post_meta( $book_id, 'book_author', true ),
+		'author'  => function_exists( 'almaden_bookster_get_book_author_display_label' ) ? almaden_bookster_get_book_author_display_label( $book_id, get_post_meta( $book_id, 'book_author', true ) ) : get_post_meta( $book_id, 'book_author', true ),
+		'authors' => function_exists( 'almaden_bookster_get_book_authors' ) ? almaden_bookster_get_book_authors( $book_id ) : array(),
 		'formats' => get_post_meta( $book_id, '_almaden_formats', true ),
 		'size'    => get_post_meta( $book_id, '_almaden_book_size', true ),
 		'is_published' => get_post_meta( $book_id, '_almaden_is_published', true ),
@@ -203,7 +204,7 @@ function almaden_bookster_handle_download_book() {
 		'settings'   => $db_settings,
 		'chapters'   => $chapters,
 		'images_map' => $images_map,
-		'version'    => '1.0.0',
+	'version'    => '1.1.0',
 	);
 
 	$zip->addFromString( 'book.json', json_encode( $package, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE ) );
@@ -259,4 +260,3 @@ function almaden_bookster_resolve_image_file_path( $url ) {
 
 	return $file_path;
 }
-

@@ -8,7 +8,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 // 1. Crear la página física automáticamente si no existe
 function almaden_bookster_create_page() {
 	almaden_bookster_sync_creator_page();
+	almaden_bookster_sync_dashboard_page();
+	almaden_bookster_sync_course_creator_page();
+	almaden_bookster_sync_course_archive_page();
 	almaden_bookster_sync_store_page();
+	almaden_bookster_sync_authors_page();
+	almaden_bookster_sync_author_page();
+	almaden_bookster_sync_publisher_page();
+	almaden_bookster_sync_publisher_onboarding_page();
 
 	$pages_to_create = array(
 		'almaden-book-quiz' => 'Book Quiz',
@@ -28,6 +35,21 @@ function almaden_bookster_create_page() {
 	}
 }
 add_action( 'init', 'almaden_bookster_create_page' );
+
+function almaden_bookster_load_dashboard() {
+	if ( is_page( almaden_bookster_get_dashboard_slug() ) && is_main_query() ) {
+		show_admin_bar( false );
+
+		$template_path = dirname( __FILE__ ) . '/../templates/dashboard/dashboard-app.php';
+		if ( file_exists( $template_path ) ) {
+			require_once $template_path;
+			exit;
+		}
+
+		wp_die( 'Plantilla del dashboard no encontrada.' );
+	}
+}
+add_action( 'template_redirect', 'almaden_bookster_load_dashboard', 5 );
 
 // 2. Interceptar la página configurada para cargar nuestra app independiente
 function almaden_bookster_load_booklist() {
@@ -61,6 +83,46 @@ function almaden_bookster_load_booklist() {
 	}
 }
 add_action( 'template_redirect', 'almaden_bookster_load_booklist', 5 );
+
+// 2b. Interceptar la página de cursos para cargar la app interna de Learni.
+function almaden_bookster_load_course_creator() {
+	if ( is_page( almaden_bookster_get_course_creator_slug() ) && is_main_query() ) {
+		if ( ! is_user_logged_in() ) {
+			auth_redirect();
+		}
+
+		if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_almaden_learni' ) && ! current_user_can( 'edit_posts' ) ) {
+			wp_die( 'No tienes permisos para acceder al creador de cursos.' );
+		}
+
+		show_admin_bar( false );
+
+		$template_path = dirname( __FILE__ ) . '/../modules/learni/templates/dashboard/course-dashboard-app.php';
+		if ( file_exists( $template_path ) ) {
+			require_once $template_path;
+			exit;
+		}
+
+		wp_die( 'Plantilla del creador de cursos no encontrada.' );
+	}
+}
+add_action( 'template_redirect', 'almaden_bookster_load_course_creator', 5 );
+
+// 2c. Interceptar la página de archivo de cursos para cargar la app pública de Learni.
+function almaden_bookster_load_course_archive() {
+	if ( is_page( almaden_bookster_get_course_archive_slug() ) && is_main_query() ) {
+		show_admin_bar( false );
+
+		$template_path = dirname( __FILE__ ) . '/../modules/learni/templates/archive/course-archive-app.php';
+		if ( file_exists( $template_path ) ) {
+			require_once $template_path;
+			exit;
+		}
+
+		wp_die( 'Plantilla del archivo de cursos no encontrada.' );
+	}
+}
+add_action( 'template_redirect', 'almaden_bookster_load_course_archive', 5 );
 
 // 3. Interceptar la página del catálogo público para cargar nuestra app independiente
 function almaden_bookster_load_bookshelf() {
@@ -128,12 +190,14 @@ function almaden_bookster_handle_create_book() {
 
 	// Crear el post
 	$post_data = array(
+		'post_author'  => get_current_user_id(),
 		'post_title'   => $title,
 		'post_content' => $content,
 		'post_status'  => 'publish',
 		'post_type'    => 'almaden-books',
 		'meta_input'   => array(
 			'book_author' => $author,
+			'_almaden_book_author' => $author,
 		),
 	);
 
@@ -170,6 +234,10 @@ function almaden_bookster_handle_create_book() {
 	$post_id = wp_insert_post( $post_data );
 
 	if ( ! is_wp_error( $post_id ) ) {
+		if ( function_exists( 'almaden_bookster_sync_book_authors_from_input' ) ) {
+			almaden_bookster_sync_book_authors_from_input( $post_id, $author );
+		}
+
 		// Insertar tamaño inicial en almaden_book_settings si es impreso
 		if ( $page_width && $page_height ) {
 			global $wpdb;
@@ -185,6 +253,10 @@ function almaden_bookster_handle_create_book() {
 					)
 				);
 			}
+		}
+
+		if ( function_exists( 'almaden_bookster_mark_publisher_tour_completed' ) ) {
+			almaden_bookster_mark_publisher_tour_completed();
 		}
 
 		// Redirigir de vuelta con mensaje de éxito
@@ -249,12 +321,14 @@ function almaden_bookster_handle_duplicate_book() {
 	// Crear el nuevo post
 	$new_title = $original_book->post_title . ' (Copia)';
 	$post_data = array(
+		'post_author'  => get_current_user_id(),
 		'post_title'   => $new_title,
 		'post_content' => $original_book->post_content,
 		'post_status'  => 'publish',
 		'post_type'    => 'almaden-books',
 		'meta_input'   => array(
 			'book_author' => get_post_meta( $book_id, 'book_author', true ),
+			'_almaden_book_author' => get_post_meta( $book_id, '_almaden_book_author', true ),
 			'_almaden_source_book_id' => $source_book_id,
 			'_almaden_wc_product_id' => get_post_meta( $book_id, '_almaden_wc_product_id', true ),
 		),
@@ -263,6 +337,19 @@ function almaden_bookster_handle_duplicate_book() {
 	$new_book_id = wp_insert_post( $post_data );
 
 	if ( ! is_wp_error( $new_book_id ) ) {
+		if ( function_exists( 'almaden_bookster_set_book_authors' ) ) {
+			$existing_authors = function_exists( 'almaden_bookster_get_book_authors' ) ? almaden_bookster_get_book_authors( $book_id ) : array();
+			if ( ! empty( $existing_authors ) ) {
+				almaden_bookster_set_book_authors( $new_book_id, $existing_authors, get_post_meta( $book_id, 'book_author', true ) );
+			} else {
+				$legacy_label = get_post_meta( $book_id, 'book_author', true );
+				if ( '' === trim( (string) $legacy_label ) ) {
+					$legacy_label = get_post_meta( $book_id, '_almaden_book_author', true );
+				}
+				almaden_bookster_sync_book_authors_from_input( $new_book_id, $legacy_label );
+			}
+		}
+
 		// Copiar portada
 		$cover_settings = get_post_meta( $book_id, '_almaden_cover_settings', true );
 		if ( $cover_settings ) {

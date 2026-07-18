@@ -7,6 +7,14 @@ if ( ! $book || $book->post_type !== 'almaden-books' ) {
 }
 
 $book_title = $book->post_title;
+$book_author_label = function_exists( 'almaden_bookster_get_book_author_display_label' ) ? almaden_bookster_get_book_author_display_label( $book_id, '' ) : '';
+$book_authors_input_value = get_post_meta( $book_id, 'book_author', true );
+if ( '' === trim( (string) $book_authors_input_value ) ) {
+	$book_authors_input_value = get_post_meta( $book_id, '_almaden_book_author', true );
+}
+if ( '' === trim( (string) $book_authors_input_value ) && function_exists( 'almaden_bookster_get_book_author_edit_tokens' ) ) {
+	$book_authors_input_value = almaden_bookster_get_book_author_edit_tokens( $book_id );
+}
 
 $source_book_id = get_post_meta( $book_id, '_almaden_source_book_id', true );
 if ( empty( $source_book_id ) ) {

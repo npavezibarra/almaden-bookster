@@ -1,0 +1,15 @@
+# README Discrepancies
+- **.**: Faltan mencionar: .DS_Store, almaden-bookster.php, modules, scratch_readme_report.md, .git, docs
+- **includes**: Faltan mencionar: frontend.php
+- **includes/admin**: Faltan mencionar: admin-filesize.php
+- **includes/publishers**: Faltan mencionar: onboarding.php, tour.php, permissions.php
+- **includes/helpers**: Faltan mencionar: cover-thumbnail-metadata.php, cover-thumbnail-generator.php, cover-thumbnail-geometry.php, cover-thumbnail-cron.php
+- **docs**: Faltan mencionar: phase-8-testing.md
+- **templates**: Faltan mencionar: authors, dashboard
+- **templates/admin**: Faltan mencionar: filesize-app.php
+- **templates/publishers**: Faltan mencionar: publisher-app.php
+- **assets/css**: Faltan mencionar: admin-filesize-page.css, publishers
+- **assets/js**: Faltan mencionar: publishers, vendor
+- **assets/js/pdf**: Faltan mencionar: core
+- **assets/js/editor**: Faltan mencionar: editor-visual-selection.js
+- **assets/js/cover**: Faltan mencionar: cover-image-diagnostics.js, cover-utils.js

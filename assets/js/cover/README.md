@@ -33,3 +33,6 @@ Este directorio alberga la arquitectura modular del **Editor de Portadas**. Ante
 
 *   **[cover-export.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/cover/cover-export.js)**: 
     Contiene los algoritmos necesarios para rasterizar o compilar el lienzo interactivo (DOM) hacia formatos finales exportables o imprimibles (por ejemplo la generación de un raster en baja o alta resolución de la imagen de portada).
+
+* cover-image-diagnostics.js
+* cover-utils.js

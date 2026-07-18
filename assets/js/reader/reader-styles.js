@@ -59,7 +59,7 @@ function generateDynamicStyles() {
         color: #111111 !important;
     }
     
-    #view-chapter {
+    #almaden-view-chapter {
         background-color: ${readerBgColor} !important;
     }`;
 
@@ -203,7 +203,7 @@ function generateDynamicStyles() {
             color: ${readerHeadingColor} !important;
         }
         /* Theme Overrides for Tailwind Utility Classes */
-        #view-index {
+        #almaden-view-index {
             background-color: transparent !important;
         }
         

@@ -368,19 +368,29 @@ function saveStateToLocalStorage(immediate = false) {
         // Asegura que la última edición visual se vuelque al capítulo activo antes de serializar.
         let visualChapterContent = null;
         if (bookState && bookState.viewMode === 'split' && typeof getVisualEditorSurface === 'function' && typeof serializeVisualEditorSurface === 'function') {
-            if (typeof syncVisualEditorToState === 'function') {
-                syncVisualEditorToState();
-            }
             const surface = getVisualEditorSurface();
             if (surface) {
-                visualChapterContent = serializeVisualEditorSurface(surface);
-                const activeChapter = bookState.chapters.find(ch => ch.id === bookState.activeChapterId);
-                if (activeChapter) {
-                    activeChapter.content = visualChapterContent;
+                if (typeof syncVisualEditorToState === 'function') {
+                    visualChapterContent = syncVisualEditorToState();
+                } else {
+                    visualChapterContent = serializeVisualEditorSurface(surface);
                 }
-                const textarea = document.getElementById('editor-textarea');
-                if (textarea && visualChapterContent !== null) {
-                    textarea.value = visualChapterContent;
+
+                if (visualChapterContent === null) {
+                    // Si la vista visual no expone un bloque editable para este capítulo,
+                    // preservamos la versión del textarea en lugar de reemplazarla por vacío.
+                    if (typeof syncRawEditorToState === 'function') {
+                        syncRawEditorToState();
+                    }
+                } else {
+                    const activeChapter = bookState.chapters.find(ch => ch.id === bookState.activeChapterId);
+                    if (activeChapter) {
+                        activeChapter.content = visualChapterContent;
+                    }
+                    const textarea = document.getElementById('editor-textarea');
+                    if (textarea) {
+                        textarea.value = visualChapterContent;
+                    }
                 }
             }
         } else if (typeof syncRawEditorToState === 'function') {

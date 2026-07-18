@@ -40,6 +40,9 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
     <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        html {
+            margin-top: 0 !important;
+        }
         body {
             font-family: "Urbanist", sans-serif;
             background-color: #0f172a;
@@ -48,7 +51,7 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
         .serif {
             font-family: inherit;
         }
-        #workspace-container {
+        #almaden-cover-workspace {
             overflow: auto;
             display: flex;
             align-items: center;
@@ -56,14 +59,14 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
             background-color: #e5e7eb;
             position: relative;
         }
-        #cover-scaler {
+        #almaden-cover-scaler {
             position: relative;
             overflow: visible;
             transform-origin: center center;
             transition: transform 0.2s ease;
             padding: 40px;
         }
-        #cover-stage {
+        #almaden-cover-stage {
             position: relative;
             display: inline-block;
         }
@@ -210,14 +213,23 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
         };
     </script>
     <?php wp_head(); ?>
+    <style id="almaden-cover-overrides">
+        html {
+            margin-top: 0 !important;
+        }
+        main {
+            padding-top: 20px !important;
+            background-color: #f9fafb;
+        }
+    </style>
 </head>
-<body class="h-screen w-screen overflow-hidden flex flex-col">
+<body id="almaden-cover-app-body" class="h-screen w-screen overflow-hidden flex flex-col">
 
     <!-- Navbar -->
     <?php include dirname( __FILE__ ) . '/cover-navbar.php'; ?>
 
     <!-- Main Content Area -->
-    <div class="flex flex-1 overflow-hidden">
+    <div id="almaden-cover-app-workspace" class="flex flex-1 overflow-hidden">
         <!-- Sidebar Izquierdo (Imágenes, Solapas, Propiedades) -->
         <?php include dirname( __FILE__ ) . '/cover-sidebar-left.php'; ?>
 

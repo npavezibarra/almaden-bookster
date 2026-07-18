@@ -212,6 +212,8 @@ window.savePDFSettings = function(silent = false) {
     data.append('chapter_prefix_letter_spacing', getCleanVal('setting-chapter-prefix-letter-spacing'));
     data.append('chapter_prefix_ornament', getVal('setting-chapter-prefix-ornament'));
 
+    data.append('book_authors', getVal('setting-book-authors'));
+
     // Ebook Subtitle Settings
     data.append('ebook_subtitle_show', getChecked('setting-ebook-chapter-subtitle-show'));
     data.append('ebook_subtitle_font_family', getVal('setting-ebook-chapter-subtitle-font-family') || '');

@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 <!-- Navbar -->
-<nav class="h-16 bg-white border-b border-gray-200 px-4 flex items-center justify-between shrink-0 z-10 relative shadow-sm">
+<nav id="almaden-cover-navbar" class="h-16 bg-white border-b border-gray-200 px-4 flex items-center justify-between shrink-0 z-10 relative shadow-sm">
     <div class="flex items-center gap-4">
         <a href="<?php echo esc_url( almaden_bookster_get_creator_page_url() ); ?>" class="text-gray-500 hover:text-black transition flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100" title="Volver a Taller">
             <i class="fa-solid fa-arrow-left"></i>

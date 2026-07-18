@@ -43,12 +43,24 @@ if (!headers_sent()) {
     <!-- Estilos dinámicos de maquetación del PDF -->
     <style id="dynamic-pdf-settings"></style>
     <style>
+        html {
+            margin-top: 0 !important;
+        }
         .is-dragging-chapter .group * { pointer-events: none; }
     </style>
     <script>
         var ajaxurl = "<?php echo admin_url( 'admin-ajax.php' ); ?>";
     </script>
     <?php wp_head(); ?>
+    <style id="almaden-editor-overrides">
+        html {
+            margin-top: 0 !important;
+        }
+        main {
+            padding-top: 20px !important;
+            background-color: #f9fafb;
+        }
+    </style>
 </head>
 
 <body class="theme-light h-full overflow-hidden flex flex-col bg-[var(--bg-app)] text-[var(--text-main)]">
@@ -100,7 +112,7 @@ if (!headers_sent()) {
     </header>
 
     <!-- CUERPO PRINCIPAL CONTENEDOR -->
-    <div class="flex flex-1 overflow-hidden relative">
+    <div id="almaden-editor-shell" class="flex flex-1 overflow-hidden relative">
         <!-- BARRA LATERAL IZQUIERDA -->
         <aside id="sidebar" class="w-80 border-r border-[var(--border-color)] bg-[var(--bg-sidebar)] flex flex-col justify-between transition-all z-20 no-print h-full">
             <div class="pl-4 pr-0 pt-0 pb-0 shrink-0 relative" id="add-chapter-dropdown-wrapper">
@@ -170,7 +182,7 @@ if (!headers_sent()) {
         </aside>
 
         <!-- CONTENEDOR PRINCIPAL DE CONTENIDOS -->
-        <main class="flex-1 flex overflow-hidden">
+        <main id="almaden-editor-main" class="flex-1 flex overflow-hidden">
             
             <!-- PANEL DEL EDITOR (IZQUIERDO) -->
             <section id="editor-pane" class="flex-1 flex flex-col border-r border-[var(--border-color)] bg-[var(--bg-editor)] overflow-hidden transition-all">
@@ -428,7 +440,6 @@ if (!headers_sent()) {
         <span id="toast-message" class="text-sm font-medium">Libro guardado con éxito</span>
     </div>
 
-    <!-- SCRIPT DE COMPORTAMIENTO LÓGICO Y FUNCIONALIDADES -->
     <!-- COMPORTAMIENTO LÓGICO Y FUNCIONALIDADES MODULARES -->
     <script>
         window.onerror = function(msg, url, line, col, error) {
@@ -443,6 +454,8 @@ if (!headers_sent()) {
             theme: "light",
             viewMode: "split",
             bookId: <?php echo $book_id; ?>,
+            bookAuthorLabel: <?php echo json_encode( $book_author_label ); ?>,
+            bookAuthorsInputValue: <?php echo json_encode( $book_authors_input_value ); ?>,
             ajaxUrl: <?php echo json_encode( admin_url( 'admin-ajax.php' ) ); ?>,
             nonce: <?php echo json_encode( wp_create_nonce( 'almaden_save_book_nonce_' . $book_id ) ); ?>,
             settings: <?php echo json_encode( $pdf_settings ); ?>,

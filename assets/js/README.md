@@ -11,6 +11,7 @@ assets/js/
 ├── pdf/            # Motor de renderizado PDF (Virtual Pagination Engine)
 ├── reader/         # Lector público de eBooks (Web Reader)
 ├── cover/          # Editor de Portadas (Bookster Cover Editor)
+├── authors/        # Página de autores, perfiles y modal de edición
 ├── quiz-builder/   # Creador de evaluaciones interactivo (Quiz Builder)
 └── almaden-shortcodes.js # Procesamiento de shortcodes comunes
 ```
@@ -23,6 +24,7 @@ assets/js/
 *   **Motor PDF**: [assets/js/pdf/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/)
 *   **Lector eBook**: [assets/js/reader/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/)
 *   **Diseñador de Portadas**: [assets/js/cover/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/cover/)
+*   **Autores**: [assets/js/authors/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/authors/)
 *   **Creador de Quizzes**: [assets/js/quiz-builder/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/quiz-builder/)
 *   **Shortcodes Comunes**: [almaden-shortcodes.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/almaden-shortcodes.js)
 
@@ -103,3 +105,6 @@ assets/js/
 *   **[quiz-builder-editor.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/quiz-builder/quiz-builder-editor.js)**: Inicialización de preguntas por defecto, inserción y duplicación de slides, remoción de respuestas, binding de estado y método principal `renderPreview()`.
 *   **[quiz-builder-parser.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/quiz-builder/quiz-builder-parser.js)**: Extracción de JSON desde texto plano, normalización de payloads y Question Recovery Parser inteligente si el JSON está incompleto.
 *   **[quiz-builder-preview.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/quiz-builder/quiz-builder-preview.js)**: Motor interactivo offline para previsualizar el quiz simulando al estudiante (`startInteractiveQuizPreview()`).
+
+* publishers
+* vendor

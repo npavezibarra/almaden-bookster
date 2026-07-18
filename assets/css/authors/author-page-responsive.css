@@ -1,0 +1,55 @@
+@media (max-width: 1120px) {
+	#almaden-author-page {
+		--almaden-author-photo-width: clamp(240px, 34vw, 300px);
+	}
+
+	#almaden-author-page .almaden-author-grid {
+		grid-template-columns: minmax(240px, var(--almaden-author-photo-width)) minmax(0, 1fr);
+		gap: 2rem;
+	}
+
+	#almaden-author-page .almaden-photo-card {
+		width: auto;
+	}
+
+	#almaden-author-photo-modal .almaden-photo-modal-grid {
+		grid-template-columns: 1fr;
+	}
+
+	#almaden-author-photo-modal .almaden-photo-controls {
+		order: -1;
+	}
+}
+
+@media (max-width: 860px) {
+	#almaden-author-page {
+		--almaden-author-photo-width: 100%;
+		--almaden-author-photo-height: 360px;
+		--almaden-author-hero-height: auto;
+	}
+
+	#almaden-author-page .almaden-author-hero {
+		height: auto;
+	}
+
+	#almaden-author-page .almaden-author-grid {
+		grid-template-columns: 1fr;
+	}
+
+	#almaden-author-page .almaden-photo-card {
+		width: 100%;
+	}
+
+	#almaden-author-page .almaden-author-panel {
+		padding: 1.4rem;
+	}
+
+	#almaden-author-page .almaden-author-cards-grid {
+		grid-template-columns: 1fr;
+	}
+
+	#almaden-author-photo-modal .almaden-photo-modal-panel {
+		margin: 1rem;
+		padding: 1.2rem;
+	}
+}

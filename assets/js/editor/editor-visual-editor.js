@@ -240,6 +240,12 @@ function serializeVisualEditorSurface(surface) {
     const chapter = getActiveChapter();
     if (!chapter) return '';
     const fragments = Array.from(surface.querySelectorAll(`.chapter-section-${chapter.id} [data-editor-content="chapter"]`));
+    if (!fragments.length) {
+        // Algunos capítulos, como Créditos o TOC, no exponen un bloque editable
+        // dentro de la vista visual. En ese caso no debemos sobrescribir el
+        // contenido guardado con una cadena vacía.
+        return null;
+    }
     const blocks = [];
     const blockMap = new Map();
 
@@ -287,6 +293,7 @@ function syncVisualEditorToState() {
     if (!surface || !chapter) return;
 
     const nextContent = serializeVisualEditorSurface(surface);
+    if (nextContent === null) return null;
     setRawChapterContent(nextContent);
     return nextContent;
 }

@@ -18,6 +18,12 @@
             </button>
         </div>
 
+        <div class="py-4 border-b border-[var(--border-color)]">
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Autores del libro</label>
+            <textarea id="setting-book-authors" rows="2" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-black resize-none" placeholder="Escribe emails o usuarios separados por coma"><?php echo esc_textarea( $book_authors_input_value ); ?></textarea>
+            <p class="mt-2 text-[10px] leading-5 text-[var(--text-muted)]">Usa correos o nombres de usuario para vincular autores reales. La lista visible del libro se sigue mostrando con nombres legibles.</p>
+        </div>
+
         <div id="format-pdf-section">
 
         <!-- Navigation Tabs -->

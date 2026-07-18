@@ -18,7 +18,7 @@ function almaden_bookster_handle_save_learni_quiz() {
 		wp_die( esc_html__( 'Libro inválido.', 'almaden-bookster' ) );
 	}
 
-	if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'edit_post', $book_id ) ) {
+	if ( function_exists( 'almaden_bookster_user_can_manage_book' ) ? ! almaden_bookster_user_can_manage_book( $book_id ) : ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'edit_post', $book_id ) ) ) {
 		wp_die( esc_html__( 'No tienes permisos para guardar este quiz.', 'almaden-bookster' ) );
 	}
 
@@ -185,7 +185,7 @@ function almaden_bookster_ajax_save_quiz_flow_settings() {
 		wp_send_json_error( __( 'Libro inválido.', 'almaden-bookster' ) );
 	}
 
-	if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'edit_post', $book_id ) ) {
+	if ( function_exists( 'almaden_bookster_user_can_manage_book' ) ? ! almaden_bookster_user_can_manage_book( $book_id ) : ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'edit_post', $book_id ) ) ) {
 		wp_send_json_error( __( 'No tienes permisos.', 'almaden-bookster' ) );
 	}
 

@@ -25,10 +25,21 @@ Este directorio concentra la lógica de negocio de WordPress del plugin, organiz
 *   **[pages.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/frontend/pages.php)**: Configuracion de slugs, URLs y sincronizacion de la pagina interna del creador.
 *   **[access-control.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/frontend/access-control.php)**: Utilidades de compra y permisos para el catálogo público, la ficha individual y los hooks de lectura.
 
-### 4c. 📂 [payments/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/payments/) (WooCommerce)
+### 4c. 📂 [publishers/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/publishers/) (Editoriales)
+*   **[publishers.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/publishers/publishers.php)**: Creación de las tablas base para editoriales y membresías, más helpers para persistir `publisher_id` en libros y para renderizar la ruta pública `/editorial/{slug}`.
+*   **[permissions.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/publishers/permissions.php)**: Reglas de membresía y validación de acceso para editoriales y libros.
+*   **[settings.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/publishers/settings.php)**: Panel público `/editorial/{slug}/ajustes` con persistencia de configuración avanzada en JSON.
+*   **[onboarding.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/publishers/onboarding.php)**: Landing pública `/crear-editorial`, wizard de alta, creación de cuenta y redirección al taller.
+*   **[tour.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/publishers/tour.php)**: Estado del onboarding editorial, checklist inicial y handlers para completar la guía del taller.
+
+### 4c2. 📂 [books/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/books/) (Relaciones editoriales de libro)
+*   **[book-authors.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/books/book-authors.php)**: Tabla de relación libro-usuario, orden de autores, sincronizacion con metadatos legacy y helpers de permisos por autor.
+*   **[book-authors-hooks.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/books/book-authors-hooks.php)**: Migracion inicial y sincronizacion automatica cuando se guarda un libro.
+
+### 4d. 📂 [payments/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/payments/) (WooCommerce)
 *   **[woocommerce-integration.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/payments/woocommerce-integration.php)**: Vínculo libro-producto, creación opcional de productos, validación de términos antes del carrito y confirmación de compra.
 
-### 4d. 📂 [progress/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/progress/) (Quizzes y avance)
+### 4e. 📂 [progress/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/progress/) (Quizzes y avance)
 *   **[quiz-progress.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/progress/quiz-progress.php)**: Persistencia de intentos, cálculo del avance del libro por sesión y reset habilitado solo cuando todos los quizzes están completos.
 
 ### 5. 📂 [reader/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/reader/) (Lógica de Lectura)
@@ -46,3 +57,5 @@ Este directorio concentra la lógica de negocio de WordPress del plugin, organiz
 
 *   📂 **[ajax/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/)**: Procesamiento de peticiones AJAX asíncronas desde el editor.
 *   📂 **[templates/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/templates/)**: Configuración JSON por defecto del editor de libros.
+
+* frontend.php

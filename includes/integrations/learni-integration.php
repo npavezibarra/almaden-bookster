@@ -20,7 +20,10 @@ if ( ! defined( 'ALMADEN_BOOKSTER_LEARNI_CHAPTER_QUIZ_META' ) ) {
 }
 
 function almaden_bookster_learni_is_available() {
-	return class_exists( '\\LearniStandalone\\QuizEditor\\QuizEditor' )
+	return class_exists( '\\AlmadenBookster\\Learni\\QuizEditor\\QuizEditor' )
+		|| class_exists( '\\AlmadenBookster\\Learni\\QuizEditor\\QuizRepository' )
+		|| class_exists( '\\AlmadenBookster\\Learni\\Module' )
+		|| class_exists( '\\LearniStandalone\\QuizEditor\\QuizEditor' )
 		|| class_exists( '\\LearniStandalone\\Frontend\\QuizEditorScreen' )
 		|| class_exists( '\\Learni\\QuizEditor\\QuizEditor' )
 		|| class_exists( '\\Learni\\Frontend\\QuizEditorScreen' )
@@ -29,6 +32,9 @@ function almaden_bookster_learni_is_available() {
 }
 
 function almaden_bookster_learni_quiz_editor_class() {
+	if ( class_exists( '\\AlmadenBookster\\Learni\\QuizEditor\\QuizEditor' ) ) {
+		return '\\AlmadenBookster\\Learni\\QuizEditor\\QuizEditor';
+	}
 	if ( class_exists( '\\LearniStandalone\\QuizEditor\\QuizEditor' ) ) {
 		return '\\LearniStandalone\\QuizEditor\\QuizEditor';
 	}
@@ -39,6 +45,9 @@ function almaden_bookster_learni_quiz_editor_class() {
 }
 
 function almaden_bookster_learni_quiz_repository_class() {
+	if ( class_exists( '\\AlmadenBookster\\Learni\\QuizEditor\\QuizRepository' ) ) {
+		return '\\AlmadenBookster\\Learni\\QuizEditor\\QuizRepository';
+	}
 	if ( class_exists( '\\LearniStandalone\\QuizEditor\\QuizRepository' ) ) {
 		return '\\LearniStandalone\\QuizEditor\\QuizRepository';
 	}
@@ -49,6 +58,9 @@ function almaden_bookster_learni_quiz_repository_class() {
 }
 
 function almaden_bookster_learni_quiz_editor_screen_class() {
+	if ( class_exists( '\\AlmadenBookster\\Learni\\QuizEditor\\QuizEditor' ) ) {
+		return '\\AlmadenBookster\\Learni\\QuizEditor\\QuizEditor';
+	}
 	if ( class_exists( '\\LearniStandalone\\Frontend\\QuizEditorScreen' ) ) {
 		return '\\LearniStandalone\\Frontend\\QuizEditorScreen';
 	}

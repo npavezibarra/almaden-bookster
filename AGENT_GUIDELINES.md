@@ -18,6 +18,33 @@ La modularidad extrema es la prioridad de este proyecto. Si la implementación d
 
 *Cualquier código que incumpla estas reglas será considerado como un fallo en la implementación de la arquitectura.*
 
+## Lógica obligatoria para crear nuevas páginas frontend
+
+Las nuevas páginas frontend del plugin no deben construirse como páginas genéricas del tema de WordPress. Deben construirse como **app pages** con su propio wrapper, navegación y layout consistente.
+
+### Flujo correcto
+
+1. **Definir la ruta o endpoint propio** dentro del plugin, usando `rewrite rules`, `query vars` o un loader por `template_redirect` cuando corresponda.
+2. **Crear un archivo wrapper específico** para esa página, por ejemplo `*-app.php`, que sea el punto de entrada visual de la pantalla.
+3. **Reutilizar el shell compartido** para mantener consistencia de logo, navbar, encabezado, fuentes y estructura general.
+4. **Dejar el contenido real en partials o templates internos** separados del wrapper.
+5. **Usar IDs únicos en el contenedor principal** de cada página para facilitar CSS, JS y testing.
+6. **No depender del template del tema** para estas pantallas. Si una página debe verse como producto interno del plugin, debe renderizarse de forma autónoma.
+
+### Regla de implementación
+
+- Si la página es pública o de producto, crea un wrapper con `template_redirect` y `exit` después de renderizar.
+- Si la página necesita variaciones por rol o contexto, separa cada variante en su propio wrapper, pero comparte el mismo shell base.
+- Si la página necesita navegación propia, define los links explícitamente en el wrapper o en el shell compartido, no en el tema.
+- Si aparece HTML repetido entre varias pantallas, extrae primero un helper o shell común antes de duplicar.
+
+### Ejemplo de arquitectura esperada
+
+- `includes/frontend/app-shell.php`: estructura común de navegación y documento.
+- `templates/<dominio>/<pantalla>-app.php`: wrapper de la pantalla.
+- `templates/<dominio>/<pantalla>.php`: contenido parcial o vista interna.
+- `includes/<dominio>/*.php`: reglas de ruta, permisos, query vars y loaders.
+
 ## Contexto Obligatorio (READMEs)
 
 **Antes de crear o modificar cualquier código, el Agente AI DEBE buscar y leer los archivos `README.md` empezando desde el root folder (directorio raíz) hacia las subcarpetas.**
@@ -96,4 +123,3 @@ These files define the HTML structure and PHP rendering for the BookCraft applic
 - **`reader/reader-app.php`**: Ebook Reader page shell.
 - **`bookshelf/bookshelf-app.php`**: Public Ebook store / bookshelf template.
 - **`cover/cover-app.php`**: Page shell layout for the Book Cover editor.
-

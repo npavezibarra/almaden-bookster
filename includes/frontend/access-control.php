@@ -11,7 +11,7 @@ function almaden_bookster_user_can_access_book( $book_id, $user_id = null ) {
 		return false;
 	}
 
-	if ( current_user_can( 'manage_options' ) || current_user_can( 'edit_post', $book_id ) ) {
+	if ( function_exists( 'almaden_bookster_user_can_manage_book' ) && almaden_bookster_user_can_manage_book( $book_id, $user_id ) ) {
 		return true;
 	}
 

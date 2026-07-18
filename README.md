@@ -69,3 +69,7 @@ Cuando trabajes en quizzes:
 Para paginas publicas integradas con el tema, no se debe reemplazar toda la pagina con `template_redirect` si el objetivo es mantener el layout del tema activo. En esos casos, el contenido debe entrar por `the_content`.
 
 Las apps tipo dashboard o editor interno si pueden usar `template_redirect` para renderizar una superficie limpia desde cero.
+
+* almaden-bookster.php
+* modules
+* docs

@@ -1,0 +1,313 @@
+:root {
+	--bg: #f5f1ea;
+	--panel: rgba(255, 255, 255, 0.84);
+	--panel-strong: #ffffff;
+	--ink: #101828;
+	--muted: #667085;
+	--line: rgba(16, 24, 40, 0.12);
+	--accent: #8f4b2a;
+	--accent-strong: #6e331b;
+	--accent-soft: rgba(143, 75, 42, 0.1);
+	--shadow: 0 30px 90px rgba(16, 24, 40, 0.12);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+	font-family: "Inter", sans-serif;
+	color: var(--ink);
+	background:
+		radial-gradient(circle at top left, rgba(143, 75, 42, 0.16), transparent 30%),
+		radial-gradient(circle at top right, rgba(16, 24, 40, 0.08), transparent 28%),
+		linear-gradient(180deg, #fbf7f1 0%, #f5f1ea 100%);
+}
+a { color: inherit; }
+#almaden-publisher-onboarding {
+	max-width: 1280px;
+	margin: 0 auto;
+	padding: 2rem 1rem 3rem;
+}
+.almaden-topbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	margin-bottom: 1.5rem;
+}
+.almaden-brand {
+	display: flex;
+	align-items: center;
+	gap: 0.8rem;
+	font-weight: 800;
+	letter-spacing: -0.03em;
+	font-size: 1.4rem;
+}
+.almaden-brand-mark {
+	width: 2.5rem;
+	height: 2.5rem;
+	border-radius: 0.9rem;
+	display: grid;
+	place-items: center;
+	background: linear-gradient(135deg, var(--accent), #ba7350);
+	color: #fff;
+	box-shadow: 0 12px 28px rgba(143, 75, 42, 0.24);
+}
+.almaden-top-actions {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	flex-wrap: wrap;
+}
+.almaden-link {
+	text-decoration: none;
+	color: var(--muted);
+	font-weight: 600;
+}
+.almaden-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 0.95fr) minmax(320px, 1.05fr);
+	gap: 1.5rem;
+	align-items: start;
+}
+.almaden-hero,
+.almaden-card {
+	border: 1px solid var(--line);
+	border-radius: 1.8rem;
+	box-shadow: var(--shadow);
+	background: var(--panel);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+}
+.almaden-hero {
+	padding: 2rem;
+	position: sticky;
+	top: 1.25rem;
+}
+.almaden-kicker {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	padding: 0.45rem 0.75rem;
+	border-radius: 999px;
+	background: var(--accent-soft);
+	color: var(--accent-strong);
+	font-size: 0.78rem;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+.almaden-hero h1 {
+	margin: 1rem 0 0;
+	font-family: "Fraunces", serif;
+	font-size: clamp(2.4rem, 5vw, 4.8rem);
+	line-height: 0.96;
+	letter-spacing: -0.05em;
+}
+.almaden-hero p {
+	margin: 1rem 0 0;
+	color: var(--muted);
+	font-size: 1.02rem;
+	line-height: 1.7;
+	max-width: 58ch;
+}
+.almaden-benefits {
+	display: grid;
+	gap: 0.85rem;
+	margin: 1.4rem 0 0;
+	padding: 0;
+	list-style: none;
+}
+.almaden-benefits li {
+	display: flex;
+	gap: 0.7rem;
+	align-items: flex-start;
+	padding: 0.9rem 1rem;
+	border-radius: 1rem;
+	background: rgba(255, 255, 255, 0.62);
+	border: 1px solid rgba(16, 24, 40, 0.08);
+}
+.almaden-benefits strong {
+	display: block;
+	margin-bottom: 0.15rem;
+}
+.almaden-benefits span {
+	color: var(--muted);
+	font-size: 0.94rem;
+	line-height: 1.5;
+}
+.almaden-card {
+	padding: 1.5rem;
+	background: var(--panel-strong);
+}
+.almaden-alert {
+	margin-bottom: 1rem;
+	padding: 1rem 1.1rem;
+	border-radius: 1rem;
+	font-weight: 600;
+	line-height: 1.5;
+}
+.almaden-alert--error {
+	background: #fff1f2;
+	border: 1px solid #fecdd3;
+	color: #9f1239;
+}
+.almaden-alert--success {
+	background: #ecfdf3;
+	border: 1px solid #abefc6;
+	color: #166534;
+}
+.almaden-stepper {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 0.5rem;
+	margin-bottom: 1.25rem;
+}
+.almaden-stepper button {
+	border: 0;
+	border-radius: 1rem;
+	padding: 0.8rem 0.7rem;
+	text-align: left;
+	background: #f8fafc;
+	color: #475467;
+	cursor: pointer;
+	font: inherit;
+}
+.almaden-stepper button.is-active {
+	background: linear-gradient(135deg, var(--accent), #b46a47);
+	color: #fff;
+	box-shadow: 0 18px 40px rgba(143, 75, 42, 0.22);
+}
+.almaden-step-number {
+	display: block;
+	font-size: 0.72rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	font-weight: 800;
+	margin-bottom: 0.25rem;
+	opacity: 0.82;
+}
+.almaden-step-label {
+	display: block;
+	font-weight: 700;
+	font-size: 0.95rem;
+}
+.almaden-step {
+	display: none;
+	animation: fadeUp 180ms ease-out;
+}
+.almaden-step.is-active { display: block; }
+@keyframes fadeUp {
+	from { opacity: 0; transform: translateY(8px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+.almaden-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1rem;
+}
+.almaden-field { margin-bottom: 1rem; }
+.almaden-field label {
+	display: block;
+	font-size: 0.88rem;
+	font-weight: 700;
+	margin-bottom: 0.45rem;
+	color: #344054;
+}
+.almaden-field input,
+.almaden-field textarea {
+	width: 100%;
+	border: 1px solid #d0d5dd;
+	border-radius: 0.95rem;
+	padding: 0.9rem 1rem;
+	font: inherit;
+	background: #fff;
+	color: var(--ink);
+}
+.almaden-field input:focus,
+.almaden-field textarea:focus {
+	outline: none;
+	border-color: rgba(143, 75, 42, 0.45);
+	box-shadow: 0 0 0 4px rgba(143, 75, 42, 0.1);
+}
+.almaden-field textarea {
+	min-height: 150px;
+	resize: vertical;
+}
+.almaden-field-help {
+	margin-top: 0.4rem;
+	font-size: 0.84rem;
+	color: var(--muted);
+	line-height: 1.45;
+}
+.almaden-upload {
+	padding: 1rem;
+	border-radius: 1rem;
+	border: 1px dashed #d0d5dd;
+	background: #fafafa;
+}
+.almaden-summary {
+	display: grid;
+	gap: 0.75rem;
+}
+.almaden-summary-item {
+	padding: 0.9rem 1rem;
+	border-radius: 0.95rem;
+	background: #f8fafc;
+	border: 1px solid #e4e7ec;
+}
+.almaden-summary-item span {
+	display: block;
+	font-size: 0.74rem;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: #667085;
+	margin-bottom: 0.3rem;
+}
+.almaden-actions {
+	display: flex;
+	justify-content: space-between;
+	gap: 0.75rem;
+	align-items: center;
+	margin-top: 1.5rem;
+	flex-wrap: wrap;
+}
+.almaden-btn {
+	border: 0;
+	border-radius: 999px;
+	padding: 0.95rem 1.25rem;
+	font: inherit;
+	font-weight: 800;
+	cursor: pointer;
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+}
+.almaden-btn--primary {
+	background: linear-gradient(135deg, var(--accent), #b46a47);
+	color: #fff;
+	box-shadow: 0 18px 40px rgba(143, 75, 42, 0.22);
+}
+.almaden-btn--ghost {
+	background: #f8fafc;
+	color: #344054;
+	border: 1px solid #e4e7ec;
+}
+.almaden-note {
+	margin-top: 1rem;
+	color: var(--muted);
+	font-size: 0.88rem;
+	line-height: 1.55;
+}
+@media (max-width: 980px) {
+	.almaden-layout { grid-template-columns: 1fr; }
+	.almaden-hero { position: relative; top: auto; }
+}
+@media (max-width: 720px) {
+	.almaden-topbar,
+	.almaden-actions { flex-direction: column; align-items: stretch; }
+	.almaden-stepper { grid-template-columns: 1fr 1fr; }
+	.almaden-grid { grid-template-columns: 1fr; }
+}

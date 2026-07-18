@@ -1,0 +1,46 @@
+:root {
+	--almaden-learni-bg: #f5f1ea;
+	--almaden-learni-panel: rgba(255, 255, 255, 0.88);
+	--almaden-learni-panel-border: rgba(17, 24, 39, 0.08);
+	--almaden-learni-text: #111827;
+	--almaden-learni-muted: #6b7280;
+	--almaden-learni-accent: #a45f2a;
+	--almaden-learni-accent-soft: #f6e8dc;
+}
+
+body.almaden-learni-dashboard {
+	background:
+		radial-gradient(circle at top left, rgba(164, 95, 42, 0.12), transparent 30%),
+		radial-gradient(circle at 80% 0%, rgba(16, 185, 129, 0.08), transparent 25%),
+		linear-gradient(180deg, #fcfaf6 0%, var(--almaden-learni-bg) 100%);
+	color: var(--almaden-learni-text);
+}
+
+.almaden-learni-dashboard .almaden-learni-surface {
+	background: var(--almaden-learni-panel);
+	border: 1px solid var(--almaden-learni-panel-border);
+	box-shadow: 0 20px 50px rgba(17, 24, 39, 0.08);
+	backdrop-filter: blur(16px);
+}
+
+.almaden-learni-card {
+	transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+.almaden-learni-card:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 18px 40px rgba(17, 24, 39, 0.1);
+	border-color: rgba(164, 95, 42, 0.22);
+}
+
+.almaden-learni-pill {
+	background: var(--almaden-learni-accent-soft);
+	color: var(--almaden-learni-accent);
+}
+
+.almaden-learni-hero {
+	background:
+		linear-gradient(135deg, rgba(17, 24, 39, 0.92), rgba(17, 24, 39, 0.78)),
+		radial-gradient(circle at 20% 20%, rgba(164, 95, 42, 0.35), transparent 30%);
+}
+

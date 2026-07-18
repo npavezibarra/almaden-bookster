@@ -9,7 +9,7 @@ function toggleReadingMode(mode) {
     readingMode = mode;
     const scrollBtn = document.getElementById('btn-mode-scroll');
     const flipBtn = document.getElementById('btn-mode-flip');
-    const viewChapter = document.getElementById('view-chapter');
+    const viewChapter = document.getElementById('almaden-view-chapter');
     const chapterContent = document.getElementById('chapter-content');
     const footerNav = document.getElementById('chapter-footer-nav');
     
@@ -53,7 +53,7 @@ function toggleReadingMode(mode) {
 
 function updateFlipButtons() {
     if (readingMode !== 'flip') return;
-    const scrollArea = document.getElementById('chapter-scroll-area');
+    const scrollArea = document.getElementById('almaden-chapter-scroll-area');
     const chapterContent = document.getElementById('chapter-content');
     if (!scrollArea || !chapterContent) return;
     
@@ -86,7 +86,7 @@ function updateFlipButtons() {
 }
 
 function flipNext() {
-    const scrollArea = document.getElementById('chapter-scroll-area');
+    const scrollArea = document.getElementById('almaden-chapter-scroll-area');
     const chapterContent = document.getElementById('chapter-content');
     if (!scrollArea || !chapterContent) return;
     
@@ -103,7 +103,7 @@ function flipNext() {
 function flipPrev() {
     if (currentFlipPage > 0) {
         currentFlipPage--;
-        const scrollArea = document.getElementById('chapter-scroll-area');
+        const scrollArea = document.getElementById('almaden-chapter-scroll-area');
         const chapterContent = document.getElementById('chapter-content');
         if (!scrollArea || !chapterContent) return;
         
@@ -122,7 +122,7 @@ window.addEventListener('resize', () => {
     }
 });
 
-const scrollArea = document.getElementById('chapter-scroll-area');
+const scrollArea = document.getElementById('almaden-chapter-scroll-area');
 if (scrollArea) {
     scrollArea.addEventListener('scroll', function() {
         const navTitle = document.getElementById('chapter-nav-title');
@@ -145,8 +145,8 @@ if (scrollArea) {
 }
 
 function showIndexView() {
-    document.getElementById('view-chapter').classList.add('hidden');
-    const viewIndex = document.getElementById('view-index');
+    document.getElementById('almaden-view-chapter').classList.add('hidden');
+    const viewIndex = document.getElementById('almaden-view-index');
     viewIndex.classList.remove('hidden');
     
     // Animation reset
@@ -174,8 +174,8 @@ function showChapterView(index) {
         });
     }
     
-    document.getElementById('view-index').classList.add('hidden');
-    const viewChapter = document.getElementById('view-chapter');
+    document.getElementById('almaden-view-index').classList.add('hidden');
+    const viewChapter = document.getElementById('almaden-view-chapter');
     viewChapter.classList.remove('hidden');
     
     // Pre-process shortcodes
@@ -372,7 +372,7 @@ function showChapterView(index) {
     }
     
     // Reset state
-    document.getElementById('chapter-scroll-area').scrollTop = 0;
+    document.getElementById('almaden-chapter-scroll-area').scrollTop = 0;
     document.getElementById('reading-progress-bar').style.width = '0%';
     const navTitle = document.getElementById('chapter-nav-title');
     navTitle.classList.remove('opacity-100');

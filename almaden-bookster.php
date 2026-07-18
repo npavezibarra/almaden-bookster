@@ -15,13 +15,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // --- Módulos de Google Fonts (Admin) ---
 require_once plugin_dir_path( __FILE__ ) . 'includes/frontend/pages.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/frontend/app-shell.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-pages.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-fonts.php';
 require_once plugin_dir_path( __FILE__ ) . 'admin/admin-fonts-page.php';
+require_once plugin_dir_path( __FILE__ ) . 'modules/learni/init.php';
+require_once plugin_dir_path( __FILE__ ) . 'modules/login-register/init.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/integrations/learni-integration.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/authors/authors.php';
 
 // Modulos CPT
 require_once plugin_dir_path( __FILE__ ) . 'includes/cpt/cpt.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/books/book-authors.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/books/book-authors-hooks.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/publishers/publishers.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/publishers/permissions.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/publishers/settings.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/publishers/onboarding.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/publishers/tour.php';
 
 // --- Frontend Booklist y Creación Automática de Página ---
 require_once plugin_dir_path( __FILE__ ) . 'includes/frontend.php';
@@ -38,6 +49,7 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-user-prefs.php';
 // --- Configuraciones Generales y Seguridad ---
 require_once plugin_dir_path( __FILE__ ) . 'includes/helpers/crypto.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-settings.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-filesize.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/gdrive-client.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/epub-export.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/helpers/cover-thumbnail.php';
@@ -302,17 +314,41 @@ function almaden_bookster_create_highlight_comments_table() {
 add_action( 'init', 'almaden_bookster_create_highlight_comments_table' );
 
 function almaden_bookster_activate_plugin() {
-	almaden_bookster_sync_book_capabilities();
-	almaden_bookster_sync_creator_page();
+		almaden_bookster_sync_book_capabilities();
+	if ( class_exists( '\AlmadenBookster\Learni\Module' ) ) {
+		\AlmadenBookster\Learni\Module::activate();
+	}
+	if ( class_exists( '\AlmadenBookster\Auth\Module' ) ) {
+		\AlmadenBookster\Auth\Module::activate();
+	}
+		almaden_bookster_sync_creator_page();
+		almaden_bookster_sync_dashboard_page();
+		almaden_bookster_sync_course_creator_page();
 	almaden_bookster_sync_store_page();
+	almaden_bookster_sync_authors_page();
+	almaden_bookster_sync_author_page();
+	almaden_bookster_sync_publisher_page();
+	almaden_bookster_sync_publisher_onboarding_page();
+	almaden_bookster_create_book_authors_table();
 	almaden_bookster_create_settings_table();
 	almaden_bookster_create_highlights_table();
 	almaden_bookster_create_highlight_comments_table();
 	if ( function_exists( 'almaden_bookster_create_quiz_progress_tables' ) ) {
 		almaden_bookster_create_quiz_progress_tables();
 	}
+	if ( function_exists( 'almaden_bookster_schedule_cover_thumbnail_backfill_cron' ) ) {
+		almaden_bookster_schedule_cover_thumbnail_backfill_cron();
+	}
+	flush_rewrite_rules();
 }
 register_activation_hook( __FILE__, 'almaden_bookster_activate_plugin' );
+
+function almaden_bookster_deactivate_plugin() {
+	if ( function_exists( 'wp_clear_scheduled_hook' ) ) {
+		wp_clear_scheduled_hook( 'almaden_bookster_cover_thumbnail_backfill_event' );
+	}
+}
+register_deactivation_hook( __FILE__, 'almaden_bookster_deactivate_plugin' );
 
 function almaden_bookster_sync_book_capabilities() {
 	$roles = array( 'administrator', 'editor' );

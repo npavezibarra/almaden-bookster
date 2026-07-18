@@ -108,6 +108,12 @@ function almaden_bookster_handle_upload_book() {
 
 	// Update meta
 	update_post_meta( $book_post_id, 'book_author', $book_info['author'] );
+	update_post_meta( $book_post_id, '_almaden_book_author', $book_info['author'] );
+	if ( ! empty( $book_info['authors'] ) && function_exists( 'almaden_bookster_set_book_authors' ) ) {
+		almaden_bookster_set_book_authors( $book_post_id, $book_info['authors'], $book_info['author'] );
+	} elseif ( function_exists( 'almaden_bookster_sync_book_authors_from_input' ) ) {
+		almaden_bookster_sync_book_authors_from_input( $book_post_id, $book_info['author'] );
+	}
 	if ( ! empty( $book_info['formats'] ) ) {
 		update_post_meta( $book_post_id, '_almaden_formats', $book_info['formats'] );
 	}
@@ -204,6 +210,9 @@ function almaden_bookster_handle_upload_book() {
 
 	// Clean up
 	almaden_bookster_rrmdir( $temp_dir );
+	if ( function_exists( 'almaden_bookster_mark_publisher_tour_completed' ) ) {
+		almaden_bookster_mark_publisher_tour_completed();
+	}
 	wp_safe_redirect( almaden_bookster_get_creator_page_url( array( 'book_imported' => '1' ) ) );
 	exit;
 }
@@ -226,4 +235,3 @@ function almaden_bookster_rrmdir( $dir ) {
 		rmdir( $dir );
 	}
 }
-

@@ -173,6 +173,10 @@ function almaden_bookster_get_cover_image_diagnostics() {
 }
 
 function almaden_bookster_save_cover_ajax() {
+	@set_time_limit( 120 );
+	if ( function_exists( 'ignore_user_abort' ) ) {
+		ignore_user_abort( true );
+	}
 	$book_id = isset( $_POST['book_id'] ) ? intval( $_POST['book_id'] ) : 0;
 
 	if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'almaden_save_cover_nonce_' . $book_id ) ) {
@@ -202,7 +206,22 @@ function almaden_bookster_save_cover_ajax() {
 
 	update_post_meta( $book_id, '_almaden_cover_settings', $cover_data );
 
-	wp_send_json_success( array( 'message' => 'Configuración de portada guardada con éxito.' ) );
+	$snapshot_result = null;
+	if ( function_exists( 'almaden_bookster_generate_cover_thumbnail_snapshot' ) ) {
+		$snapshot_result = almaden_bookster_generate_cover_thumbnail_snapshot( $book_id );
+	}
+
+	$response = array(
+		'message' => 'Configuración de portada guardada con éxito.',
+	);
+
+	if ( is_array( $snapshot_result ) ) {
+		$response['snapshot'] = $snapshot_result;
+	} elseif ( is_wp_error( $snapshot_result ) ) {
+		$response['snapshot_error'] = $snapshot_result->get_error_message();
+	}
+
+	wp_send_json_success( $response );
 }
 add_action( 'wp_ajax_almaden_save_cover_settings', 'almaden_bookster_save_cover_ajax' );
 add_action( 'wp_ajax_nopriv_almaden_save_cover_settings', 'almaden_bookster_save_cover_ajax' );

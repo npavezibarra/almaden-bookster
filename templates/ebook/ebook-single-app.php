@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $book_id = get_the_ID();
 $book_title = get_the_title();
-$author = get_post_meta( $book_id, '_almaden_book_author', true );
+$author = function_exists( 'almaden_bookster_get_book_author_display_label' ) ? almaden_bookster_get_book_author_display_label( $book_id, get_post_meta( $book_id, '_almaden_book_author', true ) ) : get_post_meta( $book_id, '_almaden_book_author', true );
 $source_book_id = get_post_meta( $book_id, '_almaden_source_book_id', true );
 if ( empty( $source_book_id ) ) {
 	$source_book_id = $book_id;
@@ -94,12 +94,24 @@ if ( $has_reader_access ) {
 	<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&amp;display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/css/reader-app.css' ); ?>?v=<?php echo esc_attr( filemtime( dirname( __FILE__ ) . '/../../assets/css/reader-app.css' ) ); ?>">
 	<style>
+		html {
+			margin-top: 0 !important;
+		}
 		body { font-family: 'Urbanist', sans-serif; background: linear-gradient(180deg, #f8f5f0 0%, #ffffff 30%, #f3f0ea 100%); }
 		#ebook-single-app { min-height: 100vh; }
 	</style>
+	<style id="almaden-ebook-overrides">
+		html {
+			margin-top: 0 !important;
+		}
+		main {
+			padding-top: 20px !important;
+			background-color: #f9fafb;
+		}
+	</style>
 </head>
 <body>
-<main id="ebook-single-app" class="px-4 py-8 md:px-8 lg:px-12">
+<main id="ebook-single-app" class="px-4 pb-8 md:px-8 lg:px-12">
 	<div class="mx-auto max-w-7xl">
 		<div class="mb-6 flex items-center justify-between gap-4">
 			<div>

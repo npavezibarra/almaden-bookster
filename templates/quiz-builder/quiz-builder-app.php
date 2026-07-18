@@ -10,7 +10,7 @@ if ( ! $book || 'almaden-books' !== $book->post_type ) {
 	wp_die( 'Libro no encontrado.' );
 }
 
-if ( ! is_user_logged_in() || ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'edit_post', $book_id ) ) ) {
+if ( ! is_user_logged_in() || ( function_exists( 'almaden_bookster_user_can_manage_book' ) ? ! almaden_bookster_user_can_manage_book( $book_id ) : ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'edit_post', $book_id ) ) ) ) {
 	wp_die( 'No tienes permisos para crear o editar quizzes para este libro.' );
 }
 
@@ -78,8 +78,9 @@ foreach ( $chapter_posts as $index => $chapter ) {
 		$chapter_item['quiz_id'] = (int) almaden_bookster_learni_get_quiz_id_for_chapter( $chapter->ID );
 	}
 
-	if ( $chapter_item['quiz_id'] > 0 && class_exists( '\\LearniStandalone\\QuizEditor\\QuizEditor' ) ) {
-		$chapter_quiz_data = \LearniStandalone\QuizEditor\QuizEditor::get_quiz_data( $chapter_item['quiz_id'] );
+	$quiz_editor_class = function_exists( 'almaden_bookster_learni_quiz_editor_class' ) ? almaden_bookster_learni_quiz_editor_class() : '';
+	if ( $chapter_item['quiz_id'] > 0 && $quiz_editor_class !== '' && method_exists( $quiz_editor_class, 'get_quiz_data' ) ) {
+		$chapter_quiz_data = $quiz_editor_class::get_quiz_data( $chapter_item['quiz_id'] );
 		if ( is_array( $chapter_quiz_data ) ) {
 			$chapter_item['quiz_data'] = $chapter_quiz_data;
 			if ( ! empty( $chapter_quiz_data['questions'] ) && is_array( $chapter_quiz_data['questions'] ) ) {
@@ -152,12 +153,26 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 	<script src="<?php echo esc_url( $quiz_builder_editor_js ); ?>?v=<?php echo esc_attr( (string) filemtime( dirname( __DIR__, 2 ) . '/assets/js/quiz-builder/quiz-builder-editor.js' ) ); ?>" defer></script>
 	<script src="<?php echo esc_url( $quiz_builder_preview_js ); ?>?v=<?php echo esc_attr( (string) filemtime( dirname( __DIR__, 2 ) . '/assets/js/quiz-builder/quiz-builder-preview.js' ) ); ?>" defer></script>
 	<script src="<?php echo esc_url( $quiz_builder_js ); ?>?v=<?php echo esc_attr( (string) filemtime( dirname( __DIR__, 2 ) . '/assets/js/quiz-builder/quiz-builder-app.js' ) ); ?>" defer></script>
+	<style>
+		html {
+			margin-top: 0 !important;
+		}
+	</style>
 	<?php wp_head(); ?>
+	<style id="almaden-quiz-builder-overrides">
+		html {
+			margin-top: 0 !important;
+		}
+		main {
+			padding-top: 20px !important;
+			background-color: #f9fafb;
+		}
+	</style>
 </head>
 <body <?php body_class( 'almaden-quiz-page' ); ?>>
 <?php wp_body_open(); ?>
-<div class="almaden-quiz-page">
-	<header class="almaden-quiz-header">
+<div id="almaden-quiz-page" class="almaden-quiz-page">
+	<header id="almaden-quiz-header" class="almaden-quiz-header">
 		<div>
 			<p class="almaden-quiz-kicker">Create Quiz</p>
 			<h1><?php echo esc_html( $book_title ); ?></h1>
@@ -174,7 +189,7 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 		</div>
 	</header>
 
-	<main class="almaden-quiz-workspace">
+	<main id="almaden-quiz-workspace" class="almaden-quiz-workspace">
 		<aside class="almaden-panel almaden-sidebar">
 			<div class="almaden-sidebar-card">
 				<div class="almaden-sidebar-card-head">

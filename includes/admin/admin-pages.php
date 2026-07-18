@@ -29,16 +29,25 @@ function almaden_bookster_handle_pages_settings_save() {
 			'creator_page_id' => isset( $_POST['creator_page_id'] ) ? absint( $_POST['creator_page_id'] ) : 0,
 			'creator_slug'    => isset( $_POST['creator_slug'] ) ? wp_unslash( $_POST['creator_slug'] ) : '',
 			'creator_title'   => isset( $_POST['creator_title'] ) ? wp_unslash( $_POST['creator_title'] ) : '',
+			'authors_page_id' => isset( $_POST['authors_page_id'] ) ? absint( $_POST['authors_page_id'] ) : 0,
+			'authors_slug'    => isset( $_POST['authors_slug'] ) ? wp_unslash( $_POST['authors_slug'] ) : '',
+			'authors_title'   => isset( $_POST['authors_title'] ) ? wp_unslash( $_POST['authors_title'] ) : '',
 			'store_page_id'   => isset( $_POST['store_page_id'] ) ? absint( $_POST['store_page_id'] ) : 0,
 			'store_slug'      => isset( $_POST['store_slug'] ) ? wp_unslash( $_POST['store_slug'] ) : '',
 			'store_title'     => isset( $_POST['store_title'] ) ? wp_unslash( $_POST['store_title'] ) : '',
 			'store_menu_label'=> isset( $_POST['store_menu_label'] ) ? wp_unslash( $_POST['store_menu_label'] ) : '',
+			'course_archive_page_id' => isset( $_POST['course_archive_page_id'] ) ? absint( $_POST['course_archive_page_id'] ) : 0,
+			'course_archive_slug'    => isset( $_POST['course_archive_slug'] ) ? wp_unslash( $_POST['course_archive_slug'] ) : '',
+			'course_archive_title'   => isset( $_POST['course_archive_title'] ) ? wp_unslash( $_POST['course_archive_title'] ) : '',
 			'store_menu_enabled' => isset( $_POST['store_menu_enabled'] ) ? 1 : 0,
 		)
 	);
 
 	update_option( 'almaden_bookster_pages_settings', $settings );
 	almaden_bookster_sync_creator_page();
+	almaden_bookster_sync_course_creator_page();
+	almaden_bookster_sync_course_archive_page();
+	almaden_bookster_sync_authors_page();
 	almaden_bookster_sync_store_page();
 
 	$redirect_url = add_query_arg(
@@ -61,6 +70,8 @@ function almaden_bookster_pages_page_render() {
 
 	$settings     = almaden_bookster_get_pages_settings();
 	$creator_url  = almaden_bookster_get_creator_page_url();
+	$course_creator_url = function_exists( 'almaden_bookster_get_course_creator_page_url' ) ? almaden_bookster_get_course_creator_page_url() : '';
+	$course_archive_url  = function_exists( 'almaden_bookster_get_course_archive_page_url' ) ? almaden_bookster_get_course_archive_page_url() : '';
 	$success_flag = isset( $_GET['settings-updated'] ) && '1' === $_GET['settings-updated'];
 
 	require dirname( __DIR__, 2 ) . '/templates/admin/pages-app.php';
