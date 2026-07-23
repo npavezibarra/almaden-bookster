@@ -57,7 +57,6 @@ if (!headers_sent()) {
             margin-top: 0 !important;
         }
         main {
-            padding-top: 20px !important;
             background-color: #f9fafb;
         }
     </style>
@@ -144,6 +143,12 @@ if (!headers_sent()) {
                             <i class="fa-solid fa-copyright"></i>
                         </div>
                         Página de Créditos
+                    </button>
+                    <button onclick="openDocumentImportModal(); toggleAddChapterDropdown()" class="w-full text-left px-4 py-3 hover:bg-[var(--bg-sidebar)] transition flex items-center gap-3 text-[var(--text-main)] font-medium border-t border-[var(--border-color)]">
+                        <div class="w-8 h-8 rounded-lg bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400 flex items-center justify-center">
+                            <i class="fa-solid fa-file-import"></i>
+                        </div>
+                        Upload Document
                     </button>
                 </div>
             </div>
@@ -433,6 +438,94 @@ if (!headers_sent()) {
     <!-- Modals -->
     <?php include plugin_dir_path( __FILE__ ) . 'editor-settings-modal.php'; ?>
     <?php include plugin_dir_path( __FILE__ ) . 'chapter-settings-modal.php'; ?>
+    <?php include plugin_dir_path( __FILE__ ) . 'document-import-modal.php'; ?>
+
+    <!-- VIEWPORT EDITOR DE IMAGEN -->
+    <div id="image-viewport-modal" class="fixed inset-0 z-50 hidden opacity-0 bg-slate-900/60 backdrop-blur-sm transition-all duration-200 no-print" onclick="if (event.target === this) closeImageViewportModal();">
+        <div data-image-viewport-panel class="absolute left-1/2 top-6 w-[min(920px,calc(100vw-1.5rem))] -translate-x-1/2 rounded-[28px] bg-white shadow-2xl border border-slate-200 scale-95 transition-transform duration-200 overflow-hidden flex flex-col max-h-[calc(100vh-1.5rem)]">
+            <div class="px-6 py-5 border-b border-slate-200 flex items-center justify-between gap-4">
+                <div>
+                    <p class="text-[11px] uppercase tracking-[0.2em] text-slate-400 font-semibold">Viewport Editor</p>
+                    <h3 id="image-viewport-title" class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">Agregar Imagen</h3>
+                </div>
+                <button type="button" onclick="closeImageViewportModal()" class="w-9 h-9 rounded-full border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition flex items-center justify-center" title="Cerrar">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-6 md:p-7 flex-1 overflow-y-auto">
+                <div id="image-viewport-preview-frame" onclick="if (!window.imageViewportEditorState || !window.imageViewportEditorState.src) openImageMediaPicker()" class="h-[clamp(360px,52vh,620px)] rounded-[26px] border-2 border-dashed border-slate-300 bg-slate-50 overflow-hidden relative px-4 py-6 cursor-pointer">
+                    <div id="image-viewport-preview-viewport" class="absolute left-1/2 top-1/2 overflow-hidden rounded-[18px] shadow-sm bg-white/30" style="transform: translate(-50%, -50%); width: 100%; height: auto;">
+                        <img id="image-viewport-preview-image" class="hidden w-full h-full object-contain" alt="" />
+                    </div>
+                    <div id="image-viewport-empty-state" class="absolute inset-0 flex items-center justify-center text-center px-4 py-6">
+                        <div class="max-w-sm">
+                        <div class="mx-auto w-16 h-16 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-400 mb-4">
+                            <i class="fa-regular fa-image text-2xl"></i>
+                        </div>
+                        <p class="text-2xl font-semibold text-slate-900">Upload or select Image</p>
+                        <p class="mt-2 text-sm text-slate-500">Agrega una imagen para convertirla en un bloque editable con viewport.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    El ancho del bloque se ajusta automáticamente al content area. Solo se controla la altura y el encuadre interno de la imagen.
+                </div>
+
+                <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div class="flex items-center justify-between gap-3 mb-3">
+                        <label for="image-viewport-caption" class="text-sm font-bold text-slate-900">Descripción de la imagen</label>
+                        <span id="image-viewport-caption-count" class="text-xs font-semibold text-slate-500">0/50 palabras</span>
+                    </div>
+                    <textarea id="image-viewport-caption" rows="3" maxlength="600" oninput="updateImageViewportControl('caption', this.value)" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 resize-none" placeholder="Describe brevemente lo que muestra la imagen."></textarea>
+                    <p id="image-viewport-caption-warning" class="hidden mt-2 text-xs font-semibold text-rose-600">Máximo 50 palabras.</p>
+                </div>
+
+                <div class="mt-6 flex flex-wrap gap-3">
+                    <button type="button" onclick="openImageMediaPicker()" class="px-4 py-2.5 rounded-xl bg-black text-white text-sm font-semibold hover:bg-neutral-800 transition flex items-center gap-2">
+                        <i class="fa-solid fa-upload"></i>
+                        <span>Upload / Select</span>
+                    </button>
+                    <button id="image-viewport-change-btn" type="button" onclick="openImageMediaPicker()" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-100 transition flex items-center gap-2">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span>Change Image</span>
+                    </button>
+                    <button id="image-viewport-remove-btn" type="button" onclick="removeCurrentImageBlock()" class="px-4 py-2.5 rounded-xl border border-rose-200 text-rose-700 text-sm font-semibold hover:bg-rose-50 transition flex items-center gap-2">
+                        <i class="fa-solid fa-trash"></i>
+                        <span>Remove Image</span>
+                    </button>
+                    <button id="image-viewport-transform-btn" type="button" onclick="toggleImageViewportAdvancedControls()" class="px-4 py-2.5 rounded-xl border border-sky-200 text-sky-700 text-sm font-semibold hover:bg-sky-50 transition flex items-center gap-2">
+                        <i class="fa-solid fa-sliders"></i>
+                        <span id="image-viewport-transform-label">Transform</span>
+                    </button>
+                    <button id="image-viewport-save-btn" type="button" onclick="saveImageViewportState()" class="px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition flex items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span id="image-viewport-save-label">Guardar</span>
+                    </button>
+                </div>
+
+                <div id="image-viewport-controls" class="hidden mt-6 grid md:grid-cols-2 gap-5">
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="text-sm font-bold text-slate-900">Zoom</h4>
+                            <span id="image-viewport-zoom-value" class="text-xs font-semibold text-slate-500">1.00x</span>
+                        </div>
+                        <input id="image-viewport-zoom" type="range" min="0.5" max="2.5" step="0.01" value="1" oninput="updateImageViewportControl('zoom', this.value)" class="w-full accent-black">
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="text-sm font-bold text-slate-900">Viewport Height</h4>
+                            <span id="image-viewport-height-value" class="text-xs font-semibold text-slate-500">100%</span>
+                        </div>
+                        <input id="image-viewport-height" type="range" min="30" max="100" step="1" value="100" oninput="updateImageViewportControl('viewportHeight', this.value)" class="w-full accent-black">
+                        <p id="image-viewport-height-limit" class="mt-2 text-xs font-semibold text-slate-500">Límite calculado: 100%</p>
+                        <p id="image-viewport-height-warning" class="hidden mt-2 text-xs font-semibold text-amber-700">El valor fue ajustado para evitar que el bloque cruce a otra página sin intención explícita.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- NOTIFICACIÓN FLOTANTE (TOAST) -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-10 opacity-0 pointer-events-none transition-all duration-300 bg-slate-900 text-white dark:bg-neutral-800 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3">
@@ -460,6 +553,7 @@ if (!headers_sent()) {
             nonce: <?php echo json_encode( wp_create_nonce( 'almaden_save_book_nonce_' . $book_id ) ); ?>,
             settings: <?php echo json_encode( $pdf_settings ); ?>,
             settingsNonce: <?php echo json_encode( wp_create_nonce( 'almaden_save_settings_nonce_' . $book_id ) ); ?>,
+            documentImportNonce: <?php echo json_encode( wp_create_nonce( 'almaden_document_import_nonce_' . $book_id ) ); ?>,
             installedFonts: <?php echo json_encode( $installed_fonts ); ?>,
             coverSettings: <?php echo json_encode( get_post_meta( $book_id, '_almaden_cover_settings', true ) ?: get_post_meta( $source_book_id, '_almaden_cover_settings', true ) ); ?>
         };
@@ -473,7 +567,12 @@ if (!headers_sent()) {
     </script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-core.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-toolbar.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/toolbar/toolbar-core.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/toolbar/toolbar-text-formats.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/toolbar/toolbar-image-block.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/toolbar/toolbar-image-viewport-state.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/toolbar/toolbar-image-viewport-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/toolbar/toolbar-parity.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-virtualization.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-chapters.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-tabs.js?v=' . time(), __FILE__ ) ); ?>"></script>
@@ -482,6 +581,12 @@ if (!headers_sent()) {
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-templates.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-api.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-chapter-settings.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/document-import/import-state.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/document-import/import-utils.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/document-import/import-logic.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/document-import/import-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/document-import/import-api.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/document-import/import-app.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/almaden-shortcodes.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-markdown.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-visual-session.js?v=' . time(), __FILE__ ) ); ?>"></script>

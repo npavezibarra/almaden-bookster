@@ -20,26 +20,17 @@ if ( ! defined( 'ALMADEN_BOOKSTER_LEARNI_CHAPTER_QUIZ_META' ) ) {
 }
 
 function almaden_bookster_learni_is_available() {
-	return class_exists( '\\AlmadenBookster\\Learni\\QuizEditor\\QuizEditor' )
-		|| class_exists( '\\AlmadenBookster\\Learni\\QuizEditor\\QuizRepository' )
-		|| class_exists( '\\AlmadenBookster\\Learni\\Module' )
-		|| class_exists( '\\LearniStandalone\\QuizEditor\\QuizEditor' )
-		|| class_exists( '\\LearniStandalone\\Frontend\\QuizEditorScreen' )
-		|| class_exists( '\\Learni\\QuizEditor\\QuizEditor' )
-		|| class_exists( '\\Learni\\Frontend\\QuizEditorScreen' )
-		|| class_exists( 'PL_Learni_Module' )
-		|| defined( 'LEARNI_VERSION' );
+	// Bookster owns the native Learni module. Keep the check focused on that
+	// implementation so the integration no longer treats standalone builds as
+	// equal sources of truth.
+	return class_exists( '\\AlmadenBookster\\Learni\\Module' )
+		|| class_exists( '\\AlmadenBookster\\Learni\\QuizEditor\\QuizEditor' )
+		|| class_exists( '\\AlmadenBookster\\Learni\\QuizEditor\\QuizRepository' );
 }
 
 function almaden_bookster_learni_quiz_editor_class() {
 	if ( class_exists( '\\AlmadenBookster\\Learni\\QuizEditor\\QuizEditor' ) ) {
 		return '\\AlmadenBookster\\Learni\\QuizEditor\\QuizEditor';
-	}
-	if ( class_exists( '\\LearniStandalone\\QuizEditor\\QuizEditor' ) ) {
-		return '\\LearniStandalone\\QuizEditor\\QuizEditor';
-	}
-	if ( class_exists( '\\Learni\\QuizEditor\\QuizEditor' ) ) {
-		return '\\Learni\\QuizEditor\\QuizEditor';
 	}
 	return '';
 }
@@ -48,25 +39,10 @@ function almaden_bookster_learni_quiz_repository_class() {
 	if ( class_exists( '\\AlmadenBookster\\Learni\\QuizEditor\\QuizRepository' ) ) {
 		return '\\AlmadenBookster\\Learni\\QuizEditor\\QuizRepository';
 	}
-	if ( class_exists( '\\LearniStandalone\\QuizEditor\\QuizRepository' ) ) {
-		return '\\LearniStandalone\\QuizEditor\\QuizRepository';
-	}
-	if ( class_exists( '\\Learni\\QuizEditor\\QuizRepository' ) ) {
-		return '\\Learni\\QuizEditor\\QuizRepository';
-	}
 	return '';
 }
 
 function almaden_bookster_learni_quiz_editor_screen_class() {
-	if ( class_exists( '\\AlmadenBookster\\Learni\\QuizEditor\\QuizEditor' ) ) {
-		return '\\AlmadenBookster\\Learni\\QuizEditor\\QuizEditor';
-	}
-	if ( class_exists( '\\LearniStandalone\\Frontend\\QuizEditorScreen' ) ) {
-		return '\\LearniStandalone\\Frontend\\QuizEditorScreen';
-	}
-	if ( class_exists( '\\Learni\\Frontend\\QuizEditorScreen' ) ) {
-		return '\\Learni\\Frontend\\QuizEditorScreen';
-	}
 	return '';
 }
 
@@ -81,11 +57,6 @@ function almaden_bookster_learni_integration_active() {
 function almaden_bookster_learni_editor_url( $book_id, $quiz_id = 0 ) {
 	$book_id = absint( $book_id );
 	$quiz_id = absint( $quiz_id );
-
-	$screen_class = almaden_bookster_learni_quiz_editor_screen_class();
-	if ( $screen_class !== '' && method_exists( $screen_class, 'quiz_url' ) ) {
-		return $screen_class::quiz_url( $book_id, $quiz_id );
-	}
 
 	$args = array();
 	if ( $book_id > 0 ) {

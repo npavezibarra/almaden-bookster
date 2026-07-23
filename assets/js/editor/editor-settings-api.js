@@ -118,6 +118,9 @@ window.savePDFSettings = function(silent = false) {
     data.append('font_family_h1', getVal('setting-font-family-h1'));
     data.append('font_family_h2', getVal('setting-font-family-h2'));
     data.append('font_family_h3', getVal('setting-font-family-h3'));
+    data.append('font_style_h1', getVal('setting-font-style-h1'));
+    data.append('font_style_h2', getVal('setting-font-style-h2'));
+    data.append('font_style_h3', getVal('setting-font-style-h3'));
     data.append('font_weight_h1', getVal('setting-font-weight-h1'));
     data.append('font_weight_h2', getVal('setting-font-weight-h2'));
     data.append('font_weight_h3', getVal('setting-font-weight-h3'));
@@ -328,6 +331,9 @@ window.savePDFSettings = function(silent = false) {
                 font_family_h1: getVal('setting-font-family-h1'),
                 font_family_h2: getVal('setting-font-family-h2'),
                 font_family_h3: getVal('setting-font-family-h3'),
+                font_style_h1: getVal('setting-font-style-h1'),
+                font_style_h2: getVal('setting-font-style-h2'),
+                font_style_h3: getVal('setting-font-style-h3'),
                 font_weight_h1: getVal('setting-font-weight-h1'),
                 font_weight_h2: getVal('setting-font-weight-h2'),
                 font_weight_h3: getVal('setting-font-weight-h3'),

@@ -11,17 +11,12 @@
                 <div class="flex bg-[var(--bg-app)] rounded-lg p-1 border border-[var(--border-color)]">
                     <button type="button" onclick="switchFormatTab('pdf')" id="btn-format-pdf" class="px-4 py-1 rounded-md bg-[var(--bg-sidebar)] shadow-sm border border-[var(--border-color)] text-xs font-bold text-black dark:text-white transition-colors">PDF</button>
                     <button type="button" onclick="switchFormatTab('ebook')" id="btn-format-ebook" class="px-4 py-1 rounded-md text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">EBOOK</button>
+                    <button type="button" onclick="switchFormatTab('global')" id="btn-format-global" class="px-4 py-1 rounded-md text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">GLOBAL</button>
                 </div>
             </div>
             <button onclick="toggleSettingsModal(false)" class="text-[var(--text-muted)] hover:text-[var(--text-main)] transition">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
-        </div>
-
-        <div class="py-4 border-b border-[var(--border-color)]">
-            <label class="block text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Autores del libro</label>
-            <textarea id="setting-book-authors" rows="2" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-black resize-none" placeholder="Escribe emails o usuarios separados por coma"><?php echo esc_textarea( $book_authors_input_value ); ?></textarea>
-            <p class="mt-2 text-[10px] leading-5 text-[var(--text-muted)]">Usa correos o nombres de usuario para vincular autores reales. La lista visible del libro se sigue mostrando con nombres legibles.</p>
         </div>
 
         <div id="format-pdf-section">
@@ -453,6 +448,14 @@
 
                 <!-- Ebook Chapters Tab Content -->
                 <?php include plugin_dir_path( __FILE__ ) . 'settings-tabs/tab-ebook-chapters.php'; ?>
+            </div>
+        </div>
+
+        <div id="format-global-section" class="hidden">
+            <div class="py-4 border-b border-[var(--border-color)]">
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Autores del libro</label>
+                <textarea id="setting-book-authors" rows="2" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-black resize-none" placeholder="Escribe emails o usuarios separados por coma"><?php echo esc_textarea( $book_authors_input_value ); ?></textarea>
+                <p class="mt-2 text-[10px] leading-5 text-[var(--text-muted)]">Usa correos o nombres de usuario para vincular autores reales. La lista visible del libro se sigue mostrando con nombres legibles.</p>
             </div>
         </div>
 

@@ -286,18 +286,16 @@ function almaden_bookster_save_book_ajax() {
 	}
 
 	// Eliminar capítulos que ya no están en el payload (fueron borrados en JS)
-	if ( ! empty( $incoming_ids ) ) {
-		$existing_chapters = get_posts( array(
-			'post_type'      => 'book_chapter',
-			'post_parent'    => $source_book_id,
-			'posts_per_page' => -1,
-			'fields'         => 'ids',
-		) );
-		
-		foreach ( $existing_chapters as $existing_id ) {
-			if ( ! in_array( $existing_id, $incoming_ids ) ) {
-				wp_delete_post( $existing_id, true ); // Forzar borrado físico
-			}
+	$existing_chapters = get_posts( array(
+		'post_type'      => 'book_chapter',
+		'post_parent'    => $source_book_id,
+		'posts_per_page' => -1,
+		'fields'         => 'ids',
+	) );
+
+	foreach ( $existing_chapters as $existing_id ) {
+		if ( ! in_array( $existing_id, $incoming_ids ) ) {
+			wp_delete_post( $existing_id, true ); // Forzar borrado físico
 		}
 	}
 
@@ -322,3 +320,45 @@ function almaden_bookster_save_book_ajax() {
 }
 add_action( 'wp_ajax_almaden_save_book', 'almaden_bookster_save_book_ajax' );
 add_action( 'wp_ajax_nopriv_almaden_save_book', 'almaden_bookster_save_book_ajax' );
+
+function almaden_bookster_delete_book_chapter_ajax() {
+	$book_id = isset( $_POST['book_id'] ) ? intval( $_POST['book_id'] ) : 0;
+	$chapter_id = isset( $_POST['chapter_id'] ) ? intval( $_POST['chapter_id'] ) : 0;
+
+	if ( ! $book_id || ! $chapter_id ) {
+		wp_send_json_error( 'Faltan datos para eliminar el capítulo.' );
+	}
+
+	if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'almaden_save_book_nonce_' . $book_id ) ) {
+		wp_send_json_error( 'Validación de seguridad fallida.' );
+	}
+
+	if ( ! current_user_can( 'edit_post', $book_id ) ) {
+		wp_send_json_error( 'No tienes permisos para editar este libro.' );
+	}
+
+	$source_book_id = get_post_meta( $book_id, '_almaden_source_book_id', true );
+	if ( empty( $source_book_id ) ) {
+		$source_book_id = $book_id;
+	}
+
+	$chapter_post = get_post( $chapter_id );
+	if ( ! $chapter_post || 'book_chapter' !== $chapter_post->post_type ) {
+		wp_send_json_error( 'El capítulo no existe.' );
+	}
+
+	if ( intval( $chapter_post->post_parent ) !== intval( $source_book_id ) ) {
+		wp_send_json_error( 'El capítulo no pertenece a este libro.' );
+	}
+
+	$result = wp_delete_post( $chapter_id, true );
+	if ( ! $result ) {
+		wp_send_json_error( 'No se pudo eliminar el capítulo.' );
+	}
+
+	wp_send_json_success( array(
+		'message' => 'Capítulo eliminado correctamente.',
+		'chapter_id' => $chapter_id,
+	) );
+}
+add_action( 'wp_ajax_almaden_delete_book_chapter', 'almaden_bookster_delete_book_chapter_ajax' );

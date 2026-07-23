@@ -102,15 +102,6 @@ if ( $chapter_posts ) {
 		);
 	}
 }
-if ( ! is_array( $saved_chapters ) || empty( $saved_chapters ) ) {
-	$saved_chapters = array(
-		array(
-			'id' => 'cap-1',
-			'title' => 'Capítulo I: El Primer Suspiro',
-			'content' => "# Capítulo I\n## El Primer Suspiro\n\nEl viento soplaba furioso contra las ventanas de la antigua cabaña. Aquella noche de invierno no parecía diferente a las anteriores, pero el destino ya había trazado su línea de no retorno. Daniel, sentado frente a su rústica mesa de madera, sostenía una pluma gastada.\n\n*\"Las palabras tienen el poder de dar vida, pero también de arrebatarla\"*, murmuró para sus adentros.\n\nFrente a él yacía un manuscrito antiguo encuadernado en cuero desgastado. Nadie debía saber lo que contenía, pero las sombras acechaban más de lo usual en los rincones de la habitación. De repente, un golpe seco resonó en la puerta principal. Tres toques rítmicos, seguidos de un profundo silencio.\n\n> Aquel que busca respuestas en las sombras debe estar preparado para ver lo que las sombras revelan.\n\n- Daniel apagó la vela rápidamente.\n- El silencio de la casa se volvió ensordecedor.\n- Con sigilo, deslizó la mano por debajo de la mesa buscando la vieja llave de latón."
-		)
-	);
-}
 
 // Cargar ajustes del libro
 $pdf_settings = almaden_get_book_pdf_settings( $book_id );

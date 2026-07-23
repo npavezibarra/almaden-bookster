@@ -8,14 +8,6 @@ function almaden_bookster_load_authors_page() {
 		return;
 	}
 
-	if ( ! is_user_logged_in() ) {
-		auth_redirect();
-	}
-
-	if ( ! current_user_can( 'almaden_manage_books' ) && ! current_user_can( 'manage_options' ) ) {
-		wp_die( 'No tienes permisos para acceder a la página de autores.' );
-	}
-
 	show_admin_bar( false );
 	wp_enqueue_media();
 
@@ -30,11 +22,18 @@ function almaden_bookster_load_authors_page() {
 add_action( 'template_redirect', 'almaden_bookster_load_authors_page', 5 );
 
 function almaden_bookster_load_author_detail_page() {
-	if ( ! is_page( almaden_bookster_get_author_page_slug() ) || ! is_main_query() ) {
+	$author_slug = get_query_var( 'almaden_author_slug', '' );
+	if ( '' === trim( (string) $author_slug ) || ! is_main_query() ) {
 		return;
 	}
 
 	show_admin_bar( false );
+	status_header( 200 );
+
+	global $wp_query;
+	if ( $wp_query ) {
+		$wp_query->is_404 = false;
+	}
 
 	$template_path = dirname( __FILE__ ) . '/../../templates/authors/author-app.php';
 	if ( file_exists( $template_path ) ) {
@@ -45,6 +44,41 @@ function almaden_bookster_load_author_detail_page() {
 	wp_die( 'Plantilla de autor no encontrada.' );
 }
 add_action( 'template_redirect', 'almaden_bookster_load_author_detail_page', 5 );
+
+function almaden_bookster_render_author_template( $template ) {
+	if ( is_admin() ) {
+		return $template;
+	}
+
+	$author_slug = get_query_var( 'almaden_author_slug', '' );
+	if ( '' === trim( (string) $author_slug ) ) {
+		global $wp;
+		$request_path = isset( $wp->request ) ? trim( (string) $wp->request, '/' ) : '';
+		$base_slug    = trim( almaden_bookster_get_author_page_slug(), '/' );
+
+		if ( '' !== $request_path && '' !== $base_slug && preg_match( '#^' . preg_quote( $base_slug, '#' ) . '/([^/]+)/?$#', $request_path, $matches ) ) {
+			$author_slug = sanitize_title( $matches[1] );
+			set_query_var( 'almaden_author_slug', $author_slug );
+		}
+	}
+
+	if ( '' === trim( (string) $author_slug ) ) {
+		return $template;
+	}
+
+	global $wp_query;
+	if ( $wp_query ) {
+		$wp_query->is_404 = false;
+		$wp_query->is_page = true;
+	}
+
+	status_header( 200 );
+	nocache_headers();
+
+	$template_path = dirname( __FILE__ ) . '/../../templates/authors/author-app.php';
+	return file_exists( $template_path ) ? $template_path : $template;
+}
+add_filter( 'template_include', 'almaden_bookster_render_author_template', 20 );
 
 function almaden_bookster_register_author_routes() {
 	$base_slug = trim( almaden_bookster_get_author_page_slug(), '/' );
@@ -62,7 +96,7 @@ add_action( 'init', 'almaden_bookster_register_author_routes', 20 );
 
 function almaden_bookster_maybe_flush_author_rewrite_rules() {
 	$rewrite_version_option = 'almaden_bookster_author_rewrite_version';
-	$rewrite_version        = '1.0.0';
+	$rewrite_version        = '1.0.1';
 
 	if ( get_option( $rewrite_version_option ) === $rewrite_version ) {
 		return;
@@ -78,4 +112,3 @@ function almaden_bookster_register_author_query_vars( $vars ) {
 	return $vars;
 }
 add_filter( 'query_vars', 'almaden_bookster_register_author_query_vars' );
-

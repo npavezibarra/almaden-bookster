@@ -4,21 +4,31 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 function almaden_bookster_get_publisher_onboarding_slug() {
-	return 'crear-editorial';
+	return function_exists( 'almaden_bookster_get_publisher_onboarding_page_slug' ) ? almaden_bookster_get_publisher_onboarding_page_slug() : 'crear-editorial';
 }
 
 function almaden_bookster_get_publisher_onboarding_title() {
-	return __( 'Crear editorial', 'almaden-bookster' );
+	return function_exists( 'almaden_bookster_get_publisher_onboarding_page_title' ) ? almaden_bookster_get_publisher_onboarding_page_title() : __( 'Crear editorial', 'almaden-bookster' );
 }
 
 function almaden_bookster_get_publisher_onboarding_url() {
-	return home_url( '/' . trim( almaden_bookster_get_publisher_onboarding_slug(), '/' ) . '/' );
+	return function_exists( 'almaden_bookster_get_publisher_onboarding_page_url' ) ? almaden_bookster_get_publisher_onboarding_page_url() : home_url( '/crear-editorial/' );
 }
 
 function almaden_bookster_sync_publisher_onboarding_page() {
+	$settings = almaden_bookster_get_publisher_onboarding_page_settings();
 	$slug    = almaden_bookster_get_publisher_onboarding_slug();
 	$title   = almaden_bookster_get_publisher_onboarding_title();
-	$page    = get_page_by_path( $slug );
+	$page_id = isset( $settings['page_id'] ) ? absint( $settings['page_id'] ) : 0;
+	$page    = $page_id > 0 ? get_post( $page_id ) : null;
+
+	if ( $page && 'page' !== $page->post_type ) {
+		$page = null;
+	}
+
+	if ( ! $page ) {
+		$page = get_page_by_path( $slug, OBJECT, 'page' );
+	}
 
 	if ( ! $page ) {
 		$new_page_id = wp_insert_post(
@@ -31,7 +41,15 @@ function almaden_bookster_sync_publisher_onboarding_page() {
 			)
 		);
 
-		return ! is_wp_error( $new_page_id ) && $new_page_id ? absint( $new_page_id ) : 0;
+		if ( ! is_wp_error( $new_page_id ) && $new_page_id ) {
+			$settings['page_id'] = absint( $new_page_id );
+			$settings['slug']    = $slug;
+			$settings['title']   = $title;
+			update_option( 'almaden_bookster_publisher_onboarding_page_settings', $settings );
+			return absint( $new_page_id );
+		}
+
+		return 0;
 	}
 
 	if ( 'page' !== $page->post_type ) {
@@ -50,6 +68,13 @@ function almaden_bookster_sync_publisher_onboarding_page() {
 
 	if ( count( $updates ) > 1 ) {
 		wp_update_post( $updates );
+	}
+
+	if ( $page_id !== (int) $page->ID ) {
+		$settings['page_id'] = (int) $page->ID;
+		$settings['slug']    = $slug;
+		$settings['title']   = $title;
+		update_option( 'almaden_bookster_publisher_onboarding_page_settings', $settings );
 	}
 
 	return absint( $page->ID );

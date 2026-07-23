@@ -286,21 +286,51 @@ function deleteChapter(id) {
     if (chapterIndex === -1) return;
 
     if (confirm(`¿Estás seguro de que deseas eliminar "${bookState.chapters[chapterIndex].title}"? Esta acción no se puede deshacer.`)) {
-        bookState.chapters.splice(chapterIndex, 1);
-        
-        // Si borramos el capítulo activo, reasignar activo
-        if (bookState.activeChapterId === id) {
-            if (bookState.chapters.length > 0) {
-                bookState.activeChapterId = bookState.chapters[Math.max(0, chapterIndex - 1)].id;
-            } else {
-                bookState.activeChapterId = null;
-            }
-        }
+        const chapter = bookState.chapters[chapterIndex];
 
-        renderSidebar();
-        loadActiveChapter();
-        saveStateToLocalStorage();
-        showToast("Capítulo eliminado", "fa-solid fa-trash-can");
+        const data = new FormData();
+        data.append('action', 'almaden_delete_book_chapter');
+        data.append('book_id', bookState.bookId);
+        data.append('chapter_id', id);
+        data.append('nonce', bookState.nonce);
+
+        fetch(bookState.ajaxUrl, {
+            method: 'POST',
+            body: data
+        })
+        .then(response => response.json())
+        .then(res => {
+            if (!res.success) {
+                const message = res && res.data ? res.data : 'No se pudo eliminar el capítulo.';
+                showToast(message, "fa-solid fa-circle-exclamation");
+                return;
+            }
+
+            bookState.chapters.splice(chapterIndex, 1);
+
+            // Si borramos el capítulo activo, reasignar activo
+            if (bookState.activeChapterId === id) {
+                if (bookState.chapters.length > 0) {
+                    bookState.activeChapterId = bookState.chapters[Math.max(0, chapterIndex - 1)].id;
+                } else {
+                    bookState.activeChapterId = null;
+                }
+            }
+
+            if (bookState.activeChapterId) {
+                localStorage.setItem(`almaden_active_chapter_${bookState.bookId}`, bookState.activeChapterId);
+            } else {
+                localStorage.removeItem(`almaden_active_chapter_${bookState.bookId}`);
+            }
+
+            renderSidebar();
+            loadActiveChapter();
+            saveStateToLocalStorage(true);
+            showToast(`"${chapter.title}" fue eliminado`, "fa-solid fa-trash-can");
+        })
+        .catch(() => {
+            showToast("Error al eliminar el capítulo", "fa-solid fa-circle-exclamation");
+        });
     }
 }
 

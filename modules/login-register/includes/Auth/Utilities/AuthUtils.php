@@ -18,7 +18,29 @@ class AuthUtils
     {
         $view = self::sanitize_view($view);
         $redirect_to = self::resolve_redirect_to($redirect_to);
-        $redirect_to_clean = remove_query_arg(['pl_auth_view', 'pl_auth_notice', 'pl_auth_error'], $redirect_to);
+        $redirect_to_clean = remove_query_arg([
+            'pl_auth_view',
+            'pl_auth_notice',
+            'pl_auth_error',
+            'pl_auth_unverified',
+            'pl_auth_unverified_after_quiz',
+            'redirect_to',
+        ], $redirect_to);
+
+        $modal_base_url = self::is_admin_like_url($redirect_to_clean)
+            ? home_url('/')
+            : $redirect_to_clean;
+        $modal_base_url = remove_query_arg([
+            'pl_auth_view',
+            'pl_auth_notice',
+            'pl_auth_error',
+            'pl_auth_unverified',
+            'pl_auth_unverified_after_quiz',
+            'redirect_to',
+        ], $modal_base_url);
+        if ($modal_base_url === '') {
+            $modal_base_url = home_url('/');
+        }
 
         $query_args = array_merge([
             'pl_auth_view' => $view,
@@ -26,7 +48,7 @@ class AuthUtils
         ], $args);
 
         // Keep users on the page they were on; the modal is global (footer/body injection).
-        return add_query_arg($query_args, $redirect_to_clean);
+        return add_query_arg($query_args, $modal_base_url);
     }
 
     /**
@@ -63,6 +85,8 @@ class AuthUtils
         if (self::is_admin_post_url($redirect_to)) {
             return home_url('/');
         }
+
+        $redirect_to = remove_query_arg(['redirect_to'], $redirect_to);
 
         return $redirect_to;
     }
@@ -112,6 +136,23 @@ class AuthUtils
         }
 
         return strpos($parsed_path, '/wp-admin/admin-post.php') !== false;
+    }
+
+    /**
+     * Detects URLs that should not act as the visible shell for the auth modal.
+     */
+    private static function is_admin_like_url(string $url): bool
+    {
+        if ($url === '') {
+            return false;
+        }
+
+        $parsed_path = (string) wp_parse_url($url, PHP_URL_PATH);
+        if ($parsed_path === '') {
+            return false;
+        }
+
+        return strpos($parsed_path, '/wp-admin/') !== false || strpos($parsed_path, '/wp-login.php') !== false;
     }
 
     /**

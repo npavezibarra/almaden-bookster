@@ -91,7 +91,7 @@
                         <!-- H1 -->
                         <div class="p-2 border border-[var(--border-color)] rounded-lg bg-[var(--bg-app)]">
                             <span class="text-[9px] font-bold text-[var(--text-main)] block mb-2">Título Principal (H1)</span>
-                            <div class="grid grid-cols-3 gap-2">
+                            <div class="grid grid-cols-4 gap-2">
                                 <div>
                                     <label class="block text-[8px] text-[var(--text-muted)] mb-1">Familia</label>
                                     <select id="setting-font-family-h1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded p-1 text-xs focus:outline-none focus:ring-1 focus:ring-black">
@@ -101,6 +101,13 @@
                                 <div>
                                     <label class="block text-[8px] text-[var(--text-muted)] mb-1">Tamaño (pt)</label>
                                     <input id="setting-font-size-h1" type="number" step="0.5" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded p-1 text-xs text-center focus:outline-none focus:ring-1 focus:ring-black">
+                                </div>
+                                <div>
+                                    <label class="block text-[8px] text-[var(--text-muted)] mb-1">Estilo</label>
+                                    <select id="setting-font-style-h1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded p-1 text-xs focus:outline-none focus:ring-1 focus:ring-black">
+                                        <option value="normal">Normal</option>
+                                        <option value="italic">Cursiva</option>
+                                    </select>
                                 </div>
                                 <div>
                                     <label class="block text-[8px] text-[var(--text-muted)] mb-1">Peso</label>
@@ -122,7 +129,7 @@
                         <!-- H2 -->
                         <div class="p-2 border border-[var(--border-color)] rounded-lg bg-[var(--bg-app)]">
                             <span class="text-[9px] font-bold text-[var(--text-main)] block mb-2">Subtítulo (H2)</span>
-                            <div class="grid grid-cols-3 gap-2">
+                            <div class="grid grid-cols-4 gap-2">
                                 <div>
                                     <label class="block text-[8px] text-[var(--text-muted)] mb-1">Familia</label>
                                     <select id="setting-font-family-h2" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded p-1 text-xs focus:outline-none focus:ring-1 focus:ring-black">
@@ -132,6 +139,13 @@
                                 <div>
                                     <label class="block text-[8px] text-[var(--text-muted)] mb-1">Tamaño (pt)</label>
                                     <input id="setting-font-size-h2" type="number" step="0.5" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded p-1 text-xs text-center focus:outline-none focus:ring-1 focus:ring-black">
+                                </div>
+                                <div>
+                                    <label class="block text-[8px] text-[var(--text-muted)] mb-1">Estilo</label>
+                                    <select id="setting-font-style-h2" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded p-1 text-xs focus:outline-none focus:ring-1 focus:ring-black">
+                                        <option value="normal">Normal</option>
+                                        <option value="italic">Cursiva</option>
+                                    </select>
                                 </div>
                                 <div>
                                     <label class="block text-[8px] text-[var(--text-muted)] mb-1">Peso</label>
@@ -153,7 +167,7 @@
                         <!-- H3 -->
                         <div class="p-2 border border-[var(--border-color)] rounded-lg bg-[var(--bg-app)]">
                             <span class="text-[9px] font-bold text-[var(--text-main)] block mb-2">Tercer Nivel (H3)</span>
-                            <div class="grid grid-cols-3 gap-2">
+                            <div class="grid grid-cols-4 gap-2">
                                 <div>
                                     <label class="block text-[8px] text-[var(--text-muted)] mb-1">Familia</label>
                                     <select id="setting-font-family-h3" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded p-1 text-xs focus:outline-none focus:ring-1 focus:ring-black">
@@ -163,6 +177,13 @@
                                 <div>
                                     <label class="block text-[8px] text-[var(--text-muted)] mb-1">Tamaño (pt)</label>
                                     <input id="setting-font-size-h3" type="number" step="0.5" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded p-1 text-xs text-center focus:outline-none focus:ring-1 focus:ring-black">
+                                </div>
+                                <div>
+                                    <label class="block text-[8px] text-[var(--text-muted)] mb-1">Estilo</label>
+                                    <select id="setting-font-style-h3" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded p-1 text-xs focus:outline-none focus:ring-1 focus:ring-black">
+                                        <option value="normal">Normal</option>
+                                        <option value="italic">Cursiva</option>
+                                    </select>
                                 </div>
                                 <div>
                                     <label class="block text-[8px] text-[var(--text-muted)] mb-1">Peso</label>

@@ -16,7 +16,7 @@ if ( ! defined( 'ALMADEN_BOOKSTER_LEARNI_VERSION' ) ) {
 }
 
 if ( ! defined( 'ALMADEN_BOOKSTER_LEARNI_DB_VERSION' ) ) {
-	define( 'ALMADEN_BOOKSTER_LEARNI_DB_VERSION', 1 );
+	define( 'ALMADEN_BOOKSTER_LEARNI_DB_VERSION', 4 );
 }
 
 if ( ! defined( 'ALMADEN_BOOKSTER_LEARNI_PLUGIN_FILE' ) ) {
@@ -34,6 +34,7 @@ if ( ! defined( 'ALMADEN_BOOKSTER_LEARNI_PLUGIN_URL' ) ) {
 require_once ALMADEN_BOOKSTER_LEARNI_PLUGIN_DIR . 'includes/Database/Installer.php';
 require_once ALMADEN_BOOKSTER_LEARNI_PLUGIN_DIR . 'includes/PostTypes/Course.php';
 require_once ALMADEN_BOOKSTER_LEARNI_PLUGIN_DIR . 'includes/PostTypes/Lesson.php';
+require_once ALMADEN_BOOKSTER_LEARNI_PLUGIN_DIR . 'includes/Dashboard/class-course-outline.php';
 require_once ALMADEN_BOOKSTER_LEARNI_PLUGIN_DIR . 'includes/Dashboard/class-creator-dashboard.php';
 require_once ALMADEN_BOOKSTER_LEARNI_PLUGIN_DIR . 'includes/Dashboard/class-course-editor-handler.php';
 require_once ALMADEN_BOOKSTER_LEARNI_PLUGIN_DIR . 'includes/QuizEditor/Permissions.php';

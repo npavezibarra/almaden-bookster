@@ -55,6 +55,7 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/io/epub-export.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/helpers/cover-thumbnail.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/process-utils.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/book-import.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/io/document-import.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/book-export.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/cover-pdf-export.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/payments/woocommerce-integration.php';
@@ -322,16 +323,21 @@ function almaden_bookster_activate_plugin() {
 		\AlmadenBookster\Auth\Module::activate();
 	}
 		almaden_bookster_sync_creator_page();
+		almaden_bookster_sync_shell_home_page();
 		almaden_bookster_sync_dashboard_page();
 		almaden_bookster_sync_course_creator_page();
-	almaden_bookster_sync_store_page();
-	almaden_bookster_sync_authors_page();
-	almaden_bookster_sync_author_page();
-	almaden_bookster_sync_publisher_page();
-	almaden_bookster_sync_publisher_onboarding_page();
-	almaden_bookster_create_book_authors_table();
-	almaden_bookster_create_settings_table();
-	almaden_bookster_create_highlights_table();
+		almaden_bookster_sync_store_page();
+		almaden_bookster_sync_authors_page();
+		almaden_bookster_sync_author_page();
+		almaden_bookster_sync_publisher_page();
+		almaden_bookster_sync_publisher_onboarding_page();
+		almaden_bookster_sync_quiz_page();
+		if ( function_exists( 'almaden_bookster_cleanup_navigation_entries_on_activation' ) ) {
+			almaden_bookster_cleanup_navigation_entries_on_activation();
+		}
+		almaden_bookster_create_book_authors_table();
+		almaden_bookster_create_settings_table();
+		almaden_bookster_create_highlights_table();
 	almaden_bookster_create_highlight_comments_table();
 	if ( function_exists( 'almaden_bookster_create_quiz_progress_tables' ) ) {
 		almaden_bookster_create_quiz_progress_tables();

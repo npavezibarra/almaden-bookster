@@ -236,8 +236,10 @@ if ( class_exists( '\AlmadenBookster\Auth\AuthOrchestrator' ) ) {
 
 		/* Scoped styles to avoid theme conflicts */
 		.almaden-bookshelf-wrapper {
-			margin: 0 auto;
-			padding: 1.5rem 0;
+			margin: 0;
+			padding: 0;
+			width: 100%;
+			box-sizing: border-box;
 		}
 		.almaden-bookshelf-grid {
 			display: grid;
@@ -369,9 +371,19 @@ if ( class_exists( '\AlmadenBookster\Auth\AuthOrchestrator' ) ) {
         html {
             margin-top: 0 !important;
         }
-        main {
-            padding-top: 20px !important;
-            background-color: #f9fafb;
+        #bookshelf-main.almaden-app-content-shell {
+            max-width: none;
+            padding-left: 0;
+            padding-right: 0;
+        }
+        #bookshelf-main > .almaden-bookshelf-page-shell {
+            box-sizing: border-box;
+            margin-left: auto;
+            margin-right: auto;
+            max-width: var(--almaden-app-max-width, 80rem);
+            padding: 20px 2rem 24px;
+            width: 100%;
+            background-color: #f5f5f5;
         }
         #almaden-app-user-menu {
             box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
@@ -384,8 +396,10 @@ if ( class_exists( '\AlmadenBookster\Auth\AuthOrchestrator' ) ) {
 
     <!-- Main Content -->
     <main id="bookshelf-main" class="almaden-app-content-shell flex-1 pb-6 sm:pb-8" style="background-color: #f5f5f5;">
-        <div class="almaden-bookshelf-wrapper" id="bookshelf-app-container">
-            <?php echo $bookshelf_catalog_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+        <div class="almaden-bookshelf-page-shell">
+            <div class="almaden-bookshelf-wrapper" id="bookshelf-app-container">
+                <?php echo $bookshelf_catalog_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+            </div>
         </div>
     </main>
     <?php almaden_bookster_render_user_menu_script(); ?>

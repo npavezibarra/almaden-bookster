@@ -120,6 +120,112 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             page-break-inside: avoid;
         }
 
+        .pdf-content figure.pdf-book-image-block,
+        .pdf-content .pdf-book-image-frame {
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 20px auto 10px auto !important;
+            page-break-inside: avoid;
+            break-inside: avoid;
+            box-sizing: border-box !important;
+            position: relative !important;
+        }
+
+        .pdf-content figure.pdf-book-image-block {
+            overflow: visible !important;
+        }
+
+        .pdf-content .pdf-book-image-frame {
+            overflow: hidden !important;
+        }
+
+        .pdf-content .pdf-book-image-frame > img {
+            display: block !important;
+            position: absolute !important;
+            inset: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+        }
+
+        .pdf-content .pdf-book-image-caption {
+            display: block !important;
+            margin-top: 0.5px !important;
+            font-size: 10px !important;
+            line-height: 1.2 !important;
+            color: #4b5563 !important;
+            text-align: left !important;
+            font-style: italic !important;
+            word-break: break-word !important;
+        }
+
+        .pdf-content .pdf-book-image-frame.is-empty {
+            min-height: 180px !important;
+            border-radius: 18px !important;
+            border: 2px dashed #cbd5e1 !important;
+            background: #f8fafc !important;
+            color: #64748b !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 24px !important;
+        }
+
+        .pdf-content .pdf-book-image-placeholder {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
+            min-height: 140px !important;
+            text-align: center !important;
+            font-family: 'Urbanist', sans-serif !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.02em !important;
+            color: #475569 !important;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 16px !important;
+        }
+
+        .pdf-content .pdf-book-image-edit-handle {
+            position: absolute !important;
+            top: 12px !important;
+            right: 12px !important;
+            z-index: 4 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            padding: 8px 12px !important;
+            border: 1px solid rgba(15, 23, 42, 0.12) !important;
+            border-radius: 999px !important;
+            background: rgba(255, 255, 255, 0.94) !important;
+            color: #0f172a !important;
+            font-family: 'Urbanist', sans-serif !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            line-height: 1 !important;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12) !important;
+            cursor: pointer !important;
+            opacity: 0.55 !important;
+            transition: opacity 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease !important;
+        }
+
+        .pdf-content .pdf-book-image-edit-handle:hover,
+        .pdf-content .pdf-book-image-block:hover .pdf-book-image-edit-handle {
+            opacity: 1 !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16) !important;
+        }
+
+        .pdf-content .pdf-book-image-edit-handle i {
+            font-size: 11px !important;
+        }
+
+        .pdf-content .pdf-book-image-edit-handle span {
+            white-space: nowrap !important;
+        }
+
         /* ── Título de Capítulo ── */
         .pdf-content .chapter-main-title {
             font-family: '${settings.chapter_title_font_family || 'Playfair Display'}', serif !important;
@@ -437,13 +543,54 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             font-style: ${settings.font_style_h2 || 'italic'} !important;
             font-size: ${toPx(settings.font_size_h2 || 18.0, true)}px !important;
             line-height: ${settings.line_height_h2 || 1.4} !important;
-            text-align: ${settings.text_align_h2 || 'left'} !important;
+            text-align: ${settings.text_align_h2 || 'inherit'} !important;
+            text-align-last: left !important;
+            word-spacing: normal !important;
+            letter-spacing: normal !important;
             margin-top: ${toPx(settings.margin_top_h2 !== undefined ? settings.margin_top_h2 : 20.0, true)}px !important;
             margin-bottom: ${toPx(settings.margin_bottom_h2 !== undefined ? settings.margin_bottom_h2 : 12.0, true)}px !important;
             color: #1e293b !important;
             text-indent: 0 !important;
+            display: block !important;
+            width: 100% !important;
             page-break-after: avoid;
             break-after: avoid;
+        }
+
+        .pdf-content .chapter-opening-content[data-align="left"] h2,
+        .pdf-content .chapter-opening-content[data-align="left"] h2 *,
+        .pdf-content .almaden-align-left h2,
+        .pdf-content .almaden-align-left h2 * {
+            text-align: left !important;
+            text-align-last: left !important;
+            word-spacing: normal !important;
+            letter-spacing: normal !important;
+            hyphens: none !important;
+            -webkit-hyphens: none !important;
+        }
+
+        .pdf-content .chapter-opening-content[data-align="center"] h2,
+        .pdf-content .chapter-opening-content[data-align="center"] h2 *,
+        .pdf-content .almaden-align-center h2,
+        .pdf-content .almaden-align-center h2 * {
+            text-align: center !important;
+            text-align-last: center !important;
+            word-spacing: normal !important;
+            letter-spacing: normal !important;
+            hyphens: none !important;
+            -webkit-hyphens: none !important;
+        }
+
+        .pdf-content .chapter-opening-content[data-align="right"] h2,
+        .pdf-content .chapter-opening-content[data-align="right"] h2 *,
+        .pdf-content .almaden-align-right h2,
+        .pdf-content .almaden-align-right h2 * {
+            text-align: right !important;
+            text-align-last: right !important;
+            word-spacing: normal !important;
+            letter-spacing: normal !important;
+            hyphens: none !important;
+            -webkit-hyphens: none !important;
         }
 
         .pdf-content h3 {
@@ -452,13 +599,49 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             font-style: ${settings.font_style_h3 || 'normal'} !important;
             font-size: ${toPx(settings.font_size_h3 || 14.0, true)}px !important;
             line-height: ${settings.line_height_h3 || 1.4} !important;
-            text-align: ${settings.text_align_h3 || 'left'} !important;
+            text-align: left !important;
+            text-align-last: left !important;
+            word-spacing: normal !important;
+            letter-spacing: normal !important;
             margin-top: ${toPx(settings.margin_top_h3 !== undefined ? settings.margin_top_h3 : 16.0, true)}px !important;
             margin-bottom: ${toPx(settings.margin_bottom_h3 !== undefined ? settings.margin_bottom_h3 : 8.0, true)}px !important;
             color: #334155 !important;
             text-indent: 0 !important;
+            display: block !important;
+            width: 100% !important;
             page-break-after: avoid;
             break-after: avoid;
+        }
+
+        .pdf-content .almaden-align-left h3,
+        .pdf-content .almaden-align-left h3 *,
+        .pdf-content .chapter-semantic-references .almaden-align-left h3,
+        .pdf-content .chapter-semantic-references .almaden-align-left h3 * {
+            text-align: left !important;
+            text-align-last: left !important;
+        }
+
+        .pdf-content .almaden-align-center h3,
+        .pdf-content .almaden-align-center h3 *,
+        .pdf-content .chapter-semantic-references .almaden-align-center h3,
+        .pdf-content .chapter-semantic-references .almaden-align-center h3 * {
+            text-align: center !important;
+            text-align-last: center !important;
+        }
+
+        .pdf-content .almaden-align-right h3,
+        .pdf-content .almaden-align-right h3 *,
+        .pdf-content .chapter-semantic-references .almaden-align-right h3,
+        .pdf-content .chapter-semantic-references .almaden-align-right h3 * {
+            text-align: right !important;
+            text-align-last: right !important;
+        }
+
+        .pdf-content .chapter-semantic-references h3 {
+            text-align: left !important;
+            text-align-last: left !important;
+            word-spacing: normal !important;
+            letter-spacing: normal !important;
         }
 
     `;

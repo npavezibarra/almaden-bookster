@@ -35,6 +35,20 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
         return '';
     });
 
+    // Extraer bloques de imagen editables antes de escapar para preservarlos como HTML real
+    const imageBlockPlaceholders = {};
+    let imageBlockCounter = 0;
+    cleanMarkdown = cleanMarkdown.replace(/<figure\b[\s\S]*?<\/figure>/gi, (match) => {
+        const normalized = match.toLowerCase();
+        if (!normalized.includes('data-image-block="1"') || !normalized.includes('pdf-book-image-block')) {
+            return match;
+        }
+
+        const key = `%%IMAGE_BLOCK_PLACEHOLDER_${imageBlockCounter++}%%`;
+        imageBlockPlaceholders[key] = match;
+        return key;
+    });
+
     // Extraer tags <img> antes de escapar para preservarlos como HTML real
     const imgPlaceholders = {};
     let imgCounter = 0;
@@ -92,15 +106,13 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i].trim();
 
-        // Manejo de títulos principales (# Título)
-        if (line.startsWith('# ')) {
+        const headingMatch = line.match(/^(#{1,6})\s+(.*)$/);
+
+        // Manejo de títulos y subtítulos markdown (#, ##, ###, ...)
+        if (headingMatch) {
             if (inList) { compiledBlocks.push(`</${listType}>`); inList = false; }
-            compiledBlocks.push(`<h1>${line.substring(2)}</h1>`);
-        }
-        // Manejo de subtítulos (## Subtítulo)
-        else if (line.startsWith('## ')) {
-            if (inList) { compiledBlocks.push(`</${listType}>`); inList = false; }
-            compiledBlocks.push(`<h2>${line.substring(3)}</h2>`);
+            const level = Math.min(6, headingMatch[1].length);
+            compiledBlocks.push(`<h${level}>${headingMatch[2]}</h${level}>`);
         }
         // Manejo de citas (> Cita)
         else if (line.startsWith('&gt; ')) {
@@ -161,6 +173,10 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
 
     // Restaurar placeholders de imágenes como bloques HTML reales
     let result = compiledBlocks.join('\n');
+    for (const [key, imageBlockHtml] of Object.entries(imageBlockPlaceholders)) {
+        result = result.replace(new RegExp(`<p>\\s*${key}\\s*<\\/p>`, 'g'), key);
+        result = result.replace(key, imageBlockHtml);
+    }
     for (const [key, rawHtml] of Object.entries(rawHtmlPlaceholders)) {
         // Des-envolver el placeholder de la etiqueta <p> si se generó
         result = result.replace(new RegExp(`<p>\\s*${key}\\s*<\\/p>`, 'g'), key);

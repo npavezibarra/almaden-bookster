@@ -83,6 +83,46 @@ p:first-of-type { text-indent: 0; }
 		// Normalizar HTML a XHTML simple
 		$content = $chapter->post_content;
 
+		$strip_leading_duplicate_heading = function( $markdown, $title ) {
+			$markdown = (string) $markdown;
+			$title = trim( wp_strip_all_tags( html_entity_decode( (string) $title, ENT_QUOTES, get_bloginfo( 'charset' ) ?: 'UTF-8' ) ) );
+			if ( '' === $markdown || '' === $title ) {
+				return $markdown;
+			}
+
+			$lines = preg_split( "/\r\n|\r|\n/", $markdown );
+			$collected = array();
+			$target = preg_replace( '/\s+/', ' ', $title );
+			$found_body = false;
+
+			foreach ( $lines as $line ) {
+				$trimmed = trim( $line );
+				if ( '' === $trimmed ) {
+					if ( ! $found_body ) {
+						continue;
+					}
+					$collected[] = $line;
+					continue;
+				}
+
+				if ( ! $found_body && preg_match( '/^(#{1,6})\s+(.*)$/', $trimmed, $matches ) ) {
+					$heading_text = trim( wp_strip_all_tags( preg_replace( array( '/\*\*\*(.*?)\*\*\*/s', '/\*\*(.*?)\*\*/s', '/\*(.*?)\*/s' ), '$1', $matches[2] ) ) );
+					$heading_text = preg_replace( '/\s+/', ' ', $heading_text );
+					if ( $heading_text === $target ) {
+						$found_body = true;
+						continue;
+					}
+				}
+
+				$found_body = true;
+				$collected[] = $line;
+			}
+
+			return implode( "\n", $collected );
+		};
+
+		$content = $strip_leading_duplicate_heading( $content, $chapter->post_title );
+
 		// Convertir pseudo-markdown a HTML (similar a editor-markdown.js)
 		$content = str_replace( array('<u\>', '</u>'), array('<u>', '</u>'), $content );
 		$content = preg_replace( '/\*\*(.*?)\*\*/s', '<strong>$1</strong>', $content );
@@ -104,6 +144,10 @@ p:first-of-type { text-indent: 0; }
 		$content = preg_replace( '/\[\/align\]/is', '</div>', $content );
 		$content = preg_replace( '/\[page[-_]?break\]/is', '<div style="page-break-after: always;"></div>', $content );
 		$content = preg_replace( '/\[gap:([0-9]+(?:\.[0-9]+)?)\]/is', '<hr style="height: $1mm; border: none; margin: 0; padding: 0; background: transparent; clear: both;" />', $content );
+		$content = preg_replace_callback( '/^(#{1,6})\s+(.+)$/m', function( $matches ) {
+			$level = min( 6, strlen( $matches[1] ) );
+			return '<h' . $level . '>' . $matches[2] . '</h' . $level . '>';
+		}, $content );
 		
 		// wpautop converts double line breaks to paragraphs
 		$content = wpautop( $content );

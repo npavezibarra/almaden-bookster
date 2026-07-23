@@ -1,15 +1,20 @@
 @media (max-width: 1120px) {
 	#almaden-author-page {
 		--almaden-author-photo-width: clamp(240px, 34vw, 300px);
+		--almaden-author-hero-padding-y: 3rem;
 	}
 
 	#almaden-author-page .almaden-author-grid {
-		grid-template-columns: minmax(240px, var(--almaden-author-photo-width)) minmax(0, 1fr);
-		gap: 2rem;
+		height: 100%;
 	}
 
 	#almaden-author-page .almaden-photo-card {
 		width: auto;
+	}
+
+	#almaden-author-page .almaden-author-panel {
+		left: calc(var(--almaden-author-photo-width) + 2rem);
+		padding: 1.75rem;
 	}
 
 	#almaden-author-photo-modal .almaden-photo-modal-grid {
@@ -26,14 +31,19 @@
 		--almaden-author-photo-width: 100%;
 		--almaden-author-photo-height: 360px;
 		--almaden-author-hero-height: auto;
+		--almaden-author-hero-padding-y: 1.5rem;
 	}
 
 	#almaden-author-page .almaden-author-hero {
 		height: auto;
+		max-height: none;
 	}
 
 	#almaden-author-page .almaden-author-grid {
-		grid-template-columns: 1fr;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		height: auto;
 	}
 
 	#almaden-author-page .almaden-photo-card {
@@ -41,7 +51,12 @@
 	}
 
 	#almaden-author-page .almaden-author-panel {
+		position: relative;
+		top: auto;
+		left: auto;
+		right: auto;
 		padding: 1.4rem;
+		margin-top: 0;
 	}
 
 	#almaden-author-page .almaden-author-cards-grid {

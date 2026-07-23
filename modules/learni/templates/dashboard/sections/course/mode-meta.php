@@ -23,4 +23,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<p class="mt-2 text-base font-semibold text-slate-950"><?php echo esc_html( get_the_author_meta( 'display_name', $course_author_id ) ); ?></p>
 		</div>
 	</div>
+
+	<div class="mt-4 grid gap-4 md:grid-cols-2">
+		<div class="rounded-3xl border border-slate-200 bg-white p-5">
+			<p class="text-xs uppercase tracking-[0.24em] text-slate-400"><?php esc_html_e( 'Colaboradores', 'almaden-bookster' ); ?></p>
+			<p class="mt-2 text-sm leading-6 text-slate-600"><?php echo esc_html( (string) get_post_meta( (int) $selected_course_id, \AlmadenBookster\Learni\PostTypes\Course::META_COLLABORATORS, true ) ); ?></p>
+		</div>
+		<div class="rounded-3xl border border-slate-200 bg-white p-5">
+			<p class="text-xs uppercase tracking-[0.24em] text-slate-400"><?php esc_html_e( 'Certificado', 'almaden-bookster' ); ?></p>
+			<p class="mt-2 text-sm leading-6 text-slate-600">
+				<?php echo ! empty( $editor_state['certificate']['title'] ) ? esc_html( $editor_state['certificate']['title'] ) : esc_html__( 'Pendiente de configurar', 'almaden-bookster' ); ?>
+			</p>
+		</div>
+	</div>
 </div>

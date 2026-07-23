@@ -95,9 +95,11 @@ if ( $is_single_author ) {
 				<div class="almaden-author-grid" id="almaden-author-hero-grid">
 					<div class="almaden-photo-card" id="almaden-author-photo-card" <?php echo $author_photo_url ? 'data-current-photo-url="' . esc_url( $author_photo_url ) . '"' : ''; ?>>
 						<?php if ( $can_edit_author ) : ?>
-							<button type="button" class="almaden-author-photo-action" id="almaden-author-photo-edit-btn" aria-label="<?php esc_attr_e( 'Editar foto de perfil', 'almaden-bookster' ); ?>">
+							<button type="button" class="almaden-author-photo-action" id="almaden-author-photo-edit-btn" aria-label="<?php esc_attr_e( 'Subir o cambiar foto de perfil', 'almaden-bookster' ); ?>">
 								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487a2.1 2.1 0 0 1 2.97 2.97L8.5 18.79 4 20l1.21-4.5L16.862 4.487Z" />
+									<path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V7.5" />
+									<path stroke-linecap="round" stroke-linejoin="round" d="M8.25 11.25 12 7.5l3.75 3.75" />
+									<path stroke-linecap="round" stroke-linejoin="round" d="M5.25 16.5v1.5a1.5 1.5 0 0 0 1.5 1.5h10.5a1.5 1.5 0 0 0 1.5-1.5v-1.5" />
 								</svg>
 							</button>
 						<?php endif; ?>

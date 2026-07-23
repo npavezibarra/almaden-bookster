@@ -100,6 +100,130 @@ body.sidebar-collapsed #sidebar-footer {
     overflow: visible;
 }
 
+.pdf-content figure.pdf-book-image-block,
+.pdf-content .pdf-book-image-frame {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin: 20px auto 10px auto;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.pdf-content figure.pdf-book-image-block {
+    overflow: visible;
+}
+
+.pdf-content .pdf-book-image-frame {
+    overflow: hidden;
+}
+
+.pdf-content .pdf-book-image-frame > img {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pdf-content .pdf-book-image-caption {
+    display: block;
+    margin-top: 0.5px;
+    font-size: 10px;
+    line-height: 1.2;
+    color: #4b5563;
+    text-align: left;
+    font-style: italic;
+    word-break: break-word;
+}
+
+.pdf-content .pdf-book-image-frame.is-empty {
+    min-height: 180px;
+    border-radius: 18px;
+    border: 2px dashed #cbd5e1;
+    background: #f8fafc;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.pdf-content .pdf-book-image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 140px;
+    text-align: center;
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #475569;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+}
+
+.pdf-content .pdf-book-image-edit-handle {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 4;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.94);
+    color: #0f172a;
+    font-family: 'Urbanist', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    cursor: pointer;
+    opacity: 0.55;
+    transition: opacity 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.pdf-content .pdf-book-image-edit-handle:hover,
+.pdf-content .pdf-book-image-block:hover .pdf-book-image-edit-handle {
+    opacity: 1;
+    transform: translateY(-1px);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+}
+
+.pdf-content .pdf-book-image-edit-handle i {
+    font-size: 11px;
+}
+
+.pdf-content .pdf-book-image-edit-handle span {
+    white-space: nowrap;
+}
+
+#image-viewport-preview-frame {
+    touch-action: none;
+    width: 100%;
+}
+
+#image-viewport-preview-viewport {
+    cursor: grab;
+    width: 100%;
+}
+
+#image-viewport-preview-viewport.is-dragging {
+    cursor: grabbing;
+}
+
+#image-viewport-preview-image {
+    user-select: none;
+    -webkit-user-drag: none;
+    pointer-events: none;
+}
+
 .pdf-content h1 {
     font-family: 'Playfair Display', serif;
     font-size: 24pt;
@@ -117,7 +241,14 @@ body.sidebar-collapsed #sidebar-footer {
     margin-bottom: 12px;
     color: #222222;
     font-weight: 600;
-    text-align: left;
+    text-align: inherit;
+    text-align-last: left;
+    word-spacing: normal;
+    letter-spacing: normal;
+    hyphens: none;
+    -webkit-hyphens: none;
+    display: block;
+    width: 100%;
 }
 
 .pdf-content p {
@@ -247,4 +378,66 @@ body.sidebar-collapsed #sidebar-footer {
 }
 ::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
+}
+
+/* Ajustes del Libro: subir 15% la jerarquía tipográfica */
+#settings-modal {
+    --settings-text-scale: 1.15;
+}
+
+#settings-modal .text-xs {
+    font-size: calc(0.75rem * var(--settings-text-scale)) !important;
+}
+
+#settings-modal .text-sm {
+    font-size: calc(0.875rem * var(--settings-text-scale)) !important;
+}
+
+#settings-modal .text-base,
+#settings-modal .text-md {
+    font-size: calc(1rem * var(--settings-text-scale)) !important;
+}
+
+#settings-modal .text-lg {
+    font-size: calc(1.125rem * var(--settings-text-scale)) !important;
+}
+
+#settings-modal .text-\[9px\] {
+    font-size: calc(9px * var(--settings-text-scale)) !important;
+}
+
+#settings-modal .text-\[10px\] {
+    font-size: calc(10px * var(--settings-text-scale)) !important;
+}
+
+#settings-modal .text-\[11px\] {
+    font-size: calc(11px * var(--settings-text-scale)) !important;
+}
+
+#settings-modal .text-\[12px\] {
+    font-size: calc(12px * var(--settings-text-scale)) !important;
+}
+
+#settings-modal .text-\[13px\] {
+    font-size: calc(13px * var(--settings-text-scale)) !important;
+}
+
+#settings-modal .text-\[14px\] {
+    font-size: calc(14px * var(--settings-text-scale)) !important;
+}
+
+#settings-modal p,
+#settings-modal label,
+#settings-modal button,
+#settings-modal input,
+#settings-modal option,
+#settings-modal select,
+#settings-modal textarea {
+    line-height: 1.35;
+}
+
+#settings-modal input::placeholder,
+#settings-modal textarea::placeholder {
+    font-size: inherit;
+    line-height: inherit;
 }

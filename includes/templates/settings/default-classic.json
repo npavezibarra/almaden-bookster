@@ -33,12 +33,15 @@
         
         "font_family_h1": "Newsreader",
         "font_size_h1": 24,
+        "font_style_h1": "normal",
         "font_weight_h1": "normal",
         "font_family_h2": "Newsreader",
         "font_size_h2": 16,
+        "font_style_h2": "italic",
         "font_weight_h2": "normal",
         "font_family_h3": "Newsreader",
         "font_size_h3": 13,
+        "font_style_h3": "normal",
         "font_weight_h3": "normal",
         
         "header_font_family": "Cormorant Garamond",

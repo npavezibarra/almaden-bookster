@@ -61,6 +61,64 @@ function almaden_bookster_sync_creator_page() {
 	}
 }
 
+function almaden_bookster_sync_shell_home_page() {
+	$settings = almaden_bookster_get_pages_settings();
+	$slug     = almaden_bookster_get_shell_home_slug();
+	$title    = almaden_bookster_get_shell_home_title();
+	$page_id  = isset( $settings['shell_home_page_id'] ) ? absint( $settings['shell_home_page_id'] ) : 0;
+	$page     = $page_id > 0 ? get_post( $page_id ) : null;
+
+	if ( $page && 'page' !== $page->post_type ) {
+		$page = null;
+	}
+
+	if ( ! $page ) {
+		$page = get_page_by_path( $slug, OBJECT, 'page' );
+	}
+
+	if ( ! $page ) {
+		$new_page_id = wp_insert_post(
+			array(
+				'post_title'   => $title,
+				'post_name'    => $slug,
+				'post_status'  => 'publish',
+				'post_type'    => 'page',
+				'post_content' => '<!-- El contenido de esta página es generado dinámicamente por el plugin AlmadenBookster -->',
+			)
+		);
+
+		if ( ! is_wp_error( $new_page_id ) && $new_page_id ) {
+			$settings['shell_home_page_id'] = absint( $new_page_id );
+			$settings['shell_home_slug']    = $slug;
+			$settings['shell_home_title']   = $title;
+			update_option( 'almaden_bookster_pages_settings', $settings );
+		}
+
+		return;
+	}
+
+	$updates = array( 'ID' => $page->ID );
+
+	if ( $page->post_name !== $slug ) {
+		$updates['post_name'] = $slug;
+	}
+
+	if ( $page->post_title !== $title ) {
+		$updates['post_title'] = $title;
+	}
+
+	if ( count( $updates ) > 1 ) {
+		wp_update_post( $updates );
+	}
+
+	if ( $page_id !== (int) $page->ID ) {
+		$settings['shell_home_page_id'] = (int) $page->ID;
+		$settings['shell_home_slug']    = $slug;
+		$settings['shell_home_title']   = $title;
+		update_option( 'almaden_bookster_pages_settings', $settings );
+	}
+}
+
 function almaden_bookster_sync_dashboard_page() {
 	$settings = almaden_bookster_get_pages_settings();
 	$slug     = almaden_bookster_get_dashboard_slug();
@@ -351,3 +409,60 @@ function almaden_bookster_sync_store_page() {
 	}
 }
 
+function almaden_bookster_sync_quiz_page() {
+	$settings = function_exists( 'almaden_bookster_get_quiz_page_settings' ) ? almaden_bookster_get_quiz_page_settings() : array();
+	$slug     = function_exists( 'almaden_bookster_get_quiz_page_slug' ) ? almaden_bookster_get_quiz_page_slug() : 'almaden-book-quiz';
+	$title    = function_exists( 'almaden_bookster_get_quiz_page_title' ) ? almaden_bookster_get_quiz_page_title() : 'Book Quiz';
+	$page_id  = isset( $settings['page_id'] ) ? absint( $settings['page_id'] ) : 0;
+	$page     = $page_id > 0 ? get_post( $page_id ) : null;
+
+	if ( $page && 'page' !== $page->post_type ) {
+		$page = null;
+	}
+
+	if ( ! $page ) {
+		$page = get_page_by_path( $slug, OBJECT, 'page' );
+	}
+
+	if ( ! $page ) {
+		$new_page_id = wp_insert_post(
+			array(
+				'post_title'   => $title,
+				'post_name'    => $slug,
+				'post_status'  => 'publish',
+				'post_type'    => 'page',
+				'post_content' => '<!-- El contenido de esta página es generado dinámicamente por el plugin AlmadenBookster -->',
+			)
+		);
+
+		if ( ! is_wp_error( $new_page_id ) && $new_page_id && is_array( $settings ) ) {
+			$settings['page_id'] = absint( $new_page_id );
+			$settings['slug']    = $slug;
+			$settings['title']   = $title;
+			update_option( 'almaden_bookster_quiz_page_settings', $settings );
+		}
+
+		return;
+	}
+
+	$updates = array( 'ID' => $page->ID );
+
+	if ( $page->post_name !== $slug ) {
+		$updates['post_name'] = $slug;
+	}
+
+	if ( $page->post_title !== $title ) {
+		$updates['post_title'] = $title;
+	}
+
+	if ( count( $updates ) > 1 ) {
+		wp_update_post( $updates );
+	}
+
+	if ( $page_id !== (int) $page->ID && is_array( $settings ) ) {
+		$settings['page_id'] = (int) $page->ID;
+		$settings['slug']    = $slug;
+		$settings['title']   = $title;
+		update_option( 'almaden_bookster_quiz_page_settings', $settings );
+	}
+}

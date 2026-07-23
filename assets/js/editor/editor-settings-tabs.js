@@ -2,25 +2,47 @@
 window.switchFormatTab = function(format) {
     const btnPdf = document.getElementById('btn-format-pdf');
     const btnEbook = document.getElementById('btn-format-ebook');
+    const btnGlobal = document.getElementById('btn-format-global');
     const secPdf = document.getElementById('format-pdf-section');
     const secEbook = document.getElementById('format-ebook-section');
+    const secGlobal = document.getElementById('format-global-section');
+
+    const setActiveButton = (btn) => {
+        if (!btn) return;
+        btn.classList.add('bg-[var(--bg-sidebar)]', 'shadow-sm', 'border-[var(--border-color)]', 'text-black', 'dark:text-white', 'font-bold');
+        btn.classList.remove('border-transparent', 'text-[var(--text-muted)]');
+    };
+
+    const setInactiveButton = (btn) => {
+        if (!btn) return;
+        btn.classList.remove('bg-[var(--bg-sidebar)]', 'shadow-sm', 'border-[var(--border-color)]', 'text-black', 'dark:text-white', 'font-bold');
+        btn.classList.add('border-transparent', 'text-[var(--text-muted)]');
+    };
 
     if (format === 'pdf') {
-        btnPdf.classList.add('bg-[var(--bg-sidebar)]', 'shadow-sm', 'border-[var(--border-color)]', 'text-black', 'dark:text-white', 'font-bold');
-        btnPdf.classList.remove('border-transparent', 'text-[var(--text-muted)]');
-        btnEbook.classList.remove('bg-[var(--bg-sidebar)]', 'shadow-sm', 'border-[var(--border-color)]', 'text-black', 'dark:text-white', 'font-bold');
-        btnEbook.classList.add('border-transparent', 'text-[var(--text-muted)]');
+        setActiveButton(btnPdf);
+        setInactiveButton(btnEbook);
+        setInactiveButton(btnGlobal);
         
         secPdf.classList.remove('hidden');
         secEbook.classList.add('hidden');
+        secGlobal.classList.add('hidden');
+    } else if (format === 'global') {
+        setActiveButton(btnGlobal);
+        setInactiveButton(btnPdf);
+        setInactiveButton(btnEbook);
+
+        secGlobal.classList.remove('hidden');
+        secPdf.classList.add('hidden');
+        secEbook.classList.add('hidden');
     } else {
-        btnEbook.classList.add('bg-[var(--bg-sidebar)]', 'shadow-sm', 'border-[var(--border-color)]', 'text-black', 'dark:text-white', 'font-bold');
-        btnEbook.classList.remove('border-transparent', 'text-[var(--text-muted)]');
-        btnPdf.classList.remove('bg-[var(--bg-sidebar)]', 'shadow-sm', 'border-[var(--border-color)]', 'text-black', 'dark:text-white', 'font-bold');
-        btnPdf.classList.add('border-transparent', 'text-[var(--text-muted)]');
+        setActiveButton(btnEbook);
+        setInactiveButton(btnPdf);
+        setInactiveButton(btnGlobal);
         
         secEbook.classList.remove('hidden');
         secPdf.classList.add('hidden');
+        secGlobal.classList.add('hidden');
     }
 }
 
@@ -188,6 +210,9 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-font-family-h1')) document.getElementById('setting-font-family-h1').value = settings.font_family_h1 || 'Playfair Display';
     if (document.getElementById('setting-font-family-h2')) document.getElementById('setting-font-family-h2').value = settings.font_family_h2 || 'Playfair Display';
     if (document.getElementById('setting-font-family-h3')) document.getElementById('setting-font-family-h3').value = settings.font_family_h3 || 'Playfair Display';
+    if (document.getElementById('setting-font-style-h1')) document.getElementById('setting-font-style-h1').value = settings.font_style_h1 || 'normal';
+    if (document.getElementById('setting-font-style-h2')) document.getElementById('setting-font-style-h2').value = settings.font_style_h2 || 'italic';
+    if (document.getElementById('setting-font-style-h3')) document.getElementById('setting-font-style-h3').value = settings.font_style_h3 || 'normal';
     if (document.getElementById('setting-font-weight-h1')) document.getElementById('setting-font-weight-h1').value = settings.font_weight_h1 || 'bold';
     if (document.getElementById('setting-font-weight-h2')) document.getElementById('setting-font-weight-h2').value = settings.font_weight_h2 || 'bold';
     if (document.getElementById('setting-font-weight-h3')) document.getElementById('setting-font-weight-h3').value = settings.font_weight_h3 || 'bold';

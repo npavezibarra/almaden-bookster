@@ -28,11 +28,17 @@ final class CreatorDashboard {
 			return;
 		}
 
-		if ( ! is_user_logged_in() ) {
+		$is_auth_modal_view = isset( $_GET['pl_auth_view'] ) && in_array( sanitize_key( (string) wp_unslash( $_GET['pl_auth_view'] ) ), array( 'login', 'register' ), true );
+
+		if ( is_user_logged_in() ) {
+			if ( ! self::current_user_can_access() ) {
+				wp_die( esc_html__( 'No tienes permisos para acceder al creador de cursos.', 'almaden-bookster' ) );
+			}
+		} elseif ( ! $is_auth_modal_view ) {
 			auth_redirect();
 		}
 
-		if ( ! self::current_user_can_access() ) {
+		if ( is_user_logged_in() && ! self::current_user_can_access() ) {
 			wp_die( esc_html__( 'No tienes permisos para acceder al creador de cursos.', 'almaden-bookster' ) );
 		}
 
@@ -56,9 +62,14 @@ final class CreatorDashboard {
 		$css_ver  = file_exists( $css_path ) ? (string) filemtime( $css_path ) : ALMADEN_BOOKSTER_LEARNI_VERSION;
 		wp_enqueue_style( 'almaden-bookster-learni-dashboard', ALMADEN_BOOKSTER_LEARNI_PLUGIN_URL . 'assets/dashboard/course-dashboard.css', array(), $css_ver );
 
-		$js_path = ALMADEN_BOOKSTER_LEARNI_PLUGIN_DIR . 'assets/dashboard/course-dashboard.js';
-		$js_ver  = file_exists( $js_path ) ? (string) filemtime( $js_path ) : ALMADEN_BOOKSTER_LEARNI_VERSION;
-		wp_enqueue_script( 'almaden-bookster-learni-dashboard', ALMADEN_BOOKSTER_LEARNI_PLUGIN_URL . 'assets/dashboard/course-dashboard.js', array(), $js_ver, true );
+		$base_js = ALMADEN_BOOKSTER_LEARNI_PLUGIN_URL . 'assets/dashboard/js/';
+		$js_ver  = ALMADEN_BOOKSTER_LEARNI_VERSION;
+
+		wp_enqueue_script( 'almaden-bookster-learni-dashboard-dom', $base_js . 'core/dom-utils.js', array(), $js_ver, true );
+		wp_enqueue_script( 'almaden-bookster-learni-dashboard-words', $base_js . 'components/word-counters.js', array(), $js_ver, true );
+		wp_enqueue_script( 'almaden-bookster-learni-dashboard-media', $base_js . 'components/media-picker.js', array(), $js_ver, true );
+		wp_enqueue_script( 'almaden-bookster-learni-dashboard-course', $base_js . 'components/course-editor.js', array(), $js_ver, true );
+		wp_enqueue_script( 'almaden-bookster-learni-dashboard-lesson', $base_js . 'components/lesson-editor.js', array(), $js_ver, true );
 	}
 
 	public static function handle_create_course(): void {
@@ -81,17 +92,46 @@ final class CreatorDashboard {
 		}
 
 		$description = isset( $_POST['course_description'] ) ? wp_kses_post( wp_unslash( $_POST['course_description'] ) ) : '';
+		$excerpt = isset( $_POST['course_excerpt'] ) ? sanitize_text_field( wp_unslash( $_POST['course_excerpt'] ) ) : '';
+		$status = isset( $_POST['course_status'] ) ? sanitize_key( wp_unslash( $_POST['course_status'] ) ) : 'draft';
+		$status = in_array( $status, array( 'draft', 'pending', 'publish', 'private' ), true ) ? $status : 'draft';
+		$price = isset( $_POST['course_price'] ) ? (float) wp_unslash( $_POST['course_price'] ) : 0;
+		$cover_photo_id = isset( $_POST['course_cover_photo_id'] ) ? absint( $_POST['course_cover_photo_id'] ) : 0;
+		$banner_photo_id = isset( $_POST['course_banner_photo_id'] ) ? absint( $_POST['course_banner_photo_id'] ) : 0;
+		$certificate_logo_id = isset( $_POST['course_certificate_logo_id'] ) ? absint( $_POST['course_certificate_logo_id'] ) : 0;
+		$linear_order = isset( $_POST['course_linear_order'] ) ? ( ! empty( $_POST['course_linear_order'] ) ? 1 : 0 ) : 1;
+		$payment_mode = isset( $_POST['course_payment_mode'] ) ? sanitize_key( wp_unslash( $_POST['course_payment_mode'] ) ) : 'woocommerce';
+		$payment_mode = in_array( $payment_mode, array( 'woocommerce', 'direct' ), true ) ? $payment_mode : 'woocommerce';
+		$collaborators = '';
+		if ( isset( $_POST['course_collaborators'] ) ) {
+			$collaborators = sanitize_text_field( wp_unslash( $_POST['course_collaborators'] ) );
+		} elseif ( isset( $_POST['course_teachers'] ) && is_array( $_POST['course_teachers'] ) ) {
+			$teachers = array();
+			foreach ( wp_unslash( $_POST['course_teachers'] ) as $teacher_name ) {
+				$teacher_name = sanitize_text_field( (string) $teacher_name );
+				if ( '' !== $teacher_name ) {
+					$teachers[] = $teacher_name;
+				}
+			}
+			$collaborators = implode( ', ', $teachers );
+		}
+
 		$course_id   = wp_insert_post(
 			array(
 				'post_author'  => get_current_user_id(),
 				'post_title'   => $title,
 				'post_content' => $description,
-				'post_excerpt' => '',
-				'post_status'  => 'draft',
+				'post_excerpt' => $excerpt,
+				'post_status'  => $status,
 				'post_type'    => Course::POST_TYPE,
 				'meta_input'   => array(
-					Course::META_LINEAR_ORDER => 1,
-					Course::META_PAYMENT_MODE  => 'woocommerce',
+					Course::META_LINEAR_ORDER       => $linear_order,
+					Course::META_PAYMENT_MODE       => $payment_mode,
+					Course::META_PRICE              => $price > 0 ? $price : 0,
+					Course::META_COVER_PHOTO_ID     => $cover_photo_id,
+					Course::META_BANNER_PHOTO_ID    => $banner_photo_id,
+					Course::META_COLLABORATORS      => $collaborators,
+					Course::META_CERTIFICATE_LOGO_ID => $certificate_logo_id,
 				),
 			)
 		);
@@ -204,7 +244,9 @@ final class CreatorDashboard {
 		$has_quiz    = $quiz_id > 0 && ( class_exists( QuizRepository::class ) ? QuizRepository::quiz_exists( $quiz_id ) : false );
 		$status      = get_post_status( $course_id );
 		$status_label = self::status_label( $status );
-		$thumb      = get_the_post_thumbnail_url( $course_id, 'large' );
+		$cover_photo_id = (int) get_post_meta( $course_id, Course::META_COVER_PHOTO_ID, true );
+		$thumb      = $cover_photo_id > 0 ? wp_get_attachment_image_url( $cover_photo_id, 'large' ) : get_the_post_thumbnail_url( $course_id, 'large' );
+		$price      = (float) get_post_meta( $course_id, Course::META_PRICE, true );
 		$excerpt    = trim( wp_strip_all_tags( (string) $post->post_excerpt ) );
 		if ( $excerpt === '' ) {
 			$excerpt = wp_trim_words( wp_strip_all_tags( (string) $post->post_content ), 18 );
@@ -220,6 +262,9 @@ final class CreatorDashboard {
 			'quiz_id'       => $quiz_id,
 			'has_quiz'      => $has_quiz,
 			'thumbnail_url' => is_string( $thumb ) ? $thumb : '',
+			'cover_photo_id' => $cover_photo_id,
+			'price'         => $price,
+			'price_label'   => $price > 0 ? ( function_exists( 'wc_price' ) ? wp_strip_all_tags( wc_price( $price ) ) : number_format_i18n( $price, 2 ) ) : __( 'Gratis', 'almaden-bookster' ),
 			'excerpt'       => $excerpt,
 			'updated'       => get_the_modified_date( get_option( 'date_format' ), $course_id ),
 		);

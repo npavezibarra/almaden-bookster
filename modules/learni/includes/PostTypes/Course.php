@@ -7,12 +7,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class Course {
-	public const POST_TYPE = 'almaden_learni_course';
+	public const POST_TYPE = 'almdn_learni_course';
 	public const META_PRICE = 'almaden_learni_price';
 	public const META_LINEAR_ORDER = 'almaden_learni_linear_order';
 	public const META_PAYMENT_MODE = 'almaden_learni_payment_mode';
 	public const META_COVER_PHOTO_ID = 'almaden_learni_cover_photo_id';
+	public const META_BANNER_PHOTO_ID = 'almaden_learni_banner_photo_id';
+	public const META_COLLABORATORS = 'almaden_learni_collaborators';
 	public const META_QUIZ_ID = 'almaden_learni_quiz_id';
+	public const META_CERTIFICATE_TITLE = 'almaden_learni_certificate_title';
+	public const META_CERTIFICATE_MESSAGE = 'almaden_learni_certificate_message';
+	public const META_CERTIFICATE_LOGO_ID = 'almaden_learni_certificate_logo_id';
+	public const META_CERTIFICATE_SIGNATURE_ATTACHMENT_ID = 'almaden_learni_certificate_signature_attachment_id';
+	public const META_CERTIFICATE_SIGNATURE = 'almaden_learni_certificate_signature';
+	public const META_CERTIFICATE_SIGNATURE_LABEL = 'almaden_learni_certificate_signature_label';
 
 	private static bool $did_register_meta = false;
 
@@ -112,7 +120,95 @@ final class Course {
 
 		register_post_meta(
 			self::POST_TYPE,
+			self::META_BANNER_PHOTO_ID,
+			array(
+				'type'              => 'integer',
+				'single'            => true,
+				'show_in_rest'      => true,
+				'default'           => 0,
+				'sanitize_callback' => 'absint',
+				'auth_callback'     => static function ( $allowed, $meta_key, $post_id ) {
+					return current_user_can( 'edit_post', (int) $post_id );
+				},
+			)
+		);
+
+		register_post_meta(
+			self::POST_TYPE,
+			self::META_COLLABORATORS,
+			array(
+				'type'              => 'string',
+				'single'            => true,
+				'show_in_rest'      => true,
+				'default'           => '',
+				'sanitize_callback' => static function ( $value ) {
+					return is_string( $value ) ? sanitize_text_field( $value ) : '';
+				},
+				'auth_callback'     => static function ( $allowed, $meta_key, $post_id ) {
+					return current_user_can( 'edit_post', (int) $post_id );
+				},
+			)
+		);
+
+		register_post_meta(
+			self::POST_TYPE,
 			self::META_QUIZ_ID,
+			array(
+				'type'              => 'integer',
+				'single'            => true,
+				'show_in_rest'      => true,
+				'default'           => 0,
+				'sanitize_callback' => 'absint',
+				'auth_callback'     => static function ( $allowed, $meta_key, $post_id ) {
+					return current_user_can( 'edit_post', (int) $post_id );
+				},
+			)
+		);
+
+		foreach (
+			array(
+				self::META_CERTIFICATE_TITLE,
+				self::META_CERTIFICATE_MESSAGE,
+				self::META_CERTIFICATE_SIGNATURE,
+				self::META_CERTIFICATE_SIGNATURE_LABEL,
+			) as $meta_key
+		) {
+			register_post_meta(
+				self::POST_TYPE,
+				$meta_key,
+				array(
+					'type'              => 'string',
+					'single'            => true,
+					'show_in_rest'      => true,
+					'default'           => '',
+					'sanitize_callback' => static function ( $value ) {
+						return is_string( $value ) ? sanitize_text_field( $value ) : '';
+					},
+					'auth_callback'     => static function ( $allowed, $meta_key, $post_id ) {
+						return current_user_can( 'edit_post', (int) $post_id );
+					},
+				)
+			);
+		}
+
+		register_post_meta(
+			self::POST_TYPE,
+			self::META_CERTIFICATE_LOGO_ID,
+			array(
+				'type'              => 'integer',
+				'single'            => true,
+				'show_in_rest'      => true,
+				'default'           => 0,
+				'sanitize_callback' => 'absint',
+				'auth_callback'     => static function ( $allowed, $meta_key, $post_id ) {
+					return current_user_can( 'edit_post', (int) $post_id );
+				},
+			)
+		);
+
+		register_post_meta(
+			self::POST_TYPE,
+			self::META_CERTIFICATE_SIGNATURE_ATTACHMENT_ID,
 			array(
 				'type'              => 'integer',
 				'single'            => true,

@@ -5,27 +5,40 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! function_exists( 'almaden_bookster_get_shared_nav_items' ) ) {
 	function almaden_bookster_get_shared_nav_items() {
-		return array(
-			array(
-				'key'   => 'creator',
-				'label' => 'Taller',
-				'url'   => function_exists( 'almaden_bookster_get_creator_page_url' ) ? almaden_bookster_get_creator_page_url() : home_url( '/' ),
-			),
+		$nav_items = array(
 			array(
 				'key'   => 'authors',
 				'label' => function_exists( 'almaden_bookster_get_authors_title' ) ? almaden_bookster_get_authors_title() : 'Autores',
 				'url'   => function_exists( 'almaden_bookster_get_authors_page_url' ) ? almaden_bookster_get_authors_page_url() : home_url( '/' ),
 			),
 			array(
-				'key'   => 'course_archive',
-				'label' => function_exists( 'almaden_bookster_get_course_archive_title' ) ? almaden_bookster_get_course_archive_title() : 'Sala de clases',
-				'url'   => function_exists( 'almaden_bookster_get_course_archive_page_url' ) ? almaden_bookster_get_course_archive_page_url() : home_url( '/' ),
+				'key'   => 'publisher',
+				'label' => 'Editoriales',
+				'url'   => function_exists( 'almaden_bookster_get_publisher_page_url' ) ? almaden_bookster_get_publisher_page_url() : home_url( '/' ),
 			),
 			array(
 				'key'   => 'store',
 				'label' => function_exists( 'almaden_bookster_get_store_title' ) ? almaden_bookster_get_store_title() : 'Ebook Store',
 				'url'   => function_exists( 'almaden_bookster_get_store_page_url' ) ? almaden_bookster_get_store_page_url() : home_url( '/' ),
 			),
+		);
+
+		if ( ! function_exists( 'almaden_bookster_user_can_access_frontend_page' ) ) {
+			return $nav_items;
+		}
+
+		return array_values(
+			array_filter(
+				$nav_items,
+				static function( $nav_item ) {
+					$item_key = isset( $nav_item['key'] ) ? sanitize_key( (string) $nav_item['key'] ) : '';
+					if ( '' === $item_key ) {
+						return true;
+					}
+
+					return almaden_bookster_user_can_access_frontend_page( $item_key );
+				}
+			)
 		);
 	}
 }
@@ -55,11 +68,27 @@ if ( ! function_exists( 'almaden_bookster_render_shared_nav' ) ) {
 				'url'   => almaden_bookster_get_creator_page_url(),
 			);
 		}
-		if ( function_exists( 'almaden_bookster_get_authors_page_url' ) ) {
+		if ( function_exists( 'almaden_bookster_get_course_archive_page_url' ) ) {
 			$user_menu_items[] = array(
-				'key'   => 'authors',
-				'label' => function_exists( 'almaden_bookster_get_authors_title' ) ? almaden_bookster_get_authors_title() : 'Autores',
-				'url'   => almaden_bookster_get_authors_page_url(),
+				'key'   => 'course_archive',
+				'label' => function_exists( 'almaden_bookster_get_course_archive_title' ) ? almaden_bookster_get_course_archive_title() : 'Cursos',
+				'url'   => almaden_bookster_get_course_archive_page_url(),
+			);
+		}
+
+		if ( function_exists( 'almaden_bookster_user_can_access_frontend_page' ) ) {
+			$user_menu_items = array_values(
+				array_filter(
+					$user_menu_items,
+					static function( $nav_item ) {
+						$item_key = isset( $nav_item['key'] ) ? sanitize_key( (string) $nav_item['key'] ) : '';
+						if ( '' === $item_key ) {
+							return true;
+						}
+
+						return almaden_bookster_user_can_access_frontend_page( $item_key );
+					}
+				)
 			);
 		}
 
@@ -85,7 +114,10 @@ if ( ! function_exists( 'almaden_bookster_render_shared_nav' ) ) {
 				<div class="flex h-16 justify-between">
 					<div class="flex items-center">
 						<div class="flex-shrink-0 flex items-center text-black">
-							<span class="text-2xl tracking-tight urbanist-almaden-logo">almaden</span>
+							<?php $shell_home_url = function_exists( 'almaden_bookster_get_shell_home_page_url' ) ? almaden_bookster_get_shell_home_page_url() : home_url( '/' ); ?>
+							<a href="<?php echo esc_url( $shell_home_url ); ?>" class="text-2xl tracking-tight urbanist-almaden-logo transition hover:opacity-80">
+								almaden
+							</a>
 						</div>
 						<div class="hidden items-center sm:ml-8 sm:flex sm:space-x-6">
 							<?php foreach ( $nav_items as $nav_item ) : ?>
@@ -144,7 +176,7 @@ if ( ! function_exists( 'almaden_bookster_render_shared_nav' ) ) {
 									data-almaden-user-menu
 									class="invisible absolute right-0 top-full z-50 mt-3 w-64 translate-y-1 rounded-[1.5rem] border border-gray-200 bg-white p-2 opacity-0 transition-all duration-200"
 								>
-									<?php foreach ( array_slice( $user_menu_items, 0, 3 ) as $nav_item ) : ?>
+									<?php foreach ( $user_menu_items as $nav_item ) : ?>
 										<?php
 										$item_key = isset( $nav_item['key'] ) ? sanitize_key( (string) $nav_item['key'] ) : '';
 										$is_active = $item_key && $active_nav_key === $item_key;
@@ -177,10 +209,10 @@ if ( ! function_exists( 'almaden_bookster_render_shared_nav' ) ) {
 									<a
 										href="<?php echo esc_url( $logout_url ); ?>"
 										class="flex items-center rounded-[1.1rem] px-4 py-3 text-base font-semibold text-gray-900 transition hover:bg-gray-50 hover:text-black"
-									>
-										Cerrar sesión
-									</a>
-								</div>
+										>
+											Cerrar sesión
+										</a>
+									</div>
 							</div>
 						<?php else : ?>
 							<button
@@ -280,31 +312,6 @@ if ( ! function_exists( 'almaden_bookster_render_app_shell_start' ) ) {
 		$body_class = array_filter( array_map( 'sanitize_html_class', (array) $body_class ) );
 
 		$active_nav_key = sanitize_key( (string) $args['active_nav_key'] );
-		$top_nav_items = array();
-
-		if ( function_exists( 'almaden_bookster_get_creator_page_url' ) ) {
-			$top_nav_items[] = array(
-				'key'   => 'creator',
-				'label' => 'Taller',
-				'url'   => almaden_bookster_get_creator_page_url(),
-			);
-		}
-
-		if ( function_exists( 'almaden_bookster_get_authors_page_url' ) ) {
-			$top_nav_items[] = array(
-				'key'   => 'authors',
-				'label' => function_exists( 'almaden_bookster_get_authors_title' ) ? almaden_bookster_get_authors_title() : 'Autores',
-				'url'   => almaden_bookster_get_authors_page_url(),
-			);
-		}
-
-		if ( function_exists( 'almaden_bookster_get_store_page_url' ) ) {
-			$top_nav_items[] = array(
-				'key'   => 'store',
-				'label' => function_exists( 'almaden_bookster_get_store_title' ) ? almaden_bookster_get_store_title() : 'Ebook Store',
-				'url'   => almaden_bookster_get_store_page_url(),
-			);
-		}
 
 		$current_user = function_exists( 'wp_get_current_user' ) ? wp_get_current_user() : null;
 		$is_logged_in = function_exists( 'is_user_logged_in' ) ? is_user_logged_in() : false;
@@ -326,7 +333,8 @@ if ( ! function_exists( 'almaden_bookster_render_app_shell_start' ) ) {
 			$logout_redirect = home_url( $current_request_uri );
 			$logout_url = function_exists( 'wp_logout_url' ) ? wp_logout_url( $logout_redirect ) : '';
 		}
-		?>
+
+			?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -394,6 +402,14 @@ if ( ! function_exists( 'almaden_bookster_render_app_shell_start' ) ) {
 		}
 		#almaden-app-user-menu {
 			box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+		}
+		#almaden-app-nav {
+			position: sticky;
+			top: 0;
+			z-index: 60;
+			background-color: rgba(255, 255, 255, 0.96);
+			backdrop-filter: saturate(180%) blur(14px);
+			-webkit-backdrop-filter: saturate(180%) blur(14px);
 		}
 		#almaden-app-nav-inner {
 			padding-left: 2rem;

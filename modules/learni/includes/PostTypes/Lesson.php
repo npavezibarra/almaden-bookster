@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class Lesson {
-	public const POST_TYPE = 'almaden_learni_lesson';
+	public const POST_TYPE = 'almdn_learni_lesson';
 	public const META_VIDEO_URL = 'almaden_learni_video_url';
 	public const META_AVAILABLE_AT = 'almaden_learni_available_at';
 	public const META_SOURCE_POST_ID = 'almaden_learni_source_post_id';

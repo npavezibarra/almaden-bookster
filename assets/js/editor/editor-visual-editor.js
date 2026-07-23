@@ -81,6 +81,19 @@ function getSpanStyleValue(node, property) {
     return value ? String(value).trim() : '';
 }
 
+function isImageBlockWrapper(node) {
+    if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
+
+    const tag = node.tagName.toLowerCase();
+    if (tag !== 'figure' && tag !== 'div') return false;
+
+    const className = String(node.className || '');
+    const hasBlockClass = className.split(/\s+/).includes('pdf-book-image-block');
+    const hasBlockAttr = node.getAttribute('data-image-block') === '1';
+
+    return hasBlockClass || hasBlockAttr;
+}
+
 function escapeTextValue(value) {
     return String(value || '')
         .replace(/\r\n/g, '\n')
@@ -178,6 +191,16 @@ function serializeBlockNode(node) {
     }
 
     const tag = node.tagName.toLowerCase();
+
+    if (isImageBlockWrapper(node)) {
+        const clone = node.cloneNode(true);
+        if (clone.removeAttribute) {
+            clone.removeAttribute('style');
+        }
+        clone.querySelectorAll('.pdf-book-image-edit-handle').forEach((el) => el.remove());
+        clone.querySelectorAll('[style]').forEach((el) => el.removeAttribute('style'));
+        return `\n${clone.outerHTML}\n`;
+    }
 
     if (tag === 'p') return serializeParagraphLike(node);
     if (tag === 'h1') return `# ${serializeInlineChildren(node).trim()}`;

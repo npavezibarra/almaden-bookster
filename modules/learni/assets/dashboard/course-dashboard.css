@@ -9,11 +9,28 @@
 }
 
 body.almaden-learni-dashboard {
-	background:
-		radial-gradient(circle at top left, rgba(164, 95, 42, 0.12), transparent 30%),
-		radial-gradient(circle at 80% 0%, rgba(16, 185, 129, 0.08), transparent 25%),
-		linear-gradient(180deg, #fcfaf6 0%, var(--almaden-learni-bg) 100%);
+	background: #f6f6f6;
 	color: var(--almaden-learni-text);
+}
+
+body.almaden-learni-creator,
+body.almaden-learni-catalog {
+	font-family: "Urbanist", sans-serif;
+}
+
+body.almaden-learni-creator h1,
+body.almaden-learni-creator h2,
+body.almaden-learni-creator h3,
+body.almaden-learni-creator h4,
+body.almaden-learni-creator h5,
+body.almaden-learni-creator h6,
+body.almaden-learni-catalog h1,
+body.almaden-learni-catalog h2,
+body.almaden-learni-catalog h3,
+body.almaden-learni-catalog h4,
+body.almaden-learni-catalog h5,
+body.almaden-learni-catalog h6 {
+	font-family: "Poppins", "Urbanist", sans-serif;
 }
 
 .almaden-learni-dashboard .almaden-learni-surface {
@@ -33,6 +50,171 @@ body.almaden-learni-dashboard {
 	border-color: rgba(164, 95, 42, 0.22);
 }
 
+.almaden-learni-course-card:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 22px 44px rgba(15, 23, 42, 0.1);
+	border-color: rgba(164, 95, 42, 0.24);
+}
+
+.almaden-learni-creator-sidebar {
+	position: sticky;
+	top: 1.5rem;
+	align-self: start;
+	padding: 1.5rem;
+	background: #fff;
+	border: 1px solid rgba(15, 23, 42, 0.08);
+	border-radius: 2rem;
+	box-shadow: 0 20px 50px rgba(15, 23, 42, 0.06);
+}
+
+.almaden-learni-creator-nav-link {
+	display: flex;
+	align-items: center;
+	gap: 0.85rem;
+	padding: 1rem 1.05rem;
+	border-left: 4px solid transparent;
+	border-radius: 1rem;
+	color: #a3a3a3;
+	font-size: 0.86rem;
+	font-weight: 700;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.almaden-learni-creator-nav-link .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+}
+
+.almaden-learni-creator-nav-link:hover {
+	background: rgba(15, 23, 42, 0.03);
+	color: #111827;
+}
+
+.almaden-learni-creator-nav-link.is-active {
+	background: rgba(15, 23, 42, 0.04);
+	border-left-color: #111827;
+	color: #111827;
+}
+
+.almaden-learni-creator-nav-link.is-active .dashicons {
+	color: #111827;
+}
+
+.almaden-learni-creator-nav-link:not(.is-active) .dashicons {
+	color: #a3a3a3;
+}
+
+.almaden-learni-creator .almaden-learni-surface {
+	background: #ffffff;
+}
+
+.almaden-learni-create-tab.is-active {
+	border-color: rgba(17, 24, 39, 0.12);
+	box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+}
+
+.almaden-learni-create-tab {
+	transition: border-color .18s ease, color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.almaden-learni-create-tab:hover {
+	transform: translateY(-1px);
+}
+
+.almaden-learni-course-tab.is-active {
+	border-color: rgba(17, 24, 39, 0.12);
+	box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+}
+
+.almaden-learni-course-tab {
+	transition: border-color .18s ease, color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.almaden-learni-course-tab:hover {
+	transform: translateY(-1px);
+}
+
+#almaden-create-course-panel textarea,
+#almaden-create-course-panel input {
+	font-family: "Urbanist", sans-serif;
+}
+
+#almaden-learni-tab-curso textarea,
+#almaden-learni-tab-curso input {
+	font-family: "Urbanist", sans-serif;
+}
+
+#almaden-create-course-panel [data-almaden-media-preview] img {
+	display: block;
+	width: 100%;
+}
+
+#almaden-learni-tab-curso [data-almaden-media-preview] img {
+	display: block;
+	width: 100%;
+}
+
+.almaden-learni-lesson--dragging {
+	opacity: 0.55;
+	transform: scale(0.99);
+}
+
+.almaden-learni-lesson--drop-target {
+	border-color: rgba(164, 95, 42, 0.45) !important;
+	box-shadow: 0 0 0 3px rgba(164, 95, 42, 0.12);
+}
+
+.almaden-learni-lesson-card--open {
+	border-color: rgba(164, 95, 42, 0.22);
+	box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+.almaden-learni-lesson-card [data-almaden-lesson-toggle] .dashicons {
+	transition: transform .18s ease;
+}
+
+.almaden-learni-lesson-card--open [data-almaden-lesson-toggle] .dashicons {
+	transform: translateY(1px);
+}
+
+.almaden-learni-creator #almaden-lesson-creator-panel {
+	scroll-margin-top: 2rem;
+}
+
+.almaden-learni-creator [data-almaden-outline-item] {
+	transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+.almaden-learni-creator [data-almaden-outline-item]:hover {
+	box-shadow: 0 16px 32px rgba(15, 23, 42, 0.06);
+	border-color: rgba(164, 95, 42, 0.22);
+}
+
+.almaden-learni-creator [data-almaden-outline-item] input,
+.almaden-learni-creator [data-almaden-outline-item] textarea {
+	font-family: "Urbanist", sans-serif;
+}
+
+[data-almaden-lesson-drag-handle] {
+	cursor: grab;
+	line-height: 1;
+}
+
+[data-almaden-lesson-drag-handle]:active {
+	cursor: grabbing;
+}
+
+[data-almaden-lesson-drag-handle] .dashicons {
+	font-size: 22px;
+	width: 22px;
+	height: 22px;
+	line-height: 22px;
+	margin: 0;
+}
+
 .almaden-learni-pill {
 	background: var(--almaden-learni-accent-soft);
 	color: var(--almaden-learni-accent);
@@ -44,3 +226,64 @@ body.almaden-learni-dashboard {
 		radial-gradient(circle at 20% 20%, rgba(164, 95, 42, 0.35), transparent 30%);
 }
 
+.almaden-learni-dashboard [data-wordcount-target] {
+	display: block;
+	min-height: 1rem;
+	color: var(--almaden-learni-muted);
+}
+
+.almaden-learni-dashboard #almaden-course-editor,
+.almaden-learni-dashboard #almaden-course-listing {
+	padding-inline: 0;
+}
+
+.almaden-learni-dashboard #almaden-course-sidebar {
+	position: sticky;
+	top: 1.5rem;
+	align-self: start;
+}
+
+body.almaden-learni-course-mode-open #almaden-course-editor > div,
+body.is-create-course-open #almaden-course-editor > div {
+	grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.almaden-learni-dashboard .almaden-learni-surface button,
+.almaden-learni-dashboard .almaden-learni-surface a,
+.almaden-learni-dashboard .almaden-learni-surface input,
+.almaden-learni-dashboard .almaden-learni-surface textarea,
+.almaden-learni-dashboard .almaden-learni-surface select {
+	border-color: rgba(148, 163, 184, 0.75);
+}
+
+.almaden-learni-dashboard [data-almaden-media-preview] img {
+	display: block;
+	width: 100%;
+}
+
+.almaden-learni-dashboard [data-almaden-media-remove] {
+	transition: color .18s ease, opacity .18s ease;
+}
+
+.almaden-learni-dashboard [data-almaden-media-remove]:hover {
+	color: #b91c1c;
+}
+
+.almaden-learni-course-card .almaden-learni-pill {
+	background: rgba(244, 244, 245, 0.95);
+	color: #111827;
+}
+
+.almaden-learni-course-card [data-course-status] {
+	letter-spacing: 0.18em;
+}
+
+@media (max-width: 1024px) {
+	.almaden-learni-dashboard #almaden-course-sidebar {
+		position: static;
+	}
+
+	.almaden-learni-creator-sidebar {
+		position: static;
+	}
+}

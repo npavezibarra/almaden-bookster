@@ -31,6 +31,11 @@ function almaden_bookster_get_author_page_title() {
 	return isset( $settings['title'] ) && '' !== $settings['title'] ? $settings['title'] : 'Autor';
 }
 
+function almaden_bookster_get_author_page_id() {
+	$settings = almaden_bookster_get_author_page_settings();
+	return isset( $settings['page_id'] ) ? absint( $settings['page_id'] ) : 0;
+}
+
 function almaden_bookster_get_author_page_url( $author_slug = '' ) {
 	$base_slug = trim( almaden_bookster_get_author_page_slug(), '/' );
 	$base_url  = home_url( '/' . $base_slug . '/' );
@@ -179,4 +184,3 @@ function almaden_bookster_sync_author_page() {
 function almaden_bookster_get_authors_page_settings() {
 	return almaden_bookster_get_pages_settings();
 }
-

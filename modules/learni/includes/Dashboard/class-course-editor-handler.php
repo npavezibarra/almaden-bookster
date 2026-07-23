@@ -16,20 +16,42 @@ final class CourseEditorHandler {
 		add_action( 'admin_post_almaden_learni_save_course', array( __CLASS__, 'handle_save_course' ) );
 		add_action( 'admin_post_almaden_learni_save_lesson', array( __CLASS__, 'handle_save_lesson' ) );
 		add_action( 'admin_post_almaden_learni_delete_lesson', array( __CLASS__, 'handle_delete_lesson' ) );
+		add_action( 'admin_post_almaden_learni_save_lesson_order', array( __CLASS__, 'handle_save_lesson_order' ) );
+		add_action( 'admin_post_almaden_learni_save_outline_order', array( __CLASS__, 'handle_save_outline_order' ) );
+		add_action( 'admin_post_almaden_learni_create_outline_section', array( __CLASS__, 'handle_create_outline_section' ) );
+		add_action( 'admin_post_almaden_learni_save_outline_section', array( __CLASS__, 'handle_save_outline_section' ) );
+		add_action( 'admin_post_almaden_learni_delete_outline_section', array( __CLASS__, 'handle_delete_outline_section' ) );
 		add_action( 'admin_post_almaden_learni_save_course_quiz', array( __CLASS__, 'handle_save_course_quiz' ) );
+		add_action( 'admin_post_almaden_learni_delete_course_quiz', array( __CLASS__, 'handle_delete_course_quiz' ) );
 	}
 
 	public static function handle_save_course(): void {
 		$course_id = self::require_course_access();
 		self::verify_nonce( 'almaden_learni_save_course_' . $course_id );
+		$current_post = get_post( $course_id );
+		if ( ! $current_post ) {
+			wp_die( esc_html__( 'Curso inválido.', 'almaden-bookster' ) );
+		}
 
-		$title = isset( $_POST['course_title'] ) ? sanitize_text_field( wp_unslash( $_POST['course_title'] ) ) : '';
-		$content = isset( $_POST['course_content'] ) ? wp_kses_post( wp_unslash( $_POST['course_content'] ) ) : '';
-		$excerpt = isset( $_POST['course_excerpt'] ) ? sanitize_text_field( wp_unslash( $_POST['course_excerpt'] ) ) : '';
-		$status = isset( $_POST['course_status'] ) ? sanitize_key( wp_unslash( $_POST['course_status'] ) ) : 'draft';
-		$linear_order = ! empty( $_POST['course_linear_order'] ) ? 1 : 0;
-		$payment_mode = isset( $_POST['course_payment_mode'] ) ? sanitize_key( wp_unslash( $_POST['course_payment_mode'] ) ) : 'woocommerce';
-		$cover_photo_id = isset( $_POST['course_cover_photo_id'] ) ? absint( $_POST['course_cover_photo_id'] ) : 0;
+		$title = isset( $_POST['course_title'] ) ? sanitize_text_field( wp_unslash( $_POST['course_title'] ) ) : (string) $current_post->post_title;
+		$content = isset( $_POST['course_content'] ) ? wp_kses_post( wp_unslash( $_POST['course_content'] ) ) : (string) $current_post->post_content;
+		$excerpt = isset( $_POST['course_excerpt'] ) ? sanitize_text_field( wp_unslash( $_POST['course_excerpt'] ) ) : (string) $current_post->post_excerpt;
+		$status = isset( $_POST['course_status'] ) ? sanitize_key( wp_unslash( $_POST['course_status'] ) ) : (string) $current_post->post_status;
+		$linear_order = isset( $_POST['course_linear_order'] ) ? ( ! empty( $_POST['course_linear_order'] ) ? 1 : 0 ) : (int) get_post_meta( $course_id, Course::META_LINEAR_ORDER, true );
+		$payment_mode = isset( $_POST['course_payment_mode'] ) ? sanitize_key( wp_unslash( $_POST['course_payment_mode'] ) ) : (string) get_post_meta( $course_id, Course::META_PAYMENT_MODE, true );
+		if ( '' === $payment_mode ) {
+			$payment_mode = 'woocommerce';
+		}
+		$cover_photo_id = isset( $_POST['course_cover_photo_id'] ) ? absint( $_POST['course_cover_photo_id'] ) : (int) get_post_meta( $course_id, Course::META_COVER_PHOTO_ID, true );
+		$banner_photo_id = isset( $_POST['course_banner_photo_id'] ) ? absint( $_POST['course_banner_photo_id'] ) : (int) get_post_meta( $course_id, Course::META_BANNER_PHOTO_ID, true );
+		$price = isset( $_POST['course_price'] ) ? (float) wp_unslash( $_POST['course_price'] ) : (float) get_post_meta( $course_id, Course::META_PRICE, true );
+		$collaborators = isset( $_POST['course_collaborators'] ) ? sanitize_text_field( wp_unslash( $_POST['course_collaborators'] ) ) : (string) get_post_meta( $course_id, Course::META_COLLABORATORS, true );
+		$certificate_title = isset( $_POST['course_certificate_title'] ) ? sanitize_text_field( wp_unslash( $_POST['course_certificate_title'] ) ) : (string) get_post_meta( $course_id, Course::META_CERTIFICATE_TITLE, true );
+		$certificate_message = isset( $_POST['course_certificate_message'] ) ? sanitize_textarea_field( wp_unslash( $_POST['course_certificate_message'] ) ) : (string) get_post_meta( $course_id, Course::META_CERTIFICATE_MESSAGE, true );
+		$certificate_logo_id = isset( $_POST['course_certificate_logo_id'] ) ? absint( $_POST['course_certificate_logo_id'] ) : (int) get_post_meta( $course_id, Course::META_CERTIFICATE_LOGO_ID, true );
+		$certificate_signature_attachment_id = isset( $_POST['course_certificate_signature_attachment_id'] ) ? absint( $_POST['course_certificate_signature_attachment_id'] ) : (int) get_post_meta( $course_id, Course::META_CERTIFICATE_SIGNATURE_ATTACHMENT_ID, true );
+		$certificate_signature = isset( $_POST['course_certificate_signature'] ) ? sanitize_text_field( wp_unslash( $_POST['course_certificate_signature'] ) ) : (string) get_post_meta( $course_id, Course::META_CERTIFICATE_SIGNATURE, true );
+		$certificate_signature_label = isset( $_POST['course_certificate_signature_label'] ) ? sanitize_text_field( wp_unslash( $_POST['course_certificate_signature_label'] ) ) : (string) get_post_meta( $course_id, Course::META_CERTIFICATE_SIGNATURE_LABEL, true );
 
 		if ( $title === '' ) {
 			$title = __( 'Nuevo curso', 'almaden-bookster' );
@@ -48,8 +70,51 @@ final class CourseEditorHandler {
 		update_post_meta( $course_id, Course::META_LINEAR_ORDER, $linear_order );
 		update_post_meta( $course_id, Course::META_PAYMENT_MODE, in_array( $payment_mode, array( 'woocommerce', 'direct' ), true ) ? $payment_mode : 'woocommerce' );
 		update_post_meta( $course_id, Course::META_COVER_PHOTO_ID, $cover_photo_id );
+		update_post_meta( $course_id, Course::META_BANNER_PHOTO_ID, $banner_photo_id );
+		update_post_meta( $course_id, Course::META_PRICE, $price > 0 ? $price : 0 );
+		update_post_meta( $course_id, Course::META_COLLABORATORS, $collaborators );
+		update_post_meta( $course_id, Course::META_CERTIFICATE_TITLE, $certificate_title );
+		update_post_meta( $course_id, Course::META_CERTIFICATE_MESSAGE, $certificate_message );
+		update_post_meta( $course_id, Course::META_CERTIFICATE_LOGO_ID, $certificate_logo_id );
+		update_post_meta( $course_id, Course::META_CERTIFICATE_SIGNATURE_ATTACHMENT_ID, $certificate_signature_attachment_id );
+		update_post_meta( $course_id, Course::META_CERTIFICATE_SIGNATURE, $certificate_signature );
+		update_post_meta( $course_id, Course::META_CERTIFICATE_SIGNATURE_LABEL, $certificate_signature_label );
 
-		self::redirect_back( $course_id, 'curso', array( 'course_saved' => '1' ) );
+		$tab = isset( $_POST['course_editor_tab'] ) ? sanitize_key( wp_unslash( $_POST['course_editor_tab'] ) ) : 'curso';
+		$tab = in_array( $tab, array( 'curso', 'lecciones', 'evaluacion', 'certificado', 'meta' ), true ) ? $tab : 'curso';
+
+		self::redirect_back( $course_id, $tab, array( 'course_saved' => '1' ) );
+	}
+
+	public static function handle_create_outline_section(): void {
+		$course_id = self::require_course_access();
+		self::verify_nonce( 'almaden_learni_create_outline_section_' . $course_id );
+
+		$label = isset( $_POST['section_label'] ) ? sanitize_text_field( wp_unslash( $_POST['section_label'] ) ) : '';
+		\AlmadenBookster\Learni\Dashboard\CourseOutline::create_section( $course_id, $label );
+
+		self::redirect_back( $course_id, 'lecciones', array( 'section_created' => '1' ) );
+	}
+
+	public static function handle_save_outline_section(): void {
+		$course_id = self::require_course_access();
+		self::verify_nonce( 'almaden_learni_save_outline_section_' . $course_id );
+
+		$item_id = isset( $_POST['outline_item_id'] ) ? absint( $_POST['outline_item_id'] ) : 0;
+		$label = isset( $_POST['section_label'] ) ? sanitize_text_field( wp_unslash( $_POST['section_label'] ) ) : '';
+		\AlmadenBookster\Learni\Dashboard\CourseOutline::save_section( $course_id, $item_id, $label );
+
+		self::redirect_back( $course_id, 'lecciones', array( 'section_saved' => '1' ) );
+	}
+
+	public static function handle_delete_outline_section(): void {
+		$course_id = self::require_course_access();
+		self::verify_nonce( 'almaden_learni_delete_outline_section_' . $course_id );
+
+		$item_id = isset( $_POST['outline_item_id'] ) ? absint( $_POST['outline_item_id'] ) : 0;
+		\AlmadenBookster\Learni\Dashboard\CourseOutline::delete_section( $course_id, $item_id );
+
+		self::redirect_back( $course_id, 'lecciones', array( 'section_deleted' => '1' ) );
 	}
 
 	public static function handle_save_lesson(): void {
@@ -101,6 +166,10 @@ final class CourseEditorHandler {
 			);
 		}
 
+		if ( $lesson_id > 0 ) {
+			\AlmadenBookster\Learni\Dashboard\CourseOutline::sync_lesson( $course_id, $lesson_id, $title );
+		}
+
 		self::redirect_back( $course_id, 'lecciones', array( 'lesson_saved' => '1' ) );
 	}
 
@@ -118,10 +187,52 @@ final class CourseEditorHandler {
 				}
 
 				wp_delete_post( $lesson_id, true );
+				\AlmadenBookster\Learni\Dashboard\CourseOutline::delete_lesson( $course_id, $lesson_id );
 			}
 		}
 
 		self::redirect_back( $course_id, 'lecciones', array( 'lesson_deleted' => '1' ) );
+	}
+
+	public static function handle_save_lesson_order(): void {
+		$course_id = self::require_course_access();
+		self::verify_nonce( 'almaden_learni_save_lesson_order_' . $course_id );
+
+		$lesson_ids = isset( $_POST['lesson_ids'] ) && is_array( $_POST['lesson_ids'] ) ? array_map( 'absint', wp_unslash( $_POST['lesson_ids'] ) ) : array();
+		$lesson_ids = array_values( array_filter( $lesson_ids ) );
+
+		if ( ! empty( $lesson_ids ) ) {
+			foreach ( $lesson_ids as $index => $lesson_id ) {
+				$lesson_course = (int) get_post_meta( $lesson_id, Lesson::META_COURSE_ID, true );
+				if ( $lesson_course !== $course_id ) {
+					continue;
+				}
+
+				wp_update_post(
+					array(
+						'ID'         => $lesson_id,
+						'menu_order' => (int) $index,
+					)
+				);
+			}
+		}
+
+		self::redirect_back( $course_id, 'lecciones', array( 'lesson_order_saved' => '1' ) );
+	}
+
+	public static function handle_save_outline_order(): void {
+		$course_id = self::require_course_access();
+		self::verify_nonce( 'almaden_learni_save_outline_order_' . $course_id );
+
+		$raw_items = isset( $_POST['outline_items_json'] ) ? wp_unslash( $_POST['outline_items_json'] ) : '';
+		$items = json_decode( (string) $raw_items, true );
+		if ( ! is_array( $items ) ) {
+			wp_die( esc_html__( 'El orden del outline no es válido.', 'almaden-bookster' ) );
+		}
+
+		\AlmadenBookster\Learni\Dashboard\CourseOutline::reorder( $course_id, $items );
+
+		self::redirect_back( $course_id, 'lecciones', array( 'outline_order_saved' => '1' ) );
 	}
 
 	public static function handle_save_course_quiz(): void {
@@ -170,6 +281,24 @@ final class CourseEditorHandler {
 		}
 
 		self::redirect_back( $course_id, 'evaluacion', array( 'quiz_saved' => '1' ) );
+	}
+
+	public static function handle_delete_course_quiz(): void {
+		$course_id = self::require_course_access();
+		self::verify_nonce( 'almaden_learni_delete_course_quiz_' . $course_id );
+
+		$quiz_id = isset( $_POST['quiz_id'] ) ? absint( $_POST['quiz_id'] ) : 0;
+		if ( $quiz_id <= 0 ) {
+			$quiz_id = (int) get_post_meta( $course_id, Course::META_QUIZ_ID, true );
+		}
+
+		if ( $quiz_id > 0 && QuizRepository::quiz_exists( $quiz_id ) ) {
+			QuizRepository::delete_quiz( $quiz_id );
+		}
+
+		delete_post_meta( $course_id, Course::META_QUIZ_ID );
+
+		self::redirect_back( $course_id, 'evaluacion', array( 'quiz_deleted' => '1' ) );
 	}
 
 	/**
@@ -224,7 +353,23 @@ final class CourseEditorHandler {
 			'course' => $course,
 			'post' => $post,
 			'lessons' => $post ? self::get_course_lessons( $course_id ) : array(),
+			'outline' => $post ? \AlmadenBookster\Learni\Dashboard\CourseOutline::get_items( $course_id ) : array(),
 			'quiz' => $post ? self::get_course_quiz( $course_id ) : array( 'quiz_id' => 0, 'quiz' => null, 'questions_json' => self::starter_questions_json() ),
+			'certificate' => $post ? array(
+				'title' => (string) get_post_meta( $course_id, Course::META_CERTIFICATE_TITLE, true ),
+				'message' => (string) get_post_meta( $course_id, Course::META_CERTIFICATE_MESSAGE, true ),
+				'logo_id' => (int) get_post_meta( $course_id, Course::META_CERTIFICATE_LOGO_ID, true ),
+				'signature_attachment_id' => (int) get_post_meta( $course_id, Course::META_CERTIFICATE_SIGNATURE_ATTACHMENT_ID, true ),
+				'signature' => (string) get_post_meta( $course_id, Course::META_CERTIFICATE_SIGNATURE, true ),
+				'signature_label' => (string) get_post_meta( $course_id, Course::META_CERTIFICATE_SIGNATURE_LABEL, true ),
+			) : array(
+				'title' => '',
+				'message' => '',
+				'logo_id' => 0,
+				'signature_attachment_id' => 0,
+				'signature' => '',
+				'signature_label' => '',
+			),
 		);
 	}
 
