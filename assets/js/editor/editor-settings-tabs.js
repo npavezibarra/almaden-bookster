@@ -243,6 +243,7 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-first-page-header-custom')) document.getElementById('setting-first-page-header-custom').value = settings.first_page_header_custom || '';
     if (document.getElementById('setting-first-page-footer-type')) document.getElementById('setting-first-page-footer-type').value = settings.first_page_footer_type || 'page_number';
     if (document.getElementById('setting-first-page-footer-custom')) document.getElementById('setting-first-page-footer-custom').value = settings.first_page_footer_custom || '';
+    if (document.getElementById('setting-book-start-page-footer-type')) document.getElementById('setting-book-start-page-footer-type').value = settings.book_start_page_footer_type || 'blank';
 
     // Pestaña Footnotes
     if (document.getElementById('setting-footnote-font-family')) document.getElementById('setting-footnote-font-family').value = settings.footnote_font_family || 'Merriweather';
@@ -268,8 +269,20 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-footer-margin-bottom')) document.getElementById('setting-footer-margin-bottom').value = settings.footer_margin_bottom !== undefined ? settings.footer_margin_bottom : 1.0;
     if (document.getElementById('setting-footer-align')) document.getElementById('setting-footer-align').value = settings.footer_align || 'center';
 
-    // Pestaña Capítulos
-    if (document.getElementById('setting-chapter-start-parity')) document.getElementById('setting-chapter-start-parity').value = settings.chapter_start_parity || 'any';
+    // Pestaña Capítulos / Libro
+    const derivedBookFlowMode = (settings.book_chapter_flow_mode === 'left' || settings.chapter_start_parity === 'even')
+        ? 'left'
+        : 'continuous';
+    const derivedLegacyParity = derivedBookFlowMode === 'left' ? 'even' : 'any';
+    if (document.getElementById('setting-book-separate-opening-content')) {
+        document.getElementById('setting-book-separate-opening-content').checked = settings.book_separate_opening_content !== 0 && settings.book_separate_opening_content !== '0';
+    }
+    if (document.getElementById('setting-book-chapter-flow-mode')) {
+        document.getElementById('setting-book-chapter-flow-mode').value = derivedBookFlowMode;
+    }
+    if (document.getElementById('setting-chapter-start-parity')) {
+        document.getElementById('setting-chapter-start-parity').value = derivedLegacyParity;
+    }
 
     if (document.getElementById('setting-chapter-page-one-vertical')) {
         const chapterPageOneVertical = settings.chapter_page_one_vertical || 'top';
@@ -332,7 +345,8 @@ window.populateSettingsForm = function() {
     if (typeof toggleCustomHeaderFields === 'function') toggleCustomHeaderFields();
     if (typeof toggleCustomFirstPageHeader === 'function') toggleCustomFirstPageHeader();
     if (typeof toggleCustomFirstPageFooter === 'function') toggleCustomFirstPageFooter();
-    if (typeof toggleParityImageMode === 'function') toggleParityImageMode();
+    if (typeof syncBookFlowParityMode === 'function') syncBookFlowParityMode();
+    else if (typeof toggleParityImageMode === 'function') toggleParityImageMode();
     if (typeof toggleEbookBgType === 'function') toggleEbookBgType();
     if (typeof toggleCoverPanelBgType === 'function') toggleCoverPanelBgType();
 };

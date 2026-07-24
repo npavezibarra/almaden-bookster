@@ -70,10 +70,11 @@ if ( $is_single_author ) {
 
 <main id="almaden-author-page" class="almaden-app-content-shell">
 	<?php if ( $is_single_author ) : ?>
-		<section
-			class="almaden-author-hero"
-			id="almaden-author-hero"
-			data-hero-background-type="<?php echo esc_attr( isset( $author_hero_bg['type'] ) ? $author_hero_bg['type'] : 'color' ); ?>"
+	<section
+		class="almaden-author-hero"
+		id="almaden-author-hero"
+		data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>"
+		data-hero-background-type="<?php echo esc_attr( isset( $author_hero_bg['type'] ) ? $author_hero_bg['type'] : 'color' ); ?>"
 			data-hero-background-image-id="<?php echo esc_attr( isset( $author_hero_bg['image_id'] ) ? absint( $author_hero_bg['image_id'] ) : 0 ); ?>"
 			data-hero-background-image-url="<?php echo esc_attr( isset( $author_hero_bg['image_id'] ) && absint( $author_hero_bg['image_id'] ) > 0 ? ( wp_get_attachment_image_url( absint( $author_hero_bg['image_id'] ), 'full' ) ?: '' ) : '' ); ?>"
 			data-hero-background-color="<?php echo esc_attr( isset( $author_hero_bg['color'] ) ? $author_hero_bg['color'] : '#ebff43' ); ?>"
@@ -84,7 +85,7 @@ if ( $is_single_author ) {
 			data-hero-overlay-opacity="<?php echo esc_attr( isset( $author_hero_bg['overlay_opacity'] ) ? $author_hero_bg['overlay_opacity'] : 0 ); ?>"
 			<?php echo $author_hero_style ? 'style="' . esc_attr( $author_hero_style ) . '"' : ''; ?>
 		>
-			<div class="almaden-author-hero-inner" id="almaden-author-hero-inner">
+			<div class="almaden-author-hero-inner" id="almaden-author-hero-inner" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">
 				<?php if ( $can_edit_author ) : ?>
 					<button type="button" class="almaden-author-hero-edit-btn" id="almaden-author-hero-edit-btn" aria-label="<?php esc_attr_e( 'Editar fondo del hero', 'almaden-bookster' ); ?>">
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -92,8 +93,8 @@ if ( $is_single_author ) {
 						</svg>
 					</button>
 				<?php endif; ?>
-				<div class="almaden-author-grid" id="almaden-author-hero-grid">
-					<div class="almaden-photo-card" id="almaden-author-photo-card" <?php echo $author_photo_url ? 'data-current-photo-url="' . esc_url( $author_photo_url ) . '"' : ''; ?>>
+				<div class="almaden-author-grid" id="almaden-author-hero-grid" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">
+					<div class="almaden-photo-card" id="almaden-author-photo-card" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>" <?php echo $author_photo_url ? 'data-current-photo-url="' . esc_url( $author_photo_url ) . '"' : ''; ?>>
 						<?php if ( $can_edit_author ) : ?>
 							<button type="button" class="almaden-author-photo-action" id="almaden-author-photo-edit-btn" aria-label="<?php esc_attr_e( 'Subir o cambiar foto de perfil', 'almaden-bookster' ); ?>">
 								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -110,62 +111,62 @@ if ( $is_single_author ) {
 						<?php endif; ?>
 					</div>
 
-					<div class="almaden-author-panel" id="almaden-author-panel">
-						<h1 class="almaden-author-title" id="almaden-author-name"><?php echo esc_html( $author_name ); ?></h1>
+						<div class="almaden-author-panel" id="almaden-author-panel" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">
+							<h1 class="almaden-author-title" id="almaden-author-name" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>"><?php echo esc_html( $author_name ); ?></h1>
 
-						<div class="almaden-author-tabs" id="almaden-author-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Contenido del autor', 'almaden-bookster' ); ?>">
-							<button type="button" class="almaden-author-tab" id="almaden-author-tab-posts" role="tab" aria-selected="true" aria-controls="almaden-author-panel-posts" data-tab="posts">POSTS</button>
-							<button type="button" class="almaden-author-tab" id="almaden-author-tab-books" role="tab" aria-selected="false" aria-controls="almaden-author-panel-books" data-tab="books">BOOKS</button>
-							<button type="button" class="almaden-author-tab" id="almaden-author-tab-courses" role="tab" aria-selected="false" aria-controls="almaden-author-panel-courses" data-tab="courses">CURSOS</button>
-							<button type="button" class="almaden-author-tab" id="almaden-author-tab-bio" role="tab" aria-selected="false" aria-controls="almaden-author-panel-bio" data-tab="bio">BIO</button>
-						</div>
-
-						<div class="almaden-author-tabpanel" id="almaden-author-panel-posts" role="tabpanel" aria-labelledby="almaden-author-tab-posts">
-							<div class="almaden-author-cards-grid" id="almaden-author-posts-grid">
-								<?php foreach ( $author_posts_dummy as $index => $post_item ) : ?>
-									<a href="<?php echo esc_url( $post_item['url'] ); ?>" class="almaden-author-content-card" id="<?php echo esc_attr( 'almaden-author-post-' . ( $index + 1 ) ); ?>">
-										<p class="almaden-author-content-card-meta" id="<?php echo esc_attr( 'almaden-author-post-meta-' . ( $index + 1 ) ); ?>"><?php echo esc_html( $post_item['meta'] ); ?></p>
-										<p class="almaden-author-content-card-title" id="<?php echo esc_attr( 'almaden-author-post-title-' . ( $index + 1 ) ); ?>"><?php echo esc_html( $post_item['title'] ); ?></p>
-										<p class="almaden-author-content-card-excerpt" id="<?php echo esc_attr( 'almaden-author-post-excerpt-' . ( $index + 1 ) ); ?>"><?php echo esc_html( $post_item['excerpt'] ); ?></p>
-									</a>
-								<?php endforeach; ?>
+							<div class="almaden-author-tabs" id="almaden-author-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Contenido del autor', 'almaden-bookster' ); ?>" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">
+								<button type="button" class="almaden-author-tab" id="almaden-author-tab-posts" role="tab" aria-selected="true" aria-controls="almaden-author-panel-posts" data-tab="posts" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">POSTS</button>
+								<button type="button" class="almaden-author-tab" id="almaden-author-tab-books" role="tab" aria-selected="false" aria-controls="almaden-author-panel-books" data-tab="books" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">BOOKS</button>
+								<button type="button" class="almaden-author-tab" id="almaden-author-tab-courses" role="tab" aria-selected="false" aria-controls="almaden-author-panel-courses" data-tab="courses" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">CURSOS</button>
+								<button type="button" class="almaden-author-tab" id="almaden-author-tab-bio" role="tab" aria-selected="false" aria-controls="almaden-author-panel-bio" data-tab="bio" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">BIO</button>
 							</div>
-						</div>
 
-						<div class="almaden-author-tabpanel" id="almaden-author-panel-books" role="tabpanel" aria-labelledby="almaden-author-tab-books" hidden>
-							<?php if ( ! empty( $author_books ) ) : ?>
-								<div class="almaden-author-cards-grid" id="almaden-author-books-grid">
-									<?php foreach ( $author_books as $book ) : ?>
-										<a href="<?php echo esc_url( get_permalink( $book->ID ) ); ?>" class="almaden-author-content-card" id="<?php echo esc_attr( 'almaden-author-book-' . absint( $book->ID ) ); ?>">
-											<p class="almaden-author-content-card-meta" id="<?php echo esc_attr( 'almaden-author-book-meta-' . absint( $book->ID ) ); ?>"><?php esc_html_e( 'Libro publicado', 'almaden-bookster' ); ?></p>
-											<p class="almaden-author-content-card-title" id="<?php echo esc_attr( 'almaden-author-book-title-' . absint( $book->ID ) ); ?>"><?php echo esc_html( get_the_title( $book->ID ) ); ?></p>
-											<p class="almaden-author-content-card-excerpt" id="<?php echo esc_attr( 'almaden-author-book-excerpt-' . absint( $book->ID ) ); ?>"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( $book->post_content ), 18 ) ); ?></p>
+							<div class="almaden-author-tabpanel" id="almaden-author-panel-posts" role="tabpanel" aria-labelledby="almaden-author-tab-posts" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">
+								<div class="almaden-author-cards-grid" id="almaden-author-posts-grid" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">
+									<?php foreach ( $author_posts_dummy as $index => $post_item ) : ?>
+										<a href="<?php echo esc_url( $post_item['url'] ); ?>" class="almaden-author-content-card" id="<?php echo esc_attr( 'almaden-author-post-' . ( $index + 1 ) ); ?>" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">
+											<p class="almaden-author-content-card-meta" id="<?php echo esc_attr( 'almaden-author-post-meta-' . ( $index + 1 ) ); ?>"><?php echo esc_html( $post_item['meta'] ); ?></p>
+											<p class="almaden-author-content-card-title" id="<?php echo esc_attr( 'almaden-author-post-title-' . ( $index + 1 ) ); ?>"><?php echo esc_html( $post_item['title'] ); ?></p>
+											<p class="almaden-author-content-card-excerpt" id="<?php echo esc_attr( 'almaden-author-post-excerpt-' . ( $index + 1 ) ); ?>"><?php echo esc_html( $post_item['excerpt'] ); ?></p>
 										</a>
 									<?php endforeach; ?>
 								</div>
-							<?php else : ?>
-								<div class="almaden-empty" id="almaden-author-books-empty"><?php esc_html_e( 'Todavía no hay libros vinculados a este autor.', 'almaden-bookster' ); ?></div>
-							<?php endif; ?>
-						</div>
-
-						<div class="almaden-author-tabpanel" id="almaden-author-panel-courses" role="tabpanel" aria-labelledby="almaden-author-tab-courses" hidden>
-							<div class="almaden-author-cards-grid" id="almaden-author-courses-grid">
-								<?php foreach ( $author_courses_dummy as $index => $course_item ) : ?>
-									<a href="<?php echo esc_url( $course_item['url'] ); ?>" class="almaden-author-content-card" id="<?php echo esc_attr( 'almaden-author-course-' . ( $index + 1 ) ); ?>">
-										<p class="almaden-author-content-card-meta" id="<?php echo esc_attr( 'almaden-author-course-meta-' . ( $index + 1 ) ); ?>"><?php echo esc_html( $course_item['meta'] ); ?></p>
-										<p class="almaden-author-content-card-title" id="<?php echo esc_attr( 'almaden-author-course-title-' . ( $index + 1 ) ); ?>"><?php echo esc_html( $course_item['title'] ); ?></p>
-										<p class="almaden-author-content-card-excerpt" id="<?php echo esc_attr( 'almaden-author-course-excerpt-' . ( $index + 1 ) ); ?>"><?php echo esc_html( $course_item['excerpt'] ); ?></p>
-									</a>
-								<?php endforeach; ?>
 							</div>
-						</div>
 
-						<div class="almaden-author-tabpanel" id="almaden-author-panel-bio" role="tabpanel" aria-labelledby="almaden-author-tab-bio" hidden>
-							<div class="almaden-author-profile" id="almaden-author-profile">
-								<span class="almaden-author-chip" id="almaden-author-chip"><?php esc_html_e( 'Autor', 'almaden-bookster' ); ?></span>
-								<p class="almaden-author-email" id="almaden-author-email"><?php echo esc_html( $author->user_email ); ?></p>
+							<div class="almaden-author-tabpanel" id="almaden-author-panel-books" role="tabpanel" aria-labelledby="almaden-author-tab-books" hidden data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">
+								<?php if ( ! empty( $author_books ) ) : ?>
+									<div class="almaden-author-cards-grid" id="almaden-author-books-grid" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">
+										<?php foreach ( $author_books as $book ) : ?>
+											<a href="<?php echo esc_url( get_permalink( $book->ID ) ); ?>" class="almaden-author-content-card" id="<?php echo esc_attr( 'almaden-author-book-' . absint( $book->ID ) ); ?>" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">
+												<p class="almaden-author-content-card-meta" id="<?php echo esc_attr( 'almaden-author-book-meta-' . absint( $book->ID ) ); ?>"><?php esc_html_e( 'Libro publicado', 'almaden-bookster' ); ?></p>
+												<p class="almaden-author-content-card-title" id="<?php echo esc_attr( 'almaden-author-book-title-' . absint( $book->ID ) ); ?>"><?php echo esc_html( get_the_title( $book->ID ) ); ?></p>
+												<p class="almaden-author-content-card-excerpt" id="<?php echo esc_attr( 'almaden-author-book-excerpt-' . absint( $book->ID ) ); ?>"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( $book->post_content ), 18 ) ); ?></p>
+											</a>
+										<?php endforeach; ?>
+									</div>
+								<?php else : ?>
+									<div class="almaden-empty" id="almaden-author-books-empty"><?php esc_html_e( 'Todavía no hay libros vinculados a este autor.', 'almaden-bookster' ); ?></div>
+								<?php endif; ?>
+							</div>
 
-								<div class="almaden-author-bio" id="almaden-author-bio">
+							<div class="almaden-author-tabpanel" id="almaden-author-panel-courses" role="tabpanel" aria-labelledby="almaden-author-tab-courses" hidden data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">
+								<div class="almaden-author-cards-grid" id="almaden-author-courses-grid" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">
+									<?php foreach ( $author_courses_dummy as $index => $course_item ) : ?>
+										<a href="<?php echo esc_url( $course_item['url'] ); ?>" class="almaden-author-content-card" id="<?php echo esc_attr( 'almaden-author-course-' . ( $index + 1 ) ); ?>" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">
+											<p class="almaden-author-content-card-meta" id="<?php echo esc_attr( 'almaden-author-course-meta-' . ( $index + 1 ) ); ?>"><?php echo esc_html( $course_item['meta'] ); ?></p>
+											<p class="almaden-author-content-card-title" id="<?php echo esc_attr( 'almaden-author-course-title-' . ( $index + 1 ) ); ?>"><?php echo esc_html( $course_item['title'] ); ?></p>
+											<p class="almaden-author-content-card-excerpt" id="<?php echo esc_attr( 'almaden-author-course-excerpt-' . ( $index + 1 ) ); ?>"><?php echo esc_html( $course_item['excerpt'] ); ?></p>
+										</a>
+									<?php endforeach; ?>
+								</div>
+							</div>
+
+							<div class="almaden-author-tabpanel" id="almaden-author-panel-bio" role="tabpanel" aria-labelledby="almaden-author-tab-bio" hidden data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">
+								<div class="almaden-author-profile" id="almaden-author-profile" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">
+									<span class="almaden-author-chip" id="almaden-author-chip" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>"><?php esc_html_e( 'Autor', 'almaden-bookster' ); ?></span>
+									<p class="almaden-author-email" id="almaden-author-email" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>"><?php echo esc_html( $author->user_email ); ?></p>
+
+									<div class="almaden-author-bio" id="almaden-author-bio" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">
 									<?php if ( '' !== $author_bio ) : ?>
 										<?php echo wp_kses_post( wpautop( $author_bio ) ); ?>
 									<?php else : ?>
@@ -174,10 +175,10 @@ if ( $is_single_author ) {
 								</div>
 
 								<?php if ( ! empty( array_filter( $author_socials ) ) ) : ?>
-									<div class="almaden-links" id="almaden-author-social-links">
+									<div class="almaden-links" id="almaden-author-social-links" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>">
 										<?php foreach ( $author_socials as $network => $url ) : ?>
 											<?php if ( '' === trim( (string) $url ) ) { continue; } ?>
-											<a href="<?php echo esc_url( $url ); ?>" target="_blank" rel="noopener noreferrer" class="almaden-link" id="<?php echo esc_attr( 'almaden-author-social-link-' . sanitize_title( $network ) ); ?>"><?php echo esc_html( ucfirst( $network ) ); ?></a>
+											<a href="<?php echo esc_url( $url ); ?>" target="_blank" rel="noopener noreferrer" class="almaden-link" id="<?php echo esc_attr( 'almaden-author-social-link-' . sanitize_title( $network ) ); ?>" data-author-id="<?php echo esc_attr( absint( $author->ID ) ); ?>"><?php echo esc_html( ucfirst( $network ) ); ?></a>
 										<?php endforeach; ?>
 									</div>
 								<?php endif; ?>

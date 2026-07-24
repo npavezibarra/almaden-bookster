@@ -75,6 +75,13 @@ if ( ! function_exists( 'almaden_bookster_render_shared_nav' ) ) {
 				'url'   => almaden_bookster_get_course_archive_page_url(),
 			);
 		}
+		if ( function_exists( 'almaden_bookster_get_blog_creator_page_url' ) ) {
+			$user_menu_items[] = array(
+				'key'   => 'blog_creator',
+				'label' => function_exists( 'almaden_bookster_get_blog_creator_title' ) ? almaden_bookster_get_blog_creator_title() : 'Blog',
+				'url'   => almaden_bookster_get_blog_creator_page_url(),
+			);
+		}
 
 		if ( function_exists( 'almaden_bookster_user_can_access_frontend_page' ) ) {
 			$user_menu_items = array_values(

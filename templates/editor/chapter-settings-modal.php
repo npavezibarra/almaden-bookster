@@ -24,8 +24,8 @@
                 <!-- Inicio de Capítulo (Paridad) -->
                 <div class="grid grid-cols-1 gap-4">
                     <div>
-                        <label class="block font-semibold mb-1">¿Dónde debe iniciar este capítulo?</label>
-                        <p class="text-xs text-[var(--text-muted)] mb-2">Fuerza a que este capítulo comience en una página específica del libro impreso.</p>
+                        <label class="block font-semibold mb-1">¿Dónde debe iniciar el contenido de este capítulo?</label>
+                        <p class="text-xs text-[var(--text-muted)] mb-2">Define el lado donde empieza el contenido. La apertura se configura aparte en la pestaña "Apertura".</p>
                         <select id="chapter_start_parity" name="chapter_start_parity" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-[var(--text-main)] focus:outline-none focus:border-black">
                             <option value="any">Continuo / Cualquiera (Por defecto)</option>
                             <option value="odd">Página Impar (Lado Derecho)</option>

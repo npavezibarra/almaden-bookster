@@ -23,12 +23,23 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
             return;
         }
 
+        const settings = bookState.settings || {};
         const isSingleChapterMode = (targetScrollerId === 'pdf-scroller') && !forceFull && (window.currentPreviewMode === 'active') && bookState.activeChapterId;
         if (targetScrollerId === 'pdf-scroller') {
             if (isSingleChapterMode) {
                 scroller.classList.add('single-chapter-mode');
+                const activeChapterIndex = bookState.chapters.findIndex(chapter => chapter.id === bookState.activeChapterId);
+                const flowMode = window.getBookChapterFlowMode
+                    ? window.getBookChapterFlowMode(settings)
+                    : (settings.chapter_start_parity === 'even' ? 'left' : 'continuous');
+                if (flowMode === 'left' && activeChapterIndex > 0) {
+                    scroller.classList.add('single-chapter-left-start');
+                } else {
+                    scroller.classList.remove('single-chapter-left-start');
+                }
             } else {
                 scroller.classList.remove('single-chapter-mode');
+                scroller.classList.remove('single-chapter-left-start');
             }
         }
  
@@ -43,8 +54,6 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
             return;
         }
  
-        const settings = bookState.settings || {};
-        
         // Mostrar cargador mientras Paged.js maqueta
         scroller.innerHTML = `
             <div class="flex flex-col items-center justify-center h-full w-full py-20 text-slate-500 dark:text-slate-400 gap-4">
@@ -60,9 +69,15 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
             settings,
             window.bookChapterPages
         );
-        const fullBookHTML = buildResult.fullBookHTML;
+        let fullBookHTML = buildResult.fullBookHTML;
         const previewFirstPhysicalPageNumber = buildResult.previewFirstPhysicalPageNumber;
         const startPageNum = buildResult.startPageNum;
+        const mappedActiveChapterStart = isSingleChapterMode && bookState.activeChapterId
+            ? Number(window.bookChapterPages?.[bookState.activeChapterId])
+            : NaN;
+        const activePreviewFirstPhysicalPageNumber = Number.isFinite(mappedActiveChapterStart) && mappedActiveChapterStart > 0
+            ? mappedActiveChapterStart
+            : previewFirstPhysicalPageNumber;
 
         const styleEl = document.getElementById('dynamic-pdf-settings');
 
@@ -126,6 +141,29 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
         
         // Paged.js procesa el HTML y lo inyecta formateado en páginas en el contenedor scroller
         await previewer.preview(fullBookHTML, stylesArray, scroller);
+
+        // El ultimo capitulo debe cerrar siempre en pagina par. Como la paridad
+        // final depende del corte real de Paged.js, solo agregamos el blanco
+        // cuando la primera pasada confirma que el ultimo folio visible es impar.
+        if (!isSingleChapterMode) {
+            const firstPassPages = Array.from(scroller.querySelectorAll('.pagedjs_pages > .pagedjs_page'));
+            const firstPassVisiblePages = firstPassPages.filter(page => !page.querySelector('.book-start-dummy-page'));
+            const needsFinalBlankPage = firstPassVisiblePages.length > 0 && firstPassVisiblePages.length % 2 === 1;
+
+            if (needsFinalBlankPage) {
+                const finalBuildResult = window.buildContinuousBookHTML(
+                    false,
+                    bookState,
+                    settings,
+                    window.bookChapterPages,
+                    { forceFinalBlankPage: true }
+                );
+                fullBookHTML = finalBuildResult.fullBookHTML;
+                scroller.innerHTML = '';
+                const finalPreviewer = new window.Paged.Previewer();
+                await finalPreviewer.preview(fullBookHTML, stylesArray, scroller);
+            }
+        }
 
         if (typeof window.applySpreadPageLayout === 'function') {
             window.applySpreadPageLayout(scroller);
@@ -196,23 +234,15 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
                 const rawNextStart = nextChapter ? chapterStartPagesRaw[nextChapter.id] : null;
 
                 const safeStart = rawStart || 1;
-                const safeNextStart = rawNextStart || (safeStart + 1);
+                const safeNextStart = rawNextStart || (visiblePageNumber + 1);
                 const physicalChapterLength = Math.max(1, safeNextStart - safeStart);
                 window.bookChapterPhysicalLengths[ch.id] = physicalChapterLength;
 
-                let chapterLength = physicalChapterLength;
-                if (ch.is_toc === '1' && idx + 1 < bookState.chapters.length) {
-                    // El blanco de paridad que fuerza al siguiente capítulo a comenzar en página impar
-                    // no forma parte visual del TOC.
-                    chapterLength = Math.max(1, chapterLength - 1);
-                }
-
-                const isIntermediateChapter = idx > 0 && idx < (bookState.chapters.length - 1);
-                if (isIntermediateChapter && chapterLength % 2 !== 0) {
-                    chapterLength += 1;
-                }
-
-                window.bookChapterLengths[ch.id] = chapterLength;
+                // La longitud representa las paginas fisicas hasta el inicio
+                // del siguiente capitulo. Por eso incluye el blanco impar que
+                // cierra un capitulo en flujo izquierdo y no redondea capitulos
+                // en flujo continuo.
+                window.bookChapterLengths[ch.id] = physicalChapterLength;
             });
             window.bookTotalCalculatedPages = visiblePageNumber;
 
@@ -236,7 +266,7 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
                 : startPageNum;
             window.applyActiveNumericPageFooters(
                 scroller,
-                previewFirstPhysicalPageNumber,
+                activePreviewFirstPhysicalPageNumber,
                 chapterFirstPhysicalPageNumber
             );
         }
@@ -251,7 +281,7 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
                 const activeChapter = bookState.chapters.find(c => c.id === bookState.activeChapterId);
                 if (activeChapter) {
                     const visibleChapterPages = renderedPages.filter(page => !page.querySelector('.book-start-dummy-page')).length;
-                    const start = previewFirstPhysicalPageNumber;
+                    const start = activePreviewFirstPhysicalPageNumber;
                     const end = start + Math.max(visibleChapterPages, 1) - 1;
                     const totalBookPages = window.bookTotalCalculatedPages || parseInt(document.getElementById('total-pages-sidebar')?.textContent) || totalPages;
                     indicator.textContent = `Págs. ${start} - ${end} de ${totalBookPages}`;

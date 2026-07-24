@@ -112,6 +112,7 @@ function almaden_bookster_save_settings_ajax() {
 		'first_page_header_custom'   => sanitize_text_field( $_POST['first_page_header_custom'] ),
 		'first_page_footer_type'     => sanitize_text_field( $_POST['first_page_footer_type'] ),
 		'first_page_footer_custom'   => sanitize_text_field( $_POST['first_page_footer_custom'] ),
+		'book_start_page_footer_type' => ( isset( $_POST['book_start_page_footer_type'] ) && in_array( $_POST['book_start_page_footer_type'], array( 'blank', 'page_number' ), true ) ) ? sanitize_text_field( $_POST['book_start_page_footer_type'] ) : 'blank',
 		'footnote_font_family'       => isset( $_POST['footnote_font_family'] ) ? sanitize_text_field( $_POST['footnote_font_family'] ) : 'Merriweather',
 		'footnote_font_size'         => isset( $_POST['footnote_font_size'] ) ? floatval( str_replace( ',', '.', $_POST['footnote_font_size'] ) ) : 8.5,
 		'footnote_font_weight'       => isset( $_POST['footnote_font_weight'] ) ? sanitize_text_field( $_POST['footnote_font_weight'] ) : 'normal',
@@ -160,6 +161,13 @@ function almaden_bookster_save_settings_ajax() {
 
 	$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table_name WHERE book_id = %d", $book_id ) );
 
+	$book_separate_opening_content = isset( $_POST['book_separate_opening_content'] ) ? intval( $_POST['book_separate_opening_content'] ) : 1;
+	$book_chapter_flow_mode = isset( $_POST['book_chapter_flow_mode'] ) ? sanitize_text_field( $_POST['book_chapter_flow_mode'] ) : 'continuous';
+	if ( ! in_array( $book_chapter_flow_mode, array( 'continuous', 'left' ), true ) ) {
+		$book_chapter_flow_mode = 'continuous';
+	}
+	$data['chapter_start_parity'] = ( 'left' === $book_chapter_flow_mode ) ? 'even' : 'any';
+
 	if ( $exists ) {
 		$result = $wpdb->update( $table_name, $data, array( 'book_id' => $book_id ) );
 	} else {
@@ -167,6 +175,10 @@ function almaden_bookster_save_settings_ajax() {
 	}
 
 	if ( false !== $result ) {
+		update_post_meta( $book_id, '_almaden_book_separate_opening_content', $book_separate_opening_content ? 1 : 0 );
+		update_post_meta( $book_id, '_almaden_book_chapter_flow_mode', $book_chapter_flow_mode );
+		update_post_meta( $book_id, '_almaden_book_flow_legacy_parity', $data['chapter_start_parity'] );
+
 		// Guardar campos de créditos en post_meta para no alterar el esquema de la tabla
 		update_post_meta( $book_id, '_almaden_credits_edition', sanitize_text_field( $_POST['credits_edition'] ?? '' ) );
 		update_post_meta( $book_id, '_almaden_credits_date', sanitize_text_field( $_POST['credits_date'] ?? '' ) );

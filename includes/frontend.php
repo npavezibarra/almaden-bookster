@@ -12,6 +12,7 @@ function almaden_bookster_create_page() {
 	almaden_bookster_sync_dashboard_page();
 	almaden_bookster_sync_course_creator_page();
 	almaden_bookster_sync_course_archive_page();
+	almaden_bookster_sync_blog_creator_page();
 	almaden_bookster_sync_store_page();
 	almaden_bookster_sync_authors_page();
 	almaden_bookster_sync_author_page();
@@ -186,6 +187,33 @@ function almaden_bookster_load_course_archive() {
 	}
 }
 add_action( 'template_redirect', 'almaden_bookster_load_course_archive', 5 );
+
+function almaden_bookster_load_blog_creator() {
+	if ( ! is_page( function_exists( 'almaden_bookster_get_blog_creator_slug' ) ? almaden_bookster_get_blog_creator_slug() : 'blog-editor' ) || ! is_main_query() ) {
+		return;
+	}
+
+	$is_auth_modal_view = isset( $_GET['pl_auth_view'] ) && in_array( sanitize_key( (string) wp_unslash( $_GET['pl_auth_view'] ) ), array( 'login', 'register' ), true );
+	if ( ! is_user_logged_in() && ! $is_auth_modal_view ) {
+		auth_redirect();
+	}
+
+	if ( is_user_logged_in() && ( function_exists( 'almaden_bookster_user_can_manage_blog_posts' ) ? ! almaden_bookster_user_can_manage_blog_posts() : ! current_user_can( 'edit_posts' ) ) ) {
+		wp_die( 'No tienes permisos para acceder al editor de blog.' );
+	}
+
+	show_admin_bar( false );
+	wp_enqueue_media();
+
+	$template_path = dirname( __FILE__ ) . '/../modules/blog-post/templates/blog-post-app.php';
+	if ( file_exists( $template_path ) ) {
+		require_once $template_path;
+		exit;
+	}
+
+	wp_die( 'Plantilla del editor de blog no encontrada.' );
+}
+add_action( 'template_redirect', 'almaden_bookster_load_blog_creator', 5 );
 
 // 3. Interceptar la página del catálogo público para cargar nuestra app independiente
 function almaden_bookster_load_bookshelf() {

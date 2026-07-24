@@ -124,6 +124,9 @@ function almaden_get_book_pdf_settings( $book_id ) {
 		'first_page_header_custom'   => '',
 		'first_page_footer_type'     => 'page_number',
 		'first_page_footer_custom'   => '',
+		'book_start_page_footer_type' => 'blank',
+		'book_separate_opening_content' => 1,
+		'book_chapter_flow_mode'     => 'continuous',
 		'chapter_start_parity'       => 'any',
 		'parity_image_mode'          => 'content',
 		'chapter_page_one_vertical'  => 'top',
@@ -184,6 +187,16 @@ function almaden_get_book_pdf_settings( $book_id ) {
 	$pdf_settings['credits_blank_before'] = (int) get_post_meta( $book_id, '_almaden_credits_blank_before', true );
 	$pdf_settings['credits_blank_after'] = (int) get_post_meta( $book_id, '_almaden_credits_blank_after', true );
 	$pdf_settings['credits_custom'] = get_post_meta( $book_id, '_almaden_credits_custom', true ) ?: '[]';
+
+	// Ajustes de libro para flujo de capítulos
+	$pdf_settings['book_separate_opening_content'] = get_post_meta( $book_id, '_almaden_book_separate_opening_content', true );
+	if ( $pdf_settings['book_separate_opening_content'] === '' ) {
+		$pdf_settings['book_separate_opening_content'] = 1;
+	}
+	$pdf_settings['book_chapter_flow_mode'] = get_post_meta( $book_id, '_almaden_book_chapter_flow_mode', true );
+	if ( $pdf_settings['book_chapter_flow_mode'] === '' ) {
+		$pdf_settings['book_chapter_flow_mode'] = 'continuous';
+	}
 
 	// Cargar configuración de subtítulos
 	$pdf_settings['chapter_subtitle_show'] = get_post_meta( $book_id, '_almaden_chapter_subtitle_show', true );

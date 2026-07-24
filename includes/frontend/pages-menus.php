@@ -58,6 +58,12 @@ if ( ! function_exists( 'almaden_bookster_get_shell_navigation_exclusion_rules' 
 			function_exists( 'almaden_bookster_get_course_archive_page_id' ) ? almaden_bookster_get_course_archive_page_id() : 0
 		);
 		$add_rule(
+			'blog_creator',
+			function_exists( 'almaden_bookster_get_blog_creator_slug' ) ? almaden_bookster_get_blog_creator_slug() : 'blog-editor',
+			function_exists( 'almaden_bookster_get_blog_creator_title' ) ? almaden_bookster_get_blog_creator_title() : 'Blog',
+			function_exists( 'almaden_bookster_get_blog_creator_page_id' ) ? almaden_bookster_get_blog_creator_page_id() : 0
+		);
+		$add_rule(
 			'authors',
 			function_exists( 'almaden_bookster_get_authors_slug' ) ? almaden_bookster_get_authors_slug() : 'autores',
 			function_exists( 'almaden_bookster_get_authors_title' ) ? almaden_bookster_get_authors_title() : 'Autores',

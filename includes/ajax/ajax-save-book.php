@@ -45,6 +45,8 @@ function almaden_bookster_save_book_ajax() {
 		$opening_page_mode     = isset( $chapter['opening_page_mode'] ) ? sanitize_text_field( $chapter['opening_page_mode'] ) : '';
 		$opening_blank_intentional = isset( $chapter['opening_blank_intentional'] ) ? sanitize_text_field( $chapter['opening_blank_intentional'] ) : '0';
 		$opening_block_enabled = isset( $chapter['opening_block_enabled'] ) ? sanitize_text_field( $chapter['opening_block_enabled'] ) : '1';
+		$opening_block_horizontal_align = isset( $chapter['opening_block_horizontal_align'] ) ? sanitize_text_field( $chapter['opening_block_horizontal_align'] ) : 'center';
+		$opening_block_vertical_align = isset( $chapter['opening_block_vertical_align'] ) ? sanitize_text_field( $chapter['opening_block_vertical_align'] ) : 'top';
 		$hide_title            = isset( $chapter['hide_title'] ) ? sanitize_text_field( $chapter['hide_title'] ) : '0';
 		$hide_all_headers_footers = isset( $chapter['hide_all_headers_footers'] ) ? sanitize_text_field( $chapter['hide_all_headers_footers'] ) : '0';
 		$exclude_from_numbering= isset( $chapter['exclude_from_numbering'] ) ? sanitize_text_field( $chapter['exclude_from_numbering'] ) : '0';
@@ -142,6 +144,8 @@ function almaden_bookster_save_book_ajax() {
 			update_post_meta( $post_id, '_opening_page_mode', $opening_page_mode );
 			update_post_meta( $post_id, '_opening_blank_intentional', $opening_blank_intentional );
 			update_post_meta( $post_id, '_opening_block_enabled', $opening_block_enabled );
+			update_post_meta( $post_id, '_opening_block_horizontal_align', $opening_block_horizontal_align );
+			update_post_meta( $post_id, '_opening_block_vertical_align', $opening_block_vertical_align );
 			update_post_meta( $post_id, '_hide_title', $hide_title );
 			update_post_meta( $post_id, '_hide_all_headers_footers', $hide_all_headers_footers );
 			update_post_meta( $post_id, '_exclude_from_numbering', $exclude_from_numbering );
@@ -216,6 +220,8 @@ function almaden_bookster_save_book_ajax() {
 				'opening_page_mode'     => $opening_page_mode,
 				'opening_blank_intentional' => $opening_blank_intentional,
 				'opening_block_enabled' => $opening_block_enabled,
+				'opening_block_horizontal_align' => $opening_block_horizontal_align,
+				'opening_block_vertical_align' => $opening_block_vertical_align,
 				'hide_title'            => $hide_title,
 				'hide_all_headers_footers' => $hide_all_headers_footers,
 				'exclude_from_numbering'=> $exclude_from_numbering,

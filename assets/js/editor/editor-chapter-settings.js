@@ -131,11 +131,22 @@ function openChapterSettingsModal() {
         }
         const derivedOpeningPageMode = activeChapter.opening_page_mode || (activeChapter.parity_image ? 'image' : 'auto');
         const derivedOpeningBlockEnabled = activeChapter.opening_block_enabled === '0' ? '0' : '1';
+        const settings = bookState.settings || {};
+        const derivedOpeningBlockHorizontalAlign = ['left', 'center', 'right'].includes(String(activeChapter.opening_block_horizontal_align || '').toLowerCase())
+            ? String(activeChapter.opening_block_horizontal_align).toLowerCase()
+            : (['left', 'center', 'right'].includes(String(settings.chapter_title_align || '').toLowerCase())
+                ? String(settings.chapter_title_align).toLowerCase()
+                : 'center');
+        const derivedOpeningBlockVerticalAlign = ['top', 'center', 'bottom'].includes(String(activeChapter.opening_block_vertical_align || '').toLowerCase())
+            ? String(activeChapter.opening_block_vertical_align).toLowerCase()
+            : (String(settings.chapter_page_one_vertical || 'top').toLowerCase() === 'half' ? 'center' : (['top', 'center', 'bottom'].includes(String(settings.chapter_page_one_vertical || '').toLowerCase()) ? String(settings.chapter_page_one_vertical).toLowerCase() : 'top'));
 
         // Cargar valores Normales
         document.getElementById('chapter_opening_page_mode').value = derivedOpeningPageMode;
         document.getElementById('chapter_opening_blank_intentional').checked = activeChapter.opening_blank_intentional === '1';
         document.getElementById('chapter_opening_block_enabled').checked = derivedOpeningBlockEnabled === '1';
+        document.getElementById('chapter_opening_block_horizontal_align').value = derivedOpeningBlockHorizontalAlign;
+        document.getElementById('chapter_opening_block_vertical_align').value = derivedOpeningBlockVerticalAlign;
         document.getElementById('chapter_hide_title').checked = activeChapter.hide_title === '1';
         document.getElementById('chapter_exclude_from_numbering').checked = activeChapter.exclude_from_numbering === '1';
         document.getElementById('chapter_hide_all_headers_footers').checked = activeChapter.hide_all_headers_footers === '1';
@@ -260,6 +271,12 @@ function saveChapterSettings() {
         activeChapter.opening_page_mode = document.getElementById('chapter_opening_page_mode').value;
         activeChapter.opening_blank_intentional = document.getElementById('chapter_opening_blank_intentional').checked ? '1' : '0';
         activeChapter.opening_block_enabled = document.getElementById('chapter_opening_block_enabled').checked ? '1' : '0';
+        activeChapter.opening_block_horizontal_align = ['left', 'center', 'right'].includes(String(document.getElementById('chapter_opening_block_horizontal_align').value || '').toLowerCase())
+            ? String(document.getElementById('chapter_opening_block_horizontal_align').value).toLowerCase()
+            : 'center';
+        activeChapter.opening_block_vertical_align = ['top', 'center', 'bottom'].includes(String(document.getElementById('chapter_opening_block_vertical_align').value || '').toLowerCase())
+            ? String(document.getElementById('chapter_opening_block_vertical_align').value).toLowerCase()
+            : 'top';
         activeChapter.hide_title = document.getElementById('chapter_hide_title').checked ? '1' : '0';
         activeChapter.exclude_from_numbering = document.getElementById('chapter_exclude_from_numbering').checked ? '1' : '0';
         activeChapter.hide_all_headers_footers = document.getElementById('chapter_hide_all_headers_footers').checked ? '1' : '0';
@@ -370,14 +387,19 @@ function toggleParityImageSizeInputs() {
 
 function toggleOpeningPageControls() {
     const modeField = document.getElementById('chapter_opening_page_mode');
-    const blankWrapper = document.getElementById('chapter_opening_blank_intentional_wrapper');
+    const layoutWrapper = document.getElementById('chapter_opening_layout_controls');
+    const layoutHint = document.getElementById('chapter_opening_layout_hint');
     const imageWrapper = document.getElementById('chapter_opening_image_controls');
     if (!modeField) return;
 
     const mode = modeField.value;
 
-    if (blankWrapper) {
-        blankWrapper.classList.toggle('hidden', mode !== 'blank');
+    if (layoutWrapper) {
+        layoutWrapper.classList.toggle('hidden', mode !== 'blank');
+    }
+
+    if (layoutHint) {
+        layoutHint.classList.toggle('hidden', mode === 'blank');
     }
 
     if (imageWrapper) {

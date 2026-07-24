@@ -265,6 +265,20 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             padding: 0 !important;
         }
 
+        .pdf-content .chapter-opening-page-block--blank {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .pdf-content .chapter-opening-page-block--blank .chapter-opening-content {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
         .pdf-content .chapter-opening-content {
             width: 100% !important;
             box-sizing: border-box !important;

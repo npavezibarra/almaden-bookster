@@ -53,7 +53,16 @@ function updateParityButtonVisibility() {
     const btn = document.getElementById('btn-parity-image');
     if (!btn) return;
 
-    if (typeof bookState !== 'undefined' && bookState && bookState.settings && bookState.settings.chapter_start_parity === 'odd') {
+    const settings = typeof bookState !== 'undefined' && bookState && bookState.settings ? bookState.settings : {};
+    const activeChapter = typeof bookState !== 'undefined' && bookState && Array.isArray(bookState.chapters)
+        ? bookState.chapters.find(c => c.id === bookState.activeChapterId)
+        : null;
+    const chapterParity = activeChapter && activeChapter.start_parity && activeChapter.start_parity !== 'any'
+        ? activeChapter.start_parity
+        : settings.chapter_start_parity;
+    const allowParityImage = settings.book_chapter_flow_mode !== 'left' && chapterParity === 'odd';
+
+    if (allowParityImage) {
         btn.classList.remove('hidden');
     } else {
         btn.classList.add('hidden');

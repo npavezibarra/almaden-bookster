@@ -40,6 +40,8 @@ if ( $chapter_posts ) {
 			'opening_page_mode'       => get_post_meta( $cp->ID, '_opening_page_mode', true ),
 			'opening_blank_intentional' => get_post_meta( $cp->ID, '_opening_blank_intentional', true ),
 			'opening_block_enabled'   => get_post_meta( $cp->ID, '_opening_block_enabled', true ),
+			'opening_block_horizontal_align' => get_post_meta( $cp->ID, '_opening_block_horizontal_align', true ),
+			'opening_block_vertical_align' => get_post_meta( $cp->ID, '_opening_block_vertical_align', true ),
 			'hide_title'               => get_post_meta( $cp->ID, '_hide_title', true ),
 			'hide_all_headers_footers' => get_post_meta( $cp->ID, '_hide_all_headers_footers', true ),
 			'exclude_from_numbering'   => get_post_meta( $cp->ID, '_exclude_from_numbering', true ),

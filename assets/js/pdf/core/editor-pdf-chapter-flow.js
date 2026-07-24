@@ -23,8 +23,76 @@ window.chapterHasOpeningPage = function(chapter) {
     return mode === 'blank' || mode === 'image';
 };
 
+window.shouldSeparateChapterOpening = function(chapter, settings) {
+    const separateOpening = settings && String(settings.book_separate_opening_content) !== '0';
+    if (!separateOpening) {
+        return false;
+    }
+
+    return window.chapterHasOpeningPage ? window.chapterHasOpeningPage(chapter) : false;
+};
+
+window.getBookChapterFlowMode = function(settings) {
+    if (settings && settings.book_chapter_flow_mode === 'left') {
+        return 'left';
+    }
+    if (settings && settings.book_chapter_flow_mode === 'continuous') {
+        return 'continuous';
+    }
+
+    if (settings && settings.chapter_start_parity === 'even') {
+        return 'left';
+    }
+
+    return 'continuous';
+};
+
 window.getChapterStartParity = function(chapter, settings) {
-    return chapter && chapter.is_toc === '1'
-        ? 'even'
-        : ((chapter && chapter.start_parity && chapter.start_parity !== 'any') ? chapter.start_parity : (settings && settings.chapter_start_parity));
+    if (chapter && chapter.is_toc === '1') {
+        return 'even';
+    }
+
+    if (chapter && chapter.start_parity && chapter.start_parity !== 'any') {
+        return chapter.start_parity;
+    }
+
+    const flowMode = window.getBookChapterFlowMode ? window.getBookChapterFlowMode(settings) : 'continuous';
+    if (flowMode === 'left') {
+        return 'even';
+    }
+
+    if (settings && settings.chapter_start_parity) {
+        return settings.chapter_start_parity;
+    }
+
+    return 'any';
+};
+
+window.shouldInsertBookStartLeadingPage = function(chapter, settings, chapterLength = null) {
+    if (!chapter) {
+        return false;
+    }
+
+    const isToc = chapter.is_toc === '1';
+    const resolvedLength = Number.isFinite(chapterLength) ? chapterLength : null;
+    const flowMode = window.getBookChapterFlowMode ? window.getBookChapterFlowMode(settings) : 'continuous';
+    if (isToc && flowMode === 'left') {
+        // The book-level left-flow rule applies even when the TOC fits on one page.
+        return true;
+    }
+
+    if (isToc) {
+        if (resolvedLength === null) {
+            return false;
+        }
+        return resolvedLength > 1;
+    }
+
+    if (flowMode === 'left') {
+        return true;
+    }
+
+    // In continuous flow, a separated opening still starts on the next
+    // available page. Only the left-start book rule needs a leading blank.
+    return false;
 };

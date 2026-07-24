@@ -9,6 +9,7 @@ $page_subtitle = $is_single_publisher
 	? __( 'Perfil público de la editorial, sus libros y su equipo.', 'almaden-bookster' )
 	: __( 'Directorio público de editoriales alojadas en Almaden Bookster.', 'almaden-bookster' );
 $all_publishers = $is_single_publisher ? array() : almaden_bookster_get_publishers();
+$publishers_total = $is_single_publisher ? 0 : count( $all_publishers );
 $publisher_books = $is_single_publisher ? almaden_bookster_get_publisher_books( $publisher['id'] ) : array();
 $publisher_members = $is_single_publisher ? almaden_bookster_get_publisher_members( $publisher['id'] ) : array();
 $can_manage_publisher = $is_single_publisher && function_exists( 'almaden_bookster_user_can_manage_publisher' ) ? almaden_bookster_user_can_manage_publisher( $publisher['id'] ) : false;
@@ -183,103 +184,145 @@ if ( $is_single_publisher && ! empty( $publisher_members ) ) {
 
 <main id="almaden-publisher-page" class="almaden-app-content-shell">
 	<div class="almaden-shell">
-		<section class="almaden-hero">
-			<span class="almaden-pill"><?php echo esc_html( $is_single_publisher ? __( 'Editorial', 'almaden-bookster' ) : __( 'Directorio', 'almaden-bookster' ) ); ?></span>
-			<h1><?php echo esc_html( $page_title ); ?></h1>
-			<p><?php echo esc_html( $page_subtitle ); ?></p>
+	<?php if ( $is_single_publisher ) : ?>
+		<section class="almaden-hero" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-hero' ); ?>" data-publisher-id="<?php echo esc_attr( absint( $publisher['id'] ) ); ?>">
+			<span class="almaden-pill"><?php echo esc_html( __( 'Editorial', 'almaden-bookster' ) ); ?></span>
+			<h1 id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-title' ); ?>"><?php echo esc_html( $page_title ); ?></h1>
+			<p id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-subtitle' ); ?>"><?php echo esc_html( $page_subtitle ); ?></p>
 			<?php if ( $can_manage_publisher && '' !== $publisher_settings_url ) : ?>
-				<p style="margin-top: 1rem;">
-					<a href="<?php echo esc_url( $publisher_settings_url ); ?>" style="display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1rem;border-radius:999px;background:rgba(255,255,255,.12);color:#fff;text-decoration:none;font-weight:700;">
+				<p style="margin-top: 1rem;" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-settings-wrap' ); ?>">
+					<a href="<?php echo esc_url( $publisher_settings_url ); ?>" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-settings-link' ); ?>" style="display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1rem;border-radius:999px;background:rgba(255,255,255,.12);color:#fff;text-decoration:none;font-weight:700;">
 						<?php esc_html_e( 'Abrir ajustes', 'almaden-bookster' ); ?>
 					</a>
 				</p>
 			<?php endif; ?>
 		</section>
 
-		<?php if ( $is_single_publisher ) : ?>
-			<div class="almaden-grid">
-				<section class="almaden-card">
-					<h2><?php echo esc_html( $publisher['name'] ); ?></h2>
-					<?php if ( ! empty( $publisher['description'] ) ) : ?>
-						<div class="almaden-muted"><?php echo wp_kses_post( wpautop( $publisher['description'] ) ); ?></div>
-					<?php else : ?>
-						<p class="almaden-muted"><?php esc_html_e( 'Esta editorial todavía no publicó una descripción.', 'almaden-bookster' ); ?></p>
-					<?php endif; ?>
-
-					<div class="almaden-meta">
-						<div class="almaden-meta-item">
-							<span><?php esc_html_e( 'Sitio', 'almaden-bookster' ); ?></span>
-							<strong><?php echo ! empty( $publisher['website'] ) ? esc_html( $publisher['website'] ) : esc_html__( 'No informado', 'almaden-bookster' ); ?></strong>
-						</div>
-						<div class="almaden-meta-item">
-							<span><?php esc_html_e( 'Correo', 'almaden-bookster' ); ?></span>
-							<strong><?php echo ! empty( $publisher['email'] ) ? esc_html( $publisher['email'] ) : esc_html__( 'No informado', 'almaden-bookster' ); ?></strong>
-						</div>
-						<div class="almaden-meta-item">
-							<span><?php esc_html_e( 'Teléfono', 'almaden-bookster' ); ?></span>
-							<strong><?php echo ! empty( $publisher['phone'] ) ? esc_html( $publisher['phone'] ) : esc_html__( 'No informado', 'almaden-bookster' ); ?></strong>
-						</div>
-						<div class="almaden-meta-item">
-							<span><?php esc_html_e( 'RUT', 'almaden-bookster' ); ?></span>
-							<strong><?php echo ! empty( $publisher['rut'] ) ? esc_html( $publisher['rut'] ) : esc_html__( 'No informado', 'almaden-bookster' ); ?></strong>
-						</div>
-					</div>
-				</section>
-
-				<aside class="almaden-card">
-					<h3><?php esc_html_e( 'Equipo', 'almaden-bookster' ); ?></h3>
-					<?php if ( ! empty( $authors ) ) : ?>
-						<div class="almaden-list">
-							<?php foreach ( $authors as $member ) : ?>
-								<div class="almaden-person">
-									<p class="almaden-person-name"><?php echo esc_html( get_userdata( (int) $member['user_id'] ) ? get_userdata( (int) $member['user_id'] )->display_name : __( 'Usuario', 'almaden-bookster' ) ); ?></p>
-									<p class="almaden-person-role"><?php echo esc_html( almaden_bookster_get_publisher_role_label( $member['role'] ) ); ?></p>
-								</div>
-							<?php endforeach; ?>
-						</div>
-					<?php else : ?>
-						<p class="almaden-muted"><?php esc_html_e( 'Todavía no hay miembros asociados con este perfil.', 'almaden-bookster' ); ?></p>
-					<?php endif; ?>
-				</aside>
-			</div>
-
-			<section class="almaden-card">
-				<h2><?php esc_html_e( 'Libros', 'almaden-bookster' ); ?></h2>
-				<?php if ( ! empty( $publisher_books ) ) : ?>
-					<div class="almaden-list">
-						<?php foreach ( $publisher_books as $book ) : ?>
-							<a class="almaden-book" href="<?php echo esc_url( get_permalink( $book ) ); ?>">
-								<div class="almaden-cover">
-									<?php if ( has_post_thumbnail( $book ) ) : ?>
-										<?php echo get_the_post_thumbnail( $book, 'medium_large' ); ?>
-									<?php else : ?>
-										<span class="almaden-muted"><?php esc_html_e( 'Sin portada', 'almaden-bookster' ); ?></span>
-									<?php endif; ?>
-								</div>
-								<p class="almaden-book-title"><?php echo esc_html( get_the_title( $book ) ); ?></p>
-								<p class="almaden-book-excerpt"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( get_post_field( 'post_content', $book ) ), 24 ) ); ?></p>
-							</a>
-						<?php endforeach; ?>
-					</div>
+		<div class="almaden-grid" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-grid' ); ?>" data-publisher-id="<?php echo esc_attr( absint( $publisher['id'] ) ); ?>">
+			<section class="almaden-card" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-profile-card' ); ?>" data-publisher-id="<?php echo esc_attr( absint( $publisher['id'] ) ); ?>">
+				<h2 id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-name' ); ?>"><?php echo esc_html( $publisher['name'] ); ?></h2>
+				<?php if ( ! empty( $publisher['description'] ) ) : ?>
+					<div class="almaden-muted" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-description' ); ?>"><?php echo wp_kses_post( wpautop( $publisher['description'] ) ); ?></div>
 				<?php else : ?>
-					<p class="almaden-empty"><?php esc_html_e( 'Esta editorial todavía no tiene libros publicados.', 'almaden-bookster' ); ?></p>
+					<p class="almaden-muted" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-description-empty' ); ?>"><?php esc_html_e( 'Esta editorial todavía no publicó una descripción.', 'almaden-bookster' ); ?></p>
 				<?php endif; ?>
+
+				<div class="almaden-meta" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-meta' ); ?>">
+					<div class="almaden-meta-item" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-meta-website' ); ?>">
+						<span><?php esc_html_e( 'Sitio', 'almaden-bookster' ); ?></span>
+						<strong><?php echo ! empty( $publisher['website'] ) ? esc_html( $publisher['website'] ) : esc_html__( 'No informado', 'almaden-bookster' ); ?></strong>
+					</div>
+					<div class="almaden-meta-item" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-meta-email' ); ?>">
+						<span><?php esc_html_e( 'Correo', 'almaden-bookster' ); ?></span>
+						<strong><?php echo ! empty( $publisher['email'] ) ? esc_html( $publisher['email'] ) : esc_html__( 'No informado', 'almaden-bookster' ); ?></strong>
+					</div>
+					<div class="almaden-meta-item" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-meta-phone' ); ?>">
+						<span><?php esc_html_e( 'Teléfono', 'almaden-bookster' ); ?></span>
+						<strong><?php echo ! empty( $publisher['phone'] ) ? esc_html( $publisher['phone'] ) : esc_html__( 'No informado', 'almaden-bookster' ); ?></strong>
+					</div>
+					<div class="almaden-meta-item" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-meta-rut' ); ?>">
+						<span><?php esc_html_e( 'RUT', 'almaden-bookster' ); ?></span>
+						<strong><?php echo ! empty( $publisher['rut'] ) ? esc_html( $publisher['rut'] ) : esc_html__( 'No informado', 'almaden-bookster' ); ?></strong>
+					</div>
+				</div>
 			</section>
-		<?php else : ?>
-			<section class="almaden-card">
-				<h2><?php esc_html_e( 'Editoriales activas', 'almaden-bookster' ); ?></h2>
+
+			<aside class="almaden-card" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-team-card' ); ?>" data-publisher-id="<?php echo esc_attr( absint( $publisher['id'] ) ); ?>">
+				<h3 id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-team-title' ); ?>"><?php esc_html_e( 'Equipo', 'almaden-bookster' ); ?></h3>
+				<?php if ( ! empty( $authors ) ) : ?>
+					<div class="almaden-list" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-team-list' ); ?>">
+						<?php foreach ( $authors as $member ) : ?>
+							<?php $member_user_id = absint( $member['user_id'] ); ?>
+							<div class="almaden-person" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-team-member-' . $member_user_id ); ?>" data-publisher-id="<?php echo esc_attr( absint( $publisher['id'] ) ); ?>" data-user-id="<?php echo esc_attr( $member_user_id ); ?>">
+								<p class="almaden-person-name" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-team-member-' . $member_user_id . '-name' ); ?>"><?php echo esc_html( get_userdata( $member_user_id ) ? get_userdata( $member_user_id )->display_name : __( 'Usuario', 'almaden-bookster' ) ); ?></p>
+								<p class="almaden-person-role" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-team-member-' . $member_user_id . '-role' ); ?>"><?php echo esc_html( almaden_bookster_get_publisher_role_label( $member['role'] ) ); ?></p>
+							</div>
+						<?php endforeach; ?>
+					</div>
+				<?php else : ?>
+					<p class="almaden-muted" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-team-empty' ); ?>"><?php esc_html_e( 'Todavía no hay miembros asociados con este perfil.', 'almaden-bookster' ); ?></p>
+				<?php endif; ?>
+			</aside>
+		</div>
+
+		<section class="almaden-card" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-books-card' ); ?>" data-publisher-id="<?php echo esc_attr( absint( $publisher['id'] ) ); ?>">
+			<h2 id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-books-title' ); ?>"><?php esc_html_e( 'Libros', 'almaden-bookster' ); ?></h2>
+			<?php if ( ! empty( $publisher_books ) ) : ?>
+				<div class="almaden-list" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-books-list' ); ?>">
+					<?php foreach ( $publisher_books as $book ) : ?>
+						<?php $book_id = absint( $book ); ?>
+						<a class="almaden-book" href="<?php echo esc_url( get_permalink( $book ) ); ?>" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-book-' . $book_id ); ?>" data-publisher-id="<?php echo esc_attr( absint( $publisher['id'] ) ); ?>" data-book-id="<?php echo esc_attr( $book_id ); ?>">
+							<div class="almaden-cover" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-book-' . $book_id . '-cover' ); ?>">
+								<?php if ( has_post_thumbnail( $book ) ) : ?>
+									<?php echo get_the_post_thumbnail( $book, 'medium_large' ); ?>
+								<?php else : ?>
+									<span class="almaden-muted" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-book-' . $book_id . '-cover-empty' ); ?>"><?php esc_html_e( 'Sin portada', 'almaden-bookster' ); ?></span>
+								<?php endif; ?>
+							</div>
+							<p class="almaden-book-title" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-book-' . $book_id . '-title' ); ?>"><?php echo esc_html( get_the_title( $book ) ); ?></p>
+							<p class="almaden-book-excerpt" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-book-' . $book_id . '-excerpt' ); ?>"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( get_post_field( 'post_content', $book ) ), 24 ) ); ?></p>
+						</a>
+					<?php endforeach; ?>
+				</div>
+			<?php else : ?>
+				<p class="almaden-empty" id="<?php echo esc_attr( 'almaden-publisher-' . absint( $publisher['id'] ) . '-books-empty' ); ?>"><?php esc_html_e( 'Esta editorial todavía no tiene libros publicados.', 'almaden-bookster' ); ?></p>
+			<?php endif; ?>
+		</section>
+	<?php else : ?>
+		<section class="pt-0" id="almaden-publisher-directory-hero">
+			<div class="w-full" id="almaden-publisher-directory-hero-inner">
+				<div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between" id="almaden-publisher-directory-hero-header">
+					<div id="almaden-publisher-directory-heading">
+						<p class="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">Directorio</p>
+						<h1 class="mt-3 text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl" id="almaden-publisher-directory-title">Editoriales</h1>
+						<p class="mt-4 text-lg leading-8 text-slate-600" id="almaden-publisher-directory-subtitle">
+							<?php
+							if ( 0 === $publishers_total ) {
+								esc_html_e( 'Aún no hay editoriales registradas en la plataforma.', 'almaden-bookster' );
+								} else {
+									echo esc_html(
+										sprintf(
+											_n( 'Hay %d editorial registrada en la plataforma.', 'Hay %d editoriales registradas en la plataforma.', $publishers_total, 'almaden-bookster' ),
+											$publishers_total
+										)
+									);
+								}
+								?>
+							</p>
+						</div>
+
+					<button
+						type="button"
+						class="inline-flex w-fit items-center justify-center rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(15,23,42,0.12)] transition hover:bg-slate-800"
+						id="almaden-publisher-create-button"
+					>
+						Crear editorial
+					</button>
+				</div>
+			</div>
+		</section>
+
+		<section class="mt-10" id="almaden-publisher-directory-list-section">
+			<div class="rounded-3xl border border-slate-200 bg-white px-6 py-8 shadow-[0_12px_30px_rgba(15,23,42,0.05)]" id="almaden-publisher-directory-list-card">
+				<h2 class="text-2xl font-semibold tracking-tight text-slate-900" id="almaden-publisher-directory-list-title">Editoriales activas</h2>
 				<?php if ( ! empty( $all_publishers ) ) : ?>
-					<div class="almaden-list">
+					<div class="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3" id="almaden-publisher-directory-list">
 						<?php foreach ( $all_publishers as $item ) : ?>
-							<a class="almaden-book" href="<?php echo esc_url( almaden_bookster_get_publisher_page_url( $item['slug'] ) ); ?>">
-								<p class="almaden-book-title"><?php echo esc_html( $item['name'] ); ?></p>
-								<p class="almaden-book-excerpt"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( $item['description'] ), 22 ) ); ?></p>
+							<?php $item_id = absint( $item['id'] ?? 0 ); ?>
+							<a class="overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition-transform duration-200 hover:-translate-y-1" href="<?php echo esc_url( almaden_bookster_get_publisher_page_url( $item['slug'] ) ); ?>" id="<?php echo esc_attr( 'almaden-publisher-' . $item_id . '-card' ); ?>" data-publisher-id="<?php echo esc_attr( $item_id ); ?>">
+								<div class="h-24 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700" id="<?php echo esc_attr( 'almaden-publisher-' . $item_id . '-card-cover' ); ?>"></div>
+								<p class="mt-5 text-2xl font-semibold tracking-tight text-slate-900" id="<?php echo esc_attr( 'almaden-publisher-' . $item_id . '-card-name' ); ?>"><?php echo esc_html( $item['name'] ); ?></p>
+								<p class="mt-2 text-sm leading-7 text-slate-600" id="<?php echo esc_attr( 'almaden-publisher-' . $item_id . '-card-description' ); ?>"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( $item['description'] ), 22 ) ); ?></p>
 							</a>
 						<?php endforeach; ?>
 					</div>
 				<?php else : ?>
-					<p class="almaden-empty"><?php esc_html_e( 'Aún no hay editoriales activas registradas.', 'almaden-bookster' ); ?></p>
+					<div class="mt-6 rounded-3xl border border-amber-200 bg-amber-50 px-6 py-8 text-amber-900" id="almaden-publisher-directory-empty">
+						<p class="text-lg font-semibold" id="almaden-publisher-directory-empty-title">Aún no hay editoriales activas registradas.</p>
+						<p class="mt-2 text-sm leading-7 text-amber-800" id="almaden-publisher-directory-empty-text">Cuando crees una editorial, aparecerá aquí para que puedas gestionarla desde el directorio.</p>
+					</div>
 				<?php endif; ?>
+			</div>
 			</section>
 		<?php endif; ?>
 	</div>

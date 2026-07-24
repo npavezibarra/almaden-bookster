@@ -83,6 +83,8 @@
         "footnote_separator_margin_bottom": 0.15,
         "credits_blank_before": 0,
         "credits_blank_after": 0,
+        "book_separate_opening_content": 1,
+        "book_chapter_flow_mode": "continuous",
         
         "chapter_start_parity": "odd",
         
@@ -97,6 +99,7 @@
         "chapter_prefix_ornament": "line_below",
         
         "chapter_page_one_vertical": "top",
+        "book_start_page_footer_type": "blank",
         "chapter_title_font_family": "Cormorant Garamond",
         "chapter_title_font_size": 20,
         "chapter_title_font_weight": "100",

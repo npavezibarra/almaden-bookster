@@ -293,6 +293,64 @@ function almaden_bookster_sync_course_archive_page() {
 	}
 }
 
+function almaden_bookster_sync_blog_creator_page() {
+	$settings = almaden_bookster_get_pages_settings();
+	$slug     = almaden_bookster_get_blog_creator_slug();
+	$title    = almaden_bookster_get_blog_creator_title();
+	$page_id  = isset( $settings['blog_creator_page_id'] ) ? absint( $settings['blog_creator_page_id'] ) : 0;
+	$page     = $page_id > 0 ? get_post( $page_id ) : null;
+
+	if ( $page && 'page' !== $page->post_type ) {
+		$page = null;
+	}
+
+	if ( ! $page ) {
+		$page = get_page_by_path( $slug, OBJECT, 'page' );
+	}
+
+	if ( ! $page ) {
+		$new_page_id = wp_insert_post(
+			array(
+				'post_title'   => $title,
+				'post_name'    => $slug,
+				'post_status'  => 'publish',
+				'post_type'    => 'page',
+				'post_content' => '<!-- El contenido de esta página es generado dinámicamente por el plugin AlmadenBookster -->',
+			)
+		);
+
+		if ( ! is_wp_error( $new_page_id ) && $new_page_id ) {
+			$settings['blog_creator_page_id'] = absint( $new_page_id );
+			$settings['blog_creator_slug']    = $slug;
+			$settings['blog_creator_title']   = $title;
+			update_option( 'almaden_bookster_pages_settings', $settings );
+		}
+
+		return;
+	}
+
+	$updates = array( 'ID' => $page->ID );
+
+	if ( $page->post_name !== $slug ) {
+		$updates['post_name'] = $slug;
+	}
+
+	if ( $page->post_title !== $title ) {
+		$updates['post_title'] = $title;
+	}
+
+	if ( count( $updates ) > 1 ) {
+		wp_update_post( $updates );
+	}
+
+	if ( $page_id !== (int) $page->ID ) {
+		$settings['blog_creator_page_id'] = (int) $page->ID;
+		$settings['blog_creator_slug']    = $slug;
+		$settings['blog_creator_title']   = $title;
+		update_option( 'almaden_bookster_pages_settings', $settings );
+	}
+}
+
 function almaden_bookster_sync_authors_page() {
 	$settings = almaden_bookster_get_pages_settings();
 	$slug     = almaden_bookster_get_authors_slug();

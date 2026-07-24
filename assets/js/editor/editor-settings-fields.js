@@ -53,6 +53,19 @@ function toggleParityImageMode() {
     }
 }
 
+function syncBookFlowParityMode() {
+    const flowMode = document.getElementById('setting-book-chapter-flow-mode');
+    const legacyParity = document.getElementById('setting-chapter-start-parity');
+
+    if (legacyParity) {
+        legacyParity.value = flowMode && flowMode.value === 'left' ? 'even' : 'any';
+    }
+
+    if (typeof toggleParityImageMode === 'function') {
+        toggleParityImageMode();
+    }
+}
+
 // ---- Funciones para Créditos Dinámicos ----
 function toggleCustomPageFields() {
     const pageSize = document.getElementById('setting-page-size').value;
@@ -151,4 +164,3 @@ window.openMediaUploaderCoverPanel = function() {
     });
     mediaUploaderCoverPanel.open();
 }
-

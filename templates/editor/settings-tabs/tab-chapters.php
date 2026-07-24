@@ -1,16 +1,31 @@
 <div id="tab-chapters" class="setting-tab-content space-y-4 hidden">
                 <div>
-                    <h4 class="text-[10px] font-bold uppercase tracking-wider text-black dark:text-white mb-2 border-b border-[var(--border-color)] pb-1">Flujo y Páginas de Inicio</h4>
+                    <h4 class="text-[10px] font-bold uppercase tracking-wider text-black dark:text-white mb-2 border-b border-[var(--border-color)] pb-1">Ajustes de Libro</h4>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-[9px] text-[var(--text-muted)] mb-1">Forzar Inicio de Capítulo</label>
-                            <select id="setting-chapter-start-parity" onchange="toggleParityImageMode()" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
-                                <option value="any">Cualquier página (Corrido)</option>
-                                <option value="odd">Página impar (Lado derecho - Recomendado)</option>
-                                <option value="even">Página par (Lado izquierdo)</option>
+                            <label class="block text-[9px] text-[var(--text-muted)] mb-1">Separar apertura de contenido</label>
+                            <label class="relative inline-flex items-center cursor-pointer mt-1">
+                                <input type="checkbox" id="setting-book-separate-opening-content" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
+                            </label>
+                            <p class="text-[10px] text-[var(--text-muted)] mt-1">Si está activo, la apertura editorial y el contenido se distribuyen en páginas distintas cuando el capítulo lo requiere.</p>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] text-[var(--text-muted)] mb-1">Flujo de capítulos</label>
+                            <select id="setting-book-chapter-flow-mode" onchange="syncBookFlowParityMode()" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                <option value="continuous">Continuo / cualquiera</option>
+                                <option value="left">Iniciar izquierda (par)</option>
+                            </select>
+                            <p class="text-[10px] text-[var(--text-muted)] mt-1">Esta regla define cómo encadena el libro los capítulos completos, no solo el contenido.</p>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] text-[var(--text-muted)] mb-1">Pie de la página inicial del libro</label>
+                            <select id="setting-book-start-page-footer-type" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                <option value="blank">Dejar en blanco</option>
+                                <option value="page_number">Mostrar número 1</option>
                             </select>
                         </div>
-
+                        <input type="hidden" id="setting-chapter-start-parity" value="any">
                     </div>
                 </div>
 

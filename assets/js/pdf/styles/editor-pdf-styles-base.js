@@ -69,6 +69,10 @@ function getPDFStylesBase(settings, geometry, toPx) {
     const previewHeightPx = (resolvedGeometry && resolvedGeometry.previewHeightPx) || toPx(previewHeight);
     const bleedLength = `${bleedValue.toFixed(4)}${unit}`;
     const zeroLength = `0${unit}`;
+    const bookStartFooterBox = getFooterMarginBox(settings.footer_align || 'center', false);
+    const bookStartFooterRule = settings.book_start_page_footer_type === 'page_number'
+        ? `@bottom-left { content: "" !important; } @bottom-center { content: "" !important; } @bottom-right { content: "" !important; } @${bookStartFooterBox} { content: ${getFooterContent('page_number', false, bookTitle, settings)} !important; }`
+        : `@bottom-left { content: "" !important; } @bottom-center { content: "" !important; } @bottom-right { content: "" !important; }`;
 
     // Compute total header and footer dimensions to align the page margins using native units
     const ptToUnit = (pt) => {
@@ -225,6 +229,63 @@ function getPDFStylesBase(settings, geometry, toPx) {
             @bottom-center { content: "" !important; }
             @bottom-right { content: "" !important; }
         }
+
+        @page book-start-leading-page {
+            @top-left { content: "" !important; }
+            @top-center { content: "" !important; }
+            @top-right { content: "" !important; }
+            ${bookStartFooterRule}
+        }
+
+        @page book-start-leading-page:left {
+            @top-left { content: "" !important; }
+            @top-center { content: "" !important; }
+            @top-right { content: "" !important; }
+            @bottom-left { content: "" !important; }
+            @bottom-center { content: "" !important; }
+            @bottom-right { content: "" !important; }
+        }
+
+        @page book-start-leading-page:right {
+            @top-left { content: "" !important; }
+            @top-center { content: "" !important; }
+            @top-right { content: "" !important; }
+            ${bookStartFooterRule}
+        }
+
+        @page book-start-leading-page:blank {
+            @top-left { content: "" !important; }
+            @top-center { content: "" !important; }
+            @top-right { content: "" !important; }
+            @bottom-left { content: "" !important; }
+            @bottom-center { content: "" !important; }
+            @bottom-right { content: "" !important; }
+        }
+
+        .book-start-leading-page {
+            /* The book always starts on the right; the following editorial page
+             * must therefore be forced onto the left side of the spread. */
+            break-before: right !important;
+            break-after: left !important;
+            page: book-start-leading-page !important;
+            min-height: calc(
+                var(--pagedjs-pagebox-height)
+                - var(--pagedjs-margin-top)
+                - var(--pagedjs-margin-bottom)
+                - 1px
+            ) !important;
+            height: calc(
+                var(--pagedjs-pagebox-height)
+                - var(--pagedjs-margin-top)
+                - var(--pagedjs-margin-bottom)
+                - 1px
+            ) !important;
+            line-height: 1px !important;
+            font-size: 1px !important;
+            color: transparent !important;
+            overflow: hidden !important;
+            clear: both !important;
+        }
         
         .chapter-preview-blank-page {
             break-before: left !important;
@@ -253,6 +314,50 @@ function getPDFStylesBase(settings, geometry, toPx) {
             break-after: page !important;
             page: chapter-blank-page !important;
             height: 1px !important;
+            line-height: 1px !important;
+            font-size: 1px !important;
+            color: transparent !important;
+            overflow: hidden !important;
+            clear: both !important;
+        }
+
+        .chapter-transition-blank-page {
+            break-before: right !important;
+            page: chapter-blank-page !important;
+            min-height: calc(
+                var(--pagedjs-pagebox-height)
+                - var(--pagedjs-margin-top)
+                - var(--pagedjs-margin-bottom)
+                - 1px
+            ) !important;
+            height: calc(
+                var(--pagedjs-pagebox-height)
+                - var(--pagedjs-margin-top)
+                - var(--pagedjs-margin-bottom)
+                - 1px
+            ) !important;
+            line-height: 1px !important;
+            font-size: 1px !important;
+            color: transparent !important;
+            overflow: hidden !important;
+            clear: both !important;
+        }
+
+        .book-end-blank-page {
+            break-before: page !important;
+            page: chapter-blank-page !important;
+            min-height: calc(
+                var(--pagedjs-pagebox-height)
+                - var(--pagedjs-margin-top)
+                - var(--pagedjs-margin-bottom)
+                - 1px
+            ) !important;
+            height: calc(
+                var(--pagedjs-pagebox-height)
+                - var(--pagedjs-margin-top)
+                - var(--pagedjs-margin-bottom)
+                - 1px
+            ) !important;
             line-height: 1px !important;
             font-size: 1px !important;
             color: transparent !important;
@@ -439,9 +544,9 @@ function getPDFStylesBase(settings, geometry, toPx) {
                 margin-bottom: 0px !important;
             }
             
-            /* Ocultar la página en blanco o izquierda al inicio del primer spread, excepto en modo capítulo activo */
-            #pdf-scroller.spread-view:not(.single-chapter-mode) .pagedjs_pages > .pagedjs_page.pagedjs_left_page:first-child,
-            #pdf-scroller.spread-view:not(.single-chapter-mode) .pagedjs_pages > .pagedjs_page.pagedjs_blank_page:first-child {
+            /* Ocultar la página guía inicial solo cuando no es una página de arranque editorial real */
+            #pdf-scroller.spread-view:not(.single-chapter-mode) .pagedjs_pages > .pagedjs_page.pagedjs_left_page:first-child:not(:has(.book-start-leading-page)),
+            #pdf-scroller.spread-view:not(.single-chapter-mode) .pagedjs_pages > .pagedjs_page.pagedjs_blank_page:first-child:not(:has(.book-start-leading-page)) {
                 display: none !important;
             }
             
@@ -464,6 +569,39 @@ function getPDFStylesBase(settings, geometry, toPx) {
             #pdf-scroller.spread-view .pagedjs_page.pagedjs_right_page {
                 border-left: none !important;
                 justify-self: start !important;
+            }
+
+            /* A chapter preview must not duplicate the previous chapter's
+             * transition blank. Visually offset its pages so the opening still
+             * occupies the left side of the spread. */
+            #pdf-scroller.spread-view.single-chapter-left-start .pagedjs_pages > .pagedjs_page.pagedjs_page_1 {
+                grid-column: 1 !important;
+                justify-self: end !important;
+            }
+            #pdf-scroller.spread-view.single-chapter-left-start .pagedjs_pages > .pagedjs_page.pagedjs_page_2 {
+                grid-column: 2 !important;
+                justify-self: start !important;
+            }
+            #pdf-scroller.spread-view.single-chapter-left-start .pagedjs_pages > .pagedjs_page.pagedjs_page_3 {
+                grid-column: 1 !important;
+                justify-self: end !important;
+            }
+            #pdf-scroller.spread-view.single-chapter-left-start .pagedjs_pages > .pagedjs_page.pagedjs_page_4 {
+                grid-column: 2 !important;
+                justify-self: start !important;
+            }
+
+            /* In an individual chapter preview, the transition blank was
+             * already emitted by the previous chapter. Do not recreate it
+             * through the opening section's left-page break. */
+            #pdf-scroller.single-chapter-left-start .single-chapter-opening-preview {
+                break-before: auto !important;
+                page-break-before: auto !important;
+            }
+
+            #pdf-scroller.single-chapter-left-start .single-chapter-main-preview {
+                break-before: auto !important;
+                page-break-before: auto !important;
             }
         }
         

@@ -22,13 +22,19 @@ function getPDFStylesChapters(settings, toPx) {
         }
         return configuredMode;
     };
+    const shouldSeparateChapterOpening = window.shouldSeparateChapterOpening || function(chapter, settings) {
+        return (settings && String(settings.book_separate_opening_content) !== '0') && (chapter && (chapter.opening_page_mode === 'blank' || chapter.opening_page_mode === 'image' || chapter.parity_image));
+    };
 
     if (bookState.chapters) {
         bookState.chapters.forEach((ch, idx) => {
             const parityImageUrl = ch.parity_image;
             const openingPageMode = getEffectiveOpeningPageMode(ch);
+            const chapterFlowMode = window.getBookChapterFlowMode
+                ? window.getBookChapterFlowMode(settings)
+                : (settings.chapter_start_parity === 'even' ? 'left' : 'continuous');
             
-            if (openingPageMode === 'image' || openingPageMode === 'blank') {
+            if (shouldSeparateChapterOpening(ch, settings) && (openingPageMode === 'image' || openingPageMode === 'blank')) {
                 const mode = ch.parity_image_mode || 'content';
                 let parityPageStyle = '';
                 if (openingPageMode === 'image' && mode === 'bleed') {
@@ -59,12 +65,30 @@ function getPDFStylesChapters(settings, toPx) {
                 chapterCSSRules += `
                     .chapter-opening-page-section-${ch.id} {
                         page: chapter-${ch.id}-opening;
-                        break-before: left;
+                        break-before: ${chapterFlowMode === 'left' ? 'left' : 'page'};
+                        page-break-before: ${chapterFlowMode === 'left' ? 'left' : 'always'};
                         break-after: page;
+                        display: flex !important;
+                        flex-direction: column !important;
+                        justify-content: center !important;
+                        align-items: stretch !important;
+                        width: 100% !important;
+                        min-height: calc(
+                            var(--pagedjs-pagebox-height)
+                            - var(--pagedjs-margin-top)
+                            - var(--pagedjs-margin-bottom)
+                            - 1px
+                        ) !important;
+                        height: calc(
+                            var(--pagedjs-pagebox-height)
+                            - var(--pagedjs-margin-top)
+                            - var(--pagedjs-margin-bottom)
+                            - 1px
+                        ) !important;
                     }
                     .chapter-section-${ch.id} {
                         page: chapter-${ch.id};
-                        break-before: right;
+                        break-before: page;
                     }
                     
                     @page chapter-${ch.id}-opening {
@@ -96,11 +120,19 @@ function getPDFStylesChapters(settings, toPx) {
                     `;
                 }
             } else {
-                let chapterStartParity = ch.is_toc === '1'
-                    ? 'even'
-                    : ((ch.start_parity && ch.start_parity !== 'any') ? ch.start_parity : settings.chapter_start_parity);
+                const bookFlowMode = settings.book_chapter_flow_mode === 'left'
+                    ? 'left'
+                    : (settings.chapter_start_parity === 'even' ? 'left' : 'continuous');
+                let chapterStartParity = window.getChapterStartParity
+                    ? window.getChapterStartParity(ch, settings)
+                    : (ch.is_toc === '1'
+                        ? 'even'
+                        : ((ch.start_parity && ch.start_parity !== 'any') ? ch.start_parity : (bookFlowMode === 'left' ? 'even' : settings.chapter_start_parity)));
                 let breakBefore = 'page';
-                if (idx > 0) {
+
+                if (idx === 0 && ch.is_toc === '1') {
+                    breakBefore = 'page';
+                } else if (idx > 0) {
                     if (chapterStartParity === 'odd') {
                         breakBefore = 'right';
                     } else if (chapterStartParity === 'even') {
@@ -117,16 +149,17 @@ function getPDFStylesChapters(settings, toPx) {
                 chapterCSSRules += `
                     .chapter-section-${ch.id} {
                         page: chapter-${ch.id};
-                        ${breakBefore !== 'none' ? `break-before: ${breakBefore};` : ''}
+                        ${breakBefore !== 'none' ? `break-before: ${breakBefore}; page-break-before: ${breakBefore === 'left' ? 'left' : 'always'};` : ''}
                     }
                 `;
             }
             
-            // Reglas de cabecera y pie específicas de la primera página del capítulo
+            // Reglas de cabecera específicas de la primera página del capítulo
             const firstHeaderType = (ch.first_page_header_type && ch.first_page_header_type !== 'global') ? ch.first_page_header_type : (settings.first_page_header_type || 'blank');
-            const firstFooterType = (ch.first_page_footer_type && ch.first_page_footer_type !== 'global') ? ch.first_page_footer_type : (settings.first_page_footer_type || 'page_number');
             const firstHeaderCustom = ch.first_page_header_custom || settings.first_page_header_custom || '';
-            const firstFooterCustom = ch.first_page_footer_custom || settings.first_page_footer_custom || '';
+            const footerAlign = settings.footer_align || 'center';
+            const footerEvenType = settings.footer_even_type || 'page_number';
+            const footerOddType = settings.footer_odd_type || 'page_number';
             const hideTocHeader = ch.is_toc === '1' && ch.toc_hide_header === '1';
             const hideCreditsPageNumber = ch.is_credits === '1' && ch.credits_hide_page_number === '1';
             const hideTocPageNumber = ch.is_toc === '1' && ch.toc_hide_page_numbers === '1';
@@ -156,10 +189,16 @@ function getPDFStylesChapters(settings, toPx) {
                     @top-left { content: ${hideTocHeader ? '""' : (firstHeaderType === 'custom' ? `"${firstHeaderCustom.replace(/"/g, '\\"')}"` : '""')}; }
                     @top-center { content: ${hideTocHeader ? '""' : (firstHeaderType === 'chapter_title' ? 'string(chapter-title)' : (firstHeaderType === 'book_title' ? `"${bookTitle.replace(/"/g, '\\"')}"` : '""'))}; }
                     @top-right { content: ""; }
-                    
-                    @bottom-left { content: ${hideChapterPageNumber ? '""' : (firstFooterType === 'custom' ? `"${firstFooterCustom.replace(/"/g, '\\"')}"` : '""')}; }
-                    @bottom-center { content: ${hideChapterPageNumber ? '""' : (firstFooterType === 'page_number' ? 'counter(page)' : '""')}; }
-                    @bottom-right { content: ""; }
+                }
+                @page chapter-${ch.id}:first:left {
+                    ${ch.is_credits === '1' ? `margin-top: ${creditsMarginTop}${unit};
+                    margin-bottom: ${creditsMarginBottom}${unit};` : ''}
+                    @bottom-${getFooterMarginBox(footerAlign, true).replace('bottom-', '')} { content: ${hideChapterPageNumber ? '""' : getFooterContent(footerEvenType, true, bookTitle, settings)}; }
+                }
+                @page chapter-${ch.id}:first:right {
+                    ${ch.is_credits === '1' ? `margin-top: ${creditsMarginTop}${unit};
+                    margin-bottom: ${creditsMarginBottom}${unit};` : ''}
+                    @bottom-${getFooterMarginBox(footerAlign, false).replace('bottom-', '')} { content: ${hideChapterPageNumber ? '""' : getFooterContent(footerOddType, false, bookTitle, settings)}; }
                 }
                 ${hideCreditsPageNumber ? `
                 @page chapter-${ch.id} {

@@ -20,6 +20,7 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-pages.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-fonts.php';
 require_once plugin_dir_path( __FILE__ ) . 'admin/admin-fonts-page.php';
 require_once plugin_dir_path( __FILE__ ) . 'modules/learni/init.php';
+require_once plugin_dir_path( __FILE__ ) . 'modules/blog-post/init.php';
 require_once plugin_dir_path( __FILE__ ) . 'modules/login-register/init.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/integrations/learni-integration.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/authors/authors.php';
@@ -72,7 +73,7 @@ function almaden_bookster_create_settings_table() {
 	
 	$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) === $table_name;
 	
-	if ( get_option( 'almaden_bookster_db_version' ) !== '2.4.0' || ! $table_exists ) {
+		if ( get_option( 'almaden_bookster_db_version' ) !== '2.4.1' || ! $table_exists ) {
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE $table_name (
@@ -175,6 +176,7 @@ function almaden_bookster_create_settings_table() {
 			first_page_header_custom varchar(255) DEFAULT '' NOT NULL,
 			first_page_footer_type varchar(50) DEFAULT 'page_number' NOT NULL,
 			first_page_footer_custom varchar(255) DEFAULT '' NOT NULL,
+			book_start_page_footer_type varchar(20) DEFAULT 'blank' NOT NULL,
 			ebook_bg_type varchar(50) DEFAULT 'color' NOT NULL,
 			ebook_bg_color varchar(50) DEFAULT '#ffffff' NOT NULL,
 			ebook_bg_image varchar(255) DEFAULT '' NOT NULL,
@@ -239,7 +241,7 @@ function almaden_bookster_create_settings_table() {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 
-		update_option( 'almaden_bookster_db_version', '2.4.0' );
+		update_option( 'almaden_bookster_db_version', '2.4.1' );
 	}
 }
 add_action( 'init', 'almaden_bookster_create_settings_table' );
@@ -399,6 +401,7 @@ add_action('init', function() {
 		'first_page_header_custom' => "varchar(255) DEFAULT '' NOT NULL",
 		'first_page_footer_type' => "varchar(50) DEFAULT 'page_number' NOT NULL",
 		'first_page_footer_custom' => "varchar(255) DEFAULT '' NOT NULL",
+		'book_start_page_footer_type' => "varchar(20) DEFAULT 'blank' NOT NULL",
 		'footnote_font_family' => "varchar(50) DEFAULT 'Merriweather' NOT NULL",
 		'footnote_font_size' => 'float DEFAULT 8.5 NOT NULL',
 		'footnote_font_weight' => "varchar(20) DEFAULT 'normal' NOT NULL",

@@ -29,17 +29,6 @@
             </div>
         </div>
 
-        <div id="chapter_opening_blank_intentional_wrapper" class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)] hidden">
-            <div>
-                <label class="font-semibold block mb-1">Marcar blanco intencional</label>
-                <span class="text-xs text-[var(--text-muted)]">Reserva este flag para marcar que la página previa vacía es una decisión editorial deliberada.</span>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="chapter_opening_blank_intentional" name="opening_blank_intentional" class="sr-only peer">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
-            </label>
-        </div>
-
         <div id="chapter_opening_image_controls" class="grid grid-cols-1 gap-4 hidden">
             <div>
                 <label class="block font-semibold mb-1">Imagen de apertura</label>
@@ -73,97 +62,167 @@
     </div>
 
     <div id="tab-opening" class="chapter-tab-content space-y-6 hidden">
-        <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
-            <div>
-                <label class="font-semibold block mb-1">Mostrar bloque de apertura</label>
-                <span class="text-xs text-[var(--text-muted)]">Controla el bloque estructural que contiene título, prefijo y subtítulo en la primera página del capítulo.</span>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="chapter_opening_block_enabled" name="opening_block_enabled" class="sr-only peer">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
-            </label>
+        <div id="chapter_opening_layout_hint" class="p-4 rounded-xl border border-dashed border-[var(--border-color)] bg-[var(--bg-sidebar)]">
+            <label class="block font-semibold mb-1">Apertura condicionada</label>
+            <p class="text-xs text-[var(--text-muted)]">
+                Esta sección se activa cuando el capítulo usa una página previa en blanco. Ahí podrás decidir si el bloque de apertura se mueve a esa página y cómo se alinea.
+            </p>
         </div>
 
-        <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
-            <div>
-                <label class="font-semibold block mb-1">Ocultar título del capítulo</label>
-                <span class="text-xs text-[var(--text-muted)]">No muestra el título en el PDF. Ideal para prólogos, continuaciones o páginas especiales.</span>
+        <div id="chapter_opening_layout_controls" class="space-y-6 hidden">
+            <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+                <div>
+                    <label class="font-semibold block mb-1">Marcar blanco intencional</label>
+                    <span class="text-xs text-[var(--text-muted)]">Reserva este flag para indicar que la página previa vacía es una decisión editorial deliberada.</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="chapter_opening_blank_intentional" name="opening_blank_intentional" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
+                </label>
             </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="chapter_hide_title" name="hide_chapter_title" class="sr-only peer">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
-            </label>
+
+            <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+                <div>
+                    <label class="font-semibold block mb-1">Mostrar bloque de apertura</label>
+                    <span class="text-xs text-[var(--text-muted)]">Controla el bloque estructural que contiene título, prefijo y subtítulo en la página previa en blanco.</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="chapter_opening_block_enabled" name="opening_block_enabled" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
+                </label>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+                    <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Alineación horizontal</label>
+                    <select id="chapter_opening_block_horizontal_align" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                        <option value="left">Izquierda</option>
+                        <option value="center">Centro</option>
+                        <option value="right">Derecha</option>
+                    </select>
+                </div>
+                <div class="p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+                    <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Alineación vertical</label>
+                    <select id="chapter_opening_block_vertical_align" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                        <option value="top">Arriba</option>
+                        <option value="center">Centro</option>
+                        <option value="bottom">Abajo</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+                <div>
+                    <label class="font-semibold block mb-1">Ocultar título del capítulo</label>
+                    <span class="text-xs text-[var(--text-muted)]">No muestra el título en el PDF. Ideal para prólogos, continuaciones o páginas especiales.</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="chapter_hide_title" name="hide_chapter_title" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
+                </label>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+                <div>
+                    <label class="block font-semibold mb-1">Subtítulo / Metadata</label>
+                    <p class="text-xs text-[var(--text-muted)] mb-2">Se mostrará debajo del título del capítulo.</p>
+                    <textarea id="chapter_subtitle_text" rows="2" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-[var(--text-main)] focus:outline-none focus:border-black dark:border-white" placeholder="Ej: Las memorias perdidas..."></textarea>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Tipografía</label>
+                    <select id="chapter_subtitle_font_family" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                        <option value="">Usar Global</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Alineación</label>
+                    <select id="chapter_subtitle_align" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                        <option value="left">Izquierda</option>
+                        <option value="center">Centro</option>
+                        <option value="right">Derecha</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Tamaño (pt)</label>
+                    <input type="number" step="0.5" id="chapter_subtitle_font_size" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 12">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Espaciado de Letras (px)</label>
+                    <input type="number" step="0.1" id="chapter_subtitle_letter_spacing" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 1.5">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Estilo</label>
+                    <select id="chapter_subtitle_font_style" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                        <option value="normal">Normal</option>
+                        <option value="italic">Cursiva</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Transformación</label>
+                    <select id="chapter_subtitle_text_transform" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                        <option value="none">Normal</option>
+                        <option value="uppercase">MAYÚSCULAS</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Peso</label>
+                    <select id="chapter_subtitle_font_weight" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                        <option value="normal">Normal (400)</option>
+                        <option value="bold">Bold (700)</option>
+                        <option value="300">Light (300)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Margen Arriba (cm)</label>
+                    <input type="number" step="0.1" id="chapter_subtitle_margin_top" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 0.5">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Margen Abajo (cm)</label>
+                    <input type="number" step="0.1" id="chapter_subtitle_margin_bottom" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 1.0">
+                </div>
+            </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-4">
+        <div id="chapter_opening_image_controls" class="grid grid-cols-1 gap-4 hidden">
             <div>
-                <label class="block font-semibold mb-1">Subtítulo / Metadata</label>
-                <p class="text-xs text-[var(--text-muted)] mb-2">Se mostrará debajo del título del capítulo.</p>
-                <textarea id="chapter_subtitle_text" rows="2" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-[var(--text-main)] focus:outline-none focus:border-black dark:border-white" placeholder="Ej: Las memorias perdidas..."></textarea>
-            </div>
-        </div>
+                <label class="block font-semibold mb-1">Imagen de apertura</label>
+                <p class="text-xs text-[var(--text-muted)] mb-2">Selecciona la imagen que se mostrará en la página previa al capítulo.</p>
+                <div class="flex items-center gap-2 mb-4">
+                    <button type="button" onclick="openParityImageUploader()" class="px-4 py-2 bg-neutral-100 text-black dark:text-white hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700 border border-neutral-300 dark:border-neutral-700 rounded-lg text-sm font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-upload"></i> Subir / Seleccionar Imagen
+                    </button>
+                </div>
 
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Tipografía</label>
-                <select id="chapter_subtitle_font_family" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
-                    <option value="">Usar Global</option>
+                <label class="block font-semibold mb-1">Modo de imagen</label>
+                <p class="text-xs text-[var(--text-muted)] mb-2">Define si la imagen se extiende hasta el borde, respeta el content box o usa tamaño personalizado.</p>
+                <select id="chapter_parity_image_mode" name="parity_image_mode" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-[var(--text-main)] focus:outline-none focus:border-black dark:border-white" onchange="toggleParityImageSizeInputs()">
+                    <option value="content">Full dentro del content box</option>
+                    <option value="bleed">Full page con bleed</option>
+                    <option value="custom">Ajustable por el usuario</option>
                 </select>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Alineación</label>
-                <select id="chapter_subtitle_align" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
-                    <option value="left">Izquierda</option>
-                    <option value="center">Centro</option>
-                    <option value="right">Derecha</option>
-                </select>
-            </div>
-        </div>
 
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Tamaño (pt)</label>
-                <input type="number" step="0.5" id="chapter_subtitle_font_size" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 12">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Espaciado de Letras (px)</label>
-                <input type="number" step="0.1" id="chapter_subtitle_letter_spacing" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 1.5">
-            </div>
-        </div>
-
-        <div class="grid grid-cols-3 gap-4">
-            <div>
-                <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Estilo</label>
-                <select id="chapter_subtitle_font_style" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
-                    <option value="normal">Normal</option>
-                    <option value="italic">Cursiva</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Transformación</label>
-                <select id="chapter_subtitle_text_transform" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
-                    <option value="none">Normal</option>
-                    <option value="uppercase">MAYÚSCULAS</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Peso</label>
-                <select id="chapter_subtitle_font_weight" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
-                    <option value="normal">Normal (400)</option>
-                    <option value="bold">Bold (700)</option>
-                    <option value="300">Light (300)</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Margen Arriba (cm)</label>
-                <input type="number" step="0.1" id="chapter_subtitle_margin_top" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 0.5">
-            </div>
-            <div>
-                <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Margen Abajo (cm)</label>
-                <input type="number" step="0.1" id="chapter_subtitle_margin_bottom" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 1.0">
+                <div id="parity_image_custom_size" class="hidden grid-cols-2 gap-4 mt-3">
+                    <div>
+                        <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Ancho (%)</label>
+                        <input type="number" id="chapter_parity_image_width" name="parity_image_width" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 100">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Alto (%)</label>
+                        <input type="number" id="chapter_parity_image_height" name="parity_image_height" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 100">
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -30,6 +30,13 @@ window.savePDFSettings = function(silent = false) {
         return isNaN(clean) ? fallback : clean;
     };
 
+    const getBookFlowMode = () => {
+        const el = document.getElementById('setting-book-chapter-flow-mode');
+        return el && el.value === 'left' ? 'left' : 'continuous';
+    };
+
+    const getLegacyParityFromFlowMode = () => (getBookFlowMode() === 'left' ? 'even' : 'any');
+
     const data = new FormData();
     data.append('action', 'almaden_save_book_settings');
     data.append('book_id', bookState.bookId);
@@ -151,6 +158,9 @@ window.savePDFSettings = function(silent = false) {
     data.append('first_page_header_custom', getVal('setting-first-page-header-custom'));
     data.append('first_page_footer_type', getVal('setting-first-page-footer-type'));
     data.append('first_page_footer_custom', getVal('setting-first-page-footer-custom'));
+    data.append('book_start_page_footer_type', getVal('setting-book-start-page-footer-type'));
+    data.append('book_separate_opening_content', getChecked('setting-book-separate-opening-content'));
+    data.append('book_chapter_flow_mode', getBookFlowMode());
 
     // Footnotes
     data.append('footnote_font_family', getVal('setting-footnote-font-family'));
@@ -177,7 +187,7 @@ window.savePDFSettings = function(silent = false) {
     data.append('footer_align', getVal('setting-footer-align'));
 
     // Capítulos
-    data.append('chapter_start_parity', getVal('setting-chapter-start-parity'));
+    data.append('chapter_start_parity', getLegacyParityFromFlowMode());
 
     data.append('chapter_page_one_vertical', getVal('setting-chapter-page-one-vertical'));
     data.append('chapter_title_font_family', getVal('setting-chapter-title-font-family'));
@@ -363,6 +373,10 @@ window.savePDFSettings = function(silent = false) {
                 first_page_header_custom: getVal('setting-first-page-header-custom'),
                 first_page_footer_type: getVal('setting-first-page-footer-type'),
                 first_page_footer_custom: getVal('setting-first-page-footer-custom'),
+                book_start_page_footer_type: getVal('setting-book-start-page-footer-type'),
+                book_separate_opening_content: getChecked('setting-book-separate-opening-content'),
+                book_chapter_flow_mode: getBookFlowMode(),
+                chapter_start_parity: getLegacyParityFromFlowMode(),
 
                 footnote_font_family: getVal('setting-footnote-font-family'),
                 footnote_font_size: parseVal('setting-footnote-font-size', 8.5),

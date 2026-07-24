@@ -95,6 +95,62 @@ graph TD
 
 ---
 
+## Reglas de paginación por flujo de capítulos
+
+Estas reglas se aplican al PDF completo y usan la numeración física visible del
+libro. La paridad describe la posición en el pliego: impar es la página derecha
+y par es la página izquierda.
+
+### Reglas globales
+
+- El primer capítulo físico comienza en la página impar 1. Esto también aplica
+  cuando el primer capítulo es el Índice.
+- El último capítulo siempre termina en una página par. Si el renderizado real
+  termina en impar, el compilador agrega una única página blanca final.
+- Un blanco de transición necesario para encadenar capítulos pertenece
+  físicamente al capítulo anterior, aunque el salto CSS se origine al comenzar
+  el capítulo siguiente.
+- Cuando el primer capítulo físico es el Índice y el flujo es `Iniciar izquierda`,
+  el Índice comienza en la página 2 porque la página 1 es blanca. Si el Índice
+  ocupa una cantidad impar de páginas, termina en par y recibe explícitamente
+  la página blanca impar siguiente antes del capítulo posterior.
+- La longitud de un capítulo se mide con las páginas físicas que realmente
+  ocupa. No se redondea artificialmente a un número par.
+
+### Flujo `Continuo / Cualquiera`
+
+- Cada capítulo comienza en la página inmediatamente siguiente a la anterior,
+  sin forzar izquierda o derecha.
+- Si un capítulo termina en par, el libro puede continuar en la siguiente
+  página impar; no se agrega una página blanca intermedia.
+- Si termina en impar, el siguiente capítulo continúa en la página par
+  siguiente.
+- Solo se aplica la regla global del último capítulo: el libro se completa con
+  un blanco final si ese último capítulo termina en impar.
+
+### Flujo `Iniciar izquierda (par)`
+
+- Cada capítulo posterior al primero debe comenzar en una página par, es decir,
+  en la página izquierda. El primer capítulo conserva la excepción global: el
+  libro nace en la página impar 1 y, si el diseño requiere contenido en la
+  izquierda, la página impar 1 se reserva como blanco inicial.
+- Si un capítulo no final termina en par, se agrega una página blanca impar a
+  su derecha. El siguiente capítulo comienza entonces en la página par
+  siguiente.
+- Si un capítulo no final termina en impar, no se agrega blanco: la página
+  siguiente ya es par y puede iniciar el capítulo.
+- El último capítulo no recibe un blanco intermedio adicional. Si termina en
+  impar, recibe únicamente el blanco final necesario para que el libro termine
+  en par.
+
+### Implementación técnica
+
+Paged.js realiza el primer corte del contenido. Después, el compilador inspecciona
+la última página visible y ejecuta una segunda pasada solo si el último folio es
+impar. La sección `.chapter-transition-blank-page` materializa el blanco que
+pertenece al cierre del Índice en el caso descrito. La sección
+`.book-end-blank-page` se usa exclusivamente para el cierre final del libro.
+
 ### 5. Archivos Inactivos o Deprecados
 
 *   **`editor-pdf-pagination.js`**: *[DEPRECADO]* Antiguo algoritmo procedimental de medición de píxeles. Actualmente inactivo ya que Paged.js maneja nativamente la fragmentación del DOM físico en base al flujo del renderizador de Chrome.
