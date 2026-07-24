@@ -322,7 +322,7 @@ function getPDFStylesBase(settings, geometry, toPx) {
         }
 
         .chapter-transition-blank-page {
-            break-before: right !important;
+            break-before: page !important;
             page: chapter-blank-page !important;
             min-height: calc(
                 var(--pagedjs-pagebox-height)

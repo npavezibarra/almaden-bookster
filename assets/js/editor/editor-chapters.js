@@ -268,7 +268,7 @@ function createNewChapter(isToc = false, isCredits = false) {
         start_parity: isToc ? 'even' : 'any',
         credits_hide_page_number: '0',
         credits_margin_top: '',
-        credits_margin_bottom: ''
+        credits_margin_bottom: '', toc_hide_header: isToc ? '1' : '0', toc_hide_page_numbers: isToc ? '1' : '0'
     };
 
     bookState.chapters.push(newChapter);

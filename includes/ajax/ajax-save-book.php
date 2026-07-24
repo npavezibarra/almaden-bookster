@@ -97,8 +97,9 @@ function almaden_bookster_save_book_ajax() {
 		$toc_letter_spacing    = isset( $chapter['toc_letter_spacing'] ) ? sanitize_text_field( $chapter['toc_letter_spacing'] ) : '';
 		$toc_line_height       = isset( $chapter['toc_line_height'] ) ? sanitize_text_field( $chapter['toc_line_height'] ) : '';
 		$toc_item_spacing      = isset( $chapter['toc_item_spacing'] ) ? sanitize_text_field( $chapter['toc_item_spacing'] ) : '';
-		$toc_hide_header       = isset( $chapter['toc_hide_header'] ) ? sanitize_text_field( $chapter['toc_hide_header'] ) : '0';
-		$toc_hide_page_numbers = isset( $chapter['toc_hide_page_numbers'] ) ? sanitize_text_field( $chapter['toc_hide_page_numbers'] ) : '0';
+		$toc_default_hidden    = '1' === (string) $is_toc ? '1' : '0';
+		$toc_hide_header       = isset( $chapter['toc_hide_header'] ) ? sanitize_text_field( $chapter['toc_hide_header'] ) : $toc_default_hidden;
+		$toc_hide_page_numbers = isset( $chapter['toc_hide_page_numbers'] ) ? sanitize_text_field( $chapter['toc_hide_page_numbers'] ) : $toc_default_hidden;
 		$toc_item_align        = isset( $chapter['toc_item_align'] ) ? sanitize_text_field( $chapter['toc_item_align'] ) : 'left';
 		$toc_leader_style      = isset( $chapter['toc_leader_style'] ) ? sanitize_text_field( $chapter['toc_leader_style'] ) : 'dotted';
 		$toc_leader_position   = isset( $chapter['toc_leader_position'] ) ? sanitize_text_field( $chapter['toc_leader_position'] ) : 'middle';

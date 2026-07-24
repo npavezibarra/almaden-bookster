@@ -146,10 +146,13 @@ y par es la página izquierda.
 ### Implementación técnica
 
 Paged.js realiza el primer corte del contenido. Después, el compilador inspecciona
-la última página visible y ejecuta una segunda pasada solo si el último folio es
-impar. La sección `.chapter-transition-blank-page` materializa el blanco que
-pertenece al cierre del Índice en el caso descrito. La sección
-`.book-end-blank-page` se usa exclusivamente para el cierre final del libro.
+la última página visible con contenido de cada capítulo no final. En flujo
+`Iniciar izquierda`, si esa página es par, reconstruye el libro con una
+`.chapter-transition-blank-page` asociada al capítulo que acaba de terminar. Esta
+detección se repite hasta que la cadena de capítulos queda estable, porque cada
+blanco insertado puede cambiar la paridad de los capítulos posteriores.
+Finalmente se evalúa el cierre global del libro: `.book-end-blank-page` se usa
+solo cuando el último folio visible queda impar.
 
 ### 5. Archivos Inactivos o Deprecados
 

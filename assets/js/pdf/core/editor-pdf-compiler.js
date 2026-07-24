@@ -142,27 +142,143 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
         // Paged.js procesa el HTML y lo inyecta formateado en páginas en el contenedor scroller
         await previewer.preview(fullBookHTML, stylesArray, scroller);
 
+        const getVisibleRenderedPages = () => {
+            return Array.from(scroller.querySelectorAll('.pagedjs_pages > .pagedjs_page'))
+                .filter(page => !page.querySelector('.book-start-dummy-page'));
+        };
+        const escapeSelectorValue = (value) => {
+            if (window.CSS && typeof window.CSS.escape === 'function') {
+                return window.CSS.escape(String(value));
+            }
+            return String(value).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
+        };
+        const escapeAttributeValue = (value) => String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+        const getChapterContentPages = (chapter, visiblePages) => {
+            const selectorId = escapeSelectorValue(chapter.id);
+            const attrId = escapeAttributeValue(chapter.id);
+            const selectors = [
+                `.chapter-opening-page-section-${selectorId}`,
+                `.chapter-section-${selectorId}`,
+                `.credits-blank-page[data-chapter-id="${attrId}"]`
+            ].join(', ');
+            return visiblePages.filter(page => page.querySelector(selectors));
+        };
+        const removeTrailingAccidentalBlankPages = () => {
+            if (!isSingleChapterMode) return;
+            let pages = getVisibleRenderedPages();
+            while (pages.length && !((pages[pages.length - 1].querySelector('.pagedjs_area') || pages[pages.length - 1]).textContent || '').trim() && !pages[pages.length - 1].querySelector('.chapter-transition-blank-page, .book-end-blank-page, .credits-blank-page')) {
+                pages.pop().remove();
+            }
+        };
+        const findNeededTransitionBlankIds = (firstPhysicalPageNumber, onlyChapterId = null) => {
+            const flowMode = window.getBookChapterFlowMode
+                ? window.getBookChapterFlowMode(settings)
+                : (settings.chapter_start_parity === 'even' ? 'left' : 'continuous');
+            if (flowMode !== 'left') {
+                return [];
+            }
+
+            const visiblePages = getVisibleRenderedPages();
+            const neededIds = [];
+            const onlyId = onlyChapterId === null ? null : String(onlyChapterId);
+
+            bookState.chapters.forEach((chapter, index) => {
+                if (index >= bookState.chapters.length - 1) {
+                    return;
+                }
+                if (onlyId !== null && String(chapter.id) !== onlyId) {
+                    return;
+                }
+                if (window.shouldSeparateChapterOpening && window.shouldSeparateChapterOpening(chapter, settings)) {
+                    return;
+                }
+
+                const existingBlank = scroller.querySelector(
+                    `.chapter-transition-blank-page[data-chapter-id="${escapeAttributeValue(chapter.id)}"]`
+                );
+                if (existingBlank) {
+                    return;
+                }
+
+                const chapterPages = getChapterContentPages(chapter, visiblePages);
+                if (chapterPages.length === 0) {
+                    return;
+                }
+
+                const lastContentPage = chapterPages[chapterPages.length - 1];
+                const lastVisibleIndex = visiblePages.indexOf(lastContentPage);
+                const lastPhysicalPage = firstPhysicalPageNumber + lastVisibleIndex;
+                if (lastPhysicalPage % 2 === 0) {
+                    const nextPage = visiblePages[lastVisibleIndex + 1] || null;
+                    const nextPhysicalPage = nextPage ? firstPhysicalPageNumber + lastVisibleIndex + 1 : null;
+                    const nextPageHasChapterContent = nextPage && bookState.chapters.some(otherChapter => {
+                        return getChapterContentPages(otherChapter, [nextPage]).length > 0;
+                    });
+                    const nextPageIsBlankTransition = nextPage
+                        && nextPhysicalPage % 2 === 1
+                        && !nextPageHasChapterContent;
+                    if (nextPageIsBlankTransition) {
+                        return;
+                    }
+                    neededIds.push(chapter.id);
+                }
+            });
+
+            return neededIds;
+        };
+
+        const activeTransitionBlankIds = isSingleChapterMode
+            ? findNeededTransitionBlankIds(
+                previewFirstPhysicalPageNumber,
+                bookState.activeChapterId
+            )
+            : [];
+
+        if (activeTransitionBlankIds.length > 0) {
+            const activeTransitionBuildResult = window.buildContinuousBookHTML(
+                true,
+                bookState,
+                settings,
+                window.bookChapterPages,
+                { forceTransitionBlankChapterIds: activeTransitionBlankIds }
+            );
+            fullBookHTML = activeTransitionBuildResult.fullBookHTML;
+            scroller.innerHTML = '';
+            const activeTransitionPreviewer = new window.Paged.Previewer();
+            await activeTransitionPreviewer.preview(fullBookHTML, stylesArray, scroller);
+        }
+        removeTrailingAccidentalBlankPages();
+
         // El ultimo capitulo debe cerrar siempre en pagina par. Como la paridad
         // final depende del corte real de Paged.js, solo agregamos el blanco
         // cuando la primera pasada confirma que el ultimo folio visible es impar.
         if (!isSingleChapterMode) {
-            const firstPassPages = Array.from(scroller.querySelectorAll('.pagedjs_pages > .pagedjs_page'));
-            const firstPassVisiblePages = firstPassPages.filter(page => !page.querySelector('.book-start-dummy-page'));
-            const needsFinalBlankPage = firstPassVisiblePages.length > 0 && firstPassVisiblePages.length % 2 === 1;
+            let transitionBlankIds = [];
+            for (let pass = 0; pass < bookState.chapters.length; pass++) {
+                const knownTransitionIds = new Set(transitionBlankIds.map(String));
+                const missingTransitionIds = findNeededTransitionBlankIds(1)
+                    .filter(id => !knownTransitionIds.has(String(id)));
+                if (missingTransitionIds.length === 0) {
+                    break;
+                }
 
-            if (needsFinalBlankPage) {
-                const finalBuildResult = window.buildContinuousBookHTML(
+                transitionBlankIds = transitionBlankIds.concat(missingTransitionIds);
+                const transitionBuildResult = window.buildContinuousBookHTML(
                     false,
                     bookState,
                     settings,
                     window.bookChapterPages,
-                    { forceFinalBlankPage: true }
+                    { forceTransitionBlankChapterIds: transitionBlankIds }
                 );
-                fullBookHTML = finalBuildResult.fullBookHTML;
+                fullBookHTML = transitionBuildResult.fullBookHTML;
                 scroller.innerHTML = '';
-                const finalPreviewer = new window.Paged.Previewer();
-                await finalPreviewer.preview(fullBookHTML, stylesArray, scroller);
+                const transitionPreviewer = new window.Paged.Previewer();
+                await transitionPreviewer.preview(fullBookHTML, stylesArray, scroller);
             }
+
+            // No forzamos un blanco final solo por paridad. Si el contenido
+            // termina en página impar después de resolver las aperturas y
+            // transiciones, se conserva tal cual.
         }
 
         if (typeof window.applySpreadPageLayout === 'function') {

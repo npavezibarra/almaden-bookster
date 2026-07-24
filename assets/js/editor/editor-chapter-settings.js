@@ -71,8 +71,8 @@ function openChapterSettingsModal() {
         document.getElementById('chapter_toc_item_spacing').value = activeChapter.toc_item_spacing || '';
         document.getElementById('chapter_toc_leader_style').value = activeChapter.toc_leader_style || 'dotted';
         document.getElementById('chapter_toc_leader_position').value = activeChapter.toc_leader_position || 'middle';
-        document.getElementById('chapter_toc_hide_header').checked = (activeChapter.toc_hide_header === '1');
-        document.getElementById('chapter_toc_hide_page_numbers').checked = (activeChapter.toc_hide_page_numbers === '1');
+        document.getElementById('chapter_toc_hide_header').checked = (activeChapter.toc_hide_header !== '0');
+        document.getElementById('chapter_toc_hide_page_numbers').checked = (activeChapter.toc_hide_page_numbers !== '0');
         document.getElementById('chapter_toc_item_align').value = activeChapter.toc_item_align || 'left';
         
         // TOC Title Formats

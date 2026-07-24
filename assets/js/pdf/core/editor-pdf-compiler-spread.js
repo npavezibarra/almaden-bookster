@@ -171,7 +171,7 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
     };
 
     const hideCreditsPageNumber = activeChapter.is_credits === '1' && activeChapter.credits_hide_page_number === '1';
-    const hideTocPageNumber = activeChapter.is_toc === '1' && activeChapter.toc_hide_page_numbers === '1';
+    const hideTocPageNumber = activeChapter.is_toc === '1' && activeChapter.toc_hide_page_numbers !== '0';
     const hideAllHeadersFooters = activeChapter.hide_all_headers_footers === '1';
 
     const pages = Array.from(scroller.querySelectorAll('.pagedjs_pages > .pagedjs_page'));

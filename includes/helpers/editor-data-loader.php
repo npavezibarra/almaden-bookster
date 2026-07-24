@@ -32,6 +32,14 @@ $chapter_posts = get_posts( array(
 $saved_chapters = array();
 if ( $chapter_posts ) {
 	foreach ( $chapter_posts as $cp ) {
+		$is_toc = get_post_meta( $cp->ID, '_is_toc', true );
+		$toc_hide_header = get_post_meta( $cp->ID, '_toc_hide_header', true );
+		$toc_hide_page_numbers = get_post_meta( $cp->ID, '_toc_hide_page_numbers', true );
+		if ( '1' === (string) $is_toc ) {
+			$toc_hide_header = '' === (string) $toc_hide_header ? '1' : $toc_hide_header;
+			$toc_hide_page_numbers = '' === (string) $toc_hide_page_numbers ? '1' : $toc_hide_page_numbers;
+		}
+
 		$saved_chapters[] = array(
 			'id'                       => strval( $cp->ID ),
 			'title'                    => $cp->post_title,
@@ -68,7 +76,7 @@ if ( $chapter_posts ) {
 			'parity_image_mode'        => get_post_meta( $cp->ID, '_parity_image_mode', true ),
 			'parity_image_width'       => get_post_meta( $cp->ID, '_parity_image_width', true ),
 			'parity_image_height'      => get_post_meta( $cp->ID, '_parity_image_height', true ),
-			'is_toc'                   => get_post_meta( $cp->ID, '_is_toc', true ),
+			'is_toc'                   => $is_toc,
 			'is_credits'               => get_post_meta( $cp->ID, '_is_credits', true ),
 			'credits_font_family'      => get_post_meta( $cp->ID, '_credits_font_family', true ),
 			'credits_align'            => get_post_meta( $cp->ID, '_credits_align', true ),
@@ -87,8 +95,8 @@ if ( $chapter_posts ) {
 			'toc_letter_spacing'       => get_post_meta( $cp->ID, '_toc_letter_spacing', true ),
 			'toc_line_height'          => get_post_meta( $cp->ID, '_toc_line_height', true ),
 			'toc_item_spacing'         => get_post_meta( $cp->ID, '_toc_item_spacing', true ),
-			'toc_hide_header'         => get_post_meta( $cp->ID, '_toc_hide_header', true ),
-			'toc_hide_page_numbers'   => get_post_meta( $cp->ID, '_toc_hide_page_numbers', true ),
+			'toc_hide_header'         => $toc_hide_header,
+			'toc_hide_page_numbers'   => $toc_hide_page_numbers,
 			'toc_item_align'          => get_post_meta( $cp->ID, '_toc_item_align', true ),
 			'toc_leader_style'         => get_post_meta( $cp->ID, '_toc_leader_style', true ),
 			'toc_leader_position'      => get_post_meta( $cp->ID, '_toc_leader_position', true ),

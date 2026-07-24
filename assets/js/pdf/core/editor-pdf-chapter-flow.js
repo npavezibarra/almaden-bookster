@@ -29,7 +29,14 @@ window.shouldSeparateChapterOpening = function(chapter, settings) {
         return false;
     }
 
-    return window.chapterHasOpeningPage ? window.chapterHasOpeningPage(chapter) : false;
+    const hasVisibleOpeningBlock = !!(chapter
+        && chapter.title
+        && String(chapter.title).trim() !== ''
+        && chapter.hide_title !== '1'
+        && chapter.is_credits !== '1');
+    const openingMode = window.getEffectiveOpeningPageMode ? window.getEffectiveOpeningPageMode(chapter) : 'none';
+
+    return hasVisibleOpeningBlock || openingMode === 'blank' || openingMode === 'image';
 };
 
 window.getBookChapterFlowMode = function(settings) {

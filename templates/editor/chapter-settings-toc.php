@@ -27,11 +27,11 @@
                             </label>
                         </div>
 
-                        <!-- NUEVA OPCIÓN: Ocultar números de página en el pie del Índice -->
+                        <!-- Opción: ocultar el pie completo del Índice -->
                         <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)] mb-4">
                             <div>
-                                <label class="font-semibold block mb-1 text-sm">Ocultar Numeración de Páginas</label>
-                                <span class="text-xs text-[var(--text-muted)]">Oculta los números de página en el pie de las hojas que forman parte del Índice.</span>
+                                <label class="font-semibold block mb-1 text-sm">Ocultar Pie de Página</label>
+                                <span class="text-xs text-[var(--text-muted)]">Oculta todo el pie de página en las hojas que forman parte del Índice.</span>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="chapter_toc_hide_page_numbers" name="toc_hide_page_numbers" class="sr-only peer">

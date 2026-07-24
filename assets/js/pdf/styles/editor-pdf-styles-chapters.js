@@ -23,7 +23,18 @@ function getPDFStylesChapters(settings, toPx) {
         return configuredMode;
     };
     const shouldSeparateChapterOpening = window.shouldSeparateChapterOpening || function(chapter, settings) {
-        return (settings && String(settings.book_separate_opening_content) !== '0') && (chapter && (chapter.opening_page_mode === 'blank' || chapter.opening_page_mode === 'image' || chapter.parity_image));
+        if (!(settings && String(settings.book_separate_opening_content) !== '0')) {
+            return false;
+        }
+
+        const hasVisibleOpeningBlock = !!(chapter
+            && chapter.title
+            && String(chapter.title).trim() !== ''
+            && chapter.hide_title !== '1'
+            && chapter.is_credits !== '1');
+        const openingMode = getEffectiveOpeningPageMode(chapter);
+
+        return hasVisibleOpeningBlock || openingMode === 'blank' || openingMode === 'image';
     };
 
     if (bookState.chapters) {
@@ -34,7 +45,7 @@ function getPDFStylesChapters(settings, toPx) {
                 ? window.getBookChapterFlowMode(settings)
                 : (settings.chapter_start_parity === 'even' ? 'left' : 'continuous');
             
-            if (shouldSeparateChapterOpening(ch, settings) && (openingPageMode === 'image' || openingPageMode === 'blank')) {
+            if (shouldSeparateChapterOpening(ch, settings)) {
                 const mode = ch.parity_image_mode || 'content';
                 let parityPageStyle = '';
                 if (openingPageMode === 'image' && mode === 'bleed') {
@@ -160,9 +171,9 @@ function getPDFStylesChapters(settings, toPx) {
             const footerAlign = settings.footer_align || 'center';
             const footerEvenType = settings.footer_even_type || 'page_number';
             const footerOddType = settings.footer_odd_type || 'page_number';
-            const hideTocHeader = ch.is_toc === '1' && ch.toc_hide_header === '1';
+            const hideTocHeader = ch.is_toc === '1' && ch.toc_hide_header !== '0';
             const hideCreditsPageNumber = ch.is_credits === '1' && ch.credits_hide_page_number === '1';
-            const hideTocPageNumber = ch.is_toc === '1' && ch.toc_hide_page_numbers === '1';
+            const hideTocPageNumber = ch.is_toc === '1' && ch.toc_hide_page_numbers !== '0';
             const hideChapterPageNumber = hideCreditsPageNumber || hideTocPageNumber;
             const globalMarginTop = resolveMargin(settings.margin_top, 2.5);
             const globalMarginBottom = resolveMargin(settings.margin_bottom, 2.5);

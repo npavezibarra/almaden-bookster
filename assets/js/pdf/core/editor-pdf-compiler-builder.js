@@ -30,6 +30,11 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
             <div style="height: 1px;"></div>
         </section>
     `;
+    const forcedTransitionBlankIds = new Set(
+        Array.isArray(paginationOptions.forceTransitionBlankChapterIds)
+            ? paginationOptions.forceTransitionBlankChapterIds.map(String)
+            : []
+    );
 
     const getEffectiveOpeningPageMode = window.getEffectiveOpeningPageMode || function(chapter) {
         const configuredMode = chapter && chapter.opening_page_mode ? chapter.opening_page_mode : 'auto';
@@ -47,15 +52,34 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
         return mode === 'blank' || mode === 'image';
     };
     const shouldSeparateChapterOpening = window.shouldSeparateChapterOpening || function(chapter, settings) {
-        return (settings && String(settings.book_separate_opening_content) !== '0') && chapterHasOpeningPage(chapter);
+        if (!(settings && String(settings.book_separate_opening_content) !== '0')) {
+            return false;
+        }
+
+        const hasVisibleOpeningBlock = !!(chapter
+            && chapter.title
+            && String(chapter.title).trim() !== ''
+            && chapter.hide_title !== '1'
+            && chapter.is_credits !== '1');
+        const openingMode = getEffectiveOpeningPageMode(chapter);
+
+        return hasVisibleOpeningBlock || openingMode === 'blank' || openingMode === 'image';
     };
     const chapterUsesSeparateOpeningPage = (chapter) => shouldSeparateChapterOpening(chapter, settings);
 
     const buildOpeningPageSection = (chapter, chapterIndex, isSingleChapterPreview = false) => {
         const openingMode = getEffectiveOpeningPageMode(chapter);
-        const includeOpeningBlock = openingMode === 'blank';
-        const openingContent = includeOpeningBlock && typeof window.buildChapterOpeningHtml === 'function'
-            ? window.buildChapterOpeningHtml(chapter, chapterIndex, settings, bookState, { variant: 'blank-page', forceRenderTitle: true })
+        const openingContent = typeof window.buildChapterOpeningHtml === 'function'
+            ? window.buildChapterOpeningHtml(
+                chapter,
+                chapterIndex,
+                settings,
+                bookState,
+                {
+                    variant: openingMode === 'blank' ? 'blank-page' : 'standard',
+                    forceRenderTitle: openingMode === 'blank'
+                }
+            )
             : '<div class="chapter-parity-blank-page"></div>';
 
         const openingSectionStyle = openingMode === 'blank'
@@ -123,18 +147,9 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
             // The transition blank belongs to the previous chapter. The active
             // chapter preview must not render that same physical page again.
             const needsChapterStartTransitionPage = false;
-            const knownActiveChapterLength = window.bookChapterLengths?.[activeChapter.id]
-                || window.bookChapterPhysicalLengths?.[activeChapter.id]
-                || null;
-            const activeChapterContentStartPage = needsBookStartLeadingPage
-                ? 2
-                : startPageNum;
-            const activeChapterEndsOnEvenPage = knownActiveChapterLength !== null
-                && Number.isFinite(Number(knownActiveChapterLength))
-                && (activeChapterContentStartPage + Number(knownActiveChapterLength) - 1) % 2 === 0;
             const needsChapterEndTransitionPage = activeIndex < bookState.chapters.length - 1
                 && chapterFlowMode === 'left'
-                && activeChapterEndsOnEvenPage;
+                && forcedTransitionBlankIds.has(String(activeChapter.id));
 
             previewFirstPhysicalPageNumber = startPageNum;
             if (needsChapterStartTransitionPage) {
@@ -159,7 +174,7 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
                 fullBookHTML += buildOpeningPageSection(activeChapter, activeIndex, true);
                 fullBookHTML += buildMainChapterSection(
                     activeChapter,
-                    window.buildChapterHTML(activeChapter, activeIndex, settings, bookState, { includeOpeningBlock: activeChapter.opening_page_mode !== 'blank' }),
+                    window.buildChapterHTML(activeChapter, activeIndex, settings, bookState, { includeOpeningBlock: false }),
                     true
                 );
             } else if (activeChapter.is_credits === '1') {
@@ -179,7 +194,7 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
             }
 
             if (needsChapterEndTransitionPage) {
-                fullBookHTML += buildBookStartLeadingPage(activeChapter.id);
+                fullBookHTML += buildChapterTransitionBlankPage(activeChapter.id);
             }
         } else {
             fullBookHTML = `<div class="book-container" lang="${settings.content_language || 'es'}">`;
@@ -205,7 +220,7 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
         for (let index = 0; index < bookState.chapters.length; index++) {
             const chapter = bookState.chapters[index];
             const compiledHtml = window.buildChapterHTML(chapter, index, settings, bookState, {
-                includeOpeningBlock: !(chapterUsesSeparateOpeningPage(chapter) && getEffectiveOpeningPageMode(chapter) === 'blank')
+                includeOpeningBlock: !chapterUsesSeparateOpeningPage(chapter)
             });
             
             if (chapterUsesSeparateOpeningPage(chapter)) {
@@ -225,19 +240,11 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
                 fullBookHTML += buildMainChapterSection(chapter, compiledHtml);
             }
 
-            // In left-flow books, a first-page TOC starts on page 2 after the
-            // mandatory page 1. If its content has an odd physical length,
-            // it ends on an even page and owns the following odd blank.
-            if (index === 0 && chapter.is_toc === '1') {
+            if (index < bookState.chapters.length - 1) {
                 const flowMode = window.getBookChapterFlowMode
                     ? window.getBookChapterFlowMode(settings)
                     : (settings.chapter_start_parity === 'even' ? 'left' : 'continuous');
-                const tocLength = Number(
-                    window.bookChapterPhysicalLengths?.[chapter.id]
-                    || window.bookChapterLengths?.[chapter.id]
-                    || 0
-                );
-                if (flowMode === 'left' && tocLength > 0 && tocLength % 2 === 1) {
+                if (flowMode === 'left' && forcedTransitionBlankIds.has(String(chapter.id))) {
                     fullBookHTML += buildChapterTransitionBlankPage(chapter.id);
                 }
             }
