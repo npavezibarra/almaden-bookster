@@ -151,8 +151,9 @@ la última página visible con contenido de cada capítulo no final. En flujo
 `.chapter-transition-blank-page` asociada al capítulo que acaba de terminar. Esta
 detección se repite hasta que la cadena de capítulos queda estable, porque cada
 blanco insertado puede cambiar la paridad de los capítulos posteriores.
-Finalmente se evalúa el cierre global del libro: `.book-end-blank-page` se usa
-solo cuando el último folio visible queda impar.
+Finalmente se evalúa el cierre global del libro sobre el primer y último
+capítulo: `.book-end-blank-page` se usa solo cuando la maqueta completa queda
+impar y necesita un folio final para cerrar en página par.
 
 ### 5. Archivos Inactivos o Deprecados
 

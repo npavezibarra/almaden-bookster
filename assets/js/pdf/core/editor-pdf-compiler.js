@@ -249,11 +249,33 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
         }
         removeTrailingAccidentalBlankPages();
 
+        if (isSingleChapterMode && window.shouldAppendActiveBookEndBlankPage && window.shouldAppendActiveBookEndBlankPage(
+            scroller,
+            bookState,
+            bookState.activeChapterId,
+            activePreviewFirstPhysicalPageNumber
+        )) {
+            const activeFinalBookBuildResult = window.buildContinuousBookHTML(
+                true,
+                bookState,
+                settings,
+                window.bookChapterPages,
+                {
+                    forceTransitionBlankChapterIds: activeTransitionBlankIds,
+                    forceFinalBlankPage: true
+                }
+            );
+            fullBookHTML = activeFinalBookBuildResult.fullBookHTML;
+            scroller.innerHTML = '';
+            const activeFinalPreviewer = new window.Paged.Previewer();
+            await activeFinalPreviewer.preview(fullBookHTML, stylesArray, scroller);
+        }
+
         // El ultimo capitulo debe cerrar siempre en pagina par. Como la paridad
         // final depende del corte real de Paged.js, solo agregamos el blanco
         // cuando la primera pasada confirma que el ultimo folio visible es impar.
+        let transitionBlankIds = [];
         if (!isSingleChapterMode) {
-            let transitionBlankIds = [];
             for (let pass = 0; pass < bookState.chapters.length; pass++) {
                 const knownTransitionIds = new Set(transitionBlankIds.map(String));
                 const missingTransitionIds = findNeededTransitionBlankIds(1)
@@ -275,10 +297,22 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
                 const transitionPreviewer = new window.Paged.Previewer();
                 await transitionPreviewer.preview(fullBookHTML, stylesArray, scroller);
             }
-
-            // No forzamos un blanco final solo por paridad. Si el contenido
-            // termina en página impar después de resolver las aperturas y
-            // transiciones, se conserva tal cual.
+            if (window.shouldAppendBookEndBlankPage && window.shouldAppendBookEndBlankPage(scroller, bookState)) {
+                const finalBookBuildResult = window.buildContinuousBookHTML(
+                    false,
+                    bookState,
+                    settings,
+                    window.bookChapterPages,
+                    {
+                        forceTransitionBlankChapterIds: transitionBlankIds,
+                        forceFinalBlankPage: true
+                    }
+                );
+                fullBookHTML = finalBookBuildResult.fullBookHTML;
+                scroller.innerHTML = '';
+                const finalBookPreviewer = new window.Paged.Previewer();
+                await finalBookPreviewer.preview(fullBookHTML, stylesArray, scroller);
+            }
         }
 
         if (typeof window.applySpreadPageLayout === 'function') {
@@ -289,7 +323,8 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
             return;
         }
 
-        // Obtener cantidad de páginas y registrar estadísticas
+        // Obtener cantidad de páginas y registrar estadísticas usando la
+        // maqueta final ya estabilizada.
         const renderedPages = Array.from(scroller.querySelectorAll('.pagedjs_pages > .pagedjs_page'));
         const totalPages = renderedPages.length;
         const pageIndexMap = new Map();
@@ -320,6 +355,16 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
                     if (creditsLead) {
                         const creditsPage = creditsLead.closest('.pagedjs_page');
                         if (creditsPage) return creditsPage;
+                    }
+                }
+
+                const usesSeparateOpening = window.shouldSeparateChapterOpening
+                    ? window.shouldSeparateChapterOpening(chapter, bookState.settings || {})
+                    : false;
+                if (usesSeparateOpening) {
+                    const openingPage = scroller.querySelector(`.chapter-opening-page-section-${chapter.id}`);
+                    if (openingPage) {
+                        return openingPage.closest('.pagedjs_page');
                     }
                 }
 

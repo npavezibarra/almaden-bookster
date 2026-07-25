@@ -288,7 +288,8 @@ function getOpeningPageAlignmentStyles(chapter, settings) {
 function buildChapterOpeningHtml(chapter, index, settings, bookState, options = {}) {
     if (!chapter) return '';
 
-    const openingBlockEnabled = chapter.is_toc == '1' ? true : (chapter.opening_block_enabled !== '0');
+    const forceRenderOpeningBlock = options.forceRenderOpeningBlock === true;
+    const openingBlockEnabled = forceRenderOpeningBlock || chapter.is_toc == '1' ? true : (chapter.opening_block_enabled !== '0');
     const forceRenderTitle = options.forceRenderTitle === true;
     const hasTitle = chapter.title && chapter.title.trim() !== '';
     const shouldRenderTitle = forceRenderTitle ? hasTitle : (hasTitle && chapter.hide_title !== '1');

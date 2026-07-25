@@ -5,11 +5,11 @@
         <!-- Header -->
         <div class="px-6 py-4 border-b border-[var(--border-color)] flex justify-between items-center bg-[var(--bg-sidebar)]">
             <div>
-                <h3 class="font-bold text-lg text-[var(--text-main)] flex items-center gap-2">
-                    <i class="fa-solid fa-gear text-black dark:text-white"></i> Ajustes de este Capítulo
+                <h3 id="chapter-settings-modal-title" class="font-bold text-lg text-[var(--text-main)] flex items-center gap-2">
+                    <i class="fa-solid fa-gear text-black dark:text-white"></i> Ajustes del Capítulo de Contenido
                 </h3>
-                <p class="text-xs text-[var(--text-muted)] mt-1">
-                    Estas configuraciones sobrescriben las reglas globales solo para el capítulo actual.
+                <p id="chapter-settings-modal-subtitle" class="text-xs text-[var(--text-muted)] mt-1">
+                    Estas configuraciones sobrescriben las reglas globales solo para el capítulo de contenido actual.
                 </p>
             </div>
             <button onclick="closeChapterSettingsModal()" class="text-[var(--text-muted)] hover:text-rose-500 transition-colors p-2">
@@ -24,8 +24,8 @@
                 <!-- Inicio de Capítulo (Paridad) -->
                 <div class="grid grid-cols-1 gap-4">
                     <div>
-                        <label class="block font-semibold mb-1">¿Dónde debe iniciar el contenido de este capítulo?</label>
-                        <p class="text-xs text-[var(--text-muted)] mb-2">Define el lado donde empieza el contenido. La apertura se configura aparte en la pestaña "Apertura".</p>
+                        <label id="chapter-settings-modal-start-label" class="block font-semibold mb-1">¿Dónde debe iniciar el contenido de este capítulo?</label>
+                        <p id="chapter-settings-modal-start-subtitle" class="text-xs text-[var(--text-muted)] mb-2">Define el lado donde empieza el contenido. La apertura se configura aparte en la pestaña "Apertura".</p>
                         <select id="chapter_start_parity" name="chapter_start_parity" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-[var(--text-main)] focus:outline-none focus:border-black">
                             <option value="any">Continuo / Cualquiera (Por defecto)</option>
                             <option value="odd">Página Impar (Lado Derecho)</option>
@@ -127,7 +127,7 @@
                 Cancelar
             </button>
             <button type="button" onclick="saveChapterSettings()" class="px-4 py-2 rounded-lg text-sm font-semibold bg-black text-white hover:bg-neutral-800 shadow-lg shadow-black/30 transition flex items-center gap-2">
-                <i class="fa-solid fa-check"></i> Aplicar al Capítulo
+                <i class="fa-solid fa-check"></i> Aplicar al Capítulo de Contenido
             </button>
         </div>
         

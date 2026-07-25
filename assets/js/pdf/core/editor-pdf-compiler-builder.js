@@ -67,9 +67,32 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
     };
     const chapterUsesSeparateOpeningPage = (chapter) => shouldSeparateChapterOpening(chapter, settings);
 
+    const buildFallbackOpeningContent = (chapter, chapterIndex) => {
+        if (!chapter || !chapter.title || String(chapter.title).trim() === '' || chapter.is_credits === '1') {
+            return '<div class="chapter-parity-blank-page"></div>';
+        }
+
+        const safeTitle = String(chapter.title).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const subtitleText = chapter.subtitle_text && String(chapter.subtitle_text).trim() !== ''
+            ? String(chapter.subtitle_text).trim().replace(/\n/g, '<br>')
+            : '';
+        const subtitleHtml = subtitleText
+            ? `<div class="chapter-subtitle">${subtitleText}</div>`
+            : '';
+
+        return `
+            <div class="chapter-opening-page-block chapter-opening-page-block--blank" style="display: flex !important; flex-direction: column !important; width: 100% !important; min-height: 100% !important; height: 100% !important; flex: 1 1 auto !important; box-sizing: border-box !important;">
+                <div class="chapter-opening-content" data-align="${getOpeningPageHorizontalAlign(chapter, settings)}">
+                    <h1 class="chapter-main-title" style="margin: 0 !important;">${safeTitle}</h1>
+                    ${subtitleHtml}
+                </div>
+            </div>
+        `;
+    };
+
     const buildOpeningPageSection = (chapter, chapterIndex, isSingleChapterPreview = false) => {
         const openingMode = getEffectiveOpeningPageMode(chapter);
-        const openingContent = typeof window.buildChapterOpeningHtml === 'function'
+        let openingContent = typeof window.buildChapterOpeningHtml === 'function'
             ? window.buildChapterOpeningHtml(
                 chapter,
                 chapterIndex,
@@ -77,10 +100,15 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
                 bookState,
                 {
                     variant: openingMode === 'blank' ? 'blank-page' : 'standard',
-                    forceRenderTitle: openingMode === 'blank'
+                    forceRenderTitle: true,
+                    forceRenderOpeningBlock: true
                 }
             )
-            : '<div class="chapter-parity-blank-page"></div>';
+            : '';
+
+        if (!openingContent || !String(openingContent).trim()) {
+            openingContent = buildFallbackOpeningContent(chapter, chapterIndex);
+        }
 
         const openingSectionStyle = openingMode === 'blank'
             ? 'display: flex; width: 100%; min-height: 100%; height: 100%; box-sizing: border-box;'
@@ -195,6 +223,10 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
 
             if (needsChapterEndTransitionPage) {
                 fullBookHTML += buildChapterTransitionBlankPage(activeChapter.id);
+            }
+
+            if (paginationOptions.forceFinalBlankPage) {
+                fullBookHTML += buildBookEndBlankPage();
             }
         } else {
             fullBookHTML = `<div class="book-container" lang="${settings.content_language || 'es'}">`;
