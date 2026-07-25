@@ -266,9 +266,13 @@ function createNewChapter(isToc = false, isCredits = false) {
         is_toc: isToc ? '1' : '0',
         is_credits: isCredits ? '1' : '0',
         start_parity: isToc ? 'even' : 'any',
+        credits_hide_header: '0',
         credits_hide_page_number: '0',
         credits_margin_top: '',
-        credits_margin_bottom: '', toc_hide_header: isToc ? '1' : '0', toc_hide_page_numbers: isToc ? '1' : '0'
+        credits_margin_bottom: '',
+        toc_hide_header: isToc ? '1' : '0',
+        toc_hide_page_numbers: isToc ? '1' : '0',
+        toc_separate_opening_content: ''
     };
 
     bookState.chapters.push(newChapter);
@@ -464,6 +468,19 @@ function saveStateToLocalStorage(immediate = false) {
             : [];
         data.append('chapters', JSON.stringify(chaptersPayload));
         data.append('total_pages', totalPages || 0);
+        const creditsConfig = typeof window.getCreditsConfigFromForm === 'function'
+            ? window.getCreditsConfigFromForm()
+            : (bookState.settings && bookState.settings.credits_config ? bookState.settings.credits_config : null);
+        if (creditsConfig && typeof window.saveCreditsConfig === 'function') {
+            try {
+                await window.saveCreditsConfig(creditsConfig);
+            } catch (error) {
+                console.warn('No se pudo sincronizar la configuracion de creditos antes del guardado general:', error);
+            }
+        }
+        if (creditsConfig) {
+            data.append('credits_config', JSON.stringify(creditsConfig));
+        }
 
         fetch(bookState.ajaxUrl, {
             method: 'POST',

@@ -395,10 +395,10 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
         .toc-title-wrapper {
             flex-grow: 1 !important;
             display: grid !important;
-            grid-template-columns: auto max-content;
+            grid-template-columns: minmax(0, 1fr) max-content;
             grid-template-areas: "title leader";
             align-items: baseline !important; /* Aligns dots with the baseline of the last line */
-            gap: 0 4px !important;
+            gap: 0 10px !important;
             overflow: hidden !important;
             min-width: 0 !important;
             position: relative !important;
@@ -410,10 +410,13 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
 
         .toc-title {
             grid-area: title !important;
-            display: inline !important;
+            display: block !important;
             white-space: normal !important;
             word-break: break-word !important;
             position: relative !important;
+            min-width: 0 !important;
+            overflow: hidden !important;
+            padding-right: 6px !important;
             text-align: ${tocItemAlign} !important;
             text-align-last: ${tocItemAlign} !important;
             word-spacing: normal !important;
@@ -458,7 +461,8 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             white-space: nowrap !important;
             font-variant-numeric: tabular-nums !important;
             text-align: ${tocItemAlign} !important;
-            margin-left: 8px !important;
+            margin-left: 0 !important;
+            padding-left: 2px !important;
             align-self: baseline !important;
             word-spacing: normal !important;
             letter-spacing: normal !important;

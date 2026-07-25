@@ -338,7 +338,9 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-credits-printer')) document.getElementById('setting-credits-printer').value = settings.credits_printer || '';
     if (document.getElementById('setting-credits-blank-before')) document.getElementById('setting-credits-blank-before').value = settings.credits_blank_before || 0;
     if (document.getElementById('setting-credits-blank-after')) document.getElementById('setting-credits-blank-after').value = settings.credits_blank_after || 0;
-    if (typeof renderCustomCredits === 'function') renderCustomCredits(settings.credits_custom);
+    if (typeof renderCustomCredits === 'function') {
+        renderCustomCredits(settings.credits_config || settings.credits_custom);
+    }
 
     if (typeof updateUnitFields === 'function') updateUnitFields();
     if (typeof toggleCustomPageFields === 'function') toggleCustomPageFields();

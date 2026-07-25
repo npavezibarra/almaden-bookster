@@ -183,7 +183,6 @@ if ( ! function_exists( 'almaden_bookster_remove_shell_pages_from_nav_menu_items
 		);
 	}
 }
-add_filter( 'wp_nav_menu_objects', 'almaden_bookster_remove_shell_pages_from_nav_menu_items', 20 );
 
 if ( ! function_exists( 'almaden_bookster_prepend_shell_home_to_nav_menu_items_html' ) ) {
 function almaden_bookster_prepend_shell_home_to_nav_menu_items_html( $items ) {
@@ -204,7 +203,6 @@ function almaden_bookster_prepend_shell_home_to_nav_menu_items_html( $items ) {
 		return $shell_home_item . $items;
 	}
 }
-add_filter( 'wp_nav_menu_items', 'almaden_bookster_prepend_shell_home_to_nav_menu_items_html', 21 );
 
 if ( ! function_exists( 'almaden_bookster_inject_shell_home_into_navigation_block_html' ) ) {
 	function almaden_bookster_inject_shell_home_into_navigation_block_html( $block_content, $block = array() ) {
@@ -257,7 +255,6 @@ if ( ! function_exists( 'almaden_bookster_inject_shell_home_into_navigation_bloc
 		return null === $updated_block_content ? $block_content : $updated_block_content;
 	}
 }
-add_filter( 'render_block_core/navigation', 'almaden_bookster_inject_shell_home_into_navigation_block_html', 20, 2 );
 
 if ( ! function_exists( 'almaden_bookster_strip_shell_pages_from_menu_items_html' ) ) {
 	function almaden_bookster_strip_shell_pages_from_menu_items_html( $items ) {
@@ -289,7 +286,6 @@ if ( ! function_exists( 'almaden_bookster_strip_shell_pages_from_menu_items_html
 		return $items;
 	}
 }
-add_filter( 'wp_nav_menu_items', 'almaden_bookster_strip_shell_pages_from_menu_items_html', 20, 2 );
 
 if ( ! function_exists( 'almaden_bookster_strip_shell_pages_from_navigation_block' ) ) {
 	function almaden_bookster_strip_shell_pages_from_navigation_block( $block_content, $block = array() ) {
@@ -498,11 +494,6 @@ if ( ! function_exists( 'almaden_bookster_prune_shell_pages_from_block_tree' ) )
 		return $parsed_block;
 	}
 }
-
-add_filter( 'render_block_data', 'almaden_bookster_prune_shell_pages_from_block_tree', 20 );
-add_filter( 'block_core_navigation_render_fallback', 'almaden_bookster_get_filtered_navigation_fallback_blocks', 20 );
-add_filter( 'render_block_core/navigation-link', 'almaden_bookster_strip_shell_pages_from_navigation_block', 15, 2 );
-add_filter( 'render_block_core/page-list-item', 'almaden_bookster_strip_shell_pages_from_navigation_block', 15, 2 );
 
 if ( ! function_exists( 'almaden_bookster_cleanup_navigation_posts' ) ) {
 	function almaden_bookster_cleanup_navigation_posts() {

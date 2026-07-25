@@ -81,6 +81,22 @@ function almaden_bookster_handle_download_book() {
 		'is_published' => get_post_meta( $book_id, '_almaden_is_published', true ),
 		'wc_product_id' => (int) get_post_meta( $book_id, '_almaden_wc_product_id', true ),
 		'cover_settings' => get_post_meta( $book_id, '_almaden_cover_settings', true ),
+		'credits_config' => function_exists( 'almaden_bookster_normalize_credits_config' )
+			? almaden_bookster_normalize_credits_config(
+				get_post_meta( $book_id, '_almaden_credits_config', true ),
+				array(
+					'credits_edition'      => get_post_meta( $book_id, '_almaden_credits_edition', true ),
+					'credits_date'         => get_post_meta( $book_id, '_almaden_credits_date', true ),
+					'credits_isbn'         => get_post_meta( $book_id, '_almaden_credits_isbn', true ),
+					'credits_copyright'    => get_post_meta( $book_id, '_almaden_credits_copyright', true ),
+					'credits_printer'      => get_post_meta( $book_id, '_almaden_credits_printer', true ),
+					'credits_blank_before' => (int) get_post_meta( $book_id, '_almaden_credits_blank_before', true ),
+					'credits_blank_after'  => (int) get_post_meta( $book_id, '_almaden_credits_blank_after', true ),
+					'credits_license'      => get_post_meta( $book_id, '_almaden_credits_license', true ),
+					'credits_custom'       => get_post_meta( $book_id, '_almaden_credits_custom', true ),
+				)
+			)
+			: array(),
 		'credits_blank_before' => (int) get_post_meta( $book_id, '_almaden_credits_blank_before', true ),
 		'credits_blank_after' => (int) get_post_meta( $book_id, '_almaden_credits_blank_after', true ),
 	);
@@ -123,10 +139,11 @@ function almaden_bookster_handle_download_book() {
 		'_start_parity', '_first_page_header_type',
 			'_first_page_header_custom', '_first_page_footer_type', '_first_page_footer_custom', '_parity_image_mode',
 			'_parity_image_width', '_parity_image_height', '_is_toc', '_is_credits', '_credits_font_family', '_credits_align',
-			'_credits_font_size', '_credits_letter_spacing', '_credits_font_weight', '_credits_hide_page_number', '_credits_margin_top', '_credits_margin_bottom', '_toc_font_family', '_toc_font_size',
+			'_credits_font_size', '_credits_letter_spacing', '_credits_font_weight', '_credits_hide_header', '_credits_hide_page_number', '_credits_margin_top', '_credits_margin_bottom', '_toc_font_family', '_toc_font_size',
 			'_toc_enumerate', '_toc_font_style', '_toc_font_weight', '_toc_text_transform', '_toc_letter_spacing', '_toc_line_height',
 		'_toc_item_spacing', '_toc_leader_style', '_toc_leader_position', '_toc_title_align',
 		'_toc_page_one_vertical',
+		'_toc_separate_opening_content',
 		'_toc_title_font_family', '_toc_title_font_size', '_toc_title_font_style', '_toc_title_text_transform', '_toc_title_font_weight',
 		'_toc_title_padding_top', '_toc_title_padding_bottom', '_toc_title_line_height'
 	);

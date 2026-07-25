@@ -203,6 +203,8 @@ function almaden_bookster_get_pages_admin_sections() {
 	$publisher_settings = function_exists( 'almaden_bookster_get_publisher_page_settings' ) ? almaden_bookster_get_publisher_page_settings() : array();
 	$publisher_onboarding_settings = function_exists( 'almaden_bookster_get_publisher_onboarding_page_settings' ) ? almaden_bookster_get_publisher_onboarding_page_settings() : array();
 	$quiz_settings = function_exists( 'almaden_bookster_get_quiz_page_settings' ) ? almaden_bookster_get_quiz_page_settings() : array();
+	$course_creator_url = function_exists( 'almaden_bookster_get_course_creator_page_url' ) ? almaden_bookster_get_course_creator_page_url() : '';
+	$course_archive_url  = function_exists( 'almaden_bookster_get_course_archive_page_url' ) ? almaden_bookster_get_course_archive_page_url() : '';
 
 	return array(
 		array(

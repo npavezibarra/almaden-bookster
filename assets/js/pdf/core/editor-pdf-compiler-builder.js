@@ -52,7 +52,15 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
         return mode === 'blank' || mode === 'image';
     };
     const shouldSeparateChapterOpening = window.shouldSeparateChapterOpening || function(chapter, settings) {
-        if (!(settings && String(settings.book_separate_opening_content) !== '0')) {
+        const getEffectiveOpeningSeparation = window.getEffectiveOpeningSeparation || function(chapter, settings) {
+            const globalSeparate = settings && String(settings.book_separate_opening_content) !== '0';
+            if (chapter && chapter.is_toc === '1' && chapter.toc_separate_opening_content !== undefined && chapter.toc_separate_opening_content !== '') {
+                return String(chapter.toc_separate_opening_content) !== '0';
+            }
+            return globalSeparate;
+        };
+
+        if (!getEffectiveOpeningSeparation(chapter, settings)) {
             return false;
         }
 
@@ -147,7 +155,7 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
                 window.shouldInsertBookStartLeadingPage
                     ? window.shouldInsertBookStartLeadingPage(activeChapter, settings, firstChapterLength)
                     : (firstChapter
-                        ? (chapterHasOpeningPage(activeChapter) || ((firstChapter.start_parity && firstChapter.start_parity !== 'any') ? firstChapter.start_parity : settings.chapter_start_parity) === 'even')
+                        ? (chapterUsesSeparateOpeningPage(activeChapter) || ((firstChapter.start_parity && firstChapter.start_parity !== 'any') ? firstChapter.start_parity : settings.chapter_start_parity) === 'even')
                         : false)
             );
             let cachedPageNum = bookChapterPages ? bookChapterPages[activeChapter.id] : undefined;
@@ -239,7 +247,7 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
             const firstChapterParity = ((firstCh.start_parity && firstCh.start_parity !== 'any') ? firstCh.start_parity : settings.chapter_start_parity);
             const needsBookStartLeadingPage = window.shouldInsertBookStartLeadingPage
                 ? window.shouldInsertBookStartLeadingPage(firstCh, settings, firstChLength)
-                : (chapterHasOpeningPage(firstCh) || firstChapterParity === 'even');
+                : (chapterUsesSeparateOpeningPage(firstCh) || firstChapterParity === 'even');
             if (needsBookStartLeadingPage) {
                 needsDummyPage = true;
             }

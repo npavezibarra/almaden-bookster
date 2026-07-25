@@ -83,6 +83,7 @@ function almaden_bookster_save_book_ajax() {
 			$credits_font_size     = isset( $chapter['credits_font_size'] ) ? sanitize_text_field( $chapter['credits_font_size'] ) : '';
 			$credits_letter_spacing = isset( $chapter['credits_letter_spacing'] ) ? sanitize_text_field( $chapter['credits_letter_spacing'] ) : '';
 			$credits_font_weight   = isset( $chapter['credits_font_weight'] ) ? sanitize_text_field( $chapter['credits_font_weight'] ) : '';
+			$credits_hide_header   = isset( $chapter['credits_hide_header'] ) ? sanitize_text_field( $chapter['credits_hide_header'] ) : '0';
 			$credits_hide_page_number = isset( $chapter['credits_hide_page_number'] ) ? sanitize_text_field( $chapter['credits_hide_page_number'] ) : '0';
 			$credits_margin_top    = isset( $chapter['credits_margin_top'] ) ? sanitize_text_field( $chapter['credits_margin_top'] ) : '';
 			$credits_margin_bottom = isset( $chapter['credits_margin_bottom'] ) ? sanitize_text_field( $chapter['credits_margin_bottom'] ) : '';
@@ -100,6 +101,7 @@ function almaden_bookster_save_book_ajax() {
 		$toc_default_hidden    = '1' === (string) $is_toc ? '1' : '0';
 		$toc_hide_header       = isset( $chapter['toc_hide_header'] ) ? sanitize_text_field( $chapter['toc_hide_header'] ) : $toc_default_hidden;
 		$toc_hide_page_numbers = isset( $chapter['toc_hide_page_numbers'] ) ? sanitize_text_field( $chapter['toc_hide_page_numbers'] ) : $toc_default_hidden;
+		$toc_separate_opening_content = isset( $chapter['toc_separate_opening_content'] ) ? sanitize_text_field( $chapter['toc_separate_opening_content'] ) : '';
 		$toc_item_align        = isset( $chapter['toc_item_align'] ) ? sanitize_text_field( $chapter['toc_item_align'] ) : 'left';
 		$toc_leader_style      = isset( $chapter['toc_leader_style'] ) ? sanitize_text_field( $chapter['toc_leader_style'] ) : 'dotted';
 		$toc_leader_position   = isset( $chapter['toc_leader_position'] ) ? sanitize_text_field( $chapter['toc_leader_position'] ) : 'middle';
@@ -181,6 +183,7 @@ function almaden_bookster_save_book_ajax() {
 				update_post_meta( $post_id, '_credits_font_size', $credits_font_size );
 				update_post_meta( $post_id, '_credits_letter_spacing', $credits_letter_spacing );
 				update_post_meta( $post_id, '_credits_font_weight', $credits_font_weight );
+				update_post_meta( $post_id, '_credits_hide_header', $credits_hide_header );
 				update_post_meta( $post_id, '_credits_hide_page_number', $credits_hide_page_number );
 				update_post_meta( $post_id, '_credits_margin_top', $credits_margin_top );
 				update_post_meta( $post_id, '_credits_margin_bottom', $credits_margin_bottom );
@@ -197,6 +200,7 @@ function almaden_bookster_save_book_ajax() {
 			update_post_meta( $post_id, '_toc_item_spacing', $toc_item_spacing );
 			update_post_meta( $post_id, '_toc_hide_header', $toc_hide_header );
 			update_post_meta( $post_id, '_toc_hide_page_numbers', $toc_hide_page_numbers );
+			update_post_meta( $post_id, '_toc_separate_opening_content', $toc_separate_opening_content );
 			update_post_meta( $post_id, '_toc_item_align', $toc_item_align );
 			update_post_meta( $post_id, '_toc_leader_style', $toc_leader_style );
 			update_post_meta( $post_id, '_toc_leader_position', $toc_leader_position );
@@ -256,6 +260,7 @@ function almaden_bookster_save_book_ajax() {
 					'credits_font_size'     => $credits_font_size,
 					'credits_letter_spacing' => $credits_letter_spacing,
 					'credits_font_weight'   => $credits_font_weight,
+					'credits_hide_header'   => $credits_hide_header,
 					'credits_hide_page_number' => $credits_hide_page_number,
 					'credits_margin_top'    => $credits_margin_top,
 					'credits_margin_bottom' => $credits_margin_bottom,
@@ -270,6 +275,7 @@ function almaden_bookster_save_book_ajax() {
 				'toc_item_spacing'      => $toc_item_spacing,
 				'toc_hide_header'       => $toc_hide_header,
 				'toc_hide_page_numbers' => $toc_hide_page_numbers,
+				'toc_separate_opening_content' => $toc_separate_opening_content,
 				'toc_item_align'        => $toc_item_align,
 				'toc_leader_style'      => $toc_leader_style,
 				'toc_leader_position'   => $toc_leader_position,
@@ -318,6 +324,11 @@ function almaden_bookster_save_book_ajax() {
 	$total_pages = isset( $_POST['total_pages'] ) ? intval( $_POST['total_pages'] ) : 0;
 	if ( $total_pages >= 0 ) {
 		update_post_meta( $book_id, '_almaden_total_pages', $total_pages );
+	}
+
+	// El boton principal del editor tambien debe persistir el constructor de creditos.
+	if ( isset( $_POST['credits_config'] ) && function_exists( 'almaden_bookster_save_credits_from_request' ) ) {
+		almaden_bookster_save_credits_from_request( $book_id, $_POST );
 	}
 
 	wp_send_json_success( array( 

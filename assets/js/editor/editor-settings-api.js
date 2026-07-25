@@ -240,13 +240,32 @@ window.savePDFSettings = function(silent = false) {
     data.append('ebook_subtitle_letter_spacing', getCleanVal('setting-ebook-chapter-subtitle-letter-spacing'));
 
     // Créditos
-    data.append('credits_edition', getVal('setting-credits-edition'));
-    data.append('credits_date', getVal('setting-credits-date'));
-    data.append('credits_copyright', getVal('setting-credits-copyright'));
-    data.append('credits_printer', getVal('setting-credits-printer'));
-    data.append('credits_blank_before', getCleanVal('setting-credits-blank-before'));
-    data.append('credits_blank_after', getCleanVal('setting-credits-blank-after'));
-    data.append('credits_custom', getCustomCreditsJSON());
+    const creditsConfig = typeof getCreditsConfigFromForm === 'function'
+        ? getCreditsConfigFromForm()
+        : (bookState.settings.credits_config || {});
+    const creditsLegacy = typeof almadenCreditsConfigToLegacy === 'function'
+        ? almadenCreditsConfigToLegacy(creditsConfig)
+        : {
+            credits_edition: getVal('setting-credits-edition'),
+            credits_date: getVal('setting-credits-date'),
+            credits_isbn: getVal('setting-credits-isbn'),
+            credits_copyright: getVal('setting-credits-copyright'),
+            credits_printer: getVal('setting-credits-printer'),
+            credits_blank_before: parseVal('setting-credits-blank-before', 0),
+            credits_blank_after: parseVal('setting-credits-blank-after', 0),
+            credits_license: getVal('setting-credits-license'),
+            credits_custom: getCustomCreditsJSON()
+        };
+    data.append('credits_config', JSON.stringify(creditsConfig));
+    data.append('credits_edition', creditsLegacy.credits_edition || '');
+    data.append('credits_date', creditsLegacy.credits_date || '');
+    data.append('credits_isbn', creditsLegacy.credits_isbn || '');
+    data.append('credits_copyright', creditsLegacy.credits_copyright || '');
+    data.append('credits_printer', creditsLegacy.credits_printer || '');
+    data.append('credits_blank_before', creditsLegacy.credits_blank_before ?? 0);
+    data.append('credits_blank_after', creditsLegacy.credits_blank_after ?? 0);
+    data.append('credits_license', creditsLegacy.credits_license || 'all_rights_reserved');
+    data.append('credits_custom', creditsLegacy.credits_custom || '[]');
 
     fetch(bookState.ajaxUrl, {
         method: 'POST',
@@ -437,13 +456,16 @@ window.savePDFSettings = function(silent = false) {
                 chapter_prefix_letter_spacing: parseVal('setting-chapter-prefix-letter-spacing', 0),
                 chapter_prefix_ornament: getVal('setting-chapter-prefix-ornament'),
 
-                credits_edition: getVal('setting-credits-edition'),
-                credits_date: getVal('setting-credits-date'),
-                credits_copyright: getVal('setting-credits-copyright'),
-                credits_printer: getVal('setting-credits-printer'),
-                credits_blank_before: parseVal('setting-credits-blank-before', 0),
-                credits_blank_after: parseVal('setting-credits-blank-after', 0),
-                credits_custom: getCustomCreditsJSON()
+                credits_config: creditsConfig,
+                credits_edition: creditsLegacy.credits_edition || '',
+                credits_date: creditsLegacy.credits_date || '',
+                credits_isbn: creditsLegacy.credits_isbn || '',
+                credits_copyright: creditsLegacy.credits_copyright || '',
+                credits_printer: creditsLegacy.credits_printer || '',
+                credits_blank_before: creditsLegacy.credits_blank_before ?? 0,
+                credits_blank_after: creditsLegacy.credits_blank_after ?? 0,
+                credits_license: creditsLegacy.credits_license || 'all_rights_reserved',
+                credits_custom: creditsLegacy.credits_custom || '[]'
             };
 
             if (typeof applyDynamicPDFStyles === 'function') {

@@ -23,7 +23,15 @@ function getPDFStylesChapters(settings, toPx) {
         return configuredMode;
     };
     const shouldSeparateChapterOpening = window.shouldSeparateChapterOpening || function(chapter, settings) {
-        if (!(settings && String(settings.book_separate_opening_content) !== '0')) {
+        const getEffectiveOpeningSeparation = window.getEffectiveOpeningSeparation || function(chapter, settings) {
+            const globalSeparate = settings && String(settings.book_separate_opening_content) !== '0';
+            if (chapter && chapter.is_toc === '1' && chapter.toc_separate_opening_content !== undefined && chapter.toc_separate_opening_content !== '') {
+                return String(chapter.toc_separate_opening_content) !== '0';
+            }
+            return globalSeparate;
+        };
+
+        if (!getEffectiveOpeningSeparation(chapter, settings)) {
             return false;
         }
 
@@ -172,6 +180,7 @@ function getPDFStylesChapters(settings, toPx) {
             const footerEvenType = settings.footer_even_type || 'page_number';
             const footerOddType = settings.footer_odd_type || 'page_number';
             const hideTocHeader = ch.is_toc === '1' && ch.toc_hide_header !== '0';
+            const hideCreditsHeader = ch.is_credits === '1' && ch.credits_hide_header === '1';
             const hideCreditsPageNumber = ch.is_credits === '1' && ch.credits_hide_page_number === '1';
             const hideTocPageNumber = ch.is_toc === '1' && ch.toc_hide_page_numbers !== '0';
             const hideChapterPageNumber = hideCreditsPageNumber || hideTocPageNumber;
@@ -197,8 +206,8 @@ function getPDFStylesChapters(settings, toPx) {
                 @page chapter-${ch.id}:first {
                     ${ch.is_credits === '1' ? `margin-top: ${creditsMarginTop}${unit};
                     margin-bottom: ${creditsMarginBottom}${unit};` : ''}
-                    @top-left { content: ${hideTocHeader ? '""' : (firstHeaderType === 'custom' ? `"${firstHeaderCustom.replace(/"/g, '\\"')}"` : '""')}; }
-                    @top-center { content: ${hideTocHeader ? '""' : (firstHeaderType === 'chapter_title' ? 'string(chapter-title)' : (firstHeaderType === 'book_title' ? `"${bookTitle.replace(/"/g, '\\"')}"` : '""'))}; }
+                    @top-left { content: ${(hideTocHeader || hideCreditsHeader) ? '""' : (firstHeaderType === 'custom' ? `"${firstHeaderCustom.replace(/"/g, '\\"')}"` : '""')}; }
+                    @top-center { content: ${(hideTocHeader || hideCreditsHeader) ? '""' : (firstHeaderType === 'chapter_title' ? 'string(chapter-title)' : (firstHeaderType === 'book_title' ? `"${bookTitle.replace(/"/g, '\\"')}"` : '""'))}; }
                     @top-right { content: ""; }
                 }
                 @page chapter-${ch.id}:first:left {
@@ -213,12 +222,16 @@ function getPDFStylesChapters(settings, toPx) {
                 }
                 ${hideCreditsPageNumber ? `
                 @page chapter-${ch.id} {
-                    @top-left { content: "" !important; }
-                    @top-center { content: "" !important; }
-                    @top-right { content: "" !important; }
                     @bottom-left { content: "" !important; }
                     @bottom-center { content: "" !important; }
                     @bottom-right { content: "" !important; }
+                }
+                ` : ''}
+                ${hideCreditsHeader ? `
+                @page chapter-${ch.id} {
+                    @top-left { content: "" !important; }
+                    @top-center { content: "" !important; }
+                    @top-right { content: "" !important; }
                 }
                 ` : ''}
                 ${hideTocPageNumber ? `

@@ -18,13 +18,25 @@ window.getEffectiveOpeningPageMode = function(chapter) {
     return configuredMode;
 };
 
+window.getEffectiveOpeningSeparation = function(chapter, settings) {
+    const globalSeparate = settings && String(settings.book_separate_opening_content) !== '0';
+
+    if (chapter && chapter.is_toc === '1' && chapter.toc_separate_opening_content !== undefined && chapter.toc_separate_opening_content !== '') {
+        return String(chapter.toc_separate_opening_content) !== '0';
+    }
+
+    return globalSeparate;
+};
+
 window.chapterHasOpeningPage = function(chapter) {
     const mode = window.getEffectiveOpeningPageMode ? window.getEffectiveOpeningPageMode(chapter) : 'none';
     return mode === 'blank' || mode === 'image';
 };
 
 window.shouldSeparateChapterOpening = function(chapter, settings) {
-    const separateOpening = settings && String(settings.book_separate_opening_content) !== '0';
+    const separateOpening = window.getEffectiveOpeningSeparation
+        ? window.getEffectiveOpeningSeparation(chapter, settings)
+        : (settings && String(settings.book_separate_opening_content) !== '0');
     if (!separateOpening) {
         return false;
     }

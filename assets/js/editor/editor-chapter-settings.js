@@ -133,6 +133,7 @@ function openChapterSettingsModal() {
         document.getElementById('chapter_toc_item_spacing').value = activeChapter.toc_item_spacing || '';
         document.getElementById('chapter_toc_leader_style').value = activeChapter.toc_leader_style || 'dotted';
         document.getElementById('chapter_toc_leader_position').value = activeChapter.toc_leader_position || 'middle';
+        document.getElementById('chapter_toc_separate_opening_content').value = activeChapter.toc_separate_opening_content ?? '';
         document.getElementById('chapter_toc_hide_header').checked = (activeChapter.toc_hide_header !== '0');
         document.getElementById('chapter_toc_hide_page_numbers').checked = (activeChapter.toc_hide_page_numbers !== '0');
         document.getElementById('chapter_toc_item_align').value = activeChapter.toc_item_align || 'left';
@@ -164,6 +165,7 @@ function openChapterSettingsModal() {
         document.getElementById('chapter_credits_font_size').value = activeChapter.credits_font_size || '';
         document.getElementById('chapter_credits_letter_spacing').value = activeChapter.credits_letter_spacing || '';
         document.getElementById('chapter_credits_font_weight').value = activeChapter.credits_font_weight || '';
+        document.getElementById('chapter_credits_hide_header').checked = activeChapter.credits_hide_header === '1';
         document.getElementById('chapter_credits_hide_page_number').checked = activeChapter.credits_hide_page_number === '1';
         document.getElementById('chapter_credits_margin_top').value = activeChapter.credits_margin_top ?? '';
         document.getElementById('chapter_credits_margin_bottom').value = activeChapter.credits_margin_bottom ?? '';
@@ -305,6 +307,7 @@ function saveChapterSettings() {
         activeChapter.toc_item_spacing = cleanFloat('chapter_toc_item_spacing');
         activeChapter.toc_leader_style = document.getElementById('chapter_toc_leader_style').value;
         activeChapter.toc_leader_position = document.getElementById('chapter_toc_leader_position').value;
+        activeChapter.toc_separate_opening_content = document.getElementById('chapter_toc_separate_opening_content').value;
         activeChapter.toc_hide_header = document.getElementById('chapter_toc_hide_header').checked ? '1' : '0';
         activeChapter.toc_hide_page_numbers = document.getElementById('chapter_toc_hide_page_numbers').checked ? '1' : '0';
         activeChapter.toc_item_align = document.getElementById('chapter_toc_item_align').value;
@@ -325,6 +328,7 @@ function saveChapterSettings() {
         activeChapter.credits_font_size = cleanFloat('chapter_credits_font_size');
         activeChapter.credits_letter_spacing = cleanFloat('chapter_credits_letter_spacing');
         activeChapter.credits_font_weight = document.getElementById('chapter_credits_font_weight').value;
+        activeChapter.credits_hide_header = document.getElementById('chapter_credits_hide_header').checked ? '1' : '0';
         activeChapter.credits_hide_page_number = document.getElementById('chapter_credits_hide_page_number').checked ? '1' : '0';
         activeChapter.credits_margin_top = cleanFloat('chapter_credits_margin_top');
         activeChapter.credits_margin_bottom = cleanFloat('chapter_credits_margin_bottom');

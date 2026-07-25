@@ -510,60 +510,156 @@ window.buildChapterHTML = function(chapter, index, settings, bookState, options 
         tocHtml += '</div>'; // Cierra .toc-container
         compiledHtml = tocHtml;
     } else if (chapter.is_credits == '1') {
+        const creditsConfig = typeof window.almadenNormalizeCreditsConfig === 'function'
+            ? window.almadenNormalizeCreditsConfig(settings.credits_config || settings || {})
+            : {
+                editorial: {
+                    edition_number: settings.credits_edition || '',
+                    publication_date: settings.credits_date || '',
+                    isbn: settings.credits_isbn || '',
+                    printer: settings.credits_printer || '',
+                    blank_before: settings.credits_blank_before || 0,
+                    blank_after: settings.credits_blank_after || 0,
+                },
+                people: [],
+                collaborators: [],
+                logos: [],
+                legal: {
+                    copyright_text: settings.credits_copyright || '',
+                    license: settings.credits_license || 'all_rights_reserved',
+                }
+            };
+        const escapeHtml = (value) => String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+        const formatCreditsDate = (value) => {
+            const raw = String(value || '').trim();
+            if (!raw) return '';
+            if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+                const [year, month] = raw.split('-');
+                const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+                const monthName = months[parseInt(month, 10) - 1] || '';
+                return `${monthName} ${year}`;
+            }
+            if (/^\d{4}-\d{2}$/.test(raw)) {
+                const [year, month] = raw.split('-');
+                const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+                const monthName = months[parseInt(month, 10) - 1] || '';
+                return `${monthName} ${year}`;
+            }
+            return raw;
+        };
+        const roleLabel = typeof window.almadenGetCreditsRoleLabel === 'function' ? window.almadenGetCreditsRoleLabel : (value) => value;
+        const companyTypeLabel = typeof window.almadenGetCreditsCompanyTypeLabel === 'function' ? window.almadenGetCreditsCompanyTypeLabel : (value) => value;
+        const logoPositionJustify = (value) => {
+            const normalized = String(value || '').toLowerCase();
+            if (normalized === 'left') return 'flex-start';
+            if (normalized === 'right') return 'flex-end';
+            return 'center';
+        };
+        const licenseLabel = typeof window.almadenGetCreditsLicenseLabel === 'function' ? window.almadenGetCreditsLicenseLabel : (value) => value;
         let creditsHtml = '<div class="content-box credits-page-content" style="display: flex; flex-direction: column; height: calc(100% - 4px);">';
         let parsedTopContent = '';
         if (chapter.content && chapter.content.trim() !== '') {
             parsedTopContent = compileMarkdownToHTML(chapter.content);
         }
         creditsHtml += `<div class="credits-top-section" style="flex-grow: 1; margin-bottom: 2em;">${parsedTopContent}</div>`;
-        creditsHtml += '<div class="credits-bottom-section" style="font-size: 0.85em; line-height: 1.4; padding-bottom: 2cm;">';
+        creditsHtml += '<div class="credits-bottom-section" style="font-size: 0.85em; line-height: 1.45; padding-bottom: 2cm;">';
         
-        if (settings.credits_edition) {
+        if (creditsConfig.editorial && creditsConfig.editorial.edition_number) {
             const editionLabel = typeof window.almadenGetSpanishEditionLabel === 'function'
-                ? window.almadenGetSpanishEditionLabel(settings.credits_edition)
+                ? window.almadenGetSpanishEditionLabel(creditsConfig.editorial.edition_number)
                 : '';
             if (editionLabel) {
-                creditsHtml += `<p><strong>${editionLabel}</strong></p>`;
+                creditsHtml += `<p><strong>${escapeHtml(editionLabel)}</strong></p>`;
             }
         }
-        if (settings.credits_date) {
-            let formattedDate = settings.credits_date;
-            if (/^\d{4}-\d{2}$/.test(settings.credits_date)) {
-                const [year, month] = settings.credits_date.split('-');
-                const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-                const monthName = months[parseInt(month, 10) - 1];
-                formattedDate = `${monthName} ${year}`;
-            }
-            creditsHtml += `<p><strong>Fecha de publicación:</strong> ${formattedDate}</p>`;
+        if (creditsConfig.editorial && creditsConfig.editorial.publication_date) {
+            creditsHtml += `<p><strong>Fecha de publicación:</strong> ${escapeHtml(formatCreditsDate(creditsConfig.editorial.publication_date))}</p>`;
         }
-        
-        let customCredits = [];
-        try {
-            if (typeof settings.credits_custom === 'string') {
-                customCredits = JSON.parse(settings.credits_custom);
-            } else if (Array.isArray(settings.credits_custom)) {
-                customCredits = settings.credits_custom;
-            }
-        } catch(e) {}
-        
-        if (customCredits && customCredits.length > 0) {
-            creditsHtml += '<div class="credits-custom-list" style="margin-top: 1em; margin-bottom: 1em;">';
-            customCredits.forEach(c => {
-                if (c.role && c.name) {
-                    creditsHtml += `<p><strong>${c.role}:</strong> ${c.name}</p>`;
+        if (creditsConfig.editorial && creditsConfig.editorial.isbn) {
+            creditsHtml += `<p><strong>ISBN:</strong> ${escapeHtml(creditsConfig.editorial.isbn)}</p>`;
+        }
+        if (creditsConfig.editorial && creditsConfig.editorial.printer) {
+            creditsHtml += `<p><strong>Imprenta:</strong> ${escapeHtml(creditsConfig.editorial.printer)}</p>`;
+        }
+
+        if (Array.isArray(creditsConfig.people) && creditsConfig.people.length > 0) {
+            creditsHtml += '<div class="credits-people-section" style="margin-top: 1.6em;">';
+            creditsHtml += '<div class="credits-section-title" style="font-weight: 700; margin-bottom: 0.75em;">Personas</div>';
+            creditsConfig.people.forEach((person) => {
+                if (!person || (!person.name && !person.role && !person.email && !person.website)) return;
+                const pieces = [];
+                const role = roleLabel(person.role || 'author');
+                if (person.name) {
+                    pieces.push(`<span class="credits-person-name" style="font-weight: 700;">${escapeHtml(person.name)}</span>`);
                 }
+                if (role) {
+                    pieces.push(`<span class="credits-person-role">${escapeHtml(role)}</span>`);
+                }
+                if (person.show_contact === 1 || person.show_contact === '1') {
+                    if (person.email) pieces.push(`<span class="credits-person-email">${escapeHtml(person.email)}</span>`);
+                    if (person.website) pieces.push(`<span class="credits-person-website">${escapeHtml(person.website)}</span>`);
+                }
+                creditsHtml += `<p style="margin: 0 0 0.45em 0;">${pieces.join(' · ')}</p>`;
             });
             creditsHtml += '</div>';
         }
-        
-        if (settings.credits_copyright) {
-            creditsHtml += `<div class="credits-copyright" style="margin-top: 2em; margin-bottom: 2em; text-align: justify;"><p>${settings.credits_copyright.replace(/\\n/g, '<br>')}</p></div>`;
+
+        if (Array.isArray(creditsConfig.collaborators) && creditsConfig.collaborators.length > 0) {
+            creditsHtml += '<div class="credits-collaborators-section" style="margin-top: 1.6em;">';
+            creditsHtml += '<div class="credits-section-title" style="font-weight: 700; margin-bottom: 0.75em;">Colaboradores</div>';
+            creditsConfig.collaborators.forEach((item) => {
+                if (!item || (!item.name && !item.logo_url && !item.text)) return;
+                creditsHtml += '<div class="credits-collaborator-row" style="display: flex; gap: 0.9em; align-items: center; margin-bottom: 0.8em;">';
+                if (item.logo_url) {
+                    creditsHtml += `<img src="${escapeHtml(item.logo_url)}" alt="" style="width: 64px; height: 64px; object-fit: contain; border-radius: 8px; background: #fff; border: 1px solid rgba(0,0,0,0.08); padding: 6px;">`;
+                }
+                creditsHtml += '<div style="min-width: 0;">';
+                if (item.name) {
+                    creditsHtml += `<p style="margin: 0; font-weight: 700;">${escapeHtml(item.name)}</p>`;
+                }
+                if (item.type) {
+                    creditsHtml += `<p style="margin: 0; opacity: 0.8;">${escapeHtml(companyTypeLabel(item.type || 'company'))}</p>`;
+                }
+                if (item.website) {
+                    creditsHtml += `<p style="margin: 0; opacity: 0.8;">${escapeHtml(item.website)}</p>`;
+                }
+                if (item.text) {
+                    creditsHtml += `<p style="margin: 0; opacity: 0.8;">${escapeHtml(item.text)}</p>`;
+                }
+                creditsHtml += '</div></div>';
+            });
+            creditsHtml += '</div>';
         }
-        
-        if (settings.credits_printer) {
-            creditsHtml += `<div class="credits-printer" style="margin-top: 2em; text-align: center; font-size: 0.9em; opacity: 0.8;"><p>Impreso por ${settings.credits_printer}</p></div>`;
+
+        if (Array.isArray(creditsConfig.logos) && creditsConfig.logos.length > 0) {
+            creditsHtml += '<div class="credits-logos-section" style="margin-top: 1.6em;">';
+            creditsConfig.logos.forEach((item) => {
+                if (!item || (!item.name && !item.logo_url && !item.url)) return;
+                const logoSize = Math.max(24, Math.min(400, parseInt(item.size_px || item.size || 120, 10) || 120));
+                const logoAlign = logoPositionJustify(item.position || 'center');
+                creditsHtml += `<div class="credits-logo-row" style="display: flex; justify-content: ${logoAlign}; margin-bottom: 0.95em;">`;
+                if (item.logo_url) {
+                    creditsHtml += `<img src="${escapeHtml(item.logo_url)}" alt="" style="width: ${logoSize}px; height: auto; max-width: 100%; object-fit: contain; display: block;">`;
+                }
+                creditsHtml += '</div>';
+            });
+            creditsHtml += '</div>';
         }
-        
+
+        if (creditsConfig.legal && creditsConfig.legal.copyright_text) {
+            const copyrightHtml = escapeHtml(creditsConfig.legal.copyright_text || '').replace(/\n/g, '<br>');
+            creditsHtml += `<div class="credits-copyright" style="margin-top: 1.8em; margin-bottom: 1.2em; text-align: justify;"><p>${copyrightHtml}</p></div>`;
+        }
+
+        if (creditsConfig.legal && creditsConfig.legal.license) {
+            creditsHtml += `<div class="credits-license" style="margin-top: 1em; text-align: center; font-size: 0.9em; opacity: 0.8;"><p>${escapeHtml(licenseLabel(creditsConfig.legal.license || 'all_rights_reserved'))}</p></div>`;
+        }
+
         creditsHtml += '</div></div>';
         compiledHtml = creditsHtml;
     } else {

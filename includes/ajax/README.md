@@ -6,6 +6,8 @@ Este directorio contiene los manejadores de peticiones AJAX y endpoints del lado
 
 *   **[ajax-save-book.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/ajax-save-book.php)**: 
     Recibe los datos serializados del libro y capítulos desde el editor. Realiza actualizaciones de ordenación, crea nuevos capítulos en la base de datos de WordPress, guarda el contenido Markdown y resuelve la concordancia entre IDs temporales cliente y definitivos del servidor.
+*   **`ajax-credits-json.php` / `ajax-credits-persistence.php`**:
+    Decodifican y persisten la configuración estructurada de créditos, manteniendo compatibilidad entre JSON proveniente de peticiones y valores recuperados desde `post_meta`.
 *   **[ajax-settings.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/ajax-settings.php)**: 
     Manejadores AJAX primarios para guardar (`almaden_save_book_settings`) y obtener las configuraciones físicas de un libro.
 *   **[ajax-settings-helper.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/ajax-settings-helper.php)**: 

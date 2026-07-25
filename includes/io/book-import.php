@@ -124,8 +124,45 @@ function almaden_bookster_handle_upload_book() {
 		update_post_meta( $book_post_id, '_almaden_wc_product_id', intval( $book_info['wc_product_id'] ) );
 	}
 	update_post_meta( $book_post_id, '_almaden_is_published', $book_info['is_published'] );
-	update_post_meta( $book_post_id, '_almaden_credits_blank_before', intval( $book_info['credits_blank_before'] ?? 0 ) );
-	update_post_meta( $book_post_id, '_almaden_credits_blank_after', intval( $book_info['credits_blank_after'] ?? 0 ) );
+	$imported_credits_config = array();
+	if ( ! empty( $book_info['credits_config'] ) ) {
+		$imported_credits_config = $book_info['credits_config'];
+	}
+	$imported_credits_config = function_exists( 'almaden_bookster_normalize_credits_config' )
+		? almaden_bookster_normalize_credits_config(
+			$imported_credits_config,
+			array(
+				'credits_edition'      => $book_info['credits_edition'] ?? '',
+				'credits_date'         => $book_info['credits_date'] ?? '',
+				'credits_isbn'         => $book_info['credits_isbn'] ?? '',
+				'credits_copyright'    => $book_info['credits_copyright'] ?? '',
+				'credits_printer'      => $book_info['credits_printer'] ?? '',
+				'credits_blank_before' => intval( $book_info['credits_blank_before'] ?? 0 ),
+				'credits_blank_after'  => intval( $book_info['credits_blank_after'] ?? 0 ),
+				'credits_license'      => $book_info['credits_license'] ?? 'all_rights_reserved',
+				'credits_custom'       => $book_info['credits_custom'] ?? '[]',
+			)
+		)
+		: array();
+
+	if ( ! empty( $imported_credits_config ) ) {
+		update_post_meta( $book_post_id, '_almaden_credits_config', wp_slash( wp_json_encode( $imported_credits_config, JSON_UNESCAPED_UNICODE ) ) );
+		if ( function_exists( 'almaden_bookster_credits_config_to_legacy' ) ) {
+			$imported_credits_legacy = almaden_bookster_credits_config_to_legacy( $imported_credits_config );
+			update_post_meta( $book_post_id, '_almaden_credits_edition', $imported_credits_legacy['credits_edition'] ?? '' );
+			update_post_meta( $book_post_id, '_almaden_credits_date', $imported_credits_legacy['credits_date'] ?? '' );
+			update_post_meta( $book_post_id, '_almaden_credits_isbn', $imported_credits_legacy['credits_isbn'] ?? '' );
+			update_post_meta( $book_post_id, '_almaden_credits_copyright', $imported_credits_legacy['credits_copyright'] ?? '' );
+			update_post_meta( $book_post_id, '_almaden_credits_printer', $imported_credits_legacy['credits_printer'] ?? '' );
+			update_post_meta( $book_post_id, '_almaden_credits_blank_before', intval( $imported_credits_legacy['credits_blank_before'] ?? 0 ) );
+			update_post_meta( $book_post_id, '_almaden_credits_blank_after', intval( $imported_credits_legacy['credits_blank_after'] ?? 0 ) );
+			update_post_meta( $book_post_id, '_almaden_credits_license', $imported_credits_legacy['credits_license'] ?? 'all_rights_reserved' );
+			update_post_meta( $book_post_id, '_almaden_credits_custom', wp_slash( $imported_credits_legacy['credits_custom'] ?? '[]' ) );
+		}
+	} else {
+		update_post_meta( $book_post_id, '_almaden_credits_blank_before', intval( $book_info['credits_blank_before'] ?? 0 ) );
+		update_post_meta( $book_post_id, '_almaden_credits_blank_after', intval( $book_info['credits_blank_after'] ?? 0 ) );
+	}
 
 	// Map cover settings image URLs
 	$cover_settings = $book_info['cover_settings'];

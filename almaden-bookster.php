@@ -39,9 +39,11 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/publishers/tour.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/frontend.php';
 
 // --- Manejadores AJAX ---
+require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-credits-json.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-settings-helper.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-credits-persistence.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-save-book.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-publish.php';
-require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-settings-helper.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-settings-templates.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-settings.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-cover.php';
@@ -328,16 +330,13 @@ function almaden_bookster_activate_plugin() {
 		almaden_bookster_sync_shell_home_page();
 		almaden_bookster_sync_dashboard_page();
 		almaden_bookster_sync_course_creator_page();
-		almaden_bookster_sync_store_page();
-		almaden_bookster_sync_authors_page();
-		almaden_bookster_sync_author_page();
-		almaden_bookster_sync_publisher_page();
-		almaden_bookster_sync_publisher_onboarding_page();
-		almaden_bookster_sync_quiz_page();
-		if ( function_exists( 'almaden_bookster_cleanup_navigation_entries_on_activation' ) ) {
-			almaden_bookster_cleanup_navigation_entries_on_activation();
-		}
-		almaden_bookster_create_book_authors_table();
+			almaden_bookster_sync_store_page();
+			almaden_bookster_sync_authors_page();
+			almaden_bookster_sync_author_page();
+			almaden_bookster_sync_publisher_page();
+			almaden_bookster_sync_publisher_onboarding_page();
+			almaden_bookster_sync_quiz_page();
+			almaden_bookster_create_book_authors_table();
 		almaden_bookster_create_settings_table();
 		almaden_bookster_create_highlights_table();
 	almaden_bookster_create_highlight_comments_table();

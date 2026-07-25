@@ -179,16 +179,9 @@ function almaden_bookster_save_settings_ajax() {
 		update_post_meta( $book_id, '_almaden_book_chapter_flow_mode', $book_chapter_flow_mode );
 		update_post_meta( $book_id, '_almaden_book_flow_legacy_parity', $data['chapter_start_parity'] );
 
-		// Guardar campos de créditos en post_meta para no alterar el esquema de la tabla
-		update_post_meta( $book_id, '_almaden_credits_edition', sanitize_text_field( $_POST['credits_edition'] ?? '' ) );
-		update_post_meta( $book_id, '_almaden_credits_date', sanitize_text_field( $_POST['credits_date'] ?? '' ) );
-		update_post_meta( $book_id, '_almaden_credits_copyright', sanitize_textarea_field( wp_unslash($_POST['credits_copyright'] ?? '') ) );
-		update_post_meta( $book_id, '_almaden_credits_printer', sanitize_text_field( $_POST['credits_printer'] ?? '' ) );
-		update_post_meta( $book_id, '_almaden_credits_blank_before', intval( $_POST['credits_blank_before'] ?? 0 ) );
-		update_post_meta( $book_id, '_almaden_credits_blank_after', intval( $_POST['credits_blank_after'] ?? 0 ) );
-		
-		$custom_credits = isset($_POST['credits_custom']) ? json_decode(wp_unslash($_POST['credits_custom']), true) : [];
-		update_post_meta( $book_id, '_almaden_credits_custom', wp_slash(wp_json_encode($custom_credits)) );
+		if ( isset( $_POST['credits_config'] ) ) {
+			almaden_bookster_save_credits_from_request( $book_id, $_POST );
+		}
 
 		// Guardar configuraciones globales de subtítulo en post_meta para PDF y Ebook
 		$subtitle_fields = [

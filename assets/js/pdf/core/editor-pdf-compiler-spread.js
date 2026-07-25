@@ -171,6 +171,7 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
     };
 
     const hideCreditsPageNumber = activeChapter.is_credits === '1' && activeChapter.credits_hide_page_number === '1';
+    const hideCreditsHeader = activeChapter.is_credits === '1' && activeChapter.credits_hide_header === '1';
     const hideTocHeader = activeChapter.is_toc === '1' && activeChapter.toc_hide_header !== '0';
     const hideTocPageNumber = activeChapter.is_toc === '1' && activeChapter.toc_hide_page_numbers !== '0';
     const hideAllHeadersFooters = activeChapter.hide_all_headers_footers === '1';
@@ -242,7 +243,7 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
             }
         }
 
-        if (!hideAllHeadersFooters && !hideTocHeader && headerType !== 'blank') {
+        if (!hideAllHeadersFooters && !hideTocHeader && !hideCreditsHeader && headerType !== 'blank') {
             const headerBox = getResolvedHeaderBox(settings.header_align || 'center', isEvenPage);
             const targetHeader = page.querySelector(getHeaderBoxClass(headerBox));
             let headerText = '';

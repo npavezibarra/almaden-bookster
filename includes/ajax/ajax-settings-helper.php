@@ -180,13 +180,44 @@ function almaden_get_book_pdf_settings( $book_id ) {
 	}
 
 	// Cargar créditos desde post_meta
-	$pdf_settings['credits_edition'] = get_post_meta( $book_id, '_almaden_credits_edition', true );
-	$pdf_settings['credits_date'] = get_post_meta( $book_id, '_almaden_credits_date', true );
-	$pdf_settings['credits_copyright'] = get_post_meta( $book_id, '_almaden_credits_copyright', true ) ?: 'Queda rigurosamente prohibida, sin la autorización escrita de los titulares del "copyright", bajo las sanciones establecidas en las leyes, la reproducción parcial o total de esta obra por cualquier medio o procedimiento.';
-	$pdf_settings['credits_printer'] = get_post_meta( $book_id, '_almaden_credits_printer', true );
-	$pdf_settings['credits_blank_before'] = (int) get_post_meta( $book_id, '_almaden_credits_blank_before', true );
-	$pdf_settings['credits_blank_after'] = (int) get_post_meta( $book_id, '_almaden_credits_blank_after', true );
-	$pdf_settings['credits_custom'] = get_post_meta( $book_id, '_almaden_credits_custom', true ) ?: '[]';
+	$legacy_credits = array(
+		'credits_edition'      => get_post_meta( $book_id, '_almaden_credits_edition', true ),
+		'credits_date'         => get_post_meta( $book_id, '_almaden_credits_date', true ),
+		'credits_isbn'         => get_post_meta( $book_id, '_almaden_credits_isbn', true ),
+		'credits_copyright'    => get_post_meta( $book_id, '_almaden_credits_copyright', true ),
+		'credits_printer'      => get_post_meta( $book_id, '_almaden_credits_printer', true ),
+		'credits_blank_before' => (int) get_post_meta( $book_id, '_almaden_credits_blank_before', true ),
+		'credits_blank_after'  => (int) get_post_meta( $book_id, '_almaden_credits_blank_after', true ),
+		'credits_license'      => get_post_meta( $book_id, '_almaden_credits_license', true ),
+		'credits_custom'       => get_post_meta( $book_id, '_almaden_credits_custom', true ),
+	);
+
+	$credits_config_raw = get_post_meta( $book_id, '_almaden_credits_config', true );
+	$pdf_settings['credits_config'] = function_exists( 'almaden_bookster_normalize_credits_config' )
+		? almaden_bookster_normalize_credits_config( $credits_config_raw, $legacy_credits )
+		: array();
+	if ( function_exists( 'almaden_bookster_credits_debug_log' ) && function_exists( 'almaden_bookster_credits_debug_summary' ) ) {
+		almaden_bookster_credits_debug_log(
+			$book_id,
+			'settings_loaded',
+			almaden_bookster_credits_debug_summary( $pdf_settings['credits_config'] )
+		);
+	}
+
+	if ( function_exists( 'almaden_bookster_credits_config_to_legacy' ) ) {
+		$credits_legacy = almaden_bookster_credits_config_to_legacy( $pdf_settings['credits_config'] );
+		$pdf_settings = array_merge( $pdf_settings, $credits_legacy );
+	} else {
+		$pdf_settings['credits_edition'] = $legacy_credits['credits_edition'];
+		$pdf_settings['credits_date'] = $legacy_credits['credits_date'];
+		$pdf_settings['credits_isbn'] = $legacy_credits['credits_isbn'];
+		$pdf_settings['credits_copyright'] = $legacy_credits['credits_copyright'] ?: 'Queda rigurosamente prohibida, sin la autorización escrita de los titulares del "copyright", bajo las sanciones establecidas en las leyes, la reproducción parcial o total de esta obra por cualquier medio o procedimiento.';
+		$pdf_settings['credits_printer'] = $legacy_credits['credits_printer'];
+		$pdf_settings['credits_blank_before'] = (int) $legacy_credits['credits_blank_before'];
+		$pdf_settings['credits_blank_after'] = (int) $legacy_credits['credits_blank_after'];
+		$pdf_settings['credits_license'] = $legacy_credits['credits_license'];
+		$pdf_settings['credits_custom'] = $legacy_credits['credits_custom'] ?: '[]';
+	}
 
 	// Ajustes de libro para flujo de capítulos
 	$pdf_settings['book_separate_opening_content'] = get_post_meta( $book_id, '_almaden_book_separate_opening_content', true );
@@ -231,4 +262,232 @@ function almaden_get_book_pdf_settings( $book_id ) {
 	$pdf_settings['ebook_subtitle_letter_spacing'] = get_post_meta( $book_id, '_almaden_ebook_subtitle_letter_spacing', true ) ?: 0;
 
 	return $pdf_settings;
+}
+
+function almaden_bookster_get_default_credits_config() {
+	return array(
+		'editorial' => array(
+			'edition_number' => '',
+			'publication_date' => '',
+			'isbn' => '',
+			'printer' => '',
+			'blank_before' => 0,
+			'blank_after' => 0,
+		),
+		'people' => array(),
+		'collaborators' => array(),
+		'logos' => array(),
+		'legal' => array(
+			'copyright_text' => 'Queda rigurosamente prohibida, sin la autorización escrita de los titulares del "copyright", bajo las sanciones establecidas en las leyes, la reproducción parcial o total de esta obra por cualquier medio o procedimiento.',
+			'license' => 'all_rights_reserved',
+		),
+	);
+}
+
+function almaden_bookster_normalize_credits_role_value( $value ) {
+	$value = strtolower( sanitize_text_field( (string) $value ) );
+	$allowed = array( 'author', 'coauthor', 'editor', 'translator', 'designer', 'proofreader', 'photographer', 'other' );
+	return in_array( $value, $allowed, true ) ? $value : 'author';
+}
+
+function almaden_bookster_normalize_credits_company_type_value( $value ) {
+	$value = strtolower( sanitize_text_field( (string) $value ) );
+	$allowed = array( 'company', 'foundation', 'patron', 'university' );
+	return in_array( $value, $allowed, true ) ? $value : 'company';
+}
+
+function almaden_bookster_normalize_credits_logo_position_value( $value ) {
+	$value = strtolower( sanitize_text_field( (string) $value ) );
+	if ( in_array( $value, array( 'top', 'bottom' ), true ) ) {
+		$value = 'center';
+	}
+	$allowed = array( 'left', 'center', 'right' );
+	return in_array( $value, $allowed, true ) ? $value : 'center';
+}
+
+function almaden_bookster_normalize_credits_logo_size_value( $value ) {
+	$size = absint( $value );
+	if ( $size < 24 ) {
+		return 120;
+	}
+	if ( $size > 400 ) {
+		return 400;
+	}
+	return $size ?: 120;
+}
+
+function almaden_bookster_normalize_credits_publication_date_value( $value ) {
+	$value = sanitize_text_field( (string) $value );
+	if ( preg_match( '/^\d{4}-\d{2}-\d{2}$/', $value ) ) {
+		return substr( $value, 0, 7 );
+	}
+	if ( preg_match( '/^\d{4}-\d{2}$/', $value ) ) {
+		return $value;
+	}
+	return $value;
+}
+
+function almaden_bookster_normalize_credits_license_value( $value ) {
+	$value = strtolower( sanitize_text_field( (string) $value ) );
+	$allowed = array( 'all_rights_reserved', 'creative_commons' );
+	return in_array( $value, $allowed, true ) ? $value : 'all_rights_reserved';
+}
+
+function almaden_bookster_normalize_credits_config( $raw_config = array(), $legacy_fields = array() ) {
+	$defaults = almaden_bookster_get_default_credits_config();
+
+	if ( is_string( $raw_config ) && '' !== trim( $raw_config ) ) {
+		$decoded = almaden_bookster_decode_json_array( $raw_config );
+		if ( is_array( $decoded ) ) {
+			$raw_config = $decoded;
+		} else {
+			$raw_config = array();
+		}
+	}
+
+	if ( ! is_array( $raw_config ) ) {
+		$raw_config = array();
+	}
+
+	if ( ! is_array( $legacy_fields ) ) {
+		$legacy_fields = array();
+	}
+
+	$editorial_source = array();
+	if ( isset( $raw_config['editorial'] ) && is_array( $raw_config['editorial'] ) ) {
+		$editorial_source = $raw_config['editorial'];
+	} else {
+		$editorial_source = $raw_config;
+	}
+
+	$people_source = array();
+	if ( isset( $raw_config['people'] ) && is_array( $raw_config['people'] ) ) {
+		$people_source = $raw_config['people'];
+	} elseif ( isset( $raw_config['credits_custom'] ) ) {
+		$people_source = $raw_config['credits_custom'];
+	} elseif ( isset( $legacy_fields['credits_custom'] ) ) {
+		$people_source = $legacy_fields['credits_custom'];
+	}
+
+	$collaborators_source = isset( $raw_config['collaborators'] ) && is_array( $raw_config['collaborators'] ) ? $raw_config['collaborators'] : array();
+	$logos_source = isset( $raw_config['logos'] ) && is_array( $raw_config['logos'] ) ? $raw_config['logos'] : array();
+	$legal_source = isset( $raw_config['legal'] ) && is_array( $raw_config['legal'] ) ? $raw_config['legal'] : array();
+
+	$config = $defaults;
+	$config['editorial']['edition_number'] = sanitize_text_field( $editorial_source['edition_number'] ?? $legacy_fields['credits_edition'] ?? '' );
+	$config['editorial']['publication_date'] = almaden_bookster_normalize_credits_publication_date_value( $editorial_source['publication_date'] ?? $legacy_fields['credits_date'] ?? '' );
+	$config['editorial']['isbn'] = sanitize_text_field( $editorial_source['isbn'] ?? $legacy_fields['credits_isbn'] ?? '' );
+	$config['editorial']['printer'] = sanitize_text_field( $editorial_source['printer'] ?? $legacy_fields['credits_printer'] ?? '' );
+	$config['editorial']['blank_before'] = isset( $editorial_source['blank_before'] ) ? absint( $editorial_source['blank_before'] ) : absint( $legacy_fields['credits_blank_before'] ?? 0 );
+	$config['editorial']['blank_after'] = isset( $editorial_source['blank_after'] ) ? absint( $editorial_source['blank_after'] ) : absint( $legacy_fields['credits_blank_after'] ?? 0 );
+
+	$people = array();
+	if ( is_string( $people_source ) && '' !== trim( $people_source ) ) {
+		$decoded_people = almaden_bookster_decode_json_array( $people_source );
+		if ( is_array( $decoded_people ) ) {
+			$people_source = $decoded_people;
+		} else {
+			$people_source = array();
+		}
+	}
+	if ( is_array( $people_source ) ) {
+		foreach ( $people_source as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+			$name = sanitize_text_field( $row['name'] ?? '' );
+			$role = almaden_bookster_normalize_credits_role_value( $row['role'] ?? 'author' );
+			$email = sanitize_email( $row['email'] ?? '' );
+			$website = esc_url_raw( $row['website'] ?? '' );
+			$show_contact = ! empty( $row['show_contact'] ) ? 1 : 0;
+			if ( '' === trim( $name ) && '' === trim( $email ) && '' === trim( $website ) ) {
+				continue;
+			}
+			$people[] = array(
+				'name' => $name,
+				'role' => $role,
+				'email' => $email,
+				'website' => $website,
+				'show_contact' => $show_contact,
+			);
+		}
+	}
+	$config['people'] = $people;
+
+	$collaborators = array();
+	foreach ( $collaborators_source as $row ) {
+		if ( ! is_array( $row ) ) {
+			continue;
+		}
+		$logo_url = esc_url_raw( $row['logo_url'] ?? $row['image_url'] ?? '' );
+		$name = sanitize_text_field( $row['name'] ?? $row['company_name'] ?? '' );
+		$type = almaden_bookster_normalize_credits_company_type_value( $row['type'] ?? '' );
+		$website = esc_url_raw( $row['website'] ?? '' );
+		$text = sanitize_textarea_field( $row['text'] ?? $row['optional_text'] ?? '' );
+		if ( '' === trim( $logo_url ) && '' === trim( $name ) && '' === trim( $website ) && '' === trim( $text ) ) {
+			continue;
+		}
+		$collaborators[] = array(
+			'logo_url' => $logo_url,
+			'name' => $name,
+			'type' => $type,
+			'website' => $website,
+			'text' => $text,
+		);
+	}
+	$config['collaborators'] = $collaborators;
+
+	$logos = array();
+	foreach ( $logos_source as $row ) {
+		if ( ! is_array( $row ) ) {
+			continue;
+		}
+		$logo_url = esc_url_raw( $row['logo_url'] ?? $row['image_url'] ?? $row['url'] ?? '' );
+		$name = sanitize_text_field( $row['name'] ?? '' );
+		$position = almaden_bookster_normalize_credits_logo_position_value( $row['position'] ?? $row['align'] ?? 'center' );
+		$size_px = almaden_bookster_normalize_credits_logo_size_value( $row['size_px'] ?? $row['size'] ?? 120 );
+		$url = esc_url_raw( $row['url'] ?? $row['website'] ?? '' );
+		if ( '' === trim( $logo_url ) && '' === trim( $name ) && '' === trim( $url ) ) {
+			continue;
+		}
+		$logos[] = array(
+			'logo_url' => $logo_url,
+			'name' => $name,
+			'position' => $position,
+			'size_px' => $size_px,
+			'url' => $url,
+		);
+	}
+	$config['logos'] = $logos;
+
+	$config['legal']['copyright_text'] = sanitize_textarea_field( $legal_source['copyright_text'] ?? $legacy_fields['credits_copyright'] ?? $defaults['legal']['copyright_text'] );
+	$config['legal']['license'] = almaden_bookster_normalize_credits_license_value( $legal_source['license'] ?? $legacy_fields['credits_license'] ?? $defaults['legal']['license'] );
+
+	return $config;
+}
+
+function almaden_bookster_credits_config_to_legacy( $credits_config ) {
+	$config = almaden_bookster_normalize_credits_config( $credits_config );
+	$people = array();
+	foreach ( $config['people'] as $person ) {
+		if ( empty( $person['name'] ) && empty( $person['role'] ) ) {
+			continue;
+		}
+		$people[] = array(
+			'role' => $person['role'],
+			'name' => $person['name'],
+		);
+	}
+
+	return array(
+		'credits_edition' => $config['editorial']['edition_number'],
+		'credits_date' => $config['editorial']['publication_date'],
+		'credits_isbn' => $config['editorial']['isbn'],
+		'credits_copyright' => $config['legal']['copyright_text'],
+		'credits_printer' => $config['editorial']['printer'],
+		'credits_blank_before' => (int) $config['editorial']['blank_before'],
+		'credits_blank_after' => (int) $config['editorial']['blank_after'],
+		'credits_license' => $config['legal']['license'],
+		'credits_custom' => wp_json_encode( $people, JSON_UNESCAPED_UNICODE ),
+	);
 }

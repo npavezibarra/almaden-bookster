@@ -20,6 +20,8 @@ window.getBookPageMapSignature = function() {
         hide_all_headers_footers: ch.hide_all_headers_footers,
         toc_hide_header: ch.toc_hide_header,
         toc_hide_page_numbers: ch.toc_hide_page_numbers,
+        toc_separate_opening_content: ch.toc_separate_opening_content,
+        credits_hide_header: ch.credits_hide_header,
         credits_hide_page_number: ch.credits_hide_page_number
     }));
 
