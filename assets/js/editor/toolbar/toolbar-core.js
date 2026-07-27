@@ -1,5 +1,5 @@
 function getToolbarSurface() {
-    const textarea = document.getElementById('editor-textarea');
+    const textarea = typeof getRawEditorSurface === 'function' ? getRawEditorSurface() : null;
     const visualSurface = typeof getVisualEditorSurface === 'function' ? getVisualEditorSurface() : null;
 
     if (window.editorSelectionSurface === 'visual' && visualSurface) return visualSurface;
@@ -12,7 +12,8 @@ function getToolbarSurface() {
 
 function restoreToolbarSelection(surface) {
     if (!surface) return;
-    if (surface.id === 'editor-textarea' && typeof window.editorLastSelection !== 'undefined') {
+    const textarea = typeof getRawEditorSurface === 'function' ? getRawEditorSurface() : null;
+    if (textarea && surface === textarea && typeof window.editorLastSelection !== 'undefined') {
         surface.selectionStart = window.editorLastSelection.start || 0;
         surface.selectionEnd = window.editorLastSelection.end || 0;
     }
@@ -149,7 +150,7 @@ function insertAtCursor(text) {
 }
 
 function triggerEditorUpdate(source = 'auto') {
-    const textarea = document.getElementById('editor-textarea');
+    const textarea = typeof getRawEditorSurface === 'function' ? getRawEditorSurface() : null;
     const visualSurface = typeof getVisualEditorSurface === 'function' ? getVisualEditorSurface() : null;
     
     if (typeof bookState !== 'undefined' && bookState) {

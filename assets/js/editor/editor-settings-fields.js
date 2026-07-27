@@ -42,11 +42,12 @@ function updateUnitFields() {
 }
 
 function toggleParityImageMode() {
-    const parity = document.getElementById('setting-chapter-start-parity').value;
+    const flowMode = document.getElementById('setting-book-chapter-flow-mode');
     const wrapper = document.getElementById('parity-image-mode-wrapper');
     if (wrapper) {
-        if (parity === 'odd') {
+        if (flowMode && flowMode.value === 'left') {
             wrapper.classList.remove('hidden');
+            toggleChapterImageSettings();
         } else {
             wrapper.classList.add('hidden');
         }
@@ -63,6 +64,77 @@ function syncBookFlowParityMode() {
 
     if (typeof toggleParityImageMode === 'function') {
         toggleParityImageMode();
+    }
+}
+
+let mediaUploaderChapterImage;
+window.openChapterImageUploader = function() {
+    if (typeof wp === 'undefined' || !wp.media) {
+        alert('El mecanismo de Media de WordPress no está disponible en esta pantalla. Asegúrate de guardar y recargar la página.');
+        return;
+    }
+
+    if (mediaUploaderChapterImage) {
+        mediaUploaderChapterImage.open();
+        return;
+    }
+
+    mediaUploaderChapterImage = wp.media({
+        title: 'Seleccionar Imagen para Chapter Image',
+        button: { text: 'Usar esta imagen' },
+        multiple: false,
+        library: { type: 'image' }
+    });
+
+    mediaUploaderChapterImage.on('select', function() {
+        const attachment = mediaUploaderChapterImage.state().get('selection').first().toJSON();
+        const input = document.getElementById('setting-chapter-image-url');
+        if (input) {
+            input.value = attachment.url;
+        }
+    });
+
+    mediaUploaderChapterImage.open();
+}
+
+window.clearChapterImageSelection = function() {
+    const input = document.getElementById('setting-chapter-image-url');
+    if (input) {
+        input.value = '';
+    }
+}
+
+window.syncChapterImageWidthLabel = function() {
+    const input = document.getElementById('setting-chapter-image-inner-width');
+    const label = document.getElementById('chapter-image-inner-width-label');
+    if (input && label) {
+        label.textContent = (input.value || '100') + '%';
+    }
+}
+
+window.toggleChapterImageSettings = function() {
+    const modeField = document.getElementById('setting-chapter-image-mode');
+    const uploadWrapper = document.getElementById('chapter-image-upload-wrapper');
+    const fullPageNote = document.getElementById('chapter-image-fullpage-note');
+    const innerControls = document.getElementById('chapter-image-inner-controls');
+
+    if (!modeField) return;
+
+    const mode = modeField.value;
+    const showImageControls = mode === 'image_full_page' || mode === 'image_inner';
+
+    if (uploadWrapper) {
+        uploadWrapper.classList.toggle('hidden', !showImageControls);
+    }
+    if (fullPageNote) {
+        fullPageNote.classList.toggle('hidden', mode !== 'image_full_page');
+    }
+    if (innerControls) {
+        innerControls.classList.toggle('hidden', mode !== 'image_inner');
+    }
+
+    if (mode === 'image_inner') {
+        window.syncChapterImageWidthLabel();
     }
 }
 

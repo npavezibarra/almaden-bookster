@@ -157,6 +157,7 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
             const selectorId = escapeSelectorValue(chapter.id);
             const attrId = escapeAttributeValue(chapter.id);
             const selectors = [
+                `.chapter-image-page-section-${selectorId}`,
                 `.chapter-opening-page-section-${selectorId}`,
                 `.chapter-section-${selectorId}`,
                 `.credits-blank-page[data-chapter-id="${attrId}"]`
@@ -361,6 +362,15 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
                 const usesSeparateOpening = window.shouldSeparateChapterOpening
                     ? window.shouldSeparateChapterOpening(chapter, bookState.settings || {})
                     : false;
+                const usesLeadingImagePage = window.chapterHasLeadingImagePage
+                    ? window.chapterHasLeadingImagePage(chapter, bookState.settings || {})
+                    : false;
+                if (usesLeadingImagePage) {
+                    const imagePage = scroller.querySelector(`.chapter-image-page-section-${chapter.id}`);
+                    if (imagePage) {
+                        return imagePage.closest('.pagedjs_page');
+                    }
+                }
                 if (usesSeparateOpening) {
                     const openingPage = scroller.querySelector(`.chapter-opening-page-section-${chapter.id}`);
                     if (openingPage) {
@@ -456,7 +466,7 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
 
         if (scrollToActive) {
             setTimeout(() => {
-                const activeHeading = scroller.querySelector(`#chapter-section-${bookState.activeChapterId}`);
+                const activeHeading = scroller.querySelector(`.chapter-image-page-section-${bookState.activeChapterId}`) || scroller.querySelector(`#chapter-section-${bookState.activeChapterId}`);
                 const activePage = activeHeading ? activeHeading.closest('.pagedjs_page') : null;
                 if (activePage) activePage.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);

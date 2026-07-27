@@ -692,8 +692,6 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
                 }
                 .credits-page-content .credits-copyright,
                 .credits-page-content .credits-copyright p {
-                    text-align: justify !important;
-                    text-align-last: left !important;
                     text-indent: 0 !important;
                     margin-left: 0 !important;
                     margin-right: 0 !important;

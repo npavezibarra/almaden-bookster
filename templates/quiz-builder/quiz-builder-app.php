@@ -131,6 +131,10 @@ $saved_notice     = isset( $_GET['saved'] ) && '1' === (string) $_GET['saved'];
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="<?php echo esc_url( $quiz_builder_css ); ?>?v=<?php echo esc_attr( (string) filemtime( dirname( __DIR__, 2 ) . '/assets/css/quiz-builder/quiz-builder-app.css' ) ); ?>">
+	<link rel="stylesheet" href="<?php echo esc_url( plugins_url( 'assets/css/quiz-builder/quiz-builder-workspace.css', $plugin_file ) ); ?>?v=<?php echo esc_attr( (string) filemtime( dirname( __DIR__, 2 ) . '/assets/css/quiz-builder/quiz-builder-workspace.css' ) ); ?>">
+	<link rel="stylesheet" href="<?php echo esc_url( plugins_url( 'assets/css/quiz-builder/quiz-builder-components.css', $plugin_file ) ); ?>?v=<?php echo esc_attr( (string) filemtime( dirname( __DIR__, 2 ) . '/assets/css/quiz-builder/quiz-builder-components.css' ) ); ?>">
+	<link rel="stylesheet" href="<?php echo esc_url( plugins_url( 'assets/css/quiz-builder/quiz-builder-modal.css', $plugin_file ) ); ?>?v=<?php echo esc_attr( (string) filemtime( dirname( __DIR__, 2 ) . '/assets/css/quiz-builder/quiz-builder-modal.css' ) ); ?>">
+	<link rel="stylesheet" href="<?php echo esc_url( plugins_url( 'assets/css/quiz-builder/quiz-builder-simulation.css', $plugin_file ) ); ?>?v=<?php echo esc_attr( (string) filemtime( dirname( __DIR__, 2 ) . '/assets/css/quiz-builder/quiz-builder-simulation.css' ) ); ?>">
 	<?php if ( defined( 'PL_LEARNI_URL' ) ) : ?>
 		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 		<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" rel="stylesheet">

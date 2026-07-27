@@ -40,7 +40,8 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/frontend.php';
 
 // --- Manejadores AJAX ---
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-credits-json.php';
-require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-settings-helper.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-settings-pdf.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-settings-credits.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-credits-persistence.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-save-book.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-publish.php';
@@ -75,7 +76,7 @@ function almaden_bookster_create_settings_table() {
 	
 	$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) === $table_name;
 	
-		if ( get_option( 'almaden_bookster_db_version' ) !== '2.4.1' || ! $table_exists ) {
+		if ( get_option( 'almaden_bookster_db_version' ) !== '2.4.2' || ! $table_exists ) {
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE $table_name (
@@ -214,6 +215,11 @@ function almaden_bookster_create_settings_table() {
 			ebook_chapter_prefix_ornament varchar(20) DEFAULT 'none' NOT NULL,
 			chapter_start_parity varchar(20) DEFAULT 'any' NOT NULL,
 			parity_image_mode varchar(20) DEFAULT 'content' NOT NULL,
+			chapter_image_mode varchar(30) DEFAULT 'page_blank' NOT NULL,
+			chapter_image_url varchar(255) DEFAULT '' NOT NULL,
+			chapter_image_inner_width float DEFAULT 100.0 NOT NULL,
+			chapter_image_inner_header tinyint(1) DEFAULT 0 NOT NULL,
+			chapter_image_inner_footer tinyint(1) DEFAULT 0 NOT NULL,
 			chapter_page_one_align varchar(20) DEFAULT 'center' NOT NULL,
 			chapter_page_one_vertical varchar(20) DEFAULT 'top' NOT NULL,
 			chapter_title_font_family varchar(50) DEFAULT 'Playfair Display' NOT NULL,
@@ -243,7 +249,7 @@ function almaden_bookster_create_settings_table() {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 
-		update_option( 'almaden_bookster_db_version', '2.4.1' );
+		update_option( 'almaden_bookster_db_version', '2.4.2' );
 	}
 }
 add_action( 'init', 'almaden_bookster_create_settings_table' );

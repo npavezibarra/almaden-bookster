@@ -21,6 +21,33 @@ window.applySpreadPageLayout = function(scroller) {
     // The book's visible sequence is authoritative: odd pages are right,
     // even pages are left. Individual left-start previews are the exception.
     const firstVisibleIsLeft = forceFirstVisibleLeft;
+    const syncPageSideClasses = (page, isLeftPage) => {
+        page.classList.remove(
+            'pagedjs_left_page',
+            'pagedjs_right_page',
+            'bookster-left-page',
+            'bookster-right-page'
+        );
+        page.classList.add(isLeftPage ? 'pagedjs_left_page' : 'pagedjs_right_page');
+        page.classList.add(isLeftPage ? 'bookster-left-page' : 'bookster-right-page');
+    };
+    const setImageBleedVars = (page, isLeftPage) => {
+        const computedStyles = window.getComputedStyle(page);
+        const bleedTop = isLeftPage
+            ? computedStyles.getPropertyValue('--pagedjs-bleed-left-top').trim()
+            : computedStyles.getPropertyValue('--pagedjs-bleed-right-top').trim();
+        const bleedBottom = isLeftPage
+            ? computedStyles.getPropertyValue('--pagedjs-bleed-left-bottom').trim()
+            : computedStyles.getPropertyValue('--pagedjs-bleed-right-bottom').trim();
+        const bleedOuter = isLeftPage
+            ? computedStyles.getPropertyValue('--pagedjs-bleed-left-left').trim()
+            : computedStyles.getPropertyValue('--pagedjs-bleed-right-right').trim();
+
+        page.style.setProperty('--bookster-image-bleed-top', bleedTop || '0px');
+        page.style.setProperty('--bookster-image-bleed-bottom', bleedBottom || '0px');
+        page.style.setProperty('--bookster-image-bleed-left', isLeftPage ? (bleedOuter || '0px') : '0px');
+        page.style.setProperty('--bookster-image-bleed-right', isLeftPage ? '0px' : (bleedOuter || '0px'));
+    };
 
     pages.forEach((page) => {
         if (!page) return;
@@ -36,34 +63,57 @@ window.applySpreadPageLayout = function(scroller) {
             if (isDummyPage) {
                 page.style.removeProperty('display');
             }
+        } else {
+            if (isDummyPage) {
+                page.style.setProperty('display', 'none', 'important');
+                page.style.removeProperty('grid-row');
+                page.style.removeProperty('grid-column');
+                page.style.removeProperty('justify-self');
+                page.style.removeProperty('order');
+                page.classList.remove(
+                    'pagedjs_left_page',
+                    'pagedjs_right_page',
+                    'bookster-left-page',
+                    'bookster-right-page'
+                );
+                return;
+            }
+
+            const visibleIndex = visiblePages.indexOf(page) + 1;
+            const isLeftPage = forceFirstVisibleLeft
+                ? visibleIndex % 2 === 1
+                : visibleIndex % 2 === 0;
+            const column = isLeftPage ? 1 : 2;
+            const row = firstVisibleIsLeft
+                ? Math.ceil(visibleIndex / 2)
+                : (visibleIndex === 1 ? 1 : Math.floor((visibleIndex + 2) / 2));
+
+            page.style.removeProperty('display');
+            page.style.setProperty('grid-row', String(row), 'important');
+            page.style.setProperty('grid-column', String(column), 'important');
+            page.style.setProperty('justify-self', column === 1 ? 'end' : 'start', 'important');
+            page.style.setProperty('order', String(visibleIndex), 'important');
+            setImageBleedVars(page, isLeftPage);
+            page.setAttribute('data-page-number', String(visibleIndex));
+            page.dataset.pageNumber = String(visibleIndex);
+            syncPageSideClasses(page, isLeftPage);
             return;
         }
-
         if (isDummyPage) {
-            page.style.setProperty('display', 'none', 'important');
-            page.style.removeProperty('grid-row');
-            page.style.removeProperty('grid-column');
-            page.style.removeProperty('justify-self');
-            page.style.removeProperty('order');
-            return;
+            page.classList.remove(
+                'pagedjs_left_page',
+                'pagedjs_right_page',
+                'bookster-left-page',
+                'bookster-right-page'
+            );
+        } else {
+            const visibleIndex = visiblePages.indexOf(page) + 1;
+            const isLeftPage = forceFirstVisibleLeft
+                ? visibleIndex % 2 === 1
+                : visibleIndex % 2 === 0;
+            syncPageSideClasses(page, isLeftPage);
+            setImageBleedVars(page, isLeftPage);
         }
-
-        const visibleIndex = visiblePages.indexOf(page) + 1;
-        const isLeftPage = forceFirstVisibleLeft
-            ? visibleIndex % 2 === 1
-            : visibleIndex % 2 === 0;
-        const column = isLeftPage ? 1 : 2;
-        const row = firstVisibleIsLeft
-            ? Math.ceil(visibleIndex / 2)
-            : (visibleIndex === 1 ? 1 : Math.floor((visibleIndex + 2) / 2));
-
-        page.style.removeProperty('display');
-        page.style.setProperty('grid-row', String(row), 'important');
-        page.style.setProperty('grid-column', String(column), 'important');
-        page.style.setProperty('justify-self', column === 1 ? 'end' : 'start', 'important');
-        page.style.setProperty('order', String(visibleIndex), 'important');
-        page.setAttribute('data-page-number', String(visibleIndex));
-        page.dataset.pageNumber = String(visibleIndex);
     });
 };
 

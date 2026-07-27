@@ -349,6 +349,7 @@ window.populateSettingsForm = function() {
     if (typeof toggleCustomFirstPageFooter === 'function') toggleCustomFirstPageFooter();
     if (typeof syncBookFlowParityMode === 'function') syncBookFlowParityMode();
     else if (typeof toggleParityImageMode === 'function') toggleParityImageMode();
+    if (typeof toggleChapterImageSettings === 'function') toggleChapterImageSettings();
     if (typeof toggleEbookBgType === 'function') toggleEbookBgType();
     if (typeof toggleCoverPanelBgType === 'function') toggleCoverPanelBgType();
 };

@@ -83,10 +83,13 @@ graph TD
 
 ### 3. Generación y Procesamiento de HTML
 
-*   **[editor-pdf-html.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/core/editor-pdf-html.js)**
-    *   **Responsabilidad**: Traduce Markdown a HTML semántico y genera las plantillas HTML para la visualización del Índice (TOC) y la sección de Créditos del libro.
+*   **[editor-pdf-html.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/core/editor-pdf-html.js)** (y sus submódulos)
+    *   **Responsabilidad**: Traduce Markdown a HTML semántico y genera las plantillas HTML del capítulo. Dividido en submódulos para respetar el límite de líneas:
+        *   `-images.js`: Normalización y cálculo de dimensiones/restricciones de bloques de imagen.
+        *   `-opening.js`: Lógica para generar los bloques de apertura del capítulo y limpiar encabezados duplicados.
+        *   `-credits.js`: Generación de la plantilla HTML específica para la sección de Créditos.
     *   **Funciones Clave**:
-        *   `window.buildChapterHTML`: Genera la estructura HTML del capítulo activo aplicando decoraciones, prefijos de capítulos y subtítulos.
+        *   `window.buildChapterHTML` (en el archivo principal): Coordina la construcción del HTML utilizando los submódulos, aplicando decoraciones y prefijos.
         *   `window.updateTOCPagesInCache`: Actualiza dinámicamente los números de página en el Índice mapeándolos con la caché de paginación activa.
 
 *   **[editor-pdf-html-hyphenation.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/core/editor-pdf-html-hyphenation.js)**

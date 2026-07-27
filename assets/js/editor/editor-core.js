@@ -2,8 +2,12 @@
 
 window.editorLastSelection = { start: 0, end: 0 };
 
+function getRawEditorSurface() {
+    return document.querySelector('[data-editor-surface="raw"]');
+}
+
 function trackEditorSelection() {
-    const textarea = document.getElementById('editor-textarea');
+    const textarea = getRawEditorSurface();
     if (textarea && document.activeElement === textarea) {
         window.editorLastSelection.start = textarea.selectionStart;
         window.editorLastSelection.end = textarea.selectionEnd;
@@ -104,7 +108,7 @@ window.onload = function() {
 
 // Inicializador de Event Listeners
 function initEventListeners() {
-    const textarea = document.getElementById('editor-textarea');
+    const textarea = getRawEditorSurface();
     const chapterTitle = document.getElementById('chapter-title-input');
     const bookTitle = document.getElementById('book-title-input');
 
@@ -132,7 +136,7 @@ function initEventListeners() {
     }
     
     document.addEventListener('selectionchange', () => {
-        const textarea = document.getElementById('editor-textarea');
+        const textarea = getRawEditorSurface();
         if (textarea && document.activeElement === textarea) {
             trackEditorSelection();
         }

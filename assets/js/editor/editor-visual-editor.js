@@ -14,7 +14,8 @@ function getVisualEditorSurface() {
 
 function getActiveEditableSurface() {
     const active = document.activeElement;
-    if (active && active.id === 'editor-textarea') {
+    const textarea = typeof getRawEditorSurface === 'function' ? getRawEditorSurface() : null;
+    if (active && textarea && active === textarea) {
         return active;
     }
     if (active && isVisualEditorSurface(active)) {
@@ -296,14 +297,14 @@ function setRawChapterContent(nextContent) {
     if (!chapter) return;
 
     chapter.content = nextContent;
-    const textarea = document.getElementById('editor-textarea');
+    const textarea = typeof getRawEditorSurface === 'function' ? getRawEditorSurface() : null;
     if (textarea && textarea.value !== nextContent) {
         textarea.value = nextContent;
     }
 }
 
 function syncRawEditorToState() {
-    const textarea = document.getElementById('editor-textarea');
+    const textarea = typeof getRawEditorSurface === 'function' ? getRawEditorSurface() : null;
     const chapter = getActiveChapter();
     if (!textarea || !chapter) return;
 

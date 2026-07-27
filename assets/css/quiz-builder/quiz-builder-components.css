@@ -1,0 +1,193 @@
+/* Modern Minimalist Tabs (Underlined instead of heavy boxes) */
+.almaden-tabbar {
+	display: flex;
+	gap: 24px;
+	align-items: center;
+	padding: 0 24px;
+	border-bottom: 1px solid var(--qb-line);
+	background: #ffffff;
+	overflow: auto;
+}
+
+.almaden-tab {
+	border: none;
+	background: transparent;
+	padding: 12px 0;
+	color: var(--qb-muted);
+	font-size: 13px;
+	font-weight: 600;
+	white-space: nowrap;
+	border-bottom: 2px solid transparent;
+	transition: all 0.15s ease;
+	border-radius: 0;
+}
+
+.almaden-tab:hover {
+	color: var(--qb-text);
+}
+
+.almaden-tab.is-active {
+	color: var(--qb-text);
+	border-bottom-color: var(--qb-dark);
+}
+
+.almaden-tabpanels {
+	padding: 24px;
+	background: #ffffff;
+}
+
+.almaden-tabpanel {
+	display: none;
+}
+
+.almaden-tabpanel.is-active {
+	display: block;
+}
+
+/* Nested Card Simplification (Transparent content blocks, no double borders) */
+.almaden-card {
+	background: transparent;
+	border: none;
+	border-radius: 0;
+	box-shadow: none;
+	overflow: visible;
+}
+
+.almaden-card-head {
+	padding: 0 0 12px 0;
+	border-bottom: 1px solid var(--qb-line);
+	margin-bottom: 20px;
+}
+
+.almaden-card-head h3 {
+	margin: 0;
+	font-size: 14px;
+	font-weight: 700;
+	color: var(--qb-text);
+}
+
+.almaden-card-body {
+	padding: 0;
+}
+
+/* Forms (Slightly compact, aligned with Book Editor UI sizes) */
+.almaden-grid {
+	display: grid;
+	gap: 16px;
+}
+
+.almaden-grid--settings {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.almaden-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.almaden-field label {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--qb-muted);
+}
+
+.almaden-field input, 
+.almaden-field textarea, 
+.almaden-field select {
+	width: 100%;
+	border: 1px solid var(--qb-line);
+	border-radius: 6px;
+	background: #ffffff;
+	padding: 10px 12px;
+	color: var(--qb-text);
+	font-size: 13px;
+	outline: none;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.almaden-field textarea {
+	min-height: 160px;
+	resize: vertical;
+}
+
+.almaden-field input:focus, 
+.almaden-field textarea:focus, 
+.almaden-field select:focus {
+	border-color: #cbd5e1;
+	box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.05);
+}
+
+.almaden-settings-note, 
+.almaden-helper {
+	margin: 12px 0 0;
+	color: var(--qb-muted);
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.almaden-prompt-toolbar, 
+.almaden-preview-toolbar, 
+.almaden-preview-nav, 
+.almaden-slide-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.almaden-prompt-toolbar, 
+.almaden-preview-toolbar {
+	margin-top: 16px;
+}
+
+/* Buttons (Modern square-rounded shapes matching Editor buttons) */
+.almaden-btn {
+	border: 1px solid transparent;
+	border-radius: 6px;
+	padding: 8px 16px;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.4;
+	transition: all 0.15s ease;
+}
+
+.almaden-btn:hover {
+	transform: translateY(-0.5px);
+}
+
+.almaden-btn--dark {
+	background: var(--qb-dark);
+	color: #ffffff;
+}
+
+.almaden-btn--dark:hover {
+	background: #1e293b;
+}
+
+.almaden-btn--ghost {
+	background: #ffffff;
+	border-color: var(--qb-line);
+	color: var(--qb-text);
+}
+
+.almaden-btn--ghost:hover {
+	background: var(--qb-soft);
+	border-color: #cbd5e1;
+}
+
+.almaden-btn--soft {
+	background: var(--qb-soft);
+	color: var(--qb-text);
+}
+
+.almaden-btn--soft:hover {
+	background: var(--qb-soft-2);
+}
+
+.almaden-btn--danger {
+	background: var(--qb-danger);
+	color: #ffffff;
+}
+

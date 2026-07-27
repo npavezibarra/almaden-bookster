@@ -132,11 +132,16 @@ graph TD
     *   **Funciones Clave**:
         *   `toggleCustomPageFields`, `toggleCustomHeaderFields`, `updateUnitFields`: Modifican dinámicamente visibilidades de campos de tamaño de página, etiquetas de unidades métricas (`cm` o `in`) e inputs de texto personalizado para cabeceras y pies de página.
 
-*   **[editor-settings-credits.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-settings-credits.js)**
-    *   **Responsabilidad**: Lógica para la creación dinámica y serialización de filas de créditos personalizados (roles y colaboradores) integradas en la página de créditos.
+*   **[editor-settings-credits.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-settings-credits.js)** (y sus submódulos)
+    *   **Responsabilidad**: Lógica modularizada para la creación dinámica, persistencia de estado y serialización del modal de créditos (roles, colaboradores y logo). Dividido en submódulos para asegurar la mantenibilidad y respetar el límite de líneas:
+        *   `-constants.js`: Opciones predefinidas, diccionarios y fallbacks tipográficos.
+        *   `-utils.js`: Funciones de normalización de datos y parsing de estilos.
+        *   `-config.js`: Lógica para rellenar vacíos con configuraciones por defecto y mapeos legacy.
+        *   `-state.js`: Aislamiento del ciclo de persistencia AJAX (`creditsForceRemoteSave`, `creditsPersistRemoteConfig`).
+        *   `-ui.js`: Únicamente constructores de strings HTML (Rows, Tabs, Modals).
+        *   `-events.js`: Bindings puros de eventos del DOM en el namespace de créditos.
     *   **Funciones Clave**:
-        *   `window.addCustomCreditRow`: Instancia una nueva fila de créditos en el DOM y vincula escuchas en tiempo real para disparar el re-renderizado del visor.
-        *   `window.getCustomCreditsJSON`: Consolida y serializa todas las filas de créditos completadas en un String JSON para almacenamiento seguro.
+        *   `creditsPopulateForm` y `creditsBindRootEvents` (en el archivo principal): Punto de entrada y orquestación del subsistema de créditos.
 
 *   **[editor-settings-templates.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-settings-templates.js)**
     *   **Responsabilidad**: Permite a los usuarios guardar configuraciones globales actuales como presets de estilo ("plantillas") e importarlas rápidamente.

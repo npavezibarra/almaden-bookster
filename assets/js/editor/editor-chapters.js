@@ -174,7 +174,8 @@ function loadActiveChapter() {
     const chapter = bookState.chapters.find(c => c.id === activeId);
     
     const titleInput = document.getElementById('chapter-title-input');
-    const textInput = document.getElementById('editor-textarea');
+    const textInput = typeof getRawEditorSurface === 'function' ? getRawEditorSurface() : null;
+    const rawEditorContainer = document.getElementById('raw-editor-container');
 
     if (chapter) {
         if (titleInput) titleInput.value = chapter.title;
@@ -182,8 +183,8 @@ function loadActiveChapter() {
         const creditsContainer = document.getElementById('credits-editor-container');
         
         if (chapter.is_credits === '1') {
+            if (rawEditorContainer) rawEditorContainer.classList.add('hidden');
             if (textInput) {
-                textInput.classList.remove('hidden');
                 textInput.classList.remove('flex-1');
                 textInput.style.minHeight = '150px';
                 textInput.style.flex = 'none';
@@ -196,8 +197,8 @@ function loadActiveChapter() {
             if (typeof initCreditsForm === 'function') initCreditsForm();
         } else {
             if (creditsContainer) creditsContainer.classList.add('hidden');
+            if (rawEditorContainer) rawEditorContainer.classList.remove('hidden');
             if (textInput) {
-                textInput.classList.remove('hidden');
                 textInput.classList.add('flex-1');
                 textInput.style.minHeight = '400px';
                 textInput.style.flex = '';
@@ -226,6 +227,7 @@ function loadActiveChapter() {
         // No hay capítulos
         if (titleInput) titleInput.value = '';
         if (textInput) textInput.value = '';
+        if (rawEditorContainer) rawEditorContainer.classList.remove('hidden');
         updateWordCounts();
         if (bookState.viewMode === 'preview' && typeof compilePDFPreview === 'function') {
             compilePDFPreview(true);
@@ -266,6 +268,7 @@ function createNewChapter(isToc = false, isCredits = false) {
         is_toc: isToc ? '1' : '0',
         is_credits: isCredits ? '1' : '0',
         start_parity: isToc ? 'even' : 'any',
+        opening_separate_content: '',
         credits_hide_header: '0',
         credits_hide_page_number: '0',
         credits_margin_top: '',
@@ -421,7 +424,7 @@ function saveStateToLocalStorage(immediate = false) {
                     if (activeChapter) {
                         activeChapter.content = visualChapterContent;
                     }
-                    const textarea = document.getElementById('editor-textarea');
+                    const textarea = typeof getRawEditorSurface === 'function' ? getRawEditorSurface() : null;
                     if (textarea) {
                         textarea.value = visualChapterContent;
                     }

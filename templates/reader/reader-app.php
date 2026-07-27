@@ -184,6 +184,10 @@ $public_chapters = array_values(
 
     <link rel="stylesheet" href="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/css/reader-app.css' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/css/reader-app.css' ); ?>">
     <link rel="stylesheet" href="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/css/quiz-builder/quiz-builder-app.css' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/css/quiz-builder/quiz-builder-app.css' ); ?>">
+    <link rel="stylesheet" href="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/css/quiz-builder/quiz-builder-workspace.css' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/css/quiz-builder/quiz-builder-workspace.css' ); ?>">
+    <link rel="stylesheet" href="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/css/quiz-builder/quiz-builder-components.css' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/css/quiz-builder/quiz-builder-components.css' ); ?>">
+    <link rel="stylesheet" href="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/css/quiz-builder/quiz-builder-modal.css' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/css/quiz-builder/quiz-builder-modal.css' ); ?>">
+    <link rel="stylesheet" href="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/css/quiz-builder/quiz-builder-simulation.css' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/css/quiz-builder/quiz-builder-simulation.css' ); ?>">
     <style>
         
         /* User Requested Constraints */

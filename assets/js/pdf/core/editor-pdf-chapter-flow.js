@@ -25,7 +25,55 @@ window.getEffectiveOpeningSeparation = function(chapter, settings) {
         return String(chapter.toc_separate_opening_content) !== '0';
     }
 
+    if (chapter && chapter.opening_separate_content !== undefined && chapter.opening_separate_content !== '') {
+        return String(chapter.opening_separate_content) !== '0';
+    }
+
     return globalSeparate;
+};
+
+window.getEffectiveChapterImageMode = function(chapter, settings) {
+    const configuredMode = chapter && chapter.chapter_image_mode
+        ? String(chapter.chapter_image_mode)
+        : (settings && settings.chapter_image_mode ? String(settings.chapter_image_mode) : 'page_blank');
+    if (['page_blank', 'image_full_page', 'image_inner'].includes(configuredMode)) {
+        return configuredMode;
+    }
+    return 'page_blank';
+};
+
+window.getEffectiveChapterImageEnabled = function(chapter, settings) {
+    if (chapter && chapter.chapter_image_enabled !== undefined && chapter.chapter_image_enabled !== '') {
+        return String(chapter.chapter_image_enabled) === '1';
+    }
+
+    const configuredMode = window.getEffectiveChapterImageMode
+        ? window.getEffectiveChapterImageMode(chapter, settings)
+        : 'page_blank';
+    const chapterImageUrl = chapter && chapter.chapter_image_url ? String(chapter.chapter_image_url).trim() : '';
+    const legacySettingsMode = settings && settings.chapter_image_mode ? String(settings.chapter_image_mode) : 'page_blank';
+    const legacySettingsUrl = settings && settings.chapter_image_url ? String(settings.chapter_image_url).trim() : '';
+
+    return configuredMode !== 'page_blank' || chapterImageUrl !== '' || legacySettingsMode !== 'page_blank' || legacySettingsUrl !== '';
+};
+
+window.chapterHasLeadingImagePage = function(chapter, settings) {
+    if (chapter && chapter.is_credits === '1') {
+        return false;
+    }
+
+    const startParity = chapter && chapter.start_parity ? chapter.start_parity : 'any';
+    if (startParity !== 'even') {
+        return false;
+    }
+
+    if (window.getEffectiveChapterImageEnabled && !window.getEffectiveChapterImageEnabled(chapter, settings)) {
+        return false;
+    }
+
+    return ['page_blank', 'image_full_page', 'image_inner'].includes(
+        window.getEffectiveChapterImageMode ? window.getEffectiveChapterImageMode(chapter, settings) : 'page_blank'
+    );
 };
 
 window.chapterHasOpeningPage = function(chapter) {
@@ -92,6 +140,10 @@ window.shouldInsertBookStartLeadingPage = function(chapter, settings, chapterLen
         return false;
     }
 
+    if (window.chapterHasLeadingImagePage && window.chapterHasLeadingImagePage(chapter, settings)) {
+        return false;
+    }
+
     const isToc = chapter.is_toc === '1';
     const resolvedLength = Number.isFinite(chapterLength) ? chapterLength : null;
     const flowMode = window.getBookChapterFlowMode ? window.getBookChapterFlowMode(settings) : 'continuous';
@@ -107,7 +159,7 @@ window.shouldInsertBookStartLeadingPage = function(chapter, settings, chapterLen
         return resolvedLength > 1;
     }
 
-    if (flowMode === 'left') {
+    if (chapter && chapter.start_parity === 'even') {
         return true;
     }
 

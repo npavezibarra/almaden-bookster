@@ -46,6 +46,22 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
         }
         return configuredMode;
     };
+    const getEffectiveChapterImageMode = window.getEffectiveChapterImageMode || function(chapter, settings) {
+        const configuredMode = chapter && chapter.chapter_image_mode
+            ? String(chapter.chapter_image_mode)
+            : (settings && settings.chapter_image_mode ? String(settings.chapter_image_mode) : 'page_blank');
+        return ['page_blank', 'image_full_page', 'image_inner'].includes(configuredMode) ? configuredMode : 'page_blank';
+    };
+    const getEffectiveChapterImageEnabled = window.getEffectiveChapterImageEnabled || function(chapter, settings) {
+        if (chapter && chapter.chapter_image_enabled !== undefined && chapter.chapter_image_enabled !== '') {
+            return String(chapter.chapter_image_enabled) === '1';
+        }
+        const configuredMode = getEffectiveChapterImageMode(chapter, settings);
+        const chapterImageUrl = chapter && chapter.chapter_image_url ? String(chapter.chapter_image_url).trim() : '';
+        const legacySettingsMode = settings && settings.chapter_image_mode ? String(settings.chapter_image_mode) : 'page_blank';
+        const legacySettingsUrl = settings && settings.chapter_image_url ? String(settings.chapter_image_url).trim() : '';
+        return configuredMode !== 'page_blank' || chapterImageUrl !== '' || legacySettingsMode !== 'page_blank' || legacySettingsUrl !== '';
+    };
 
     const chapterHasOpeningPage = window.chapterHasOpeningPage || function(chapter) {
         const mode = getEffectiveOpeningPageMode(chapter);
@@ -56,6 +72,9 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
             const globalSeparate = settings && String(settings.book_separate_opening_content) !== '0';
             if (chapter && chapter.is_toc === '1' && chapter.toc_separate_opening_content !== undefined && chapter.toc_separate_opening_content !== '') {
                 return String(chapter.toc_separate_opening_content) !== '0';
+            }
+            if (chapter && chapter.opening_separate_content !== undefined && chapter.opening_separate_content !== '') {
+                return String(chapter.opening_separate_content) !== '0';
             }
             return globalSeparate;
         };
@@ -74,6 +93,77 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
         return hasVisibleOpeningBlock || openingMode === 'blank' || openingMode === 'image';
     };
     const chapterUsesSeparateOpeningPage = (chapter) => shouldSeparateChapterOpening(chapter, settings);
+    const chapterHasLeadingImagePage = window.chapterHasLeadingImagePage
+        ? window.chapterHasLeadingImagePage
+        : function(chapter, settings) {
+            if (chapter && chapter.is_credits === '1') {
+                return false;
+            }
+            if (chapter && chapter.chapter_image_enabled !== undefined && chapter.chapter_image_enabled !== '') {
+                if (String(chapter.chapter_image_enabled) !== '1') {
+                    return false;
+                }
+            }
+            const startParity = chapter && chapter.start_parity ? chapter.start_parity : 'any';
+            if (startParity !== 'even') {
+                return false;
+            }
+            return ['page_blank', 'image_full_page', 'image_inner'].includes(getEffectiveChapterImageMode(chapter, settings));
+        };
+
+    const escapeAttr = (value) => String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/'/g, '&#039;');
+
+    const buildChapterImagePageSection = (chapter, chapterIndex, isSingleChapterPreview = false) => {
+        if (!chapter || !chapterHasLeadingImagePage(chapter, settings)) {
+            return '';
+        }
+
+        const imageMode = getEffectiveChapterImageMode(chapter, settings);
+        const imageEnabled = getEffectiveChapterImageEnabled(chapter, settings);
+        const imageUrl = String(chapter.chapter_image_url || settings.chapter_image_url || '').trim();
+        const imageWidth = Math.min(Math.max(parseFloat(chapter.chapter_image_inner_width || settings.chapter_image_inner_width || 100) || 100, 10), 100);
+        const imageInnerHeader = chapter.chapter_image_inner_header !== undefined && chapter.chapter_image_inner_header !== ''
+            ? String(chapter.chapter_image_inner_header) === '1'
+            : settings.chapter_image_inner_header == 1;
+        const imageInnerFooter = chapter.chapter_image_inner_footer !== undefined && chapter.chapter_image_inner_footer !== ''
+            ? String(chapter.chapter_image_inner_footer) === '1'
+            : settings.chapter_image_inner_footer == 1;
+        const hasImage = imageUrl !== '';
+        const sectionClasses = [
+            `chapter-image-page-section-${chapter.id}`,
+            'pdf-content',
+            imageMode === 'image_full_page' ? 'chapter-image-page-section--full' : '',
+            imageMode === 'image_inner' ? 'chapter-image-page-section--inner' : '',
+            isSingleChapterPreview ? 'single-chapter-image-preview' : ''
+        ].filter(Boolean).join(' ');
+        let innerHtml = '';
+        if (imageEnabled && imageMode === 'image_full_page' && hasImage) {
+            innerHtml = `
+                <div class="chapter-image-page-full-bleed-layer">
+                    <img src="${escapeAttr(imageUrl)}" alt="${escapeAttr(chapter.title || 'Chapter image')}" />
+                </div>
+            `;
+        } else if (imageEnabled && imageMode === 'image_inner' && hasImage) {
+            innerHtml = `
+                <div class="chapter-image-page-inner">
+                    <img src="${escapeAttr(imageUrl)}" alt="${escapeAttr(chapter.title || 'Chapter image')}" style="width: ${imageWidth}%; height: auto; display: block;" />
+                </div>
+            `;
+        } else {
+            innerHtml = '<div style="height: 1px;"></div>';
+        }
+
+        return `
+            <section class="${sectionClasses}" data-image-mode="${escapeAttr(imageMode)}" data-image-url="${escapeAttr(imageUrl)}" data-image-inner-header="${imageInnerHeader ? '1' : '0'}" data-image-inner-footer="${imageInnerFooter ? '1' : '0'}">
+                ${innerHtml}
+            </section>
+        `;
+    };
 
     const buildFallbackOpeningContent = (chapter, chapterIndex) => {
         if (!chapter || !chapter.title || String(chapter.title).trim() === '' || chapter.is_credits === '1') {
@@ -100,6 +190,7 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
 
     const buildOpeningPageSection = (chapter, chapterIndex, isSingleChapterPreview = false) => {
         const openingMode = getEffectiveOpeningPageMode(chapter);
+        const chapterImageLeadingPage = chapterHasLeadingImagePage(chapter, settings);
         let openingContent = typeof window.buildChapterOpeningHtml === 'function'
             ? window.buildChapterOpeningHtml(
                 chapter,
@@ -121,9 +212,12 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
         const openingSectionStyle = openingMode === 'blank'
             ? 'display: flex; width: 100%; min-height: 100%; height: 100%; box-sizing: border-box;'
             : '';
+        const openingBreakClass = chapterImageLeadingPage
+            ? 'chapter-opening-page-section--after-image'
+            : 'chapter-opening-page-section--default';
 
         return `
-        <section class="chapter-opening-page-section-${chapter.id} pdf-content${isSingleChapterPreview ? ' single-chapter-opening-preview' : ''}" data-opening-mode="${openingMode}" style="${openingSectionStyle}">
+        <section class="chapter-opening-page-section-${chapter.id} ${openingBreakClass} pdf-content${isSingleChapterPreview ? ' single-chapter-opening-preview' : ''}" data-opening-mode="${openingMode}" data-has-chapter-image-page="${chapterImageLeadingPage ? '1' : '0'}" style="${openingSectionStyle}">
             ${openingContent}
         </section>
     `;
@@ -163,6 +257,8 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
                 startPageNum = 1;
             } else if (cachedPageNum !== undefined && cachedPageNum !== null) {
                 startPageNum = cachedPageNum;
+            } else if (chapterHasLeadingImagePage(activeChapter, settings)) {
+                startPageNum = 1;
             } else if (chapterUsesSeparateOpeningPage(activeChapter)) {
                 const chapterFlowMode = window.getBookChapterFlowMode
                     ? window.getBookChapterFlowMode(settings)
@@ -206,6 +302,11 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
                 );
             }
             
+            const chapterImageSection = buildChapterImagePageSection(activeChapter, activeIndex, true);
+            if (chapterImageSection) {
+                fullBookHTML += chapterImageSection;
+            }
+
             if (chapterUsesSeparateOpeningPage(activeChapter)) {
                 fullBookHTML += buildOpeningPageSection(activeChapter, activeIndex, true);
                 fullBookHTML += buildMainChapterSection(
@@ -259,6 +360,10 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
         }
         for (let index = 0; index < bookState.chapters.length; index++) {
             const chapter = bookState.chapters[index];
+            const chapterImageSection = buildChapterImagePageSection(chapter, index);
+            if (chapterImageSection) {
+                fullBookHTML += chapterImageSection;
+            }
             const compiledHtml = window.buildChapterHTML(chapter, index, settings, bookState, {
                 includeOpeningBlock: !chapterUsesSeparateOpeningPage(chapter)
             });

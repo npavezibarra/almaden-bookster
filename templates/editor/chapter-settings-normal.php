@@ -61,6 +61,101 @@
         </div>
     </div>
 
+    <div id="chapter_image_settings_wrapper" class="space-y-3 rounded-xl border border-[var(--border-color)] bg-[var(--bg-app)] p-4 hidden">
+        <div>
+            <label class="block font-semibold mb-1">Chapter Image</label>
+            <p class="text-xs text-[var(--text-muted)]">
+                Se activa solo cuando este capítulo inicia en página par/izquierda y el switch está encendido. Esta configuración define la primera página del capítulo.
+            </p>
+        </div>
+
+        <div class="flex items-center justify-between p-3 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+            <div>
+                <label class="font-semibold block mb-1 text-[10px]">Activar Chapter Image</label>
+                <span class="text-[10px] text-[var(--text-muted)]">Muestra la imagen portada para la primera página del capítulo.</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="chapter_image_enabled" onchange="toggleChapterImageSettingsForChapter()" class="sr-only peer">
+                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
+            </label>
+        </div>
+
+        <div class="flex items-start justify-between gap-4 p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+            <div class="flex-1">
+                <label class="font-semibold block mb-1 text-[10px]">Separar apertura de contenido</label>
+                <span class="text-[10px] text-[var(--text-muted)]">Sobrescribe el ajuste global solo para este capítulo. Deja en "Usar Global" para mantener el comportamiento del libro.</span>
+            </div>
+            <div class="w-56">
+                <select id="chapter_opening_separate_content" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                    <option value="">Usar Global</option>
+                    <option value="1">Separar apertura</option>
+                    <option value="0">No separar apertura</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="chapter_image_mode_wrapper">
+            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Modo de Chapter Image</label>
+            <select id="chapter_image_mode" onchange="toggleChapterImageSettingsForChapter()" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                <option value="page_blank">Page Blank</option>
+                <option value="image_full_page">Image Full Page</option>
+                <option value="image_inner">Image Inner</option>
+            </select>
+        </div>
+
+        <div id="chapter_image_upload_wrapper" class="space-y-2 hidden">
+            <div class="flex flex-wrap items-center gap-2">
+                <button type="button" onclick="openChapterImageUploaderForChapter()" class="px-4 py-2 bg-neutral-100 text-black dark:text-white hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700 border border-neutral-300 dark:border-neutral-700 rounded-lg text-sm font-semibold transition flex items-center gap-2">
+                    <i class="fa-solid fa-upload"></i> Subir / Seleccionar Imagen
+                </button>
+                <button type="button" onclick="clearChapterImageSelectionForChapter()" class="px-4 py-2 bg-transparent text-[var(--text-muted)] hover:text-black dark:hover:text-white border border-[var(--border-color)] rounded-lg text-sm font-semibold transition">
+                    Limpiar
+                </button>
+            </div>
+            <input id="chapter_image_url" type="text" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="URL de la imagen">
+        </div>
+
+        <div id="chapter_image_fullpage_note" class="hidden rounded-lg border border-dashed border-[var(--border-color)] bg-[var(--bg-sidebar)] p-3">
+            <p class="text-[10px] text-[var(--text-muted)]">
+                Image Full Page ocupa toda la página considerando bleed, sin distorsionar la proporción original.
+            </p>
+        </div>
+
+        <div id="chapter_image_inner_controls" class="grid grid-cols-1 gap-3 hidden">
+            <div>
+                <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Ancho de imagen (%)</label>
+                <input id="chapter_image_inner_width" type="range" min="10" max="100" step="1" value="100" oninput="syncChapterImageWidthLabelForChapter()" class="w-full">
+                <div class="flex items-center justify-between text-[10px] text-[var(--text-muted)]">
+                    <span>10%</span>
+                    <span id="chapter_image_inner_width_label" class="font-semibold text-[var(--text-main)]">100%</span>
+                    <span>100%</span>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div class="flex items-center justify-between p-3 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+                    <div>
+                        <label class="font-semibold block mb-1 text-[10px]">Incluir cabecera</label>
+                        <span class="text-[10px] text-[var(--text-muted)]">Activa cabecera en la página inner.</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="chapter_image_inner_header" class="sr-only peer">
+                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+                    <div>
+                        <label class="font-semibold block mb-1 text-[10px]">Incluir pie</label>
+                        <span class="text-[10px] text-[var(--text-muted)]">Activa pie en la página inner.</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="chapter_image_inner_footer" class="sr-only peer">
+                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="tab-opening" class="chapter-tab-content space-y-6 hidden">
         <div id="chapter_opening_layout_hint" class="p-4 rounded-xl border border-dashed border-[var(--border-color)] bg-[var(--bg-sidebar)]">
             <label class="block font-semibold mb-1">Apertura condicionada</label>

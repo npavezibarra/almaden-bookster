@@ -12,6 +12,26 @@ function getPDFStylesChapters(settings, toPx) {
         const parsed = parseFloat(value);
         return Number.isFinite(parsed) ? parsed : fallback;
     };
+    const getFooterMarginBox = window.getFooterMarginBox || function(align, isEven) {
+        if (align === 'center') return 'bottom-center';
+        if (align === 'left') return 'bottom-left';
+        if (align === 'right') return 'bottom-right';
+        if (align === 'outer') return isEven ? 'bottom-left' : 'bottom-right';
+        if (align === 'inner') return isEven ? 'bottom-right' : 'bottom-left';
+        return 'bottom-center';
+    };
+    const getFooterContent = window.getFooterContent || function(type, isEven, bookTitle, settings) {
+        if (type === 'blank') return '""';
+        if (type === 'page_number') return 'counter(page)';
+        if (type === 'book_title') return `"${bookTitle.replace(/"/g, '\\"')}"`;
+        if (type === 'chapter_title') return 'string(chapter-title)';
+        if (type === 'author') return '"Autor"';
+        if (type === 'custom') {
+            const customText = isEven ? (settings.footer_even_custom || '') : (settings.footer_odd_custom || '');
+            return `"${customText.replace(/"/g, '\\"')}"`;
+        }
+        return '""';
+    };
     const getEffectiveOpeningPageMode = window.getEffectiveOpeningPageMode || function(chapter) {
         const configuredMode = chapter && chapter.opening_page_mode ? chapter.opening_page_mode : 'auto';
         if (configuredMode === 'auto') {
@@ -27,6 +47,9 @@ function getPDFStylesChapters(settings, toPx) {
             const globalSeparate = settings && String(settings.book_separate_opening_content) !== '0';
             if (chapter && chapter.is_toc === '1' && chapter.toc_separate_opening_content !== undefined && chapter.toc_separate_opening_content !== '') {
                 return String(chapter.toc_separate_opening_content) !== '0';
+            }
+            if (chapter && chapter.opening_separate_content !== undefined && chapter.opening_separate_content !== '') {
+                return String(chapter.opening_separate_content) !== '0';
             }
             return globalSeparate;
         };
@@ -49,9 +72,154 @@ function getPDFStylesChapters(settings, toPx) {
         bookState.chapters.forEach((ch, idx) => {
             const parityImageUrl = ch.parity_image;
             const openingPageMode = getEffectiveOpeningPageMode(ch);
+            const chapterImageMode = window.getEffectiveChapterImageMode
+                ? window.getEffectiveChapterImageMode(ch, settings)
+                : ((ch.chapter_image_mode || settings.chapter_image_mode || 'page_blank'));
+            const hasChapterImagePage = window.chapterHasLeadingImagePage
+                ? window.chapterHasLeadingImagePage(ch, settings)
+                : false;
             const chapterFlowMode = window.getBookChapterFlowMode
                 ? window.getBookChapterFlowMode(settings)
                 : (settings.chapter_start_parity === 'even' ? 'left' : 'continuous');
+
+            if (hasChapterImagePage) {
+                const chapterImageUrl = String(ch.chapter_image_url || settings.chapter_image_url || '').trim();
+                const imageInnerWidth = Math.min(Math.max(parseFloat(ch.chapter_image_inner_width || settings.chapter_image_inner_width || 100) || 100, 10), 100);
+                const imageInnerHeader = ch.chapter_image_inner_header !== undefined && ch.chapter_image_inner_header !== ''
+                    ? String(ch.chapter_image_inner_header) === '1'
+                    : settings.chapter_image_inner_header == 1;
+                const imageInnerFooter = ch.chapter_image_inner_footer !== undefined && ch.chapter_image_inner_footer !== ''
+                    ? String(ch.chapter_image_inner_footer) === '1'
+                    : settings.chapter_image_inner_footer == 1;
+                const safeChapterImageUrl = chapterImageUrl.replace(/"/g, '\\"');
+                const firstHeaderType = (ch.first_page_header_type && ch.first_page_header_type !== 'global')
+                    ? ch.first_page_header_type
+                    : (settings.first_page_header_type || 'blank');
+                const firstHeaderCustom = ch.first_page_header_custom || settings.first_page_header_custom || '';
+                const footerAlign = settings.footer_align || 'center';
+                const footerEvenType = settings.footer_even_type || 'page_number';
+                const footerOddType = settings.footer_odd_type || 'page_number';
+                const hideTocHeader = ch.is_toc === '1' && ch.toc_hide_header !== '0';
+                const hideCreditsHeader = ch.is_credits === '1' && ch.credits_hide_header === '1';
+                const hideCreditsPageNumber = ch.is_credits === '1' && ch.credits_hide_page_number === '1';
+                const hideTocPageNumber = ch.is_toc === '1' && ch.toc_hide_page_numbers !== '0';
+                const hideChapterPageNumber = hideCreditsPageNumber || hideTocPageNumber;
+                const headerContent = (chapterImageMode === 'image_inner' && imageInnerHeader)
+                    ? `
+                        @top-left { content: ${(hideTocHeader || hideCreditsHeader) ? '""' : (firstHeaderType === 'custom' ? `"${firstHeaderCustom.replace(/"/g, '\\"')}"` : '""')}; }
+                        @top-center { content: ${(hideTocHeader || hideCreditsHeader) ? '""' : (firstHeaderType === 'chapter_title' ? 'string(chapter-title)' : (firstHeaderType === 'book_title' ? `"${bookState.title.replace(/"/g, '\\"')}"` : '""'))}; }
+                        @top-right { content: ""; }
+                    `
+                    : `
+                        @top-left { content: "" !important; }
+                        @top-center { content: "" !important; }
+                        @top-right { content: "" !important; }
+                    `;
+                const footerContent = (chapterImageMode === 'image_inner' && imageInnerFooter)
+                    ? `
+                        @bottom-${getFooterMarginBox(footerAlign, true).replace('bottom-', '')} { content: ${hideChapterPageNumber ? '""' : getFooterContent(footerEvenType, true, bookState.title, settings)}; }
+                        @bottom-${getFooterMarginBox(footerAlign, false).replace('bottom-', '')} { content: ${hideChapterPageNumber ? '""' : getFooterContent(footerOddType, false, bookState.title, settings)}; }
+                    `
+                    : `
+                        @bottom-left { content: "" !important; }
+                        @bottom-center { content: "" !important; }
+                        @bottom-right { content: "" !important; }
+                    `;
+                const imageBackgroundRules = chapterImageMode === 'image_full_page' && chapterImageUrl
+                    ? `
+                        .pagedjs_chapter-${ch.id}-image_page {
+                            overflow: visible !important;
+                        }
+                        .pagedjs_chapter-${ch.id}-image_page .pagedjs_pagebox,
+                        .pagedjs_chapter-${ch.id}-image_page .pagedjs_area {
+                            overflow: visible !important;
+                        }
+                        .pagedjs_chapter-${ch.id}-image_page .chapter-image-page-full-bleed-layer {
+                            position: absolute !important;
+                            top: calc(-1 * var(--pagedjs-margin-top) - var(--bookster-image-bleed-top, var(--pagedjs-bleed-top))) !important;
+                            bottom: calc(-1 * var(--pagedjs-margin-bottom) - var(--bookster-image-bleed-bottom, var(--pagedjs-bleed-bottom))) !important;
+                            z-index: 0 !important;
+                            overflow: hidden !important;
+                        }
+                        .pagedjs_chapter-${ch.id}-image_page.pagedjs_left_page .chapter-image-page-full-bleed-layer,
+                        .pagedjs_chapter-${ch.id}-image_page.bookster-left-page .chapter-image-page-full-bleed-layer {
+                            left: calc(-1 * var(--pagedjs-margin-left) - var(--bookster-image-bleed-left, var(--pagedjs-bleed-left-left))) !important;
+                            right: calc(-1 * var(--pagedjs-margin-right) - var(--bookster-image-bleed-right, 0px)) !important;
+                        }
+                        .pagedjs_chapter-${ch.id}-image_page.pagedjs_right_page .chapter-image-page-full-bleed-layer,
+                        .pagedjs_chapter-${ch.id}-image_page.bookster-right-page .chapter-image-page-full-bleed-layer {
+                            left: calc(-1 * var(--pagedjs-margin-left) - var(--bookster-image-bleed-left, 0px)) !important;
+                            right: calc(-1 * var(--pagedjs-margin-right) - var(--bookster-image-bleed-right, var(--pagedjs-bleed-right-right))) !important;
+                        }
+                        .pagedjs_chapter-${ch.id}-image_page .chapter-image-page-full-bleed-layer img {
+                            width: 100% !important;
+                            height: 100% !important;
+                            object-fit: cover !important;
+                            object-position: center center !important;
+                            display: block !important;
+                        }
+                    `
+                    : '';
+                const innerPageRules = chapterImageMode === 'image_inner'
+                    ? `
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        width: 100% !important;
+                        min-height: 100% !important;
+                        height: 100% !important;
+                        box-sizing: border-box !important;
+                    `
+                    : '';
+                chapterCSSRules += `
+                    .chapter-image-page-section-${ch.id} {
+                        page: chapter-${ch.id}-image;
+                        break-before: left;
+                        page-break-before: left;
+                        break-after: page;
+                        display: block !important;
+                        position: relative !important;
+                        width: 100% !important;
+                        min-height: calc(
+                            var(--pagedjs-pagebox-height)
+                            - var(--pagedjs-margin-top)
+                            - var(--pagedjs-margin-bottom)
+                            - 1px
+                        ) !important;
+                        height: calc(
+                            var(--pagedjs-pagebox-height)
+                            - var(--pagedjs-margin-top)
+                            - var(--pagedjs-margin-bottom)
+                            - 1px
+                        ) !important;
+                        box-sizing: border-box !important;
+                        ${innerPageRules}
+                    }
+                    .chapter-image-page-section-${ch.id}.chapter-image-page-section--inner {
+                        ${innerPageRules}
+                    }
+                    .chapter-image-page-section-${ch.id} .chapter-image-page-inner {
+                        ${chapterImageMode === 'image_inner' ? 'display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important; height: 100% !important;' : ''}
+                    }
+                    .chapter-image-page-section-${ch.id} .chapter-image-page-inner img {
+                        ${chapterImageMode === 'image_inner' ? `width: ${imageInnerWidth}% !important; height: auto !important; object-fit: contain !important; display: block !important;` : ''}
+                    }
+                    .chapter-image-page-section-${ch.id} .chapter-image-page-full-bleed-layer {
+                        ${chapterImageMode === 'image_full_page' ? 'display: block !important;' : ''}
+                    }
+                    .chapter-image-page-section-${ch.id} .chapter-image-page-full-bleed-layer img {
+                        ${chapterImageMode === 'image_full_page' ? 'display: block !important;' : ''}
+                    }
+                    @page chapter-${ch.id}-image {
+                        ${headerContent}
+                        ${footerContent}
+                    }
+                    ${imageBackgroundRules}
+                    .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin {
+                        visibility: ${chapterImageMode === 'image_inner' && (imageInnerHeader || imageInnerFooter) ? 'visible' : 'hidden'} !important;
+                    }
+                `;
+            }
             
             if (shouldSeparateChapterOpening(ch, settings)) {
                 const mode = ch.parity_image_mode || 'content';
@@ -84,8 +252,8 @@ function getPDFStylesChapters(settings, toPx) {
                 chapterCSSRules += `
                     .chapter-opening-page-section-${ch.id} {
                         page: chapter-${ch.id}-opening;
-                        break-before: ${chapterFlowMode === 'left' ? 'left' : 'page'};
-                        page-break-before: ${chapterFlowMode === 'left' ? 'left' : 'always'};
+                        break-before: ${hasChapterImagePage ? 'page' : (chapterFlowMode === 'left' ? 'left' : 'page')};
+                        page-break-before: ${hasChapterImagePage ? 'always' : (chapterFlowMode === 'left' ? 'left' : 'always')};
                         break-after: page;
                         display: flex !important;
                         flex-direction: column !important;

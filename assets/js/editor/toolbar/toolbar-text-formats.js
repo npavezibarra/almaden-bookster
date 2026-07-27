@@ -86,7 +86,7 @@ function applyFontSize() {
         triggerEditorUpdate('visual');
     } else {
         wrapText(`[size=${input.value}]`, '[/size]');
-        const textarea = document.getElementById('editor-textarea');
+        const textarea = typeof getRawEditorSurface === 'function' ? getRawEditorSurface() : null;
         if (textarea) textarea.focus();
     }
 }
@@ -103,7 +103,7 @@ function applyFontFamily(fontName) {
         triggerEditorUpdate('visual');
     } else {
         wrapText(`[font="${fontName}"]`, '[/font]');
-        const textarea = document.getElementById('editor-textarea');
+        const textarea = typeof getRawEditorSurface === 'function' ? getRawEditorSurface() : null;
         if (textarea) textarea.focus();
     }
 

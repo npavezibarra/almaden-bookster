@@ -310,10 +310,8 @@ if (!headers_sent()) {
                         </div>
                     </div>
 
-                    <!-- Contador local del Capítulo -->
+                    <!-- Botón de guardado -->
                     <div class="text-xs font-semibold flex items-center gap-3">
-                        <span id="current-word-count">0 palabras</span>
-                        <div class="h-4 w-px bg-[var(--border-color)] mx-1"></div>
                         <button onclick="saveStateToLocalStorage(true)" id="toolbar-save-btn" class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800/50 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded transition flex items-center gap-1.5" title="Guardar cambios (Ctrl+S / Cmd+S)">
                             <i class="fa-solid fa-floppy-disk text-[10px]"></i>
                             <span>Guardar</span>
@@ -335,10 +333,12 @@ if (!headers_sent()) {
                                 </button>
                             </div>
                             <!-- Área de escritura -->
-                            <textarea id="editor-textarea"
-                                class="flex-1 w-full resize-none bg-transparent text-[var(--text-main)] focus:outline-none font-mono text-sm leading-relaxed placeholder-gray-400 dark:placeholder-gray-600 focus:ring-0"
-                                style="min-height: 400px;"
-                                placeholder="Escribe tu historia aquí utilizando formato simple o las herramientas de arriba..."></textarea>
+                            <div id="raw-editor-container" class="flex-1 w-full">
+                                <textarea data-editor-surface="raw"
+                                    class="flex-1 w-full resize-none bg-transparent text-[var(--text-main)] focus:outline-none font-mono text-sm leading-relaxed placeholder-gray-400 dark:placeholder-gray-600 focus:ring-0"
+                                    style="min-height: 400px;"
+                                    placeholder="Escribe tu historia aquí utilizando formato simple o las herramientas de arriba..."></textarea>
+                            </div>
 
                             <!-- Formulario de Créditos (Oculto por defecto) -->
                             <div id="credits-editor-container" class="hidden flex-1 w-full bg-transparent overflow-y-auto">
@@ -346,6 +346,14 @@ if (!headers_sent()) {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Barra inferior compacta del editor -->
+                <div class="h-8 shrink-0 border-t border-[var(--border-color)] bg-[var(--bg-sidebar)] px-4 flex items-center justify-between text-[10px] text-[var(--text-muted)] no-print">
+                    <span class="uppercase tracking-[0.18em] font-semibold">Estado del capítulo</span>
+                    <span class="font-semibold text-[var(--text-main)]">
+                        <span id="current-word-count">0 palabras</span>
+                    </span>
                 </div>
             </section>
 
@@ -520,6 +528,12 @@ if (!headers_sent()) {
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-tabs.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-fields.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits-debug.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits-constants.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits-utils.js?v=' . time(), __FILE__ ) ); ?>"></script>
+
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits-state.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits-events.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-templates.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-api.js?v=' . time(), __FILE__ ) ); ?>"></script>
@@ -542,6 +556,8 @@ if (!headers_sent()) {
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-dom.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-semantic-blocks.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-html-hyphenation.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-html-images.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-html-opening.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-html.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-compiler-dimensions.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-compiler-spread.js?v=' . time(), __FILE__ ) ); ?>"></script>

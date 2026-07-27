@@ -26,7 +26,7 @@
                     <div>
                         <label id="chapter-settings-modal-start-label" class="block font-semibold mb-1">¿Dónde debe iniciar el contenido de este capítulo?</label>
                         <p id="chapter-settings-modal-start-subtitle" class="text-xs text-[var(--text-muted)] mb-2">Define el lado donde empieza el contenido. La apertura se configura aparte en la pestaña "Apertura".</p>
-                        <select id="chapter_start_parity" name="chapter_start_parity" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-[var(--text-main)] focus:outline-none focus:border-black">
+                        <select id="chapter_start_parity" name="chapter_start_parity" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-[var(--text-main)] focus:outline-none focus:border-black" onchange="toggleChapterImageSettingsForChapter()">
                             <option value="any">Continuo / Cualquiera (Por defecto)</option>
                             <option value="odd">Página Impar (Lado Derecho)</option>
                             <option value="even">Página Par (Lado Izquierdo)</option>

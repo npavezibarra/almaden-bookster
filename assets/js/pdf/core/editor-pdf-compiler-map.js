@@ -16,6 +16,7 @@ window.getBookPageMapSignature = function() {
         opening_block_enabled: ch.opening_block_enabled,
         opening_block_horizontal_align: ch.opening_block_horizontal_align,
         opening_block_vertical_align: ch.opening_block_vertical_align,
+        opening_separate_content: ch.opening_separate_content,
         start_parity: ch.start_parity,
         hide_all_headers_footers: ch.hide_all_headers_footers,
         toc_hide_header: ch.toc_hide_header,

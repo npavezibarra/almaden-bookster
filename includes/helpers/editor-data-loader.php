@@ -73,6 +73,8 @@ if ( $chapter_posts ) {
 			'first_page_header_custom' => get_post_meta( $cp->ID, '_first_page_header_custom', true ),
 			'first_page_footer_type'   => get_post_meta( $cp->ID, '_first_page_footer_type', true ),
 			'first_page_footer_custom' => get_post_meta( $cp->ID, '_first_page_footer_custom', true ),
+			'opening_separate_content' => get_post_meta( $cp->ID, '_opening_separate_content', true ),
+			'chapter_image_enabled'    => get_post_meta( $cp->ID, '_chapter_image_enabled', true ),
 			'parity_image_mode'        => get_post_meta( $cp->ID, '_parity_image_mode', true ),
 			'parity_image_width'       => get_post_meta( $cp->ID, '_parity_image_width', true ),
 			'parity_image_height'      => get_post_meta( $cp->ID, '_parity_image_height', true ),
@@ -117,6 +119,45 @@ if ( $chapter_posts ) {
 
 // Cargar ajustes del libro
 $pdf_settings = almaden_get_book_pdf_settings( $book_id );
+
+// Migrar en memoria la configuración heredada de Chapter Image al nivel del capítulo.
+// Si el capítulo todavía no tiene metadatos propios, usamos los valores globales
+// para que el modal abra con una base consistente y el siguiente guardado los
+// persista ya por capítulo.
+if ( ! empty( $saved_chapters ) ) {
+	$legacy_chapter_image_mode = isset( $pdf_settings['chapter_image_mode'] ) ? $pdf_settings['chapter_image_mode'] : 'page_blank';
+	$legacy_chapter_image_url = isset( $pdf_settings['chapter_image_url'] ) ? $pdf_settings['chapter_image_url'] : '';
+	$legacy_chapter_image_inner_width = isset( $pdf_settings['chapter_image_inner_width'] ) ? $pdf_settings['chapter_image_inner_width'] : 100;
+	$legacy_chapter_image_inner_header = isset( $pdf_settings['chapter_image_inner_header'] ) ? $pdf_settings['chapter_image_inner_header'] : 0;
+	$legacy_chapter_image_inner_footer = isset( $pdf_settings['chapter_image_inner_footer'] ) ? $pdf_settings['chapter_image_inner_footer'] : 0;
+	$legacy_chapter_image_enabled = (
+		( isset( $pdf_settings['chapter_image_enabled'] ) && '1' === (string) $pdf_settings['chapter_image_enabled'] )
+		|| ( 'page_blank' !== (string) $legacy_chapter_image_mode )
+		|| ! empty( $legacy_chapter_image_url )
+	) ? '1' : '0';
+
+	foreach ( $saved_chapters as &$saved_chapter ) {
+		if ( empty( $saved_chapter['chapter_image_enabled'] ) ) {
+			$saved_chapter['chapter_image_enabled'] = $legacy_chapter_image_enabled;
+		}
+		if ( empty( $saved_chapter['chapter_image_mode'] ) ) {
+			$saved_chapter['chapter_image_mode'] = $legacy_chapter_image_mode;
+		}
+		if ( empty( $saved_chapter['chapter_image_url'] ) ) {
+			$saved_chapter['chapter_image_url'] = $legacy_chapter_image_url;
+		}
+		if ( empty( $saved_chapter['chapter_image_inner_width'] ) ) {
+			$saved_chapter['chapter_image_inner_width'] = $legacy_chapter_image_inner_width;
+		}
+		if ( empty( $saved_chapter['chapter_image_inner_header'] ) ) {
+			$saved_chapter['chapter_image_inner_header'] = $legacy_chapter_image_inner_header;
+		}
+		if ( empty( $saved_chapter['chapter_image_inner_footer'] ) ) {
+			$saved_chapter['chapter_image_inner_footer'] = $legacy_chapter_image_inner_footer;
+		}
+	}
+	unset( $saved_chapter );
+}
 
 // Cargar fuentes instaladas desde la tabla de Google Fonts
 $installed_fonts = almaden_bookster_get_installed_fonts_list();

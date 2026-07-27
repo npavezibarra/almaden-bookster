@@ -94,7 +94,8 @@ if ( $is_logged_in && $current_user ) {
             settings: {},
             settingsNonce: '',
             ajaxUrl: ajaxurl,
-            installedFonts: []
+            installedFonts: <?php echo json_encode( function_exists( 'almaden_bookster_get_installed_fonts_list' ) ? almaden_bookster_get_installed_fonts_list() : array() ); ?>,
+            coverSettings: {}
         };
 
         // Fallback for missing editor functions
@@ -462,6 +463,12 @@ if ( $is_logged_in && $current_user ) {
     <?php include plugin_dir_path( __FILE__ ) . '../editor/editor-settings-modal.php'; ?>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-tabs.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-fields.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits-constants.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits-utils.js?v=' . time(), __FILE__ ) ); ?>"></script>
+
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits-state.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits-events.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-templates.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-api.js?v=' . time(), __FILE__ ) ); ?>"></script>

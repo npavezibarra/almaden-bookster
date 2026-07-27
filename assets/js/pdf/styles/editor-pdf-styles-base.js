@@ -439,14 +439,16 @@ function getPDFStylesBase(settings, geometry, toPx) {
             }
 
             /* Forzar el grid interno de Paged.js para que respete los márgenes guardados */
-            .pagedjs_right_page {
+            .pagedjs_right_page,
+            .bookster-right-page {
                 --pagedjs-margin-left: ${marginLeftOdd}${unit} !important;
                 --pagedjs-margin-right: ${marginRightOdd}${unit} !important;
                 --pagedjs-margin-top: ${totalHeaderHeight.toFixed(4)}${unit} !important;
                 --pagedjs-margin-bottom: ${totalFooterHeight.toFixed(4)}${unit} !important;
             }
 
-            .pagedjs_left_page {
+            .pagedjs_left_page,
+            .bookster-left-page {
                 --pagedjs-margin-left: ${marginLeftEven}${unit} !important;
                 --pagedjs-margin-right: ${marginRightEven}${unit} !important;
                 --pagedjs-margin-top: ${totalHeaderHeight.toFixed(4)}${unit} !important;
@@ -513,14 +515,16 @@ function getPDFStylesBase(settings, geometry, toPx) {
                 z-index: 2 !important;
             }
 
-            .pagedjs_page.pagedjs_left_page::after {
+            .pagedjs_page.pagedjs_left_page::after,
+            .pagedjs_page.bookster-left-page::after {
                 top: var(--bookster-screen-bleed) !important;
                 right: 0 !important;
                 bottom: var(--bookster-screen-bleed) !important;
                 left: var(--bookster-screen-bleed) !important;
             }
 
-            .pagedjs_page.pagedjs_right_page::after {
+            .pagedjs_page.pagedjs_right_page::after,
+            .pagedjs_page.bookster-right-page::after {
                 top: var(--bookster-screen-bleed) !important;
                 right: var(--bookster-screen-bleed) !important;
                 bottom: var(--bookster-screen-bleed) !important;

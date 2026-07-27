@@ -98,7 +98,7 @@ function openImageViewportFromBlock(blockId) {
 }
 
 function replaceImageBlockMarkup(blockId, nextMarkup, options = {}) {
-    const textarea = document.getElementById('editor-textarea');
+    const textarea = typeof getRawEditorSurface === 'function' ? getRawEditorSurface() : null;
     if (!textarea || !blockId) return false;
 
     const escapedId = blockId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -114,7 +114,7 @@ function replaceImageBlockMarkup(blockId, nextMarkup, options = {}) {
 }
 
 function removeImageBlockMarkup(blockId, options = {}) {
-    const textarea = document.getElementById('editor-textarea');
+    const textarea = typeof getRawEditorSurface === 'function' ? getRawEditorSurface() : null;
     if (!textarea || !blockId) return false;
 
     const escapedId = blockId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
