@@ -55,8 +55,12 @@ window.applySpreadPageLayout = function(scroller) {
         const isDummyPage = !!page.querySelector('.book-start-dummy-page');
         const isTransitionBlankFullPage = !!page.querySelector('.chapter-transition-blank-page--full');
         const isTransitionBlankIntentionalTextPage = !!page.querySelector('.chapter-transition-blank-page--intentional-text');
+        const isBookEndBlankFullPage = !!page.querySelector('.book-end-blank-page--full');
+        const isBookEndBlankIntentionalTextPage = !!page.querySelector('.book-end-blank-page--intentional-text');
         page.classList.toggle('bookster-transition-blank-full-page', isTransitionBlankFullPage);
         page.classList.toggle('bookster-transition-blank-intentional-text-page', isTransitionBlankIntentionalTextPage);
+        page.classList.toggle('bookster-book-end-blank-full-page', isBookEndBlankFullPage);
+        page.classList.toggle('bookster-book-end-blank-intentional-text-page', isBookEndBlankIntentionalTextPage);
 
         if (!isSpreadView) {
             page.style.removeProperty('display');
@@ -243,7 +247,9 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
         visiblePageIndex += 1;
         const isTransitionBlankFullPage = !!page.querySelector('.chapter-transition-blank-page--full');
         const isTransitionBlankIntentionalTextPage = !!page.querySelector('.chapter-transition-blank-page--intentional-text');
-        if (isTransitionBlankFullPage || isTransitionBlankIntentionalTextPage) {
+        const isBookEndBlankFullPage = !!page.querySelector('.book-end-blank-page--full');
+        const isBookEndBlankIntentionalTextPage = !!page.querySelector('.book-end-blank-page--intentional-text');
+        if (isTransitionBlankFullPage || isTransitionBlankIntentionalTextPage || isBookEndBlankFullPage || isBookEndBlankIntentionalTextPage) {
             physicalPageNumber += 1;
             return;
         }

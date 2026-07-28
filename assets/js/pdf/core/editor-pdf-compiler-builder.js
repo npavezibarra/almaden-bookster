@@ -19,12 +19,6 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
         </section>
     `;
 
-    const buildBookEndBlankPage = () => `
-        <section class="book-end-blank-page" aria-hidden="true">
-            <div style="height: 1px;"></div>
-        </section>
-    `;
-
     const getTransitionBlankMode = window.getBookTransitionBlankMode || function(settings) {
         const mode = settings && settings.chapter_transition_blank_mode ? String(settings.chapter_transition_blank_mode) : 'full_blank';
         return ['full_blank', 'blank_with_header_footer', 'intentional_text'].includes(mode) ? mode : 'full_blank';
@@ -32,6 +26,24 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
     const getTransitionBlankText = window.getBookTransitionBlankText || function(settings) {
         const text = settings && settings.chapter_transition_blank_text !== undefined ? String(settings.chapter_transition_blank_text) : '...';
         return text.trim() === '' ? '...' : text;
+    };
+    const buildBookEndBlankPage = () => {
+        const transitionBlankMode = getTransitionBlankMode(settings);
+        const transitionBlankText = getTransitionBlankText(settings);
+        const modeClass = transitionBlankMode === 'blank_with_header_footer'
+            ? 'book-end-blank-page--with-header-footer'
+            : (transitionBlankMode === 'intentional_text'
+                ? 'book-end-blank-page--intentional-text'
+                : 'book-end-blank-page--full');
+        const innerHtml = transitionBlankMode === 'intentional_text'
+            ? `<div class="book-end-blank-page__message">${escapeAttr(transitionBlankText).replace(/\n/g, '<br>')}</div>`
+            : '<div style="height: 1px;"></div>';
+
+        return `
+            <section class="book-end-blank-page ${modeClass}" aria-hidden="${transitionBlankMode === 'intentional_text' ? 'false' : 'true'}" data-transition-blank-mode="${escapeAttr(transitionBlankMode)}" data-transition-blank-text="${escapeAttr(transitionBlankText)}">
+                ${innerHtml}
+            </section>
+        `;
     };
 
     const buildChapterTransitionBlankPage = (chapterId = '') => {

@@ -438,6 +438,32 @@ function getPDFStylesBase(settings, geometry, toPx) {
             overflow: hidden !important;
             clear: both !important;
         }
+
+        .book-end-blank-page--intentional-text {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            overflow: hidden !important;
+        }
+
+        .book-end-blank-page__message {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
+            height: 100% !important;
+            padding: 0 1.25rem !important;
+            box-sizing: border-box !important;
+            font-family: '${settings.font_family_content || 'Merriweather'}', serif !important;
+            font-size: ${toPx(settings.font_size_content || 11.5, true)}px !important;
+            font-style: italic !important;
+            font-weight: ${settings.font_weight_content || 'normal'} !important;
+            line-height: 1.5 !important;
+            text-align: center !important;
+            white-space: pre-wrap !important;
+            color: #475569 !important;
+            letter-spacing: ${toPx(0, true)}px !important;
+        }
         
         @media screen {
             .pagedjs_page:has(.book-start-dummy-page) {
@@ -460,6 +486,18 @@ function getPDFStylesBase(settings, geometry, toPx) {
             .pagedjs_page:has(.chapter-transition-blank-page--intentional-text) .pagedjs_margin,
             .pagedjs_page:has(.chapter-transition-blank-page--intentional-text) .pagedjs_margin-box,
             .pagedjs_page:has(.chapter-transition-blank-page--intentional-text) .pagedjs_margin-content,
+            .pagedjs_page:has(.book-end-blank-page--full) .pagedjs_margin,
+            .pagedjs_page:has(.book-end-blank-page--full) .pagedjs_margin-box,
+            .pagedjs_page:has(.book-end-blank-page--full) .pagedjs_margin-content,
+            .pagedjs_page:has(.book-end-blank-page--intentional-text) .pagedjs_margin,
+            .pagedjs_page:has(.book-end-blank-page--intentional-text) .pagedjs_margin-box,
+            .pagedjs_page:has(.book-end-blank-page--intentional-text) .pagedjs_margin-content,
+            .pagedjs_page.bookster-book-end-blank-full-page .pagedjs_margin,
+            .pagedjs_page.bookster-book-end-blank-full-page .pagedjs_margin-box,
+            .pagedjs_page.bookster-book-end-blank-full-page .pagedjs_margin-content,
+            .pagedjs_page.bookster-book-end-blank-intentional-text-page .pagedjs_margin,
+            .pagedjs_page.bookster-book-end-blank-intentional-text-page .pagedjs_margin-box,
+            .pagedjs_page.bookster-book-end-blank-intentional-text-page .pagedjs_margin-content,
             .pagedjs_page.bookster-transition-blank-full-page .pagedjs_margin,
             .pagedjs_page.bookster-transition-blank-full-page .pagedjs_margin-box,
             .pagedjs_page.bookster-transition-blank-full-page .pagedjs_margin-content,
@@ -482,6 +520,18 @@ function getPDFStylesBase(settings, geometry, toPx) {
             .pagedjs_page:has(.chapter-transition-blank-page--intentional-text) .pagedjs_margin,
             .pagedjs_page:has(.chapter-transition-blank-page--intentional-text) .pagedjs_margin-box,
             .pagedjs_page:has(.chapter-transition-blank-page--intentional-text) .pagedjs_margin-content,
+            .pagedjs_page:has(.book-end-blank-page--full) .pagedjs_margin,
+            .pagedjs_page:has(.book-end-blank-page--full) .pagedjs_margin-box,
+            .pagedjs_page:has(.book-end-blank-page--full) .pagedjs_margin-content,
+            .pagedjs_page:has(.book-end-blank-page--intentional-text) .pagedjs_margin,
+            .pagedjs_page:has(.book-end-blank-page--intentional-text) .pagedjs_margin-box,
+            .pagedjs_page:has(.book-end-blank-page--intentional-text) .pagedjs_margin-content,
+            .pagedjs_page.bookster-book-end-blank-full-page .pagedjs_margin,
+            .pagedjs_page.bookster-book-end-blank-full-page .pagedjs_margin-box,
+            .pagedjs_page.bookster-book-end-blank-full-page .pagedjs_margin-content,
+            .pagedjs_page.bookster-book-end-blank-intentional-text-page .pagedjs_margin,
+            .pagedjs_page.bookster-book-end-blank-intentional-text-page .pagedjs_margin-box,
+            .pagedjs_page.bookster-book-end-blank-intentional-text-page .pagedjs_margin-content,
             .pagedjs_page.bookster-transition-blank-full-page .pagedjs_margin,
             .pagedjs_page.bookster-transition-blank-full-page .pagedjs_margin-box,
             .pagedjs_page.bookster-transition-blank-full-page .pagedjs_margin-content,
