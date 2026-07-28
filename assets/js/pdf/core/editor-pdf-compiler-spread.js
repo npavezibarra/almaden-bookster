@@ -3,7 +3,7 @@
 // Responsabilidad: Renderizado/post-procesado de pliegos y visualización de pie de página numérico.
 // ============================================================
 
-window.applySpreadPageLayout = function(scroller) {
+window.applySpreadPageLayout = function(scroller, options = {}) {
     const targetScroller = typeof scroller === 'string'
         ? document.getElementById(scroller)
         : scroller;
@@ -12,25 +12,17 @@ window.applySpreadPageLayout = function(scroller) {
         return;
     }
 
-    const pages = Array.from(targetScroller.querySelectorAll('.pagedjs_pages > .pagedjs_page'));
+    const physicalPageModel = window.applyPdfPhysicalPageModel
+        ? window.applyPdfPhysicalPageModel(targetScroller, options)
+        : null;
+    const pages = physicalPageModel
+        ? physicalPageModel.pages
+        : Array.from(targetScroller.querySelectorAll('.pagedjs_pages > .pagedjs_page'));
     const isSpreadView = targetScroller.classList.contains('spread-view');
-    const forceFirstVisibleLeft = targetScroller.classList.contains('single-chapter-left-start');
+    const visiblePages = physicalPageModel
+        ? physicalPageModel.visibleEntries.map(entry => entry.page)
+        : pages.filter(page => !page.querySelector('.book-start-dummy-page'));
 
-    const visiblePages = pages.filter(page => !page.querySelector('.book-start-dummy-page'));
-    // The Paged.js side classes are unreliable for generated blank pages.
-    // The book's visible sequence is authoritative: odd pages are right,
-    // even pages are left. Individual left-start previews are the exception.
-    const firstVisibleIsLeft = forceFirstVisibleLeft;
-    const syncPageSideClasses = (page, isLeftPage) => {
-        page.classList.remove(
-            'pagedjs_left_page',
-            'pagedjs_right_page',
-            'bookster-left-page',
-            'bookster-right-page'
-        );
-        page.classList.add(isLeftPage ? 'pagedjs_left_page' : 'pagedjs_right_page');
-        page.classList.add(isLeftPage ? 'bookster-left-page' : 'bookster-right-page');
-    };
     const setImageBleedVars = (page, isLeftPage) => {
         const computedStyles = window.getComputedStyle(page);
         const bleedTop = isLeftPage
@@ -71,57 +63,47 @@ window.applySpreadPageLayout = function(scroller) {
             if (isDummyPage) {
                 page.style.removeProperty('display');
             }
-        } else {
-            if (isDummyPage) {
-                page.style.setProperty('display', 'none', 'important');
-                page.style.removeProperty('grid-row');
-                page.style.removeProperty('grid-column');
-                page.style.removeProperty('justify-self');
-                page.style.removeProperty('order');
-                page.classList.remove(
-                    'pagedjs_left_page',
-                    'pagedjs_right_page',
-                    'bookster-left-page',
-                    'bookster-right-page'
-                );
-                return;
-            }
-
-            const visibleIndex = visiblePages.indexOf(page) + 1;
-            const isLeftPage = forceFirstVisibleLeft
-                ? visibleIndex % 2 === 1
-                : visibleIndex % 2 === 0;
-            const column = isLeftPage ? 1 : 2;
-            const row = firstVisibleIsLeft
-                ? Math.ceil(visibleIndex / 2)
-                : (visibleIndex === 1 ? 1 : Math.floor((visibleIndex + 2) / 2));
-
-            page.style.removeProperty('display');
-            page.style.setProperty('grid-row', String(row), 'important');
-            page.style.setProperty('grid-column', String(column), 'important');
-            page.style.setProperty('justify-self', column === 1 ? 'end' : 'start', 'important');
-            page.style.setProperty('order', String(visibleIndex), 'important');
-            setImageBleedVars(page, isLeftPage);
-            page.setAttribute('data-page-number', String(visibleIndex));
-            page.dataset.pageNumber = String(visibleIndex);
-            syncPageSideClasses(page, isLeftPage);
             return;
         }
+
         if (isDummyPage) {
+            page.style.setProperty('display', 'none', 'important');
+            page.style.removeProperty('grid-row');
+            page.style.removeProperty('grid-column');
+            page.style.removeProperty('justify-self');
+            page.style.removeProperty('order');
             page.classList.remove(
                 'pagedjs_left_page',
                 'pagedjs_right_page',
                 'bookster-left-page',
                 'bookster-right-page'
             );
-        } else {
-            const visibleIndex = visiblePages.indexOf(page) + 1;
-            const isLeftPage = forceFirstVisibleLeft
-                ? visibleIndex % 2 === 1
-                : visibleIndex % 2 === 0;
-            syncPageSideClasses(page, isLeftPage);
-            setImageBleedVars(page, isLeftPage);
+            return;
         }
+
+        const pageNumber = window.getPdfPhysicalPageNumberForPage
+            ? window.getPdfPhysicalPageNumberForPage(page)
+            : parseInt(page.getAttribute('data-page-number') || '', 10);
+        const safePageNumber = Number.isFinite(pageNumber) && pageNumber > 0
+            ? pageNumber
+            : (visiblePages.indexOf(page) + 1);
+        const isLeftPage = window.getPdfPhysicalPageSide
+            ? window.getPdfPhysicalPageSide(safePageNumber) === 'left'
+            : (safePageNumber % 2 === 0);
+        const column = isLeftPage ? 1 : 2;
+        // Page 1 stands alone on the right. Reading spreads begin at 2 | 3,
+        // then continue as 4 | 5, 6 | 7, and so on.
+        const row = Math.floor(safePageNumber / 2) + 1;
+
+        page.style.removeProperty('display');
+        page.style.setProperty('grid-row', String(row), 'important');
+        page.style.setProperty('grid-column', String(column), 'important');
+        page.style.setProperty('justify-self', column === 1 ? 'end' : 'start', 'important');
+        page.style.setProperty('order', String(safePageNumber), 'important');
+        setImageBleedVars(page, isLeftPage);
+        page.setAttribute('data-page-number', String(safePageNumber));
+        page.dataset.pageNumber = String(safePageNumber);
+        return;
     });
 };
 
@@ -237,23 +219,68 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
     const firstPageFooterShow = settings.first_page_footer_show === undefined ? true : String(settings.first_page_footer_show) !== '0';
 
     const pages = Array.from(scroller.querySelectorAll('.pagedjs_pages > .pagedjs_page'));
+    const physicalPageModel = window.buildPdfPhysicalPageModel
+        ? window.buildPdfPhysicalPageModel(scroller, { firstPhysicalPageNumber })
+        : null;
+    const physicalPageByElement = physicalPageModel
+        ? new Map(physicalPageModel.entries.map(entry => [entry.page, entry]))
+        : null;
     let physicalPageNumber = firstPhysicalPageNumber;
-    const forceFirstVisibleLeft = scroller.classList.contains('single-chapter-left-start');
+    const singleChapterRule = window.getSingleChapterBookRule
+        ? window.getSingleChapterBookRule(bookState, settings)
+        : null;
+    const leadingPageIndex = pages.findIndex(page => page.querySelector('.book-start-leading-page'));
+    const chapterContentPages = window.getPdfChapterContentPages
+        ? window.getPdfChapterContentPages(activeChapter, pages)
+        : [];
+    const firstChapterContentPageIndex = chapterContentPages.length > 0
+        ? pages.indexOf(chapterContentPages[0])
+        : -1;
+    const forceBookStartSequence = Boolean(
+        singleChapterRule
+        && singleChapterRule.shouldUseBookStartAsPageOne
+        && leadingPageIndex >= 0
+        && firstChapterContentPageIndex > leadingPageIndex
+    );
+    const useCanonicalNumbers = Boolean(physicalPageModel && physicalPageModel.visibleEntries.length > 0);
     let visiblePageIndex = 0;
 
-    pages.forEach((page) => {
+    pages.forEach((page, pageIndex) => {
         if (page.querySelector('.book-start-dummy-page')) {
             return;
         }
 
+        const modelEntry = physicalPageByElement ? physicalPageByElement.get(page) : null;
+        const canonicalPageNumber = modelEntry && Number.isFinite(modelEntry.physicalPageNumber)
+            ? modelEntry.physicalPageNumber
+            : NaN;
+        const isBookStartLeadingPage = forceBookStartSequence && pageIndex === leadingPageIndex;
+        const forcedPageNumber = useCanonicalNumbers
+            ? null
+            : (isBookStartLeadingPage
+                ? 1
+                : (forceBookStartSequence && pageIndex >= firstChapterContentPageIndex
+                    ? 2 + (pageIndex - firstChapterContentPageIndex)
+                    : null));
+        if (!useCanonicalNumbers && forceBookStartSequence && forcedPageNumber === null) {
+            return;
+        }
+        const currentPageNumber = useCanonicalNumbers
+            ? canonicalPageNumber
+            : (forcedPageNumber ?? physicalPageNumber);
+
         visiblePageIndex += 1;
-        const isFirstChapterPage = Number.isFinite(chapterFirstPhysicalPageNumber) && physicalPageNumber === chapterFirstPhysicalPageNumber;
+        const isFirstChapterPage = Number.isFinite(chapterFirstPhysicalPageNumber)
+            ? currentPageNumber === chapterFirstPhysicalPageNumber
+            : (forceBookStartSequence ? currentPageNumber === 2 : false);
         const isTransitionBlankFullPage = !!page.querySelector('.chapter-transition-blank-page--full');
         const isTransitionBlankIntentionalTextPage = !!page.querySelector('.chapter-transition-blank-page--intentional-text');
         const isBookEndBlankFullPage = !!page.querySelector('.book-end-blank-page--full');
         const isBookEndBlankIntentionalTextPage = !!page.querySelector('.book-end-blank-page--intentional-text');
         if (isTransitionBlankFullPage || isTransitionBlankIntentionalTextPage || isBookEndBlankFullPage || isBookEndBlankIntentionalTextPage) {
-            physicalPageNumber += 1;
+            if (!useCanonicalNumbers && !forceBookStartSequence) {
+                physicalPageNumber += 1;
+            }
             return;
         }
 
@@ -279,12 +306,7 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
             headerEl.textContent = '';
         });
 
-        // In active left-flow previews the first page is visually moved to
-        // the left, so footer alignment must follow the displayed side rather
-        // than the original Paged.js page parity.
-        const isEvenPage = forceFirstVisibleLeft
-            ? visiblePageIndex % 2 === 1
-            : physicalPageNumber % 2 === 0;
+        const isEvenPage = currentPageNumber % 2 === 0;
         const footerType = isEvenPage
             ? (settings.footer_even_type || 'page_number')
             : (settings.footer_odd_type || 'page_number');
@@ -299,7 +321,10 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
         let shouldRenderPageNumber = false;
         let targetBox = null;
 
-        if (!hideAllHeadersFooters && !hideCreditsPageNumber && !hideTocPageNumber && (!isFirstChapterPage || firstPageFooterShow)) {
+        if (isBookStartLeadingPage) {
+            shouldRenderPageNumber = true;
+            targetBox = getResolvedFooterBox(settings.footer_align || 'center', false);
+        } else if (!hideAllHeadersFooters && !hideCreditsPageNumber && !hideTocPageNumber && (!isFirstChapterPage || firstPageFooterShow)) {
             if (effectiveFooterType === 'page_number') {
                 shouldRenderPageNumber = true;
                 targetBox = getResolvedFooterBox(settings.footer_align || 'center', isEvenPage);
@@ -312,18 +337,18 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
                 // Paged.js may leave counter(page) at 1 in an isolated preview.
                 // Replace the generated margin content with the book number.
                 setMarginTextAlignment(targetFooter, settings.footer_align || 'center', isEvenPage);
-                setMarginContent(targetFooter, String(physicalPageNumber), 'bookster-page-number-override');
+                setMarginContent(targetFooter, String(currentPageNumber), 'bookster-page-number-override');
             }
         }
 
-        if (!hideAllHeadersFooters && !hideTocHeader && !hideCreditsHeader && headerType !== 'blank' && (!isFirstChapterPage || firstPageHeaderShow)) {
+        if (!isBookStartLeadingPage && !hideAllHeadersFooters && !hideTocHeader && !hideCreditsHeader && headerType !== 'blank' && (!isFirstChapterPage || firstPageHeaderShow)) {
             const headerBox = getResolvedHeaderBox(settings.header_align || 'center', isEvenPage);
             const targetHeader = page.querySelector(getHeaderBoxClass(headerBox));
             let headerText = '';
             if (isFirstChapterPage) {
                 if (headerType === 'book_title') headerText = bookState.title || 'Libro';
                 else if (headerType === 'chapter_title') headerText = activeChapter.title || '';
-                else if (headerType === 'page_number') headerText = String(physicalPageNumber);
+                else if (headerType === 'page_number') headerText = String(currentPageNumber);
                 else if (headerType === 'author') headerText = 'Autor';
                 else if (headerType === 'custom') {
                     headerText = settings.first_page_header_custom || '';
@@ -331,7 +356,7 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
             } else {
                 if (headerType === 'book_title') headerText = bookState.title || 'Libro';
                 else if (headerType === 'chapter_title') headerText = activeChapter.title || '';
-                else if (headerType === 'page_number') headerText = String(physicalPageNumber);
+                else if (headerType === 'page_number') headerText = String(currentPageNumber);
                 else if (headerType === 'author') headerText = 'Autor';
                 else if (headerType === 'custom') {
                     headerText = isEvenPage
@@ -346,6 +371,8 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
             }
         }
 
-        physicalPageNumber += 1;
+        if (!useCanonicalNumbers && !forceBookStartSequence) {
+            physicalPageNumber += 1;
+        }
     });
 };

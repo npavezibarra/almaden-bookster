@@ -52,6 +52,7 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-user-prefs.php';
 
 // --- Configuraciones Generales y Seguridad ---
 require_once plugin_dir_path( __FILE__ ) . 'includes/helpers/crypto.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/helpers/book-language.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-settings.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-filesize.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/gdrive-client.php';

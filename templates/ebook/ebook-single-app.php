@@ -5,6 +5,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $book_id = get_the_ID();
 $book_title = get_the_title();
+$book_settings = function_exists( 'almaden_get_book_pdf_settings' ) ? almaden_get_book_pdf_settings( $book_id ) : array();
+$book_language = function_exists( 'almaden_bookster_get_book_language_from_settings' )
+	? almaden_bookster_get_book_language_from_settings( $book_settings, 'es' )
+	: 'es';
 $author = function_exists( 'almaden_bookster_get_book_author_display_label' ) ? almaden_bookster_get_book_author_display_label( $book_id, get_post_meta( $book_id, '_almaden_book_author', true ) ) : get_post_meta( $book_id, '_almaden_book_author', true );
 $source_book_id = get_post_meta( $book_id, '_almaden_source_book_id', true );
 if ( empty( $source_book_id ) ) {
@@ -70,7 +74,7 @@ if ( $has_reader_access ) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="<?php echo esc_attr( $book_language ); ?>">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">

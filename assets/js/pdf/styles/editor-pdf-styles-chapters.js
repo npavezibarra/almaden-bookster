@@ -74,12 +74,18 @@ function getPDFStylesChapters(settings, toPx) {
     };
     const shouldSeparateChapterOpening = window.shouldSeparateChapterOpening || function(chapter, settings) {
         const getEffectiveOpeningSeparation = window.getEffectiveOpeningSeparation || function(chapter, settings) {
-            const globalSeparate = settings && String(settings.book_separate_opening_content) !== '0';
+            const isEnabled = (value, fallback = true) => {
+                if (value === undefined || value === null || value === '') {
+                    return fallback;
+                }
+                return !['0', 'false', 'off', 'no'].includes(String(value).trim().toLowerCase());
+            };
+            const globalSeparate = isEnabled(settings && settings.book_separate_opening_content);
             if (chapter && chapter.is_toc === '1' && chapter.toc_separate_opening_content !== undefined && chapter.toc_separate_opening_content !== '') {
-                return String(chapter.toc_separate_opening_content) !== '0';
+                return isEnabled(chapter.toc_separate_opening_content);
             }
             if (chapter && chapter.opening_separate_content !== undefined && chapter.opening_separate_content !== '') {
-                return String(chapter.opening_separate_content) !== '0';
+                return isEnabled(chapter.opening_separate_content);
             }
             return globalSeparate;
         };
@@ -366,11 +372,16 @@ function getPDFStylesChapters(settings, toPx) {
                     `;
                 }
                 
+                const openingBreakBefore = hasChapterImagePage
+                    ? 'page'
+                    : (chapterFlowMode === 'left' && idx === 0 ? 'left' : 'page');
+                const openingPageBreakBefore = openingBreakBefore === 'left' ? 'left' : 'always';
+
                 chapterCSSRules += `
                     .chapter-opening-page-section-${ch.id} {
                         page: chapter-${ch.id}-opening;
-                        break-before: ${hasChapterImagePage ? 'page' : (chapterFlowMode === 'left' ? 'left' : 'page')};
-                        page-break-before: ${hasChapterImagePage ? 'always' : (chapterFlowMode === 'left' ? 'left' : 'always')};
+                        break-before: ${openingBreakBefore};
+                        page-break-before: ${openingPageBreakBefore};
                         break-after: page;
                         display: flex !important;
                         flex-direction: column !important;
@@ -463,7 +474,13 @@ function getPDFStylesChapters(settings, toPx) {
                 if (idx === 0 && ch.is_toc === '1') {
                     breakBefore = 'page';
                 } else if (idx > 0) {
-                    if (chapterStartParity === 'odd') {
+                    if (bookFlowMode === 'left') {
+                        // The compiler adds an explicit transition blank only
+                        // when the preceding chapter ends on an even page.
+                        // A forced left break here would create an implicit
+                        // Paged.js blank and bypass that editorial decision.
+                        breakBefore = 'page';
+                    } else if (chapterStartParity === 'odd') {
                         breakBefore = 'right';
                     } else if (chapterStartParity === 'even') {
                         breakBefore = 'left';

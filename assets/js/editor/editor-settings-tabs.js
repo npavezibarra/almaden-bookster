@@ -202,8 +202,10 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-line-height-content')) document.getElementById('setting-line-height-content').value = settings.line_height_content || 1.65;
     if (document.getElementById('setting-content-text-align')) document.getElementById('setting-content-text-align').value = settings.content_text_align || 'justify';
     if (document.getElementById('setting-content-text-align-last')) document.getElementById('setting-content-text-align-last').value = settings.content_text_align_last || 'left';
+    const bookLanguage = settings.book_language || settings.content_language || 'es';
+    if (document.getElementById('setting-book-language')) document.getElementById('setting-book-language').value = bookLanguage;
     if (document.getElementById('setting-content-hyphenation')) document.getElementById('setting-content-hyphenation').value = settings.content_hyphenation !== undefined ? settings.content_hyphenation : 1;
-    if (document.getElementById('setting-content-language')) document.getElementById('setting-content-language').value = settings.content_language || 'es';
+    if (document.getElementById('setting-content-language')) document.getElementById('setting-content-language').value = bookLanguage;
     if (document.getElementById('setting-content-hyphenation-exceptions')) document.getElementById('setting-content-hyphenation-exceptions').value = settings.content_hyphenation_exceptions || '';
     if (document.getElementById('setting-content-paragraph-indent')) document.getElementById('setting-content-paragraph-indent').value = settings.content_paragraph_indent !== undefined ? settings.content_paragraph_indent : 0.0;
     if (document.getElementById('setting-content-paragraph-spacing')) document.getElementById('setting-content-paragraph-spacing').value = settings.content_paragraph_spacing !== undefined ? settings.content_paragraph_spacing : 14.0;

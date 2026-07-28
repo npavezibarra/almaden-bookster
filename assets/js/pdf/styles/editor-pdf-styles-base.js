@@ -69,10 +69,7 @@ function getPDFStylesBase(settings, geometry, toPx) {
     const previewHeightPx = (resolvedGeometry && resolvedGeometry.previewHeightPx) || toPx(previewHeight);
     const bleedLength = `${bleedValue.toFixed(4)}${unit}`;
     const zeroLength = `0${unit}`;
-    const bookStartFooterBox = getFooterMarginBox(settings.footer_align || 'center', false);
-    const bookStartFooterRule = settings.book_start_page_footer_type === 'page_number'
-        ? `@bottom-left { content: "" !important; } @bottom-center { content: "" !important; } @bottom-right { content: "" !important; } @${bookStartFooterBox} { content: ${getFooterContent('page_number', false, bookTitle, settings)} !important; }`
-        : `@bottom-left { content: "" !important; } @bottom-center { content: "" !important; } @bottom-right { content: "" !important; }`;
+    const bookStartFooterRule = `@bottom-left { content: "" !important; } @bottom-center { content: "" !important; } @bottom-right { content: "" !important; }`;
 
     // Compute total header and footer dimensions to align the page margins using native units
     const ptToUnit = (pt) => {
@@ -337,10 +334,12 @@ function getPDFStylesBase(settings, geometry, toPx) {
         }
 
         .book-start-leading-page {
-            /* The book always starts on the right; the following editorial page
-             * must therefore be forced onto the left side of the spread. */
-            break-before: right !important;
+            /* This explicit blank is physical page 1. A right break here
+             * makes Paged.js add an extra automatic blank before it. */
+            break-before: auto !important;
+            page-break-before: auto !important;
             break-after: left !important;
+            page-break-after: left !important;
             page: book-start-leading-page !important;
             min-height: calc(
                 var(--pagedjs-pagebox-height)
@@ -734,26 +733,6 @@ function getPDFStylesBase(settings, geometry, toPx) {
             
             #pdf-scroller.spread-view .pagedjs_page.pagedjs_right_page {
                 border-left: none !important;
-                justify-self: start !important;
-            }
-
-            /* A chapter preview must not duplicate the previous chapter's
-             * transition blank. Visually offset its pages so the opening still
-             * occupies the left side of the spread. */
-            #pdf-scroller.spread-view.single-chapter-left-start .pagedjs_pages > .pagedjs_page.pagedjs_page_1 {
-                grid-column: 1 !important;
-                justify-self: end !important;
-            }
-            #pdf-scroller.spread-view.single-chapter-left-start .pagedjs_pages > .pagedjs_page.pagedjs_page_2 {
-                grid-column: 2 !important;
-                justify-self: start !important;
-            }
-            #pdf-scroller.spread-view.single-chapter-left-start .pagedjs_pages > .pagedjs_page.pagedjs_page_3 {
-                grid-column: 1 !important;
-                justify-self: end !important;
-            }
-            #pdf-scroller.spread-view.single-chapter-left-start .pagedjs_pages > .pagedjs_page.pagedjs_page_4 {
-                grid-column: 2 !important;
                 justify-self: start !important;
             }
 

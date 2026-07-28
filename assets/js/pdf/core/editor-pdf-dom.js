@@ -11,6 +11,9 @@ window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter
     pageDiv.className = 'pdf-page' + (isBlankPage ? ' blank-page' : '') + (isOdd ? ' page-odd' : ' page-even');
 
     const settings = bookState.settings || {};
+    const bookLanguage = typeof window.almadenGetBookLanguage === 'function'
+        ? window.almadenGetBookLanguage(settings)
+        : String(settings.book_language || settings.content_language || 'es').trim().toLowerCase();
     const firstPageHeaderShow = settings.first_page_header_show === undefined ? true : String(settings.first_page_header_show) !== '0';
     const firstPageFooterShow = settings.first_page_footer_show === undefined ? true : String(settings.first_page_footer_show) !== '0';
     const parityImageUrl = chapter ? chapter.parity_image : null;
@@ -150,7 +153,7 @@ window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter
 
     pageDiv.innerHTML = `
         ${headerMarkup}
-        <div class="${contentClass}" style="${contentStyle}" lang="${settings.content_language || 'es'}">
+        <div class="${contentClass}" style="${contentStyle}" lang="${bookLanguage}">
             <div class="pdf-content-inner" style="display: flow-root; ${(chapter && chapter.is_credits == '1') ? 'height: calc(100% - 4px);' : ''}"></div>
         </div>
         ${footerMarkup}

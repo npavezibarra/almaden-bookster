@@ -9,12 +9,14 @@ La idea principal es esta:
 - Los capítulos son posts del CPT `book_chapter`.
 - El libro principal es un post del CPT `almaden-books`.
 - PDF impreso y ebook comparten la misma tabla global, pero usan campos distintos.
+- El idioma base del libro vive en esa misma tabla y se expone en memoria como `book_language`.
 
 ## Mapa rápido
 
 | Área | Dónde se guarda | Cómo se lee |
 |---|---|---|
 | Ajustes globales del libro | Tabla `almaden_book_settings` | `almaden_get_book_pdf_settings()` |
+| Idioma base del libro | Tabla `almaden_book_settings` | `almaden_get_book_pdf_settings()` y alias `book_language` |
 | Ajustes de flujo global del libro | `post_meta` del libro | `get_post_meta()` en `includes/frontend.php` y `editor-data-loader.php` |
 | Ajustes de subtítulo global PDF | `post_meta` del libro con prefijo `_almaden_chapter_subtitle_*` | `almaden_get_book_pdf_settings()` |
 | Ajustes de subtítulo global ebook | `post_meta` del libro con prefijo `_almaden_ebook_subtitle_*` | `almaden_get_book_pdf_settings()` |
@@ -37,6 +39,7 @@ La fila está indexada por `book_id` y contiene casi toda la configuración de m
 
 - Página e impresión: tamaño, unidades, márgenes, padding, bleeding, escala de grises.
 - Tipografía base.
+- Idioma base del libro.
 - Cabecera y pie.
 - Footnotes.
 - Inicio de capítulo.
@@ -46,6 +49,7 @@ Importante: PDF impreso y ebook no van a tablas separadas. Van en la misma fila,
 
 - PDF impreso: `page_*`, `margin_*`, `padding_*`, `header_*`, `footer_*`, `footnote_*`, `chapter_*`, etc.
 - Ebook: `ebook_*`.
+- Idioma base compartido: `content_language` y alias `book_language`.
 
 ### 1.2 Ajustes globales que no están en la tabla
 

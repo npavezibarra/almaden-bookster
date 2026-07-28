@@ -106,12 +106,18 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
     };
     const shouldSeparateChapterOpening = window.shouldSeparateChapterOpening || function(chapter, settings) {
         const getEffectiveOpeningSeparation = window.getEffectiveOpeningSeparation || function(chapter, settings) {
-            const globalSeparate = settings && String(settings.book_separate_opening_content) !== '0';
+            const isEnabled = (value, fallback = true) => {
+                if (value === undefined || value === null || value === '') {
+                    return fallback;
+                }
+                return !['0', 'false', 'off', 'no'].includes(String(value).trim().toLowerCase());
+            };
+            const globalSeparate = isEnabled(settings && settings.book_separate_opening_content);
             if (chapter && chapter.is_toc === '1' && chapter.toc_separate_opening_content !== undefined && chapter.toc_separate_opening_content !== '') {
-                return String(chapter.toc_separate_opening_content) !== '0';
+                return isEnabled(chapter.toc_separate_opening_content);
             }
             if (chapter && chapter.opening_separate_content !== undefined && chapter.opening_separate_content !== '') {
-                return String(chapter.opening_separate_content) !== '0';
+                return isEnabled(chapter.opening_separate_content);
             }
             return globalSeparate;
         };
@@ -270,85 +276,42 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
         </section>
     `;
 
-    let needsDummyPage = false;
-    let pageCounterReset = 0;
-    let startPageNum = 1;
-    let previewFirstPhysicalPageNumber = 1;
+    const flowPlan = window.buildBookFlowPlan
+        ? window.buildBookFlowPlan(isSingleChapterMode, bookState, settings, bookChapterPages, paginationOptions)
+        : {
+            activeChapter: bookState.chapters.find(c => c.id === bookState.activeChapterId) || null,
+            activeIndex: bookState.chapters.findIndex(c => c.id === bookState.activeChapterId),
+            firstChapter: bookState.chapters[0] || null,
+            firstChapterLength: null,
+            flowMode: window.getBookChapterFlowMode
+                ? window.getBookChapterFlowMode(settings)
+                : (settings.chapter_start_parity === 'even' ? 'left' : 'continuous'),
+            singleChapterRule: window.getSingleChapterBookRule
+                ? window.getSingleChapterBookRule(bookState, settings)
+                : null,
+            bookLanguage: typeof window.almadenGetBookLanguage === 'function'
+                ? window.almadenGetBookLanguage(settings)
+                : String(settings.book_language || settings.content_language || 'es').trim().toLowerCase(),
+            startPageNum: 1,
+            previewFirstPhysicalPageNumber: 1,
+            pageCounterReset: 0,
+            needsDummyPage: false,
+            needsChapterEndTransitionPage: false,
+            bookStartLeadingPageChapterId: ''
+        };
+    const activeChapter = flowPlan.activeChapter;
+    const activeIndex = flowPlan.activeIndex;
+    const pageCounterReset = flowPlan.pageCounterReset;
+    const needsDummyPage = flowPlan.needsDummyPage;
+    const bookStartLeadingPageChapterId = flowPlan.bookStartLeadingPageChapterId;
     let fullBookHTML = '';
 
     if (isSingleChapterMode) {
-        const activeChapter = bookState.chapters.find(c => c.id === bookState.activeChapterId);
         if (activeChapter) {
-            const singleChapterRule = window.getSingleChapterBookRule
-                ? window.getSingleChapterBookRule(bookState, settings)
-                : null;
-            const activeIndex = bookState.chapters.indexOf(activeChapter);
-            const firstChapter = bookState.chapters[0] || null;
-            const isBookStartChapter = firstChapter && firstChapter.id === activeChapter.id;
-            const firstChapterLength = firstChapter
-                ? (window.bookChapterPhysicalLengths?.[firstChapter.id] || window.bookChapterLengths?.[firstChapter.id] || null)
-                : null;
-            const needsBookStartLeadingPage = isBookStartChapter && (
-                window.shouldInsertBookStartLeadingPage
-                    ? window.shouldInsertBookStartLeadingPage(activeChapter, settings, firstChapterLength)
-                    : (firstChapter
-                        ? (chapterUsesSeparateOpeningPage(activeChapter) || ((firstChapter.start_parity && firstChapter.start_parity !== 'any') ? firstChapter.start_parity : settings.chapter_start_parity) === 'even')
-                        : false)
-            );
-            let cachedPageNum = bookChapterPages ? bookChapterPages[activeChapter.id] : undefined;
-            if (needsBookStartLeadingPage) {
-                startPageNum = 1;
-            } else if (cachedPageNum !== undefined && cachedPageNum !== null) {
-                startPageNum = cachedPageNum;
-            } else if (chapterHasLeadingImagePage(activeChapter, settings)) {
-                startPageNum = 1;
-            } else if (chapterUsesSeparateOpeningPage(activeChapter)) {
-                const chapterFlowMode = window.getBookChapterFlowMode
-                    ? window.getBookChapterFlowMode(settings)
-                    : (settings.chapter_start_parity === 'even' ? 'left' : 'continuous');
-                startPageNum = chapterFlowMode === 'left' ? 3 : 1;
-            } else if (activeIndex === 0) {
-                startPageNum = 1;
-            } else {
-                const chapterStartParity = window.getChapterStartParity
-                    ? window.getChapterStartParity(activeChapter, settings)
-                    : ((activeChapter.start_parity && activeChapter.start_parity !== 'any') ? activeChapter.start_parity : settings.chapter_start_parity);
-                startPageNum = (chapterStartParity === 'even') ? 2 : 3;
+            if (flowPlan.needsBookStartLeadingPage) {
+                fullBookHTML += buildBookStartLeadingPage();
             }
 
-            if (singleChapterRule && singleChapterRule.shouldUseBookStartAsPageOne) {
-                startPageNum = 1;
-            }
-
-            const chapterFlowMode = window.getBookChapterFlowMode
-                ? window.getBookChapterFlowMode(settings)
-                : (settings.chapter_start_parity === 'even' ? 'left' : 'continuous');
-            // The transition blank belongs to the previous chapter. The active
-            // chapter preview must not render that same physical page again.
-            const needsChapterStartTransitionPage = false;
-            const needsChapterEndTransitionPage = activeIndex < bookState.chapters.length - 1
-                && chapterFlowMode === 'left'
-                && forcedTransitionBlankIds.has(String(activeChapter.id));
-
-            previewFirstPhysicalPageNumber = startPageNum;
-            if (needsChapterStartTransitionPage) {
-                previewFirstPhysicalPageNumber = Math.max(1, startPageNum - 1);
-            }
-            pageCounterReset = Math.max(0, previewFirstPhysicalPageNumber - 1);
-            
-            if (needsBookStartLeadingPage || chapterUsesSeparateOpeningPage(activeChapter) || needsChapterStartTransitionPage) {
-                needsDummyPage = needsBookStartLeadingPage || needsChapterStartTransitionPage;
-            }
-            
-            fullBookHTML = `<div class="book-container" lang="${settings.content_language || 'es'}" style="counter-reset: page ${pageCounterReset};">`;
-            
-            if (needsDummyPage) {
-                const previousChapter = bookState.chapters[activeIndex - 1] || null;
-                fullBookHTML += buildBookStartLeadingPage(
-                    needsBookStartLeadingPage ? '' : (previousChapter ? previousChapter.id : '')
-                );
-            }
-            
             const chapterImageSection = buildChapterImagePageSection(activeChapter, activeIndex, true);
             if (chapterImageSection) {
                 fullBookHTML += chapterImageSection;
@@ -377,7 +340,7 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
                 fullBookHTML += buildMainChapterSection(activeChapter, compiledHtml, true);
             }
 
-            if (needsChapterEndTransitionPage) {
+            if (flowPlan.needsChapterEndTransitionPage) {
                 fullBookHTML += buildChapterTransitionBlankPage(activeChapter.id);
             }
 
@@ -385,25 +348,13 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
                 fullBookHTML += buildBookEndBlankPage();
             }
         } else {
-            fullBookHTML = `<div class="book-container" lang="${settings.content_language || 'es'}">`;
+            fullBookHTML = `<div class="book-container" lang="${flowPlan.bookLanguage}">`;
         }
     } else {
         // Full Book Mode: check if the first chapter needs a real leading page.
-        const firstCh = bookState.chapters[0];
-        if (firstCh) {
-            const firstChLength = window.bookChapterPhysicalLengths?.[firstCh.id] || window.bookChapterLengths?.[firstCh.id] || null;
-            const firstChapterParity = ((firstCh.start_parity && firstCh.start_parity !== 'any') ? firstCh.start_parity : settings.chapter_start_parity);
-            const needsBookStartLeadingPage = window.shouldInsertBookStartLeadingPage
-                ? window.shouldInsertBookStartLeadingPage(firstCh, settings, firstChLength)
-                : (chapterUsesSeparateOpeningPage(firstCh) || firstChapterParity === 'even');
-            if (needsBookStartLeadingPage) {
-                needsDummyPage = true;
-            }
-        }
-        
-        fullBookHTML = `<div class="book-container" lang="${settings.content_language || 'es'}" style="counter-reset: page 0;">`;
+        fullBookHTML = `<div class="book-container" lang="${flowPlan.bookLanguage}" style="counter-reset: page 0;">`;
         if (needsDummyPage) {
-            fullBookHTML += buildBookStartLeadingPage();
+            fullBookHTML += buildBookStartLeadingPage(bookStartLeadingPageChapterId);
         }
         for (let index = 0; index < bookState.chapters.length; index++) {
             const chapter = bookState.chapters[index];
@@ -447,8 +398,8 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
 
     return {
         fullBookHTML,
-        previewFirstPhysicalPageNumber,
-        startPageNum,
-        needsDummyPage
+        previewFirstPhysicalPageNumber: flowPlan.previewFirstPhysicalPageNumber,
+        startPageNum: flowPlan.startPageNum,
+        needsDummyPage: flowPlan.needsDummyPage
     };
 };

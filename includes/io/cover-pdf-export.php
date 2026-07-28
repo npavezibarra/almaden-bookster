@@ -178,6 +178,9 @@ function almaden_bookster_handle_export_cover_pdf() {
 	);
 
 	$book_title = get_the_title( $book_id );
+	$book_language = function_exists( 'almaden_bookster_get_book_language_from_settings' )
+		? almaden_bookster_get_book_language_from_settings( $db_settings, 'es' )
+		: 'es';
 	$filename_base = sanitize_title( $book_title );
 	if ( empty( $filename_base ) ) {
 		$filename_base = 'book-cover';
@@ -201,7 +204,7 @@ function almaden_bookster_handle_export_cover_pdf() {
 		$google_fonts_url = 'https://fonts.googleapis.com/css2?' . implode( '&', $font_families_for_cdn ) . '&display=swap';
 	}
 
-	$html = "<!doctype html><html lang=\"es\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>" . esc_html( $book_title ) . " - Cover Export</title>";
+	$html = '<!doctype html><html lang="' . esc_attr( $book_language ) . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' . esc_html( $book_title ) . ' - Cover Export</title>';
 	if ( $google_fonts_url ) {
 		$html .= '<link rel="preconnect" href="https://fonts.googleapis.com">';
 		$html .= '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
@@ -331,7 +334,7 @@ function almaden_bookster_handle_export_cover_pdf() {
 		$text  = isset( $layer['text'] ) ? esc_html( $layer['text'] ) : '';
 		$hyphens = ! empty( $layer['hyphens'] ) ? 'auto' : 'none';
 
-		$html .= '<div class="export-layer" lang="es" style="' . esc_attr( $common_style . 'width:' . $width . ';height:' . $height . ';font-size:' . $font_size . 'px;font-weight:' . $font_weight . ';font-style:' . $font_style . ';color:' . $color . ';font-family:"' . esc_attr( $font_family_css ) . '",serif;text-align:' . $text_align . ';white-space:pre-wrap;line-height:' . $line_height . ';letter-spacing:' . $letter_spacing . 'px;font-synthesis:none;hyphens:' . $hyphens . ';-webkit-hyphens:' . $hyphens . ';' ) . '">' . $text . '</div>';
+		$html .= '<div class="export-layer" lang="' . esc_attr( $book_language ) . '" style="' . esc_attr( $common_style . 'width:' . $width . ';height:' . $height . ';font-size:' . $font_size . 'px;font-weight:' . $font_weight . ';font-style:' . $font_style . ';color:' . $color . ';font-family:"' . esc_attr( $font_family_css ) . '",serif;text-align:' . $text_align . ';white-space:pre-wrap;line-height:' . $line_height . ';letter-spacing:' . $letter_spacing . 'px;font-synthesis:none;hyphens:' . $hyphens . ';-webkit-hyphens:' . $hyphens . ';' ) . '">' . $text . '</div>';
 	}
 
 	$html .= '</div></div></body></html>';

@@ -148,9 +148,12 @@ $public_chapters = array_values(
 		}
 	)
 );
+$book_language = function_exists( 'almaden_bookster_get_book_language_from_settings' )
+	? almaden_bookster_get_book_language_from_settings( $book_settings, 'es' )
+	: 'es';
 ?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="<?php echo esc_attr( $book_language ); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

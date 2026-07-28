@@ -13,6 +13,8 @@ graph TD
     Flow[editor-pdf-chapter-flow.js] --> Parity[editor-pdf-compiler-parity.js]
     Flow --> DOMFactory[editor-pdf-dom.js]
     Flow --> Compiler[editor-pdf-compiler.js]
+    Flow --> FlowPlan[editor-pdf-flow-plan.js]
+    Compiler --> PageHelpers[editor-pdf-compiler-page-helpers.js]
     Compiler --> Dimensions[editor-pdf-compiler-dimensions.js]
     Compiler --> HTMLProc[editor-pdf-html.js]
     

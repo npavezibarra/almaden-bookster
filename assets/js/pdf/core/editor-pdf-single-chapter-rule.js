@@ -47,18 +47,24 @@ window.getSingleChapterPreviewFirstPhysicalPageNumber = function(bookState, sett
 };
 
 window.getSingleChapterContentFirstPhysicalPageNumber = function(scroller, bookState, settings, fallbackPageNumber) {
+    const fallbackContentPageNumber = Number.isFinite(fallbackPageNumber) && fallbackPageNumber > 0
+        ? fallbackPageNumber
+        : 2;
     const rule = window.getSingleChapterBookRule
         ? window.getSingleChapterBookRule(bookState, settings)
         : null;
     if (!rule || !rule.isSingleChapterBook || !scroller) {
-        return Number.isFinite(fallbackPageNumber) && fallbackPageNumber > 0 ? fallbackPageNumber : 1;
+        return fallbackContentPageNumber;
     }
 
     const activeChapter = (bookState && Array.isArray(bookState.chapters))
         ? bookState.chapters.find(ch => String(ch.id) === String(bookState.activeChapterId))
         : null;
     if (!activeChapter) {
-        return Number.isFinite(fallbackPageNumber) && fallbackPageNumber > 0 ? fallbackPageNumber : 1;
+        if (rule.shouldUseBookStartAsPageOne) {
+            return fallbackContentPageNumber;
+        }
+        return fallbackContentPageNumber;
     }
 
     const escapeSelectorValue = (value) => {
@@ -76,15 +82,23 @@ window.getSingleChapterContentFirstPhysicalPageNumber = function(scroller, bookS
 
     const anchorElement = scroller.querySelector(selectors);
     if (!anchorElement) {
-        return Number.isFinite(fallbackPageNumber) && fallbackPageNumber > 0 ? fallbackPageNumber : 1;
+        if (rule.shouldUseBookStartAsPageOne) {
+            return fallbackContentPageNumber;
+        }
+        return fallbackContentPageNumber;
     }
 
     const anchorPage = anchorElement.closest('.pagedjs_page');
     if (!anchorPage) {
-        return Number.isFinite(fallbackPageNumber) && fallbackPageNumber > 0 ? fallbackPageNumber : 1;
+        if (rule.shouldUseBookStartAsPageOne) {
+            return fallbackContentPageNumber;
+        }
+        return fallbackContentPageNumber;
     }
 
-    const pageNumber = parseInt(anchorPage.dataset.pageNumber || anchorPage.getAttribute('data-page-number') || '', 10);
+    const pageNumber = window.getPdfPhysicalPageNumberForPage
+        ? window.getPdfPhysicalPageNumberForPage(anchorPage)
+        : parseInt(anchorPage.dataset.pageNumber || anchorPage.getAttribute('data-page-number') || '', 10);
     if (Number.isFinite(pageNumber) && pageNumber > 0) {
         return pageNumber;
     }
@@ -96,7 +110,11 @@ window.getSingleChapterContentFirstPhysicalPageNumber = function(scroller, bookS
         return index + 1;
     }
 
-    return Number.isFinite(fallbackPageNumber) && fallbackPageNumber > 0 ? fallbackPageNumber : 1;
+    if (rule.shouldUseBookStartAsPageOne) {
+        return fallbackContentPageNumber;
+    }
+
+    return fallbackContentPageNumber;
 };
 
 window.getSingleChapterBookStyles = function(bookState, settings) {

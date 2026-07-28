@@ -82,18 +82,24 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
             && !singleChapterRule.shouldUseBookStartAsPageOne
             ? Number(window.bookChapterPages?.[bookState.activeChapterId])
             : NaN;
-        const activePreviewFirstPhysicalPageNumber = window.getSingleChapterPreviewFirstPhysicalPageNumber
-            ? window.getSingleChapterPreviewFirstPhysicalPageNumber(
-                bookState,
-                settings,
-                startPageNum,
-                mappedActiveChapterStart
-            )
-            : (Number.isFinite(mappedActiveChapterStart) && mappedActiveChapterStart > 0
-                ? mappedActiveChapterStart
-                : (singleChapterRule.shouldUseBookStartAsPageOne
-                    ? startPageNum
-                    : previewFirstPhysicalPageNumber));
+        // A standalone preview can include a physical page before the active
+        // chapter (the book-start blank or a transition blank). The chapter
+        // map points to the opening, not to that leading page, so it must not
+        // shift the preview's physical numbering after the background pass.
+        const activePreviewFirstPhysicalPageNumber = isSingleChapterMode && buildResult.needsDummyPage
+            ? previewFirstPhysicalPageNumber
+            : (window.getSingleChapterPreviewFirstPhysicalPageNumber
+                ? window.getSingleChapterPreviewFirstPhysicalPageNumber(
+                    bookState,
+                    settings,
+                    startPageNum,
+                    mappedActiveChapterStart
+                )
+                : (Number.isFinite(mappedActiveChapterStart) && mappedActiveChapterStart > 0
+                    ? mappedActiveChapterStart
+                    : (singleChapterRule.shouldUseBookStartAsPageOne
+                        ? startPageNum
+                        : previewFirstPhysicalPageNumber)));
 
         const styleEl = document.getElementById('dynamic-pdf-settings');
 
@@ -158,91 +164,11 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
         // Paged.js procesa el HTML y lo inyecta formateado en páginas en el contenedor scroller
         await previewer.preview(fullBookHTML, stylesArray, scroller);
 
-        const getVisibleRenderedPages = () => {
-            return Array.from(scroller.querySelectorAll('.pagedjs_pages > .pagedjs_page'))
-                .filter(page => !page.querySelector('.book-start-dummy-page'));
-        };
-        const escapeSelectorValue = (value) => {
-            if (window.CSS && typeof window.CSS.escape === 'function') {
-                return window.CSS.escape(String(value));
-            }
-            return String(value).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
-        };
-        const escapeAttributeValue = (value) => String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-        const getChapterContentPages = (chapter, visiblePages) => {
-            const selectorId = escapeSelectorValue(chapter.id);
-            const attrId = escapeAttributeValue(chapter.id);
-            const selectors = [
-                `.chapter-image-page-section-${selectorId}`,
-                `.chapter-opening-page-section-${selectorId}`,
-                `.chapter-section-${selectorId}`,
-                `.credits-blank-page[data-chapter-id="${attrId}"]`
-            ].join(', ');
-            return visiblePages.filter(page => page.querySelector(selectors));
-        };
-        const removeTrailingAccidentalBlankPages = () => {
-            if (!isSingleChapterMode) return;
-            let pages = getVisibleRenderedPages();
-            while (pages.length && !((pages[pages.length - 1].querySelector('.pagedjs_area') || pages[pages.length - 1]).textContent || '').trim() && !pages[pages.length - 1].querySelector('.chapter-transition-blank-page, .book-end-blank-page, .credits-blank-page')) {
-                pages.pop().remove();
-            }
-        };
-        const findNeededTransitionBlankIds = (firstPhysicalPageNumber, onlyChapterId = null) => {
-            const flowMode = window.getBookChapterFlowMode
-                ? window.getBookChapterFlowMode(settings)
-                : (settings.chapter_start_parity === 'even' ? 'left' : 'continuous');
-            if (flowMode !== 'left') {
-                return [];
-            }
-
-            const visiblePages = getVisibleRenderedPages();
-            const neededIds = [];
-            const onlyId = onlyChapterId === null ? null : String(onlyChapterId);
-
-            bookState.chapters.forEach((chapter, index) => {
-                if (index >= bookState.chapters.length - 1) {
-                    return;
-                }
-                if (onlyId !== null && String(chapter.id) !== onlyId) {
-                    return;
-                }
-
-                const existingBlank = scroller.querySelector(
-                    `.chapter-transition-blank-page[data-chapter-id="${escapeAttributeValue(chapter.id)}"]`
-                );
-                if (existingBlank) {
-                    return;
-                }
-
-                const chapterPages = getChapterContentPages(chapter, visiblePages);
-                if (chapterPages.length === 0) {
-                    return;
-                }
-
-                const lastContentPage = chapterPages[chapterPages.length - 1];
-                const lastVisibleIndex = visiblePages.indexOf(lastContentPage);
-                const lastPhysicalPage = firstPhysicalPageNumber + lastVisibleIndex;
-                if (lastPhysicalPage % 2 === 0) {
-                    const nextPage = visiblePages[lastVisibleIndex + 1] || null;
-                    const nextPhysicalPage = nextPage ? firstPhysicalPageNumber + lastVisibleIndex + 1 : null;
-                    const nextPageHasChapterContent = nextPage && bookState.chapters.some(otherChapter => {
-                        return getChapterContentPages(otherChapter, [nextPage]).length > 0;
-                    });
-                    const nextPageIsBlankTransition = nextPage
-                        && nextPhysicalPage % 2 === 1
-                        && !nextPageHasChapterContent;
-                    if (nextPageIsBlankTransition) {
-                        return;
-                    }
-                    neededIds.push(chapter.id);
-                }
-            });
-
-            return neededIds;
-        };
-
-        const activeTransitionBlankIds = isSingleChapterMode
-            ? findNeededTransitionBlankIds(
+        const activeTransitionBlankIds = isSingleChapterMode && window.getPdfNeededTransitionBlankChapterIds
+            ? window.getPdfNeededTransitionBlankChapterIds(
+                scroller,
+                bookState,
+                settings,
                 previewFirstPhysicalPageNumber,
                 bookState.activeChapterId
             )
@@ -261,7 +187,9 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
             const activeTransitionPreviewer = new window.Paged.Previewer();
             await activeTransitionPreviewer.preview(fullBookHTML, stylesArray, scroller);
         }
-        removeTrailingAccidentalBlankPages();
+        if (window.removePdfTrailingAccidentalBlankPages) {
+            window.removePdfTrailingAccidentalBlankPages(scroller, isSingleChapterMode);
+        }
 
         if (isSingleChapterMode && window.shouldAppendActiveBookEndBlankPage && window.shouldAppendActiveBookEndBlankPage(
             scroller,
@@ -292,10 +220,13 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
         if (!isSingleChapterMode) {
             for (let pass = 0; pass < bookState.chapters.length; pass++) {
                 const knownTransitionIds = new Set(transitionBlankIds.map(String));
-                const missingTransitionIds = findNeededTransitionBlankIds(1)
+                const missingTransitionIds = window.getPdfNeededTransitionBlankChapterIds
+                    ? window.getPdfNeededTransitionBlankChapterIds(scroller, bookState, settings, 1)
+                    : [];
+                const filteredMissingTransitionIds = missingTransitionIds
                     .filter(id => !knownTransitionIds.has(String(id)));
                 const missingIds = Array.from(new Set([
-                    ...missingTransitionIds
+                    ...filteredMissingTransitionIds
                 ]));
                 if (missingIds.length === 0) {
                     break;
@@ -333,7 +264,9 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
         }
 
         if (typeof window.applySpreadPageLayout === 'function') {
-            window.applySpreadPageLayout(scroller);
+            window.applySpreadPageLayout(scroller, {
+                firstPhysicalPageNumber: isSingleChapterMode ? activePreviewFirstPhysicalPageNumber : 1
+            });
         }
 
         if (window._pdfCompileCounter !== currentVersion) {

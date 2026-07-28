@@ -69,6 +69,28 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
         return key;
     });
 
+    // Conservar bloques de idioma explícito para que el PDF respete lang/hyphenation.
+    const languagePlaceholders = {};
+    let languageCounter = 0;
+    cleanMarkdown = cleanMarkdown.replace(/<foreign\s+lang=(?:"|\')([a-zA-Z-]{2,10})(?:"|\')\s*>([\s\S]*?)<\/foreign>/gi, (match, lang, content) => {
+        const key = `%%LANG_PLACEHOLDER_${languageCounter++}%%`;
+        const processed = parseInlineMarkdown(content.trim());
+        languagePlaceholders[key] = `<span class="almaden-foreign" lang="${lang}">${processed}</span>`;
+        return key;
+    });
+    cleanMarkdown = cleanMarkdown.replace(/<lang\s+code=(?:"|\')([a-zA-Z-]{2,10})(?:"|\')\s*>([\s\S]*?)<\/lang>/gi, (match, lang, content) => {
+        const key = `%%LANG_PLACEHOLDER_${languageCounter++}%%`;
+        const processed = parseInlineMarkdown(content.trim());
+        languagePlaceholders[key] = `<span class="almaden-foreign" lang="${lang}">${processed}</span>`;
+        return key;
+    });
+    cleanMarkdown = cleanMarkdown.replace(/\[lang:([a-zA-Z-]{2,10})\]([\s\S]*?)\[\/lang\]/gi, (match, lang, content) => {
+        const key = `%%LANG_PLACEHOLDER_${languageCounter++}%%`;
+        const processed = parseInlineMarkdown(content.trim());
+        languagePlaceholders[key] = `<span class="almaden-foreign" lang="${lang}">${processed}</span>`;
+        return key;
+    });
+
     // Extraer shortcodes de maquetación antes de escapar el HTML
     const shortcodePlaceholders = {};
     let scCounter = 0;
@@ -181,6 +203,10 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
         // Des-envolver el placeholder de la etiqueta <p> si se generó
         result = result.replace(new RegExp(`<p>\\s*${key}\\s*<\\/p>`, 'g'), key);
         result = result.replace(key, rawHtml);
+    }
+    for (const [key, languageHtml] of Object.entries(languagePlaceholders)) {
+        result = result.replace(new RegExp(`<p>\\s*${key}\\s*<\\/p>`, 'g'), key);
+        result = result.replace(key, languageHtml);
     }
     for (const [key, imgTag] of Object.entries(imgPlaceholders)) {
         result = result.replace(key, imgTag);

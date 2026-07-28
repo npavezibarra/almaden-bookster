@@ -1,6 +1,6 @@
 // ============================================================
 // MÓDULO: editor-pdf-html-hyphenation.js
-// Responsabilidad: Silabación y guionado en español (Hyphenation)
+// Responsabilidad: Silabación y guionado por idioma (Hyphenation)
 //                  y etiquetado de ediciones.
 // ============================================================
 
@@ -319,10 +319,9 @@ window.almadenApplyHyphenationToHtml = function(html, settings) {
         return html;
     }
 
-    const defaultLanguage = String(settings.content_language || 'es').trim().toLowerCase();
-    if (!defaultLanguage.startsWith('es')) {
-        return html;
-    }
+    const defaultLanguage = typeof window.almadenGetBookLanguage === 'function'
+        ? window.almadenGetBookLanguage(settings)
+        : String(settings.book_language || settings.content_language || 'es').trim().toLowerCase();
 
     if (typeof document === 'undefined') {
         return html;
@@ -377,12 +376,13 @@ window.almadenApplyHyphenationToHtml = function(html, settings) {
                     return NodeFilter.FILTER_REJECT;
                 }
 
-                const nearestLangHost = parent.closest('[lang]');
-                const effectiveLang = nearestLangHost
-                    ? String(nearestLangHost.getAttribute('lang') || '').trim().toLowerCase()
-                    : defaultLanguage;
+                const effectiveLang = typeof window.almadenGetEffectiveNodeLanguage === 'function'
+                    ? window.almadenGetEffectiveNodeLanguage(parent, defaultLanguage)
+                    : (parent.closest('[lang]')
+                        ? String(parent.closest('[lang]').getAttribute('lang') || '').trim().toLowerCase()
+                        : defaultLanguage);
 
-                if (!effectiveLang.startsWith('es')) {
+                if (!window.almadenShouldUseCustomHyphenation || !window.almadenShouldUseCustomHyphenation(effectiveLang)) {
                     return NodeFilter.FILTER_REJECT;
                 }
 
@@ -397,7 +397,12 @@ window.almadenApplyHyphenationToHtml = function(html, settings) {
     }
 
     textNodes.forEach((node) => {
-        node.nodeValue = almadenApplyHyphenationToText(node.nodeValue, exceptionSet);
+        const effectiveLang = typeof window.almadenGetEffectiveNodeLanguage === 'function'
+            ? window.almadenGetEffectiveNodeLanguage(node.parentElement, defaultLanguage)
+            : defaultLanguage;
+        node.nodeValue = typeof window.almadenHyphenateTextByLanguage === 'function'
+            ? window.almadenHyphenateTextByLanguage(node.nodeValue, effectiveLang, exceptionSet)
+            : almadenApplyHyphenationToText(node.nodeValue, exceptionSet);
     });
 
     return template.innerHTML;

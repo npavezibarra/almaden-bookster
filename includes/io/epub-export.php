@@ -25,6 +25,11 @@ function almaden_export_epub_handler() {
 		wp_die( 'Libro no encontrado.' );
 	}
 
+	$book_settings = function_exists( 'almaden_get_book_pdf_settings' ) ? almaden_get_book_pdf_settings( $book_id ) : array();
+	$book_language = function_exists( 'almaden_bookster_get_book_language_from_settings' )
+		? almaden_bookster_get_book_language_from_settings( $book_settings, 'es' )
+		: 'es';
+
 	// Obtener capítulos
 	$source_book_id = get_post_meta( $book_id, '_almaden_source_book_id', true );
 	if ( empty( $source_book_id ) ) {
@@ -157,12 +162,12 @@ p:first-of-type { text-indent: 0; }
 		
 		$xhtml = '<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+		<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="' . esc_attr( $book_language ) . '" lang="' . esc_attr( $book_language ) . '">
 <head>
 <title>' . esc_html( $chapter->post_title ) . '</title>
 <link rel="stylesheet" type="text/css" href="../Styles/style.css"/>
 </head>
-<body>
+		<body lang="' . esc_attr( $book_language ) . '">
 <h1>' . esc_html( $chapter->post_title ) . '</h1>
 ' . $content . '
 </body>
@@ -189,7 +194,7 @@ p:first-of-type { text-indent: 0; }
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="BookId" version="2.0">
 	<metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
 		<dc:title>' . esc_html( $book->post_title ) . '</dc:title>
-		<dc:language>es</dc:language>
+		<dc:language>' . esc_html( $book_language ) . '</dc:language>
 		<dc:identifier id="BookId" opf:scheme="UUID">urn:uuid:' . $uuid . '</dc:identifier>
 		<dc:creator opf:role="aut">Almaden Bookster</dc:creator>
 	</metadata>

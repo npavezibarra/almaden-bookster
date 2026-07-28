@@ -86,6 +86,7 @@ function almaden_get_book_pdf_settings( $book_id ) {
 		'content_text_align_last'    => 'left',
 		'content_hyphenation'        => 1,
 		'content_language'           => 'es',
+		'book_language'              => 'es',
 		'content_hyphenation_exceptions' => '',
 		'content_paragraph_indent'   => 0.0,
 		'content_paragraph_spacing'  => 14.0,
@@ -187,6 +188,10 @@ function almaden_get_book_pdf_settings( $book_id ) {
 		$pdf_settings['margin_left_even'] = $pdf_settings['margin_left'];
 		$pdf_settings['margin_right_even'] = $pdf_settings['margin_right'];
 	}
+
+	$pdf_settings['book_language'] = function_exists( 'almaden_bookster_get_book_language_from_settings' )
+		? almaden_bookster_get_book_language_from_settings( $pdf_settings, 'es' )
+		: ( isset( $pdf_settings['content_language'] ) ? $pdf_settings['content_language'] : 'es' );
 
 	// Cargar créditos desde post_meta
 	$legacy_credits = array(

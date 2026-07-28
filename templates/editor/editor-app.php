@@ -14,52 +14,7 @@ if (!headers_sent()) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BookCraft - Editor de Libros Profesional</title>
-    <!-- Tailwind CSS -->
-    <script>
-        window.tailwind = window.tailwind || {};
-        window.tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Urbanist"', 'sans-serif']
-                    }
-                }
-            }
-        };
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Librería para exportar PDF directamente -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- Google Fonts: Inter para la interfaz, Merriweather para el estilo de libro PDF -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link id="google-fonts-stylesheet" href="<?php echo esc_url( $google_fonts_url ); ?>" rel="stylesheet">
-    <!-- Urbanist Font for UI -->
-    <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&amp;display=swap" rel="stylesheet">
-    <!-- Font Awesome Icons para UI -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <link rel="stylesheet" href="<?php echo esc_url( plugins_url( '../../assets/css/editor-style.css?v=' . time(), __FILE__ ) ); ?>">
-    <!-- Estilos dinámicos de maquetación del PDF -->
-    <style id="dynamic-pdf-settings"></style>
-    <style>
-        html {
-            margin-top: 0 !important;
-        }
-        .is-dragging-chapter .group * { pointer-events: none; }
-    </style>
-    <script>
-        var ajaxurl = "<?php echo admin_url( 'admin-ajax.php' ); ?>";
-    </script>
-    <?php wp_head(); ?>
-    <style id="almaden-editor-overrides">
-        html {
-            margin-top: 0 !important;
-        }
-        main {
-            background-color: #f9fafb;
-        }
-    </style>
+    <?php include dirname( __FILE__ ) . '/editor-app-head-extras.php'; ?>
 </head>
 
 <body class="theme-light h-full overflow-hidden flex flex-col bg-[var(--bg-app)] text-[var(--text-main)]">
@@ -156,11 +111,6 @@ if (!headers_sent()) {
             <div id="sidebar-chapters-section" class="px-4 pb-4 flex flex-col flex-1 overflow-y-auto">
                 <!-- Listado de Capítulos -->
                 <div class="flex-1 mt-2">
-                    <div class="flex items-center justify-between mb-3 px-2">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Índice de Capítulos</span>
-                        <span id="chapter-count" class="text-xs bg-neutral-200 text-neutral-850 dark:bg-slate-800 dark:text-neutral-400 font-bold px-2 py-0.5 rounded-full">0</span>
-                    </div>
-
                     <div id="chapters-list" class="divide-y divide-[var(--border-color)] space-y-0">
                         <!-- Generado dinámicamente -->
                     </div>
@@ -515,63 +465,7 @@ if (!headers_sent()) {
             }
         };
     </script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-core.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/toolbar/toolbar-core.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/toolbar/toolbar-text-formats.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/toolbar/toolbar-image-block.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/toolbar/toolbar-image-viewport-state.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/toolbar/toolbar-image-viewport-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/toolbar/toolbar-parity.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-virtualization.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-chapters.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-tabs.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-fields.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits-debug.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits-constants.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits-utils.js?v=' . time(), __FILE__ ) ); ?>"></script>
-
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits-state.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits-events.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-templates.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-api.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-chapter-settings.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/document-import/import-state.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/document-import/import-utils.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/document-import/import-logic.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/document-import/import-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/document-import/import-api.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/document-import/import-app.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/almaden-shortcodes.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-markdown.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-visual-session.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-visual-selection.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-visual-editor.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/vendor/paged.polyfill.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-safe-breaks.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-chapter-flow.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-single-chapter-rule.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-compiler-parity.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-dom.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-semantic-blocks.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-html-hyphenation.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-html-images.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-html-opening.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-html.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-compiler-dimensions.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-compiler-spread.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-compiler-map.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-compiler-builder.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-compiler.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/export/editor-pdf-export.js?v='   . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/styles/editor-pdf-styles-base.js?v='   . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/styles/editor-pdf-styles-chapters.js?v='   . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/styles/editor-pdf-styles-flow.js?v='   . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/styles/editor-pdf-styles-typography.js?v='   . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/styles/editor-pdf-styles-semantic.js?v='   . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/styles/editor-pdf-styles.js?v='   . time(), __FILE__ ) ); ?>"></script>
+    <?php include dirname( __FILE__ ) . '/editor-app-scripts.php'; ?>
     <?php wp_footer(); ?>
 </body>
 </html>

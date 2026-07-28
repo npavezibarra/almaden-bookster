@@ -12,6 +12,7 @@ function almaden_bookster_save_settings_ajax() {
 
 	global $wpdb;
 	$table_name = $wpdb->prefix . 'almaden_book_settings';
+	$book_language = isset( $_POST['book_language'] ) ? sanitize_text_field( wp_unslash( $_POST['book_language'] ) ) : ( isset( $_POST['content_language'] ) ? sanitize_text_field( wp_unslash( $_POST['content_language'] ) ) : 'es' );
 
 	$data = array(
 		'book_id'                    => $book_id,
@@ -73,7 +74,7 @@ function almaden_bookster_save_settings_ajax() {
 		'content_text_align'         => sanitize_text_field( $_POST['content_text_align'] ),
 		'content_text_align_last'    => isset( $_POST['content_text_align_last'] ) ? sanitize_text_field( $_POST['content_text_align_last'] ) : 'left',
 		'content_hyphenation'        => intval( $_POST['content_hyphenation'] ),
-		'content_language'           => sanitize_text_field( $_POST['content_language'] ),
+		'content_language'           => $book_language,
 		'content_hyphenation_exceptions' => isset( $_POST['content_hyphenation_exceptions'] ) ? sanitize_textarea_field( wp_unslash( $_POST['content_hyphenation_exceptions'] ) ) : '',
 		'content_paragraph_indent'   => floatval( str_replace( ',', '.', $_POST['content_paragraph_indent'] ) ),
 		'content_paragraph_spacing'  => floatval( str_replace( ',', '.', $_POST['content_paragraph_spacing'] ) ),

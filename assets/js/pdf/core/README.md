@@ -23,6 +23,8 @@ graph TD
     Compiler --> Dimensions[editor-pdf-compiler-dimensions.js]
     Compiler --> Map[editor-pdf-compiler-map.js]
     Compiler --> Spread[editor-pdf-compiler-spread.js]
+    Compiler --> FlowPlan[editor-pdf-flow-plan.js]
+    Compiler --> PageHelpers[editor-pdf-compiler-page-helpers.js]
     
     %% Construcción de Contenido y Maquetación
     Builder --> HTML[editor-pdf-html.js]
@@ -72,6 +74,15 @@ graph TD
 
 *   **[editor-pdf-compiler-parity.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/core/editor-pdf-compiler-parity.js)**
     *   **Responsabilidad**: Controla la inyección de saltos de página lógicos y páginas en blanco basadas en el flujo físico.
+
+*   **[editor-pdf-flow-plan.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/core/editor-pdf-flow-plan.js)**
+    *   **Responsabilidad**: Resuelve el plan editorial del flujo antes de renderizar, concentrando decisiones como arranque físico, blancos de apertura y banderas del capítulo activo.
+
+*   **[editor-pdf-compiler-page-helpers.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/core/editor-pdf-compiler-page-helpers.js)**
+    *   **Responsabilidad**: Utilidades de inspección de páginas renderizadas, detección de blancos técnicos y cálculo de transiciones necesarias en flujo `left`.
+
+*   **[editor-pdf-physical-pages.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/core/editor-pdf-physical-pages.js)**
+    *   **Responsabilidad**: Modelo canónico de páginas físicas. Normaliza número físico, paridad, lado visible y rol editorial para que spread, pies de página y helpers compartan la misma fuente de verdad.
 
 *   **[editor-pdf-chapter-flow.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/core/editor-pdf-chapter-flow.js)**
     *   **Responsabilidad**: Resuelve el modo de apertura configurado de los capítulos y su paridad inicial.

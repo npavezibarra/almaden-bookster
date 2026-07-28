@@ -58,13 +58,10 @@
                         </div>
                         <div>
                             <label class="block text-[9px] text-[var(--text-muted)] mb-1">Idioma Reglas</label>
-                            <select id="setting-content-language" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
-                                <option value="es">Español</option>
-                                <option value="en">Inglés</option>
-                                <option value="fr">Francés</option>
-                                <option value="de">Alemán</option>
-                                <option value="pt">Portugués</option>
-                            </select>
+                            <input id="setting-content-language" type="hidden" value="es">
+                            <div class="w-full rounded-lg border border-dashed border-[var(--border-color)] bg-[var(--bg-app)] px-3 py-2 text-[10px] leading-5 text-[var(--text-muted)]">
+                                Se gestiona desde la pestaña <strong>GLOBAL</strong> como idioma base del libro.
+                            </div>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-2 mt-2">

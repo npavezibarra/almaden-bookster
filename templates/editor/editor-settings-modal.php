@@ -463,6 +463,17 @@
 
         <div id="format-global-section" class="hidden">
             <div class="py-4 border-b border-[var(--border-color)]">
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Idioma base del libro</label>
+                <select id="setting-book-language" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                    <option value="es">Español</option>
+                    <option value="en">English</option>
+                    <option value="fr">Français</option>
+                    <option value="de">Deutsch</option>
+                    <option value="pt">Português</option>
+                    <option value="it">Italiano</option>
+                    <option value="la">Latín</option>
+                </select>
+                <p class="mt-2 text-[10px] leading-5 text-[var(--text-muted)]">Este valor define el idioma base para EPUB, PDF impreso y cualquier texto sin marca de idioma explícita. Los fragmentos con <code>&lt;foreign lang=&quot;...&quot;&gt;</code> siguen su propio idioma.</p>
                 <label class="block text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Autores del libro</label>
                 <textarea id="setting-book-authors" rows="2" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-black resize-none" placeholder="Escribe emails o usuarios separados por coma"><?php echo esc_textarea( $book_authors_input_value ); ?></textarea>
                 <p class="mt-2 text-[10px] leading-5 text-[var(--text-muted)]">Usa correos o nombres de usuario para vincular autores reales. La lista visible del libro se sigue mostrando con nombres legibles.</p>

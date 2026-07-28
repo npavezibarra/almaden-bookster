@@ -124,6 +124,9 @@ if ( $chapter_posts ) {
 
 // Cargar ajustes del libro
 $pdf_settings = almaden_get_book_pdf_settings( $book_id );
+if ( function_exists( 'almaden_bookster_get_book_language_from_settings' ) ) {
+	$pdf_settings['book_language'] = almaden_bookster_get_book_language_from_settings( $pdf_settings, 'es' );
+}
 
 // Migrar en memoria la configuración heredada de Chapter Image al nivel del capítulo.
 // Si el capítulo todavía no tiene metadatos propios, usamos los valores globales
