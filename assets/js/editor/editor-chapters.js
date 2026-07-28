@@ -294,25 +294,9 @@ function deleteChapter(id) {
 
     if (confirm(`¿Estás seguro de que deseas eliminar "${bookState.chapters[chapterIndex].title}"? Esta acción no se puede deshacer.`)) {
         const chapter = bookState.chapters[chapterIndex];
+        const chapterIdIsPersisted = typeof chapter.id === 'string' ? /^[0-9]+$/.test(chapter.id) : Number.isInteger(chapter.id);
 
-        const data = new FormData();
-        data.append('action', 'almaden_delete_book_chapter');
-        data.append('book_id', bookState.bookId);
-        data.append('chapter_id', id);
-        data.append('nonce', bookState.nonce);
-
-        fetch(bookState.ajaxUrl, {
-            method: 'POST',
-            body: data
-        })
-        .then(response => response.json())
-        .then(res => {
-            if (!res.success) {
-                const message = res && res.data ? res.data : 'No se pudo eliminar el capítulo.';
-                showToast(message, "fa-solid fa-circle-exclamation");
-                return;
-            }
-
+        const removeChapterLocally = () => {
             bookState.chapters.splice(chapterIndex, 1);
 
             // Si borramos el capítulo activo, reasignar activo
@@ -334,6 +318,31 @@ function deleteChapter(id) {
             loadActiveChapter();
             saveStateToLocalStorage(true);
             showToast(`"${chapter.title}" fue eliminado`, "fa-solid fa-trash-can");
+        };
+
+        if (!chapterIdIsPersisted) {
+            removeChapterLocally();
+            return;
+        }
+
+        const data = new FormData();
+        data.append('action', 'almaden_delete_book_chapter');
+        data.append('book_id', bookState.bookId);
+        data.append('chapter_id', id);
+        data.append('nonce', bookState.nonce);
+
+        fetch(bookState.ajaxUrl, {
+            method: 'POST',
+            body: data
+        })
+        .then(response => response.json())
+        .then(res => {
+            if (!res.success) {
+                const message = res && res.data ? res.data : 'No se pudo eliminar el capítulo.';
+                showToast(message, "fa-solid fa-circle-exclamation");
+                return;
+            }
+            removeChapterLocally();
         })
         .catch(() => {
             showToast("Error al eliminar el capítulo", "fa-solid fa-circle-exclamation");
@@ -463,10 +472,88 @@ function saveStateToLocalStorage(immediate = false) {
         data.append('title', bookState.title);
         const chaptersPayload = Array.isArray(bookState.chapters)
             ? bookState.chapters.map((chapter) => {
+                const payloadChapter = {
+                    id: chapter.id,
+                    title: chapter.title,
+                    content: chapter.content,
+                    parity_image: chapter.parity_image,
+                    opening_page_mode: chapter.opening_page_mode,
+                    opening_blank_intentional: chapter.opening_blank_intentional,
+                    opening_block_enabled: chapter.opening_block_enabled,
+                    opening_block_horizontal_align: chapter.opening_block_horizontal_align,
+                    opening_block_vertical_align: chapter.opening_block_vertical_align,
+                    hide_title: chapter.hide_title,
+                    hide_all_headers_footers: chapter.hide_all_headers_footers,
+                    exclude_from_numbering: chapter.exclude_from_numbering,
+                    custom_running_header: chapter.custom_running_header,
+                    subtitle_text: chapter.subtitle_text,
+                    subtitle_font_family: chapter.subtitle_font_family,
+                    subtitle_align: chapter.subtitle_align,
+                    subtitle_font_size: chapter.subtitle_font_size,
+                    subtitle_letter_spacing: chapter.subtitle_letter_spacing,
+                    subtitle_font_style: chapter.subtitle_font_style,
+                    subtitle_text_transform: chapter.subtitle_text_transform,
+                    subtitle_font_weight: chapter.subtitle_font_weight,
+                    subtitle_margin_top: chapter.subtitle_margin_top,
+                    subtitle_margin_bottom: chapter.subtitle_margin_bottom,
+                    drop_cap_enabled: chapter.drop_cap_enabled,
+                    disable_hyphenation: chapter.disable_hyphenation,
+                    start_parity: chapter.start_parity,
+                    first_page_header_type: chapter.first_page_header_type,
+                    first_page_header_custom: chapter.first_page_header_custom,
+                    first_page_footer_type: chapter.first_page_footer_type,
+                    first_page_footer_custom: chapter.first_page_footer_custom,
+                    opening_separate_content: chapter.opening_separate_content,
+                    chapter_image_enabled: chapter.chapter_image_enabled,
+                    chapter_image_mode: chapter.chapter_image_mode,
+                    chapter_image_url: chapter.chapter_image_url,
+                    chapter_image_inner_width: chapter.chapter_image_inner_width,
+                    chapter_image_inner_header: chapter.chapter_image_inner_header,
+                    chapter_image_inner_footer: chapter.chapter_image_inner_footer,
+                    parity_image_mode: chapter.parity_image_mode,
+                    parity_image_width: chapter.parity_image_width,
+                    parity_image_height: chapter.parity_image_height,
+                    is_toc: chapter.is_toc,
+                    is_credits: chapter.is_credits,
+                    credits_font_family: chapter.credits_font_family,
+                    credits_align: chapter.credits_align,
+                    credits_font_size: chapter.credits_font_size,
+                    credits_letter_spacing: chapter.credits_letter_spacing,
+                    credits_font_weight: chapter.credits_font_weight,
+                    credits_hide_header: chapter.credits_hide_header,
+                    credits_hide_page_number: chapter.credits_hide_page_number,
+                    credits_margin_top: chapter.credits_margin_top,
+                    credits_margin_bottom: chapter.credits_margin_bottom,
+                    toc_font_family: chapter.toc_font_family,
+                    toc_font_size: chapter.toc_font_size,
+                    toc_enumerate: chapter.toc_enumerate,
+                    toc_font_style: chapter.toc_font_style,
+                    toc_font_weight: chapter.toc_font_weight,
+                    toc_text_transform: chapter.toc_text_transform,
+                    toc_letter_spacing: chapter.toc_letter_spacing,
+                    toc_line_height: chapter.toc_line_height,
+                    toc_item_spacing: chapter.toc_item_spacing,
+                    toc_hide_header: chapter.toc_hide_header,
+                    toc_hide_page_numbers: chapter.toc_hide_page_numbers,
+                    toc_separate_opening_content: chapter.toc_separate_opening_content,
+                    toc_item_align: chapter.toc_item_align,
+                    toc_leader_style: chapter.toc_leader_style,
+                    toc_leader_position: chapter.toc_leader_position,
+                    toc_title_align: chapter.toc_title_align,
+                    toc_title_font_family: chapter.toc_title_font_family,
+                    toc_title_font_size: chapter.toc_title_font_size,
+                    toc_title_font_style: chapter.toc_title_font_style,
+                    toc_title_text_transform: chapter.toc_title_text_transform,
+                    toc_title_font_weight: chapter.toc_title_font_weight,
+                    toc_title_padding_top: chapter.toc_title_padding_top,
+                    toc_title_padding_bottom: chapter.toc_title_padding_bottom,
+                    toc_title_line_height: chapter.toc_title_line_height
+                };
+
                 if (visualChapterContent !== null && chapter.id === bookState.activeChapterId) {
-                    return { ...chapter, content: visualChapterContent };
+                    payloadChapter.content = visualChapterContent;
                 }
-                return chapter;
+                return payloadChapter;
             })
             : [];
         data.append('chapters', JSON.stringify(chaptersPayload));
@@ -515,11 +602,18 @@ function saveStateToLocalStorage(immediate = false) {
                         if (serverCh.old_id) {
                             const localCh = bookState.chapters.find(c => c.id === serverCh.old_id);
                             if (localCh) {
+                                Object.assign(localCh, serverCh);
                                 localCh.id = serverCh.id;
                                 if (bookState.activeChapterId === serverCh.old_id) {
                                     bookState.activeChapterId = serverCh.id;
                                     localStorage.setItem(`almaden_active_chapter_${bookState.bookId}`, serverCh.id);
                                 }
+                                stateChanged = true;
+                            }
+                        } else {
+                            const localCh = bookState.chapters.find(c => c.id === serverCh.id);
+                            if (localCh) {
+                                Object.assign(localCh, serverCh);
                                 stateChanged = true;
                             }
                         }

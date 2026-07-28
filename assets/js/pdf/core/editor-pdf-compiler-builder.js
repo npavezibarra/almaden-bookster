@@ -25,11 +25,36 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
         </section>
     `;
 
-    const buildChapterTransitionBlankPage = (chapterId = '') => `
-        <section class="chapter-transition-blank-page"${chapterId ? ` data-chapter-id="${chapterId}"` : ''} aria-hidden="true">
-            <div style="height: 1px;"></div>
-        </section>
-    `;
+    const getTransitionBlankMode = window.getBookTransitionBlankMode || function(settings) {
+        const mode = settings && settings.chapter_transition_blank_mode ? String(settings.chapter_transition_blank_mode) : 'full_blank';
+        return ['full_blank', 'blank_with_header_footer', 'intentional_text'].includes(mode) ? mode : 'full_blank';
+    };
+    const getTransitionBlankText = window.getBookTransitionBlankText || function(settings) {
+        const text = settings && settings.chapter_transition_blank_text !== undefined ? String(settings.chapter_transition_blank_text) : '...';
+        return text.trim() === '' ? '...' : text;
+    };
+
+    const buildChapterTransitionBlankPage = (chapterId = '') => {
+        const transitionBlankMode = getTransitionBlankMode(settings);
+        const transitionBlankText = getTransitionBlankText(settings);
+        const modeClass = transitionBlankMode === 'blank_with_header_footer'
+            ? 'chapter-transition-blank-page--with-header-footer'
+            : (transitionBlankMode === 'intentional_text'
+                ? 'chapter-transition-blank-page--intentional-text'
+                : 'chapter-transition-blank-page--full');
+        const pageName = transitionBlankMode === 'blank_with_header_footer'
+            ? 'chapter-transition-blank-page'
+            : 'chapter-blank-page';
+        const innerHtml = transitionBlankMode === 'intentional_text'
+            ? `<div class="chapter-transition-blank-page__message">${escapeAttr(transitionBlankText).replace(/\n/g, '<br>')}</div>`
+            : '<div style="height: 1px;"></div>';
+
+        return `
+            <section class="chapter-transition-blank-page ${modeClass}"${chapterId ? ` data-chapter-id="${chapterId}"` : ''} data-transition-blank-mode="${escapeAttr(transitionBlankMode)}" data-transition-blank-text="${escapeAttr(transitionBlankText)}" aria-hidden="${transitionBlankMode === 'intentional_text' ? 'false' : 'true'}" style="page: ${pageName} !important;">
+                ${innerHtml}
+            </section>
+        `;
+    };
     const forcedTransitionBlankIds = new Set(
         Array.isArray(paginationOptions.forceTransitionBlankChapterIds)
             ? paginationOptions.forceTransitionBlankChapterIds.map(String)
@@ -134,6 +159,9 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
             ? String(chapter.chapter_image_inner_footer) === '1'
             : settings.chapter_image_inner_footer == 1;
         const hasImage = imageUrl !== '';
+        const sectionInlineStyle = imageMode === 'image_inner'
+            ? `--chapter-image-inner-width: ${imageWidth}%;`
+            : '';
         const sectionClasses = [
             `chapter-image-page-section-${chapter.id}`,
             'pdf-content',
@@ -151,7 +179,7 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
         } else if (imageEnabled && imageMode === 'image_inner' && hasImage) {
             innerHtml = `
                 <div class="chapter-image-page-inner">
-                    <img src="${escapeAttr(imageUrl)}" alt="${escapeAttr(chapter.title || 'Chapter image')}" style="width: ${imageWidth}%; height: auto; display: block;" />
+                    <img src="${escapeAttr(imageUrl)}" alt="${escapeAttr(chapter.title || 'Chapter image')}" />
                 </div>
             `;
         } else {
@@ -159,7 +187,7 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
         }
 
         return `
-            <section class="${sectionClasses}" data-image-mode="${escapeAttr(imageMode)}" data-image-url="${escapeAttr(imageUrl)}" data-image-inner-header="${imageInnerHeader ? '1' : '0'}" data-image-inner-footer="${imageInnerFooter ? '1' : '0'}">
+            <section class="${sectionClasses}" data-image-mode="${escapeAttr(imageMode)}" data-image-url="${escapeAttr(imageUrl)}" data-image-inner-header="${imageInnerHeader ? '1' : '0'}" data-image-inner-footer="${imageInnerFooter ? '1' : '0'}" style="${sectionInlineStyle}">
                 ${innerHtml}
             </section>
         `;
@@ -386,10 +414,7 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
             }
 
             if (index < bookState.chapters.length - 1) {
-                const flowMode = window.getBookChapterFlowMode
-                    ? window.getBookChapterFlowMode(settings)
-                    : (settings.chapter_start_parity === 'even' ? 'left' : 'continuous');
-                if (flowMode === 'left' && forcedTransitionBlankIds.has(String(chapter.id))) {
+                if (forcedTransitionBlankIds.has(String(chapter.id))) {
                     fullBookHTML += buildChapterTransitionBlankPage(chapter.id);
                 }
             }

@@ -54,6 +54,28 @@ function toggleParityImageMode() {
     }
 }
 
+function toggleChapterTransitionBlankSettings() {
+    const flowMode = document.getElementById('setting-book-chapter-flow-mode');
+    const wrapper = document.getElementById('chapter-transition-blank-mode-wrapper');
+    const textWrapper = document.getElementById('chapter-transition-blank-text-wrapper');
+    const modeField = document.getElementById('setting-chapter-transition-blank-mode');
+
+    const isLeftFlow = !!(flowMode && flowMode.value === 'left');
+    if (wrapper) {
+        wrapper.classList.toggle('hidden', !isLeftFlow);
+    }
+
+    if (!isLeftFlow) {
+        if (textWrapper) textWrapper.classList.add('hidden');
+        return;
+    }
+
+    const mode = modeField ? modeField.value : 'full_blank';
+    if (textWrapper) {
+        textWrapper.classList.toggle('hidden', mode !== 'intentional_text');
+    }
+}
+
 function syncBookFlowParityMode() {
     const flowMode = document.getElementById('setting-book-chapter-flow-mode');
     const legacyParity = document.getElementById('setting-chapter-start-parity');
@@ -64,6 +86,10 @@ function syncBookFlowParityMode() {
 
     if (typeof toggleParityImageMode === 'function') {
         toggleParityImageMode();
+    }
+
+    if (typeof toggleChapterTransitionBlankSettings === 'function') {
+        toggleChapterTransitionBlankSettings();
     }
 }
 

@@ -114,6 +114,19 @@ window.getBookChapterFlowMode = function(settings) {
     return 'continuous';
 };
 
+window.getBookTransitionBlankMode = function(settings) {
+    const mode = settings && settings.chapter_transition_blank_mode ? String(settings.chapter_transition_blank_mode) : 'full_blank';
+    if (['full_blank', 'blank_with_header_footer', 'intentional_text'].includes(mode)) {
+        return mode;
+    }
+    return 'full_blank';
+};
+
+window.getBookTransitionBlankText = function(settings) {
+    const text = settings && settings.chapter_transition_blank_text !== undefined ? String(settings.chapter_transition_blank_text) : '...';
+    return text.trim() === '' ? '...' : text;
+};
+
 window.getChapterStartParity = function(chapter, settings) {
     if (chapter && chapter.is_toc === '1') {
         return 'even';

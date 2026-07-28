@@ -85,6 +85,8 @@
         "credits_blank_after": 0,
         "book_separate_opening_content": 1,
         "book_chapter_flow_mode": "continuous",
+        "chapter_transition_blank_mode": "full_blank",
+        "chapter_transition_blank_text": "...",
         
         "chapter_start_parity": "odd",
         

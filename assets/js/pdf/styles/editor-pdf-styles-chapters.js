@@ -196,13 +196,28 @@ function getPDFStylesChapters(settings, toPx) {
                         ${innerPageRules}
                     }
                     .chapter-image-page-section-${ch.id}.chapter-image-page-section--inner {
-                        ${innerPageRules}
+                        position: relative !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        overflow: visible !important;
                     }
                     .chapter-image-page-section-${ch.id} .chapter-image-page-inner {
-                        ${chapterImageMode === 'image_inner' ? 'display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important; height: 100% !important;' : ''}
+                        ${chapterImageMode === 'image_inner' ? `
+                            width: var(--chapter-image-inner-width, 100%) !important;
+                            max-width: 100% !important;
+                            display: block !important;
+                            height: auto !important;
+                            margin: 0 auto !important;
+                        ` : ''}
                     }
                     .chapter-image-page-section-${ch.id} .chapter-image-page-inner img {
-                        ${chapterImageMode === 'image_inner' ? `width: ${imageInnerWidth}% !important; height: auto !important; object-fit: contain !important; display: block !important;` : ''}
+                        ${chapterImageMode === 'image_inner' ? `
+                            width: 100% !important;
+                            height: auto !important;
+                            object-fit: contain !important;
+                            display: block !important;
+                        ` : ''}
                     }
                     .chapter-image-page-section-${ch.id} .chapter-image-page-full-bleed-layer {
                         ${chapterImageMode === 'image_full_page' ? 'display: block !important;' : ''}
@@ -215,9 +230,36 @@ function getPDFStylesChapters(settings, toPx) {
                         ${footerContent}
                     }
                     ${imageBackgroundRules}
-                    .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin {
-                        visibility: ${chapterImageMode === 'image_inner' && (imageInnerHeader || imageInnerFooter) ? 'visible' : 'hidden'} !important;
-                    }
+                    ${chapterImageMode === 'image_inner' ? `
+                        .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin {
+                            visibility: ${imageInnerHeader || imageInnerFooter ? 'visible' : 'hidden'} !important;
+                        }
+                        .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-top,
+                        .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-top-left-corner-holder,
+                        .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-top-right-corner-holder,
+                        .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-bottom,
+                        .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-bottom-left-corner-holder,
+                        .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-bottom-right-corner-holder {
+                            ${imageInnerHeader || imageInnerFooter ? '' : 'display: none !important;'}
+                        }
+                        .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-top-left,
+                        .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-top-center,
+                        .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-top-right {
+                            ${imageInnerHeader ? '' : 'display: none !important;'}
+                        }
+                        .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-bottom-left,
+                        .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-bottom-center,
+                        .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-bottom-right {
+                            ${imageInnerFooter ? '' : 'display: none !important;'}
+                        }
+                        .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-content {
+                            ${!imageInnerHeader && !imageInnerFooter ? 'display: none !important;' : ''}
+                        }
+                    ` : `
+                        .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin {
+                            visibility: hidden !important;
+                        }
+                    `}
                 `;
             }
             

@@ -230,6 +230,80 @@ function getPDFStylesBase(settings, geometry, toPx) {
             @bottom-right { content: "" !important; }
         }
 
+        .chapter-transition-blank-page--with-header-footer {
+            break-before: page !important;
+            page: chapter-transition-blank-page !important;
+            min-height: calc(
+                var(--pagedjs-pagebox-height)
+                - var(--pagedjs-margin-top)
+                - var(--pagedjs-margin-bottom)
+                - 1px
+            ) !important;
+            height: calc(
+                var(--pagedjs-pagebox-height)
+                - var(--pagedjs-margin-top)
+                - var(--pagedjs-margin-bottom)
+                - 1px
+            ) !important;
+            line-height: 1px !important;
+            font-size: 1px !important;
+            color: transparent !important;
+            overflow: hidden !important;
+            clear: both !important;
+        }
+
+        .chapter-transition-blank-page--full,
+        .chapter-transition-blank-page--intentional-text {
+            break-before: page !important;
+            page: chapter-blank-page !important;
+            min-height: calc(
+                var(--pagedjs-pagebox-height)
+                - var(--pagedjs-margin-top)
+                - var(--pagedjs-margin-bottom)
+                - 1px
+            ) !important;
+            height: calc(
+                var(--pagedjs-pagebox-height)
+                - var(--pagedjs-margin-top)
+                - var(--pagedjs-margin-bottom)
+                - 1px
+            ) !important;
+            clear: both !important;
+        }
+
+        .chapter-transition-blank-page--full {
+            line-height: 1px !important;
+            font-size: 1px !important;
+            color: transparent !important;
+            overflow: hidden !important;
+        }
+
+        .chapter-transition-blank-page--intentional-text {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            overflow: hidden !important;
+        }
+
+        .chapter-transition-blank-page__message {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
+            height: 100% !important;
+            padding: 0 1.25rem !important;
+            box-sizing: border-box !important;
+            font-family: '${settings.font_family_content || 'Merriweather'}', serif !important;
+            font-size: ${toPx(settings.font_size_content || 11.5, true)}px !important;
+            font-style: italic !important;
+            font-weight: ${settings.font_weight_content || 'normal'} !important;
+            line-height: 1.5 !important;
+            text-align: center !important;
+            white-space: pre-wrap !important;
+            color: #475569 !important;
+            letter-spacing: ${toPx(0, true)}px !important;
+        }
+
         @page book-start-leading-page {
             @top-left { content: "" !important; }
             @top-center { content: "" !important; }
@@ -380,12 +454,44 @@ function getPDFStylesBase(settings, geometry, toPx) {
                 overflow: hidden !important;
             }
 
+            .pagedjs_page:has(.chapter-transition-blank-page--full) .pagedjs_margin,
+            .pagedjs_page:has(.chapter-transition-blank-page--full) .pagedjs_margin-box,
+            .pagedjs_page:has(.chapter-transition-blank-page--full) .pagedjs_margin-content,
+            .pagedjs_page:has(.chapter-transition-blank-page--intentional-text) .pagedjs_margin,
+            .pagedjs_page:has(.chapter-transition-blank-page--intentional-text) .pagedjs_margin-box,
+            .pagedjs_page:has(.chapter-transition-blank-page--intentional-text) .pagedjs_margin-content,
+            .pagedjs_page.bookster-transition-blank-full-page .pagedjs_margin,
+            .pagedjs_page.bookster-transition-blank-full-page .pagedjs_margin-box,
+            .pagedjs_page.bookster-transition-blank-full-page .pagedjs_margin-content,
+            .pagedjs_page.bookster-transition-blank-intentional-text-page .pagedjs_margin,
+            .pagedjs_page.bookster-transition-blank-intentional-text-page .pagedjs_margin-box,
+            .pagedjs_page.bookster-transition-blank-intentional-text-page .pagedjs_margin-content {
+                visibility: hidden !important;
+                display: none !important;
+            }
+
             .pagedjs_page.pagedjs_blank_page .pagedjs_margin {
                 visibility: hidden !important;
             }
         }
         
         @media print {
+            .pagedjs_page:has(.chapter-transition-blank-page--full) .pagedjs_margin,
+            .pagedjs_page:has(.chapter-transition-blank-page--full) .pagedjs_margin-box,
+            .pagedjs_page:has(.chapter-transition-blank-page--full) .pagedjs_margin-content,
+            .pagedjs_page:has(.chapter-transition-blank-page--intentional-text) .pagedjs_margin,
+            .pagedjs_page:has(.chapter-transition-blank-page--intentional-text) .pagedjs_margin-box,
+            .pagedjs_page:has(.chapter-transition-blank-page--intentional-text) .pagedjs_margin-content,
+            .pagedjs_page.bookster-transition-blank-full-page .pagedjs_margin,
+            .pagedjs_page.bookster-transition-blank-full-page .pagedjs_margin-box,
+            .pagedjs_page.bookster-transition-blank-full-page .pagedjs_margin-content,
+            .pagedjs_page.bookster-transition-blank-intentional-text-page .pagedjs_margin,
+            .pagedjs_page.bookster-transition-blank-intentional-text-page .pagedjs_margin-box,
+            .pagedjs_page.bookster-transition-blank-intentional-text-page .pagedjs_margin-content {
+                visibility: hidden !important;
+                display: none !important;
+            }
+
             .pagedjs_page.pagedjs_blank_page .pagedjs_margin {
                 visibility: hidden !important;
             }

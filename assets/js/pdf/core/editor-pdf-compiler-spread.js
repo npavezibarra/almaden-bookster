@@ -53,6 +53,10 @@ window.applySpreadPageLayout = function(scroller) {
         if (!page) return;
 
         const isDummyPage = !!page.querySelector('.book-start-dummy-page');
+        const isTransitionBlankFullPage = !!page.querySelector('.chapter-transition-blank-page--full');
+        const isTransitionBlankIntentionalTextPage = !!page.querySelector('.chapter-transition-blank-page--intentional-text');
+        page.classList.toggle('bookster-transition-blank-full-page', isTransitionBlankFullPage);
+        page.classList.toggle('bookster-transition-blank-intentional-text-page', isTransitionBlankIntentionalTextPage);
 
         if (!isSpreadView) {
             page.style.removeProperty('display');
@@ -237,6 +241,12 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
         }
 
         visiblePageIndex += 1;
+        const isTransitionBlankFullPage = !!page.querySelector('.chapter-transition-blank-page--full');
+        const isTransitionBlankIntentionalTextPage = !!page.querySelector('.chapter-transition-blank-page--intentional-text');
+        if (isTransitionBlankFullPage || isTransitionBlankIntentionalTextPage) {
+            physicalPageNumber += 1;
+            return;
+        }
 
         const footerContents = Array.from(page.querySelectorAll(
             '.pagedjs_margin-bottom-left .pagedjs_margin-content, ' +

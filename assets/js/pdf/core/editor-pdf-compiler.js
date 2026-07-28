@@ -190,9 +190,6 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
                 if (onlyId !== null && String(chapter.id) !== onlyId) {
                     return;
                 }
-                if (window.shouldSeparateChapterOpening && window.shouldSeparateChapterOpening(chapter, settings)) {
-                    return;
-                }
 
                 const existingBlank = scroller.querySelector(
                     `.chapter-transition-blank-page[data-chapter-id="${escapeAttributeValue(chapter.id)}"]`
@@ -281,11 +278,14 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
                 const knownTransitionIds = new Set(transitionBlankIds.map(String));
                 const missingTransitionIds = findNeededTransitionBlankIds(1)
                     .filter(id => !knownTransitionIds.has(String(id)));
-                if (missingTransitionIds.length === 0) {
+                const missingIds = Array.from(new Set([
+                    ...missingTransitionIds
+                ]));
+                if (missingIds.length === 0) {
                     break;
                 }
 
-                transitionBlankIds = transitionBlankIds.concat(missingTransitionIds);
+                transitionBlankIds = transitionBlankIds.concat(missingIds);
                 const transitionBuildResult = window.buildContinuousBookHTML(
                     false,
                     bookState,

@@ -190,7 +190,7 @@ if (!headers_sent()) {
         <main id="almaden-editor-main" class="flex-1 flex overflow-hidden">
             
             <!-- PANEL DEL EDITOR (IZQUIERDO) -->
-            <section id="editor-pane" class="flex-1 flex flex-col border-r border-[var(--border-color)] bg-[var(--bg-editor)] overflow-hidden transition-all">
+            <section id="editor-pane" class="flex-1 flex flex-col border-r border-[var(--border-color)] bg-[var(--bg-editor)] overflow-hidden transition-all relative min-h-0">
                 <!-- Barra de Herramientas de Edición -->
                 <div class="h-12 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] px-4 flex items-center justify-between text-[var(--text-muted)]">
                     <div class="flex items-center gap-0.5 sm:gap-1">
@@ -321,9 +321,9 @@ if (!headers_sent()) {
 
                 <!-- Campo de Entrada del Título del Capítulo -->
                 <!-- Contenido centrado: Título + Textarea con max-width 800px -->
-                <div class="flex-1 flex flex-col overflow-hidden">
+                <div class="flex-1 flex flex-col overflow-hidden relative min-h-0">
                     <div class="flex-1 overflow-y-auto">
-                        <div class="max-w-[800px] mx-auto px-6 pt-6 pb-6 flex flex-col h-full min-h-full">
+                        <div class="max-w-[800px] mx-auto px-6 pt-6 pb-6 flex flex-col h-full min-h-0">
                             <!-- Título del capítulo y Configuración Local -->
                             <div class="flex items-center gap-3 mb-4 border-b-2 border-transparent focus-within:border-black transition-all pb-2">
                                 <input id="chapter-title-input" type="text" placeholder="Título del Capítulo..."
@@ -333,10 +333,10 @@ if (!headers_sent()) {
                                 </button>
                             </div>
                             <!-- Área de escritura -->
-                            <div id="raw-editor-container" class="flex-1 w-full">
+                            <div id="raw-editor-container" class="flex-1 w-full flex min-h-0">
                                 <textarea data-editor-surface="raw"
-                                    class="flex-1 w-full resize-none bg-transparent text-[var(--text-main)] focus:outline-none font-mono text-sm leading-relaxed placeholder-gray-400 dark:placeholder-gray-600 focus:ring-0"
-                                    style="min-height: 400px;"
+                                    class="flex-1 w-full h-full min-h-0 resize-none bg-transparent text-[var(--text-main)] focus:outline-none font-mono text-sm leading-relaxed placeholder-gray-400 dark:placeholder-gray-600 focus:ring-0"
+                                    style="min-height: 0;"
                                     placeholder="Escribe tu historia aquí utilizando formato simple o las herramientas de arriba..."></textarea>
                             </div>
 
@@ -349,7 +349,7 @@ if (!headers_sent()) {
                 </div>
 
                 <!-- Barra inferior compacta del editor -->
-                <div class="h-8 shrink-0 border-t border-[var(--border-color)] bg-[var(--bg-sidebar)] px-4 flex items-center justify-between text-[10px] text-[var(--text-muted)] no-print">
+                <div class="absolute bottom-0 left-0 right-0 h-6 z-10 border-t border-[var(--border-color)] bg-[var(--bg-sidebar)] px-4 flex items-center justify-between text-[10px] text-[var(--text-muted)] no-print">
                     <span class="uppercase tracking-[0.18em] font-semibold">Estado del capítulo</span>
                     <span class="font-semibold text-[var(--text-main)]">
                         <span id="current-word-count">0 palabras</span>

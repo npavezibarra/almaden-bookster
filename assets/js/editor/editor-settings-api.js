@@ -161,6 +161,8 @@ window.savePDFSettings = function(silent = false) {
     data.append('book_start_page_footer_type', getVal('setting-book-start-page-footer-type'));
     data.append('book_separate_opening_content', getChecked('setting-book-separate-opening-content'));
     data.append('book_chapter_flow_mode', getBookFlowMode());
+    data.append('chapter_transition_blank_mode', getVal('setting-chapter-transition-blank-mode') || 'full_blank');
+    data.append('chapter_transition_blank_text', getVal('setting-chapter-transition-blank-text') || '...');
 
     // Footnotes
     data.append('footnote_font_family', getVal('setting-footnote-font-family'));
@@ -395,6 +397,8 @@ window.savePDFSettings = function(silent = false) {
                 book_start_page_footer_type: getVal('setting-book-start-page-footer-type'),
                 book_separate_opening_content: getChecked('setting-book-separate-opening-content'),
                 book_chapter_flow_mode: getBookFlowMode(),
+                chapter_transition_blank_mode: getVal('setting-chapter-transition-blank-mode') || 'full_blank',
+                chapter_transition_blank_text: getVal('setting-chapter-transition-blank-text') || '...',
                 chapter_start_parity: getLegacyParityFromFlowMode(),
 
                 footnote_font_family: getVal('setting-footnote-font-family'),

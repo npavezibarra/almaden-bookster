@@ -143,17 +143,50 @@ y par es la página izquierda.
   impar, recibe únicamente el blanco final necesario para que el libro termine
   en par.
 
+### Cómo se construye el blanco de transición
+
+- El compilador no “mueve” la paridad del capítulo siguiente: inserta una
+  página vacía explícita entre capítulos cuando el capítulo anterior termina en
+  la página equivocada para que el siguiente arranque donde corresponde.
+- Ese blanco pertenece editorialmente al capítulo anterior, aunque su función
+  sea preparar el inicio del siguiente.
+- En flujo `Continuo / cualquiera` no se agrega ninguna página de transición
+  por paridad.
+- En flujo `Iniciar izquierda (par)` sí se agregan páginas de transición cuando
+  hacen falta, incluyendo capítulos intermedios.
+- El cierre del libro se resuelve aparte con una página blanca final solo si la
+  maqueta completa termina en impar. Esa página final no sustituye a la página
+  de transición entre capítulos.
+
 ### Implementación técnica
 
 Paged.js realiza el primer corte del contenido. Después, el compilador inspecciona
 la última página visible con contenido de cada capítulo no final. En flujo
-`Iniciar izquierda`, si esa página es par, reconstruye el libro con una
-`.chapter-transition-blank-page` asociada al capítulo que acaba de terminar. Esta
-detección se repite hasta que la cadena de capítulos queda estable, porque cada
-blanco insertado puede cambiar la paridad de los capítulos posteriores.
-Finalmente se evalúa el cierre global del libro sobre el primer y último
-capítulo: `.book-end-blank-page` se usa solo cuando la maqueta completa queda
-impar y necesita un folio final para cerrar en página par.
+`Iniciar izquierda`, si esa página deja al siguiente capítulo desalineado,
+reconstruye el libro con una `.chapter-transition-blank-page` asociada al
+capítulo que acaba de terminar. Esta detección se repite hasta que la cadena de
+capítulos queda estable, porque cada blanco insertado puede cambiar la paridad
+de los capítulos posteriores. Finalmente se evalúa el cierre global del libro
+sobre el primer y último capítulo: `.book-end-blank-page` se usa solo cuando la
+maqueta completa queda impar y necesita un folio final para cerrar en página
+par.
+
+### 4.4. Modos de página blanca de transición
+
+La página en blanco intermedia ahora tiene su propio ajuste dentro de `Ajustes de Libro`, pero solo aparece cuando el flujo está en `Iniciar izquierda (par)`. La decisión se guarda en `chapter_transition_blank_mode` y el texto opcional en `chapter_transition_blank_text`.
+
+Modos disponibles:
+
+* `full_blank`: la página se renderiza completamente en blanco, sin cabecera ni pie.
+* `blank_with_header_footer`: la página conserva la cabecera y el pie globales del libro.
+* `intentional_text`: la página usa el lienzo en blanco y centra un texto auxiliar, por ejemplo `...`, para señalar que el blanco fue intencional.
+
+Cómo se construye:
+
+* El formulario del editor solo muestra esta opción cuando el flujo de capítulos es `Iniciar izquierda (par)`.
+* El compilador genera una `.chapter-transition-blank-page` con atributos `data-transition-blank-mode` y `data-transition-blank-text`.
+* La clase resultante decide si la página usa `page: chapter-blank-page` o `page: chapter-transition-blank-page`.
+* La regla de paridad no cambia. Esta capa solo controla la estética de la página blanca que ya fue necesaria por el salto de capítulos.
 
 ### 5. Archivos Inactivos o Deprecados
 

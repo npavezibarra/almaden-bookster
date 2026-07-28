@@ -18,6 +18,20 @@
                             </select>
                             <p class="text-[10px] text-[var(--text-muted)] mt-1">Esta regla define cómo encadena el libro los capítulos completos, no solo el contenido.</p>
                         </div>
+                        <div id="chapter-transition-blank-mode-wrapper" class="col-span-2 hidden">
+                            <label class="block text-[9px] text-[var(--text-muted)] mb-1">Página en blanco entre capítulos</label>
+                            <select id="setting-chapter-transition-blank-mode" onchange="toggleChapterTransitionBlankSettings()" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                <option value="full_blank">Full Blanco (sin cabecera ni pie)</option>
+                                <option value="blank_with_header_footer">Blanco con cabecera y pie</option>
+                                <option value="intentional_text">Blanco intencional con texto</option>
+                            </select>
+                            <p class="text-[10px] text-[var(--text-muted)] mt-1">Solo aparece cuando el flujo del libro inicia a la izquierda. Esta opción controla cómo se dibuja la página de transición entre capítulos.</p>
+                        </div>
+                        <div id="chapter-transition-blank-text-wrapper" class="col-span-2 hidden">
+                            <label class="block text-[9px] text-[var(--text-muted)] mb-1">Texto centrado</label>
+                            <input id="setting-chapter-transition-blank-text" type="text" value="..." class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="...">
+                            <p class="text-[10px] text-[var(--text-muted)] mt-1">Se mostrará centrado dentro de la página en blanco cuando selecciones el modo de texto intencional.</p>
+                        </div>
                         <div>
                             <label class="block text-[9px] text-[var(--text-muted)] mb-1">Pie de la página inicial del libro</label>
                             <select id="setting-book-start-page-footer-type" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
