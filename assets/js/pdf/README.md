@@ -205,6 +205,23 @@ Regla de aplicación:
 
 Esto permite ocultar la cabecera/pie de la apertura sin afectar el resto del capítulo ni las páginas blancas de transición.
 
+### 4.6. Regla especial para libros con un solo capítulo
+
+Cuando `bookState.chapters.length === 1`, el motor aplica una ruta especial antes de usar las reglas generales de flujo y paridad.
+
+Objetivo:
+
+* Evitar que el blanco inicial de `Iniciar izquierda (par)` desplace la numeración de la única sección del libro.
+* Mantener intacto el comportamiento multi-capítulo.
+* Permitir que la decisión del blanco final siga resolviéndose con la cuenta física real de páginas.
+
+Cómo funciona:
+
+* Primero se pregunta si el libro tiene un solo capítulo.
+* Si lo tiene y el flujo efectivo es `left`, la página de arranque editorial se trata como la página física 1 del libro.
+* El capítulo continúa desde la página siguiente sin insertar un segundo desplazamiento artificial.
+* Si el libro tiene más de un capítulo, esta regla no interviene y se conservan las rutas existentes.
+
 ### 5. Archivos Inactivos o Deprecados
 
 *   **`editor-pdf-pagination.js`**: *[DEPRECADO]* Antiguo algoritmo procedimental de medición de píxeles. Actualmente inactivo ya que Paged.js maneja nativamente la fragmentación del DOM físico en base al flujo del renderizador de Chrome.

@@ -279,6 +279,9 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
     if (isSingleChapterMode) {
         const activeChapter = bookState.chapters.find(c => c.id === bookState.activeChapterId);
         if (activeChapter) {
+            const singleChapterRule = window.getSingleChapterBookRule
+                ? window.getSingleChapterBookRule(bookState, settings)
+                : null;
             const activeIndex = bookState.chapters.indexOf(activeChapter);
             const firstChapter = bookState.chapters[0] || null;
             const isBookStartChapter = firstChapter && firstChapter.id === activeChapter.id;
@@ -311,6 +314,10 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
                     ? window.getChapterStartParity(activeChapter, settings)
                     : ((activeChapter.start_parity && activeChapter.start_parity !== 'any') ? activeChapter.start_parity : settings.chapter_start_parity);
                 startPageNum = (chapterStartParity === 'even') ? 2 : 3;
+            }
+
+            if (singleChapterRule && singleChapterRule.shouldUseBookStartAsPageOne) {
+                startPageNum = 1;
             }
 
             const chapterFlowMode = window.getBookChapterFlowMode

@@ -503,7 +503,10 @@ function getPDFStylesBase(settings, geometry, toPx) {
             .pagedjs_page.bookster-transition-blank-full-page .pagedjs_margin-content,
             .pagedjs_page.bookster-transition-blank-intentional-text-page .pagedjs_margin,
             .pagedjs_page.bookster-transition-blank-intentional-text-page .pagedjs_margin-box,
-            .pagedjs_page.bookster-transition-blank-intentional-text-page .pagedjs_margin-content {
+            .pagedjs_page.bookster-transition-blank-intentional-text-page .pagedjs_margin-content,
+            .single-chapter-mode .pagedjs_page:has(.book-start-leading-page) .pagedjs_margin,
+            .single-chapter-mode .pagedjs_page:has(.book-start-leading-page) .pagedjs_margin-box,
+            .single-chapter-mode .pagedjs_page:has(.book-start-leading-page) .pagedjs_margin-content {
                 visibility: hidden !important;
                 display: none !important;
             }
@@ -537,7 +540,10 @@ function getPDFStylesBase(settings, geometry, toPx) {
             .pagedjs_page.bookster-transition-blank-full-page .pagedjs_margin-content,
             .pagedjs_page.bookster-transition-blank-intentional-text-page .pagedjs_margin,
             .pagedjs_page.bookster-transition-blank-intentional-text-page .pagedjs_margin-box,
-            .pagedjs_page.bookster-transition-blank-intentional-text-page .pagedjs_margin-content {
+            .pagedjs_page.bookster-transition-blank-intentional-text-page .pagedjs_margin-content,
+            .single-chapter-mode .pagedjs_page:has(.book-start-leading-page) .pagedjs_margin,
+            .single-chapter-mode .pagedjs_page:has(.book-start-leading-page) .pagedjs_margin-box,
+            .single-chapter-mode .pagedjs_page:has(.book-start-leading-page) .pagedjs_margin-content {
                 visibility: hidden !important;
                 display: none !important;
             }

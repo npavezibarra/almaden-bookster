@@ -27,7 +27,10 @@ graph TD
     %% Construcción de Contenido y Maquetación
     Builder --> HTML[editor-pdf-html.js]
     Builder --> Flow[editor-pdf-chapter-flow.js]
-    
+    Builder --> SingleRule[editor-pdf-single-chapter-rule.js]
+    SingleRule --> Compiler
+    SingleRule --> Styles[editor-pdf-styles.js]
+
     %% Procesamiento de Texto y Semántica
     HTML --> Hyphenation[editor-pdf-html-hyphenation.js]
     HTML --> SafeBreaks[editor-pdf-safe-breaks.js]
@@ -72,6 +75,9 @@ graph TD
 
 *   **[editor-pdf-chapter-flow.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/core/editor-pdf-chapter-flow.js)**
     *   **Responsabilidad**: Resuelve el modo de apertura configurado de los capítulos y su paridad inicial.
+
+*   **[editor-pdf-single-chapter-rule.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/core/editor-pdf-single-chapter-rule.js)**
+    *   **Responsabilidad**: Aísla la regla editorial especial cuando el libro tiene un único capítulo. Este helper permite preguntar primero si el libro es de un solo capítulo y, si corresponde, normalizar el arranque en página 1 para que el blanco inicial no desplace la numeración del capítulo ni la decisión del blanco final.
 
 *   **[editor-pdf-compiler-map.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/core/editor-pdf-compiler-map.js)**
     *   **Responsabilidad**: Control de caché de paginación del libro completo.

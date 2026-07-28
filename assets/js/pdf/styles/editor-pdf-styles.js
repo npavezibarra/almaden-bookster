@@ -83,6 +83,7 @@ function applyDynamicPDFStyles() {
         ${getPDFStylesFlow(settings, toPx)}
         ${getPDFStylesTypography(settings, tocSettings, toPx)}
         ${getPDFStylesSemantic(settings, toPx)}
+        ${typeof getSingleChapterBookStyles === 'function' ? getSingleChapterBookStyles(bookState, settings) : ''}
     `;
 
     if (typeof refreshEditorDisplay === 'function') {

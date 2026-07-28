@@ -24,6 +24,12 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
         }
 
         const settings = bookState.settings || {};
+        const singleChapterRule = window.getSingleChapterBookRule
+            ? window.getSingleChapterBookRule(bookState, settings)
+            : {
+                isSingleChapterBook: false,
+                shouldUseBookStartAsPageOne: false
+            };
         const isSingleChapterMode = (targetScrollerId === 'pdf-scroller') && !forceFull && (window.currentPreviewMode === 'active') && bookState.activeChapterId;
         if (targetScrollerId === 'pdf-scroller') {
             if (isSingleChapterMode) {
@@ -73,11 +79,21 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
         const previewFirstPhysicalPageNumber = buildResult.previewFirstPhysicalPageNumber;
         const startPageNum = buildResult.startPageNum;
         const mappedActiveChapterStart = isSingleChapterMode && bookState.activeChapterId
+            && !singleChapterRule.shouldUseBookStartAsPageOne
             ? Number(window.bookChapterPages?.[bookState.activeChapterId])
             : NaN;
-        const activePreviewFirstPhysicalPageNumber = Number.isFinite(mappedActiveChapterStart) && mappedActiveChapterStart > 0
-            ? mappedActiveChapterStart
-            : previewFirstPhysicalPageNumber;
+        const activePreviewFirstPhysicalPageNumber = window.getSingleChapterPreviewFirstPhysicalPageNumber
+            ? window.getSingleChapterPreviewFirstPhysicalPageNumber(
+                bookState,
+                settings,
+                startPageNum,
+                mappedActiveChapterStart
+            )
+            : (Number.isFinite(mappedActiveChapterStart) && mappedActiveChapterStart > 0
+                ? mappedActiveChapterStart
+                : (singleChapterRule.shouldUseBookStartAsPageOne
+                    ? startPageNum
+                    : previewFirstPhysicalPageNumber));
 
         const styleEl = document.getElementById('dynamic-pdf-settings');
 
@@ -432,9 +448,16 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
 
         if (isSingleChapterMode && typeof window.applyActiveNumericPageFooters === 'function') {
             const activeChapter = bookState.chapters.find(c => c.id === bookState.activeChapterId);
-            const chapterFirstPhysicalPageNumber = activeChapter
-                ? (window.bookChapterPages?.[activeChapter.id] || startPageNum)
-                : startPageNum;
+            const chapterFirstPhysicalPageNumber = window.getSingleChapterContentFirstPhysicalPageNumber
+                ? window.getSingleChapterContentFirstPhysicalPageNumber(
+                    scroller,
+                    bookState,
+                    settings,
+                    activeChapter ? (window.bookChapterPages?.[activeChapter.id] || startPageNum) : startPageNum
+                )
+                : (activeChapter
+                    ? (window.bookChapterPages?.[activeChapter.id] || startPageNum)
+                    : startPageNum);
             window.applyActiveNumericPageFooters(
                 scroller,
                 activePreviewFirstPhysicalPageNumber,
