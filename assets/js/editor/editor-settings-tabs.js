@@ -239,6 +239,8 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-footer-letter-spacing')) document.getElementById('setting-footer-letter-spacing').value = settings.footer_letter_spacing || 0;
     if (document.getElementById('setting-footer-even-type')) document.getElementById('setting-footer-even-type').value = settings.footer_even_type || 'page_number';
     if (document.getElementById('setting-footer-odd-type')) document.getElementById('setting-footer-odd-type').value = settings.footer_odd_type || 'page_number';
+    if (document.getElementById('setting-first-page-header-show')) document.getElementById('setting-first-page-header-show').checked = settings.first_page_header_show == 1 || settings.first_page_header_show === undefined;
+    if (document.getElementById('setting-first-page-footer-show')) document.getElementById('setting-first-page-footer-show').checked = settings.first_page_footer_show == 1 || settings.first_page_footer_show === undefined;
     if (document.getElementById('setting-first-page-header-type')) document.getElementById('setting-first-page-header-type').value = settings.first_page_header_type || 'blank';
     if (document.getElementById('setting-first-page-header-custom')) document.getElementById('setting-first-page-header-custom').value = settings.first_page_header_custom || '';
     if (document.getElementById('setting-first-page-footer-type')) document.getElementById('setting-first-page-footer-type').value = settings.first_page_footer_type || 'page_number';

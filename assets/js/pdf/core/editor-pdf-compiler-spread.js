@@ -233,6 +233,8 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
     const hideTocHeader = activeChapter.is_toc === '1' && activeChapter.toc_hide_header !== '0';
     const hideTocPageNumber = activeChapter.is_toc === '1' && activeChapter.toc_hide_page_numbers !== '0';
     const hideAllHeadersFooters = activeChapter.hide_all_headers_footers === '1';
+    const firstPageHeaderShow = settings.first_page_header_show === undefined ? true : String(settings.first_page_header_show) !== '0';
+    const firstPageFooterShow = settings.first_page_footer_show === undefined ? true : String(settings.first_page_footer_show) !== '0';
 
     const pages = Array.from(scroller.querySelectorAll('.pagedjs_pages > .pagedjs_page'));
     let physicalPageNumber = firstPhysicalPageNumber;
@@ -245,6 +247,7 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
         }
 
         visiblePageIndex += 1;
+        const isFirstChapterPage = Number.isFinite(chapterFirstPhysicalPageNumber) && physicalPageNumber === chapterFirstPhysicalPageNumber;
         const isTransitionBlankFullPage = !!page.querySelector('.chapter-transition-blank-page--full');
         const isTransitionBlankIntentionalTextPage = !!page.querySelector('.chapter-transition-blank-page--intentional-text');
         const isBookEndBlankFullPage = !!page.querySelector('.book-end-blank-page--full');
@@ -285,15 +288,19 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
         const footerType = isEvenPage
             ? (settings.footer_even_type || 'page_number')
             : (settings.footer_odd_type || 'page_number');
-        const headerType = isEvenPage
-            ? (settings.header_even_type || 'book_title')
-            : (settings.header_odd_type || 'chapter_title');
+        const headerType = isFirstChapterPage
+            ? (settings.first_page_header_type || 'blank')
+            : (isEvenPage
+                ? (settings.header_even_type || 'book_title')
+                : (settings.header_odd_type || 'chapter_title'));
+        const firstPageFooterType = settings.first_page_footer_type || 'page_number';
+        const effectiveFooterType = isFirstChapterPage ? firstPageFooterType : footerType;
 
         let shouldRenderPageNumber = false;
         let targetBox = null;
 
-        if (!hideAllHeadersFooters && !hideCreditsPageNumber && !hideTocPageNumber) {
-            if (footerType === 'page_number') {
+        if (!hideAllHeadersFooters && !hideCreditsPageNumber && !hideTocPageNumber && (!isFirstChapterPage || firstPageFooterShow)) {
+            if (effectiveFooterType === 'page_number') {
                 shouldRenderPageNumber = true;
                 targetBox = getResolvedFooterBox(settings.footer_align || 'center', isEvenPage);
             }
@@ -309,18 +316,28 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
             }
         }
 
-        if (!hideAllHeadersFooters && !hideTocHeader && !hideCreditsHeader && headerType !== 'blank') {
+        if (!hideAllHeadersFooters && !hideTocHeader && !hideCreditsHeader && headerType !== 'blank' && (!isFirstChapterPage || firstPageHeaderShow)) {
             const headerBox = getResolvedHeaderBox(settings.header_align || 'center', isEvenPage);
             const targetHeader = page.querySelector(getHeaderBoxClass(headerBox));
             let headerText = '';
-            if (headerType === 'book_title') headerText = bookState.title || 'Libro';
-            else if (headerType === 'chapter_title') headerText = activeChapter.title || '';
-            else if (headerType === 'page_number') headerText = String(physicalPageNumber);
-            else if (headerType === 'author') headerText = 'Autor';
-            else if (headerType === 'custom') {
-                headerText = isEvenPage
-                    ? (settings.header_even_custom || '')
-                    : (settings.header_odd_custom || '');
+            if (isFirstChapterPage) {
+                if (headerType === 'book_title') headerText = bookState.title || 'Libro';
+                else if (headerType === 'chapter_title') headerText = activeChapter.title || '';
+                else if (headerType === 'page_number') headerText = String(physicalPageNumber);
+                else if (headerType === 'author') headerText = 'Autor';
+                else if (headerType === 'custom') {
+                    headerText = settings.first_page_header_custom || '';
+                }
+            } else {
+                if (headerType === 'book_title') headerText = bookState.title || 'Libro';
+                else if (headerType === 'chapter_title') headerText = activeChapter.title || '';
+                else if (headerType === 'page_number') headerText = String(physicalPageNumber);
+                else if (headerType === 'author') headerText = 'Autor';
+                else if (headerType === 'custom') {
+                    headerText = isEvenPage
+                        ? (settings.header_even_custom || '')
+                        : (settings.header_odd_custom || '');
+                }
             }
             if (targetHeader) {
                 setMarginTextAlignment(targetHeader, settings.header_align || 'center', isEvenPage);

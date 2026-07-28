@@ -188,6 +188,23 @@ Cómo se construye:
 * La clase resultante decide si la página usa `page: chapter-blank-page` o `page: chapter-transition-blank-page`.
 * La regla de paridad no cambia. Esta capa solo controla la estética de la página blanca que ya fue necesaria por el salto de capítulos.
 
+### 4.5. Visibilidad de cabecera y pie en la página de apertura
+
+La página donde se renderiza la apertura del capítulo ahora tiene dos controles globales en `Ajustes de Libro > Cabecera y Pie`:
+
+* `first_page_header_show`
+* `first_page_footer_show`
+
+Estos switches no cambian la paridad ni el flujo de capítulos. Solo controlan si la cabecera y/o el pie se dibujan en la página de apertura real.
+
+Regla de aplicación:
+
+* Si la apertura va separada del contenido, el ajuste se aplica a `@page chapter-<id>-opening`.
+* Si la apertura va junto al contenido, el ajuste se aplica a `@page chapter-<id>:first`.
+* Si el switch está apagado, la cabecera o el pie no se muestran en esa página, pero el resto de la paginación sigue igual.
+
+Esto permite ocultar la cabecera/pie de la apertura sin afectar el resto del capítulo ni las páginas blancas de transición.
+
 ### 5. Archivos Inactivos o Deprecados
 
 *   **`editor-pdf-pagination.js`**: *[DEPRECADO]* Antiguo algoritmo procedimental de medición de píxeles. Actualmente inactivo ya que Paged.js maneja nativamente la fragmentación del DOM físico en base al flujo del renderizador de Chrome.

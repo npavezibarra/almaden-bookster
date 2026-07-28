@@ -154,8 +154,10 @@ window.savePDFSettings = function(silent = false) {
     data.append('footer_letter_spacing', getCleanVal('setting-footer-letter-spacing'));
     data.append('footer_even_type', getVal('setting-footer-even-type'));
     data.append('footer_odd_type', getVal('setting-footer-odd-type'));
+    data.append('first_page_header_show', getChecked('setting-first-page-header-show'));
     data.append('first_page_header_type', getVal('setting-first-page-header-type'));
     data.append('first_page_header_custom', getVal('setting-first-page-header-custom'));
+    data.append('first_page_footer_show', getChecked('setting-first-page-footer-show'));
     data.append('first_page_footer_type', getVal('setting-first-page-footer-type'));
     data.append('first_page_footer_custom', getVal('setting-first-page-footer-custom'));
     data.append('book_start_page_footer_type', getVal('setting-book-start-page-footer-type'));
@@ -390,8 +392,10 @@ window.savePDFSettings = function(silent = false) {
                 footer_letter_spacing: parseVal('setting-footer-letter-spacing', 0),
                 footer_even_type: getVal('setting-footer-even-type'),
                 footer_odd_type: getVal('setting-footer-odd-type'),
+                first_page_header_show: getChecked('setting-first-page-header-show'),
                 first_page_header_type: getVal('setting-first-page-header-type'),
                 first_page_header_custom: getVal('setting-first-page-header-custom'),
+                first_page_footer_show: getChecked('setting-first-page-footer-show'),
                 first_page_footer_type: getVal('setting-first-page-footer-type'),
                 first_page_footer_custom: getVal('setting-first-page-footer-custom'),
                 book_start_page_footer_type: getVal('setting-book-start-page-footer-type'),

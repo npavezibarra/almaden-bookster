@@ -7,6 +7,8 @@
 function getPDFStylesChapters(settings, toPx) {
     const bookTitle = bookState.title || 'Libro';
     let chapterCSSRules = '';
+    const firstPageHeaderShow = settings.first_page_header_show === undefined ? true : String(settings.first_page_header_show) !== '0';
+    const firstPageFooterShow = settings.first_page_footer_show === undefined ? true : String(settings.first_page_footer_show) !== '0';
     const unit = settings.unit || 'cm';
     const resolveMargin = (value, fallback) => {
         const parsed = parseFloat(value);
@@ -30,6 +32,34 @@ function getPDFStylesChapters(settings, toPx) {
             const customText = isEven ? (settings.footer_even_custom || '') : (settings.footer_odd_custom || '');
             return `"${customText.replace(/"/g, '\\"')}"`;
         }
+        return '""';
+    };
+    const getHeaderMarginBox = window.getMarginBox || function(align, isEven) {
+        if (align === 'center') return 'top-center';
+        if (align === 'left') return 'top-left';
+        if (align === 'right') return 'top-right';
+        if (align === 'outer') return isEven ? 'top-left' : 'top-right';
+        if (align === 'inner') return isEven ? 'top-right' : 'top-left';
+        return 'top-center';
+    };
+    const getFirstPageHeaderContent = window.getFirstPageHeaderContent || function(type, customText, shouldHide, bookTitle) {
+        if (shouldHide) return '""';
+        if (type === 'blank') return '""';
+        if (type === 'book_title') return `"${bookTitle.replace(/"/g, '\\"')}"`;
+        if (type === 'chapter_title') return 'string(chapter-title)';
+        if (type === 'page_number') return 'counter(page)';
+        if (type === 'author') return '"Autor"';
+        if (type === 'custom') return `"${String(customText || '').replace(/"/g, '\\"')}"`;
+        return '""';
+    };
+    const getFirstPageFooterContent = window.getFirstPageFooterContent || function(type, customText, shouldHide, bookTitle) {
+        if (shouldHide) return '""';
+        if (type === 'blank') return '""';
+        if (type === 'page_number') return 'counter(page)';
+        if (type === 'book_title') return `"${bookTitle.replace(/"/g, '\\"')}"`;
+        if (type === 'chapter_title') return 'string(chapter-title)';
+        if (type === 'author') return '"Autor"';
+        if (type === 'custom') return `"${String(customText || '').replace(/"/g, '\\"')}"`;
         return '""';
     };
     const getEffectiveOpeningPageMode = window.getEffectiveOpeningPageMode || function(chapter) {
@@ -72,6 +102,22 @@ function getPDFStylesChapters(settings, toPx) {
         bookState.chapters.forEach((ch, idx) => {
             const parityImageUrl = ch.parity_image;
             const openingPageMode = getEffectiveOpeningPageMode(ch);
+            const separateOpening = shouldSeparateChapterOpening(ch, settings);
+            const firstHeaderType = (ch.first_page_header_type && ch.first_page_header_type !== 'global')
+                ? ch.first_page_header_type
+                : (settings.first_page_header_type || 'blank');
+            const firstHeaderCustom = ch.first_page_header_custom || settings.first_page_header_custom || '';
+            const firstPageFooterType = ch.first_page_footer_type || settings.first_page_footer_type || 'page_number';
+            const firstPageFooterCustom = ch.first_page_footer_custom || settings.first_page_footer_custom || '';
+            const headerAlign = settings.header_align || 'center';
+            const footerAlign = settings.footer_align || 'center';
+            const footerEvenType = settings.footer_even_type || 'page_number';
+            const footerOddType = settings.footer_odd_type || 'page_number';
+            const hideTocHeader = ch.is_toc === '1' && ch.toc_hide_header !== '0';
+            const hideCreditsHeader = ch.is_credits === '1' && ch.credits_hide_header === '1';
+            const hideCreditsPageNumber = ch.is_credits === '1' && ch.credits_hide_page_number === '1';
+            const hideTocPageNumber = ch.is_toc === '1' && ch.toc_hide_page_numbers !== '0';
+            const hideChapterPageNumber = hideCreditsPageNumber || hideTocPageNumber;
             const chapterImageMode = window.getEffectiveChapterImageMode
                 ? window.getEffectiveChapterImageMode(ch, settings)
                 : ((ch.chapter_image_mode || settings.chapter_image_mode || 'page_blank'));
@@ -96,6 +142,9 @@ function getPDFStylesChapters(settings, toPx) {
                     ? ch.first_page_header_type
                     : (settings.first_page_header_type || 'blank');
                 const firstHeaderCustom = ch.first_page_header_custom || settings.first_page_header_custom || '';
+                const firstPageFooterType = ch.first_page_footer_type || settings.first_page_footer_type || 'page_number';
+                const firstPageFooterCustom = ch.first_page_footer_custom || settings.first_page_footer_custom || '';
+                const headerAlign = settings.header_align || 'center';
                 const footerAlign = settings.footer_align || 'center';
                 const footerEvenType = settings.footer_even_type || 'page_number';
                 const footerOddType = settings.footer_odd_type || 'page_number';
@@ -104,11 +153,16 @@ function getPDFStylesChapters(settings, toPx) {
                 const hideCreditsPageNumber = ch.is_credits === '1' && ch.credits_hide_page_number === '1';
                 const hideTocPageNumber = ch.is_toc === '1' && ch.toc_hide_page_numbers !== '0';
                 const hideChapterPageNumber = hideCreditsPageNumber || hideTocPageNumber;
+                const openingPageHeaderHidden = hideTocHeader || hideCreditsHeader || !firstPageHeaderShow;
+                const openingPageFooterHidden = hideChapterPageNumber || !firstPageFooterShow;
+                const openingPageHeaderContent = getFirstPageHeaderContent(firstHeaderType, firstHeaderCustom, openingPageHeaderHidden, bookTitle);
+                const openingPageFooterContent = getFirstPageFooterContent(firstPageFooterType, firstPageFooterCustom, openingPageFooterHidden, bookTitle);
                 const headerContent = (chapterImageMode === 'image_inner' && imageInnerHeader)
                     ? `
-                        @top-left { content: ${(hideTocHeader || hideCreditsHeader) ? '""' : (firstHeaderType === 'custom' ? `"${firstHeaderCustom.replace(/"/g, '\\"')}"` : '""')}; }
-                        @top-center { content: ${(hideTocHeader || hideCreditsHeader) ? '""' : (firstHeaderType === 'chapter_title' ? 'string(chapter-title)' : (firstHeaderType === 'book_title' ? `"${bookState.title.replace(/"/g, '\\"')}"` : '""'))}; }
+                        @top-left { content: ""; }
+                        @top-center { content: ""; }
                         @top-right { content: ""; }
+                        @${getHeaderMarginBox(headerAlign, true)} { content: ${openingPageHeaderContent}; }
                     `
                     : `
                         @top-left { content: "" !important; }
@@ -117,8 +171,11 @@ function getPDFStylesChapters(settings, toPx) {
                     `;
                 const footerContent = (chapterImageMode === 'image_inner' && imageInnerFooter)
                     ? `
-                        @bottom-${getFooterMarginBox(footerAlign, true).replace('bottom-', '')} { content: ${hideChapterPageNumber ? '""' : getFooterContent(footerEvenType, true, bookState.title, settings)}; }
-                        @bottom-${getFooterMarginBox(footerAlign, false).replace('bottom-', '')} { content: ${hideChapterPageNumber ? '""' : getFooterContent(footerOddType, false, bookState.title, settings)}; }
+                        @bottom-left { content: ""; }
+                        @bottom-center { content: ""; }
+                        @bottom-right { content: ""; }
+                        @bottom-${getFooterMarginBox(footerAlign, true).replace('bottom-', '')} { content: ${openingPageFooterContent}; }
+                        @bottom-${getFooterMarginBox(footerAlign, false).replace('bottom-', '')} { content: ${openingPageFooterContent}; }
                     `
                     : `
                         @bottom-left { content: "" !important; }
@@ -266,6 +323,24 @@ function getPDFStylesChapters(settings, toPx) {
             if (shouldSeparateChapterOpening(ch, settings)) {
                 const mode = ch.parity_image_mode || 'content';
                 let parityPageStyle = '';
+                const openingHeaderBoxEven = getHeaderMarginBox(settings.header_align || 'center', true);
+                const openingHeaderBoxOdd = getHeaderMarginBox(settings.header_align || 'center', false);
+                const openingFooterBoxEven = getFooterMarginBox(settings.footer_align || 'center', true);
+                const openingFooterBoxOdd = getFooterMarginBox(settings.footer_align || 'center', false);
+                const openingHeaderContent = getFirstPageHeaderContent(
+                    ch.first_page_header_type && ch.first_page_header_type !== 'global'
+                        ? ch.first_page_header_type
+                        : (settings.first_page_header_type || 'blank'),
+                    ch.first_page_header_custom || settings.first_page_header_custom || '',
+                    hideTocHeader || hideCreditsHeader || !firstPageHeaderShow,
+                    bookTitle
+                );
+                const openingFooterContent = getFirstPageFooterContent(
+                    ch.first_page_footer_type || settings.first_page_footer_type || 'page_number',
+                    ch.first_page_footer_custom || settings.first_page_footer_custom || '',
+                    hideChapterPageNumber || !firstPageFooterShow,
+                    bookTitle
+                );
                 if (openingPageMode === 'image' && mode === 'bleed') {
                     parityPageStyle = `
                         background-image: url("${parityImageUrl}") !important;
@@ -321,17 +396,43 @@ function getPDFStylesChapters(settings, toPx) {
                     }
                     
                     @page chapter-${ch.id}-opening {
+                        ${parityPageStyle}
+                    }
+                    @page chapter-${ch.id}-opening:left {
                         @top-left { content: "" !important; }
                         @top-center { content: "" !important; }
                         @top-right { content: "" !important; }
                         @bottom-left { content: "" !important; }
                         @bottom-center { content: "" !important; }
                         @bottom-right { content: "" !important; }
+                        @${openingHeaderBoxEven} { content: ${openingHeaderContent}; }
+                        @${openingFooterBoxEven} { content: ${openingFooterContent}; }
+                        ${parityPageStyle}
+                    }
+                    @page chapter-${ch.id}-opening:right {
+                        @top-left { content: "" !important; }
+                        @top-center { content: "" !important; }
+                        @top-right { content: "" !important; }
+                        @bottom-left { content: "" !important; }
+                        @bottom-center { content: "" !important; }
+                        @bottom-right { content: "" !important; }
+                        @${openingHeaderBoxOdd} { content: ${openingHeaderContent}; }
+                        @${openingFooterBoxOdd} { content: ${openingFooterContent}; }
                         ${parityPageStyle}
                     }
                     
                     .pagedjs_chapter-${ch.id}-opening_page .pagedjs_margin {
-                        visibility: hidden !important;
+                        visibility: ${firstPageHeaderShow || firstPageFooterShow ? 'visible' : 'hidden'} !important;
+                    }
+                    .pagedjs_chapter-${ch.id}-opening_page .pagedjs_margin-top,
+                    .pagedjs_chapter-${ch.id}-opening_page .pagedjs_margin-top-left-corner-holder,
+                    .pagedjs_chapter-${ch.id}-opening_page .pagedjs_margin-top-right-corner-holder {
+                        ${firstPageHeaderShow ? '' : 'display: none !important;'}
+                    }
+                    .pagedjs_chapter-${ch.id}-opening_page .pagedjs_margin-bottom,
+                    .pagedjs_chapter-${ch.id}-opening_page .pagedjs_margin-bottom-left-corner-holder,
+                    .pagedjs_chapter-${ch.id}-opening_page .pagedjs_margin-bottom-right-corner-holder {
+                        ${firstPageFooterShow ? '' : 'display: none !important;'}
                     }
                 `;
                 
@@ -384,16 +485,10 @@ function getPDFStylesChapters(settings, toPx) {
             }
             
             // Reglas de cabecera específicas de la primera página del capítulo
-            const firstHeaderType = (ch.first_page_header_type && ch.first_page_header_type !== 'global') ? ch.first_page_header_type : (settings.first_page_header_type || 'blank');
-            const firstHeaderCustom = ch.first_page_header_custom || settings.first_page_header_custom || '';
-            const footerAlign = settings.footer_align || 'center';
-            const footerEvenType = settings.footer_even_type || 'page_number';
-            const footerOddType = settings.footer_odd_type || 'page_number';
-            const hideTocHeader = ch.is_toc === '1' && ch.toc_hide_header !== '0';
-            const hideCreditsHeader = ch.is_credits === '1' && ch.credits_hide_header === '1';
-            const hideCreditsPageNumber = ch.is_credits === '1' && ch.credits_hide_page_number === '1';
-            const hideTocPageNumber = ch.is_toc === '1' && ch.toc_hide_page_numbers !== '0';
-            const hideChapterPageNumber = hideCreditsPageNumber || hideTocPageNumber;
+            const firstPageHeaderHidden = hideTocHeader || hideCreditsHeader || (!separateOpening && !firstPageHeaderShow);
+            const firstPageFooterHidden = hideChapterPageNumber || (!separateOpening && !firstPageFooterShow);
+            const firstPageHeaderContent = getFirstPageHeaderContent(firstHeaderType, firstHeaderCustom, firstPageHeaderHidden, bookTitle);
+            const firstPageFooterContent = getFirstPageFooterContent(firstPageFooterType, firstPageFooterCustom, firstPageFooterHidden, bookTitle);
             const globalMarginTop = resolveMargin(settings.margin_top, 2.5);
             const globalMarginBottom = resolveMargin(settings.margin_bottom, 2.5);
             const creditsMarginTop = ch.is_credits === '1'
@@ -416,19 +511,21 @@ function getPDFStylesChapters(settings, toPx) {
                 @page chapter-${ch.id}:first {
                     ${ch.is_credits === '1' ? `margin-top: ${creditsMarginTop}${unit};
                     margin-bottom: ${creditsMarginBottom}${unit};` : ''}
-                    @top-left { content: ${(hideTocHeader || hideCreditsHeader) ? '""' : (firstHeaderType === 'custom' ? `"${firstHeaderCustom.replace(/"/g, '\\"')}"` : '""')}; }
-                    @top-center { content: ${(hideTocHeader || hideCreditsHeader) ? '""' : (firstHeaderType === 'chapter_title' ? 'string(chapter-title)' : (firstHeaderType === 'book_title' ? `"${bookTitle.replace(/"/g, '\\"')}"` : '""'))}; }
+                    @top-left { content: "" !important; }
+                    @top-center { content: "" !important; }
                     @top-right { content: ""; }
                 }
                 @page chapter-${ch.id}:first:left {
                     ${ch.is_credits === '1' ? `margin-top: ${creditsMarginTop}${unit};
                     margin-bottom: ${creditsMarginBottom}${unit};` : ''}
-                    @bottom-${getFooterMarginBox(footerAlign, true).replace('bottom-', '')} { content: ${hideChapterPageNumber ? '""' : getFooterContent(footerEvenType, true, bookTitle, settings)}; }
+                    @${getHeaderMarginBox(headerAlign, true)} { content: ${firstPageHeaderContent}; }
+                    @${getFooterMarginBox(footerAlign, true)} { content: ${firstPageFooterContent}; }
                 }
                 @page chapter-${ch.id}:first:right {
                     ${ch.is_credits === '1' ? `margin-top: ${creditsMarginTop}${unit};
                     margin-bottom: ${creditsMarginBottom}${unit};` : ''}
-                    @bottom-${getFooterMarginBox(footerAlign, false).replace('bottom-', '')} { content: ${hideChapterPageNumber ? '""' : getFooterContent(footerOddType, false, bookTitle, settings)}; }
+                    @${getHeaderMarginBox(headerAlign, false)} { content: ${firstPageHeaderContent}; }
+                    @${getFooterMarginBox(footerAlign, false)} { content: ${firstPageFooterContent}; }
                 }
                 ${hideCreditsPageNumber ? `
                 @page chapter-${ch.id} {

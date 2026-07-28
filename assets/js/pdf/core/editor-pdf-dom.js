@@ -11,6 +11,8 @@ window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter
     pageDiv.className = 'pdf-page' + (isBlankPage ? ' blank-page' : '') + (isOdd ? ' page-odd' : ' page-even');
 
     const settings = bookState.settings || {};
+    const firstPageHeaderShow = settings.first_page_header_show === undefined ? true : String(settings.first_page_header_show) !== '0';
+    const firstPageFooterShow = settings.first_page_footer_show === undefined ? true : String(settings.first_page_footer_show) !== '0';
     const parityImageUrl = chapter ? chapter.parity_image : null;
     const openingPageMode = window.getEffectiveOpeningPageMode ? window.getEffectiveOpeningPageMode(chapter) : 'none';
     const chapterTitle = chapter ? chapter.title : '';
@@ -139,12 +141,19 @@ window.createNewPageElement = function(pageNumber, chapter, isFirstPageOfChapter
         }
     }
 
+    const headerMarkup = (!isFirstPageOfChapter || firstPageHeaderShow)
+        ? `<div class="pdf-header text-xs">${headerHtml}</div>`
+        : '';
+    const footerMarkup = (!isFirstPageOfChapter || firstPageFooterShow)
+        ? `<div class="pdf-footer text-xs">${footerHtml}</div>`
+        : '';
+
     pageDiv.innerHTML = `
-        <div class="pdf-header text-xs">${headerHtml}</div>
+        ${headerMarkup}
         <div class="${contentClass}" style="${contentStyle}" lang="${settings.content_language || 'es'}">
             <div class="pdf-content-inner" style="display: flow-root; ${(chapter && chapter.is_credits == '1') ? 'height: calc(100% - 4px);' : ''}"></div>
         </div>
-        <div class="pdf-footer text-xs">${footerHtml}</div>
+        ${footerMarkup}
         <div class="global-trim-line"></div>
     `;
 

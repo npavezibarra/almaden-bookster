@@ -262,6 +262,16 @@
                 <!-- OPCIONES PRIMERA PÁGINA DEL CAPÍTULO -->
                 <div class="px-2 pt-1 border-t border-[var(--border-color)] mt-4">
                     <label class="block text-[11px] font-bold text-[var(--text-main)] mb-3">CONTENIDO 1ª PÁG DEL CAPÍTULO</label>
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <label class="flex items-center gap-2 rounded-xl border border-[var(--border-color)] bg-[var(--bg-app)] px-3 py-2 text-[10px] font-semibold text-[var(--text-main)]">
+                            <input type="checkbox" id="setting-first-page-header-show" class="h-3.5 w-3.5 rounded border-[var(--border-color)] text-black focus:ring-black" checked>
+                            <span>Incluir cabecera</span>
+                        </label>
+                        <label class="flex items-center gap-2 rounded-xl border border-[var(--border-color)] bg-[var(--bg-app)] px-3 py-2 text-[10px] font-semibold text-[var(--text-main)]">
+                            <input type="checkbox" id="setting-first-page-footer-show" class="h-3.5 w-3.5 rounded border-[var(--border-color)] text-black focus:ring-black" checked>
+                            <span>Incluir pie</span>
+                        </label>
+                    </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Contenido Cabecera</label>

@@ -76,7 +76,7 @@ function almaden_bookster_create_settings_table() {
 	
 	$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) === $table_name;
 	
-		if ( get_option( 'almaden_bookster_db_version' ) !== '2.4.3' || ! $table_exists ) {
+		if ( get_option( 'almaden_bookster_db_version' ) !== '2.4.4' || ! $table_exists ) {
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE $table_name (
@@ -177,8 +177,10 @@ function almaden_bookster_create_settings_table() {
 			footnote_separator_margin_bottom float DEFAULT 0.15 NOT NULL,
 			first_page_header_type varchar(50) DEFAULT 'blank' NOT NULL,
 			first_page_header_custom varchar(255) DEFAULT '' NOT NULL,
+			first_page_header_show tinyint(1) DEFAULT 1 NOT NULL,
 			first_page_footer_type varchar(50) DEFAULT 'page_number' NOT NULL,
 			first_page_footer_custom varchar(255) DEFAULT '' NOT NULL,
+			first_page_footer_show tinyint(1) DEFAULT 1 NOT NULL,
 			book_start_page_footer_type varchar(20) DEFAULT 'blank' NOT NULL,
 			chapter_transition_blank_mode varchar(50) DEFAULT 'full_blank' NOT NULL,
 			chapter_transition_blank_text varchar(255) DEFAULT '...' NOT NULL,
@@ -251,7 +253,7 @@ function almaden_bookster_create_settings_table() {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 
-		update_option( 'almaden_bookster_db_version', '2.4.3' );
+		update_option( 'almaden_bookster_db_version', '2.4.4' );
 	}
 }
 add_action( 'init', 'almaden_bookster_create_settings_table' );
@@ -406,8 +408,10 @@ add_action('init', function() {
 		'footer_odd_type' => "varchar(50) DEFAULT 'page_number' NOT NULL",
 		'first_page_header_type' => "varchar(50) DEFAULT 'blank' NOT NULL",
 		'first_page_header_custom' => "varchar(255) DEFAULT '' NOT NULL",
+		'first_page_header_show' => 'tinyint(1) DEFAULT 1 NOT NULL',
 		'first_page_footer_type' => "varchar(50) DEFAULT 'page_number' NOT NULL",
 		'first_page_footer_custom' => "varchar(255) DEFAULT '' NOT NULL",
+		'first_page_footer_show' => 'tinyint(1) DEFAULT 1 NOT NULL',
 		'book_start_page_footer_type' => "varchar(20) DEFAULT 'blank' NOT NULL",
 		'chapter_transition_blank_mode' => "varchar(50) DEFAULT 'full_blank' NOT NULL",
 		'chapter_transition_blank_text' => "varchar(255) DEFAULT '...' NOT NULL",

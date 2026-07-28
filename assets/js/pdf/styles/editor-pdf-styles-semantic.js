@@ -55,6 +55,11 @@ function getPDFStylesSemantic(settings) {
             display: none !important;
         }
 
+        .pdf-page.first-page-header-hidden .pdf-header,
+        .pdf-page.first-page-footer-hidden .pdf-footer {
+            display: none !important;
+        }
+
         .pdf-page.blank-page .pdf-content {
             padding: 0 !important;
         }
