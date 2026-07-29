@@ -8,6 +8,14 @@ function normalizePdfPreviewZoom(value) {
     return PDF_PREVIEW_ZOOM_LEVELS.has(normalized) ? normalized : '1';
 }
 
+function getPdfPreviewZoomFactor() {
+    const scroller = document.getElementById('pdf-scroller');
+    const zoomSelect = document.getElementById('pdf-preview-zoom');
+    const rawZoom = scroller?.dataset?.previewZoom || zoomSelect?.value || '1';
+    const zoom = parseFloat(rawZoom);
+    return Number.isFinite(zoom) && zoom > 0 ? zoom : 1;
+}
+
 function applyPdfPreviewZoom(value, persist = true) {
     const scroller = document.getElementById('pdf-scroller');
     const zoomSelect = document.getElementById('pdf-preview-zoom');
@@ -26,6 +34,10 @@ function applyPdfPreviewZoom(value, persist = true) {
     if (persist) {
         localStorage.setItem(PDF_PREVIEW_ZOOM_STORAGE_KEY, normalized);
     }
+
+    if (typeof window.renderRuler === 'function') {
+        window.renderRuler();
+    }
 }
 
 function initPdfPreviewZoom() {
@@ -43,7 +55,7 @@ function initPdfPreviewZoom() {
     }
 }
 
-// Modos de vista del espacio de trabajo (Dividido, Solo Editor, Solo PDF)
+// Modos de vista del espacio de trabajo (Dividido, Editor Raw, Solo PDF)
 function setViewMode(mode) {
     const editorPane = document.getElementById('editor-pane');
     const previewPane = document.getElementById('pdf-preview-pane');
@@ -74,7 +86,7 @@ function setViewMode(mode) {
     } else if (mode === 'edit') {
         if (editorPane) editorPane.classList.remove('hidden');
         if (previewPane) previewPane.classList.add('hidden');
-        if (paneLabel) paneLabel.innerHTML = '<i class="fa-solid fa-pen-to-square text-xs text-black dark:text-white"></i> Solo Editor';
+        if (paneLabel) paneLabel.innerHTML = '<i class="fa-solid fa-pen-to-square text-xs text-black dark:text-white"></i> Editor Raw';
         if (editBtn) editBtn.className = "px-3 py-1.5 rounded-md bg-black text-white shadow-sm transition";
     } else if (mode === 'preview') {
         if (editorPane) editorPane.classList.add('hidden');
@@ -271,41 +283,52 @@ window.renderRuler = function() {
     const scroller = document.getElementById('pdf-scroller');
     if (!wrapper || !ruler || !scroller || wrapper.classList.contains('hidden')) return;
 
+    const zoom = getPdfPreviewZoomFactor();
+    const isSpreadView = scroller.classList.contains('spread-view');
+
     // 1cm ≈ 37.7952755906px
-    const unitPixels = 37.7952755906;
+    const unitPixels = 37.7952755906 * zoom;
     
     // Ruler should be as wide as the scrollable area
-    const totalWidth = Math.max(scroller.clientWidth, scroller.scrollWidth) + 1000; // Extra width for scrolling safety
+    const totalWidth = (Math.max(scroller.clientWidth, scroller.scrollWidth) * zoom) + 1000; // Extra width for scrolling safety
     ruler.style.width = totalWidth + 'px';
     
     // Align ruler with horizontal scroll
-    ruler.style.left = -scroller.scrollLeft + 'px';
+    ruler.style.left = -(scroller.scrollLeft * zoom) + 'px';
     
-    let center = totalWidth / 2;
+    let origin = totalWidth / 2;
     const pagesContainer = scroller.querySelector('.pagedjs_pages');
     
     if (pagesContainer) {
-        // El lomo divisor o centro de la página siempre coincide exactamente con el centro del bloque contenedor .pagedjs_pages
-        center = pagesContainer.offsetLeft + (pagesContainer.offsetWidth / 2);
+        if (isSpreadView) {
+            // En spread, el 0 coincide con el lomo / borde interior entre ambas páginas.
+            origin = (pagesContainer.offsetLeft + (pagesContainer.offsetWidth / 2)) * zoom;
+        } else {
+            // En vista de página única, el 0 debe alinearse con el borde izquierdo de la hoja visible.
+            const firstPage = pagesContainer.querySelector('.pagedjs_page:not(.book-start-dummy-page), .pagedjs_page');
+            origin = firstPage
+                ? firstPage.offsetLeft * zoom
+                : pagesContainer.offsetLeft * zoom;
+        }
     }
 
-    const maxUnitsRight = Math.ceil((totalWidth - center) / unitPixels) + 2;
-    const maxUnitsLeft = Math.ceil(center / unitPixels) + 2;
+    const maxUnitsRight = Math.ceil((totalWidth - origin) / unitPixels) + 2;
+    const maxUnitsLeft = Math.ceil(origin / unitPixels) + 2;
     const maxUnits = Math.max(maxUnitsRight, maxUnitsLeft);
 
     let html = '';
     // Draw 0 at center
-    html += `<div style="position: absolute; top: 0; bottom: 0; border-left: 1px solid #ef4444; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; left: ${center}px; z-index: 10;">
+    html += `<div style="position: absolute; top: 0; bottom: 0; border-left: 1px solid #ef4444; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; left: ${origin}px; z-index: 10;">
         <span style="font-size: 8px; color: #ef4444; font-weight: bold; line-height: 1;  margin-bottom: 2px;">0</span>
     </div>`;
 
     for (let i = 1; i <= maxUnits; i++) {
         // Right
-        html += `<div style="position: absolute; top: 0; bottom: 0; border-left: 1px solid #9ca3af; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; left: ${center + (i * unitPixels)}px;">
+        html += `<div style="position: absolute; top: 0; bottom: 0; border-left: 1px solid #9ca3af; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; left: ${origin + (i * unitPixels)}px;">
             <span style="font-size: 8px; color: #4b5563; line-height: 1;  margin-bottom: 2px;">${i}</span>
         </div>`;
         // Left
-        html += `<div style="position: absolute; top: 0; bottom: 0; border-left: 1px solid #9ca3af; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; left: ${center - (i * unitPixels)}px;">
+        html += `<div style="position: absolute; top: 0; bottom: 0; border-left: 1px solid #9ca3af; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; left: ${origin - (i * unitPixels)}px;">
             <span style="font-size: 8px; color: #4b5563; line-height: 1;  margin-bottom: 2px;">-${i}</span>
         </div>`;
 
@@ -314,9 +337,9 @@ window.renderRuler = function() {
             const subTickOffset = (i - 1 + (j / 10)) * unitPixels;
             const tickHeight = j === 5 ? '10px' : '6px';
             // Right subtick
-            html += `<div style="position: absolute; bottom: 0; border-left: 1px solid #d1d5db; height: ${tickHeight}; left: ${center + subTickOffset}px;"></div>`;
+            html += `<div style="position: absolute; bottom: 0; border-left: 1px solid #d1d5db; height: ${tickHeight}; left: ${origin + subTickOffset}px;"></div>`;
             // Left subtick
-            html += `<div style="position: absolute; bottom: 0; border-left: 1px solid #d1d5db; height: ${tickHeight}; left: ${center - subTickOffset}px;"></div>`;
+            html += `<div style="position: absolute; bottom: 0; border-left: 1px solid #d1d5db; height: ${tickHeight}; left: ${origin - subTickOffset}px;"></div>`;
         }
     }
 
@@ -331,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const wrapper = document.getElementById('pdf-ruler-wrapper');
             const ruler = document.getElementById('pdf-ruler');
             if (wrapper && !wrapper.classList.contains('hidden') && ruler) {
-                ruler.style.left = -scroller.scrollLeft + 'px';
+                ruler.style.left = -(scroller.scrollLeft * getPdfPreviewZoomFactor()) + 'px';
             }
         });
 

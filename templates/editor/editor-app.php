@@ -46,14 +46,14 @@ if (!headers_sent()) {
         <div class="flex items-center gap-4">
             <!-- Toggles de Visualización -->
             <div class="hidden md:flex bg-[var(--bg-app)] rounded-lg p-1 border border-[var(--border-color)] text-xs font-semibold">
-                <button id="view-split-btn" onclick="setViewMode('split')" class="px-3 py-1.5 rounded-md bg-black text-white shadow-sm transition">
-                    Dividido
-                </button>
                 <button id="view-edit-btn" onclick="setViewMode('edit')" class="px-3 py-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] transition">
-                    Solo Editor
+                    Editor Raw
                 </button>
                 <button id="view-preview-btn" onclick="setViewMode('preview')" class="px-3 py-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] transition">
                     Solo PDF
+                </button>
+                <button id="view-split-btn" onclick="setViewMode('split')" class="px-3 py-1.5 rounded-md bg-black text-white shadow-sm transition">
+                    Dividido
                 </button>
             </div>
 
@@ -67,8 +67,8 @@ if (!headers_sent()) {
                 <button onclick="toggleSettingsModal(true)" class="p-2 border border-[var(--border-color)] hover:bg-[var(--bg-app)] rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] transition" title="Configuración de Maquetación del PDF">
                     <i class="fa-solid fa-gear"></i>
                 </button>
-                <button id="btn-export-pdf" onclick="triggerPrint()" class="px-4 py-2 bg-black hover:bg-neutral-800 text-white text-sm font-semibold rounded-[6px] shadow-md hover:shadow-lg transition flex items-center gap-2">
-                    <i class="fa-solid fa-file-pdf"></i>
+                <button id="btn-export-pdf" onclick="triggerPrint()" class="h-11 px-3 bg-black hover:bg-neutral-800 text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-lg transition flex items-center gap-2 leading-none">
+                    <i class="fa-solid fa-file-pdf text-sm"></i>
                     <span class="hidden sm:inline">Imprimir PDF</span>
                 </button>
             </div>
@@ -78,7 +78,7 @@ if (!headers_sent()) {
     <!-- CUERPO PRINCIPAL CONTENEDOR -->
     <div id="almaden-editor-shell" class="flex flex-1 overflow-hidden relative">
         <!-- BARRA LATERAL IZQUIERDA -->
-        <aside id="sidebar" class="w-80 border-r border-[var(--border-color)] bg-[var(--bg-sidebar)] flex flex-col justify-between transition-all z-20 no-print h-full">
+        <aside id="sidebar" class="w-[250px] border-r border-[var(--border-color)] bg-[var(--bg-sidebar)] flex flex-col justify-between transition-all z-20 no-print h-full">
             <div class="pl-4 pr-0 pt-0 pb-0 shrink-0 relative" id="add-chapter-dropdown-wrapper">
                 <div class="flex items-center gap-2">
                     <div id="sidebar-toggle-sidebar-slot"></div>
