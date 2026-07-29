@@ -82,6 +82,15 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
             && !singleChapterRule.shouldUseBookStartAsPageOne
             ? Number(window.bookChapterPages?.[bookState.activeChapterId])
             : NaN;
+        const activeChapterForPreview = isSingleChapterMode
+            ? bookState.chapters.find(chapter => String(chapter.id) === String(bookState.activeChapterId))
+            : null;
+        const activeEditorialStructure = activeChapterForPreview && window.getChapterEditorialStructure
+            ? window.getChapterEditorialStructure(activeChapterForPreview, settings)
+            : null;
+        const mappedActivePreviewStart = Number.isFinite(mappedActiveChapterStart)
+            ? Math.max(1, mappedActiveChapterStart - (activeEditorialStructure?.hasLeadingImage ? 1 : 0))
+            : NaN;
         // A standalone preview can include a physical page before the active
         // chapter (the book-start blank or a transition blank). The chapter
         // map points to the opening, not to that leading page, so it must not
@@ -93,10 +102,10 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
                     bookState,
                     settings,
                     startPageNum,
-                    mappedActiveChapterStart
+                    mappedActivePreviewStart
                 )
-                : (Number.isFinite(mappedActiveChapterStart) && mappedActiveChapterStart > 0
-                    ? mappedActiveChapterStart
+                : (Number.isFinite(mappedActivePreviewStart) && mappedActivePreviewStart > 0
+                    ? mappedActivePreviewStart
                     : (singleChapterRule.shouldUseBookStartAsPageOne
                         ? startPageNum
                         : previewFirstPhysicalPageNumber)));
@@ -308,18 +317,14 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
                     }
                 }
 
-                const usesSeparateOpening = window.shouldSeparateChapterOpening
-                    ? window.shouldSeparateChapterOpening(chapter, bookState.settings || {})
-                    : false;
-                const usesLeadingImagePage = window.chapterHasLeadingImagePage
-                    ? window.chapterHasLeadingImagePage(chapter, bookState.settings || {})
-                    : false;
-                if (usesLeadingImagePage) {
-                    const imagePage = scroller.querySelector(`.chapter-image-page-section-${chapter.id}`);
-                    if (imagePage) {
-                        return imagePage.closest('.pagedjs_page');
-                    }
-                }
+                const editorialStructure = window.getChapterEditorialStructure
+                    ? window.getChapterEditorialStructure(chapter, bookState.settings || {})
+                    : null;
+                const usesSeparateOpening = editorialStructure
+                    ? editorialStructure.separateOpening
+                    : (window.shouldSeparateChapterOpening
+                        ? window.shouldSeparateChapterOpening(chapter, bookState.settings || {})
+                        : false);
                 if (usesSeparateOpening) {
                     const openingPage = scroller.querySelector(`.chapter-opening-page-section-${chapter.id}`);
                     if (openingPage) {

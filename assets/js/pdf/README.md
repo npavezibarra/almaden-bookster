@@ -10,8 +10,6 @@ En cumplimiento estricto de las directrices del proyecto (**límite de 500 líne
 
 ```mermaid
 graph TD
-    Flow[editor-pdf-chapter-flow.js] --> Parity[editor-pdf-compiler-parity.js]
-    Flow --> DOMFactory[editor-pdf-dom.js]
     Flow --> Compiler[editor-pdf-compiler.js]
     Flow --> FlowPlan[editor-pdf-flow-plan.js]
     Compiler --> PageHelpers[editor-pdf-compiler-page-helpers.js]
@@ -46,16 +44,11 @@ graph TD
         *   [getChapterStartParity](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/editor-pdf-chapter-flow.js#L26): Resuelve la paridad inicial (odd/even) según el capítulo y la configuración global.
 
 *   **[editor-pdf-compiler-parity.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/editor-pdf-compiler-parity.js)**
-    *   **Responsabilidad**: Inserta páginas en blanco lógicas cuando un capítulo necesita cumplir una paridad específica de arranque (ej.: comenzar a la derecha/odd).
+    *   **Responsabilidad**: Verifica que el libro cierre en una página par. Los inicios y blancos entre capítulos pertenecen al flujo físico y al constructor continuo.
 
 ---
 
 ### 2. Estructura de DOM y HTML
-
-*   **[editor-pdf-dom.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/editor-pdf-dom.js)**
-    *   **Responsabilidad**: Helpers para crear páginas físicas virtuales en el DOM y encapsular la estructura visual de cada hoja.
-    *   **Funciones Clave**:
-        *   [createNewPageElement](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/editor-pdf-dom.js#L7): Construye la envoltura HTML de cada página (cajas de cabecera, pie y clases de paridad).
 
 *   **[editor-pdf-html.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/editor-pdf-html.js)**
     *   **Responsabilidad**: Procesamiento del Markdown a nivel de estructura de página. Prepara bloques de capítulos, genera el listado dinámico del Índice (TOC), renderiza las secciones de Créditos y aplica letras capitales y prefijos de capítulo.

@@ -263,6 +263,7 @@ function openChapterSettingsModal() {
     toggleChapterCustomFirstPageHeader();
     toggleChapterCustomFirstPageFooter();
     toggleOpeningPageControls();
+    toggleLegacyOpeningCompatibilityNotice(activeChapter);
     toggleChapterImageSettingsForChapter();
 
     // Mostrar modal con animación
@@ -496,8 +497,17 @@ function toggleOpeningPageControls() {
     toggleParityImageSizeInputs();
 }
 
+function toggleLegacyOpeningCompatibilityNotice(chapter) {
+    const notice = document.getElementById('chapter_legacy_opening_notice');
+    if (!notice) return;
+
+    const openingMode = chapter && chapter.opening_page_mode ? String(chapter.opening_page_mode) : 'auto';
+    const hasLegacyOpening = !!(chapter && chapter.parity_image)
+        || ['blank', 'image'].includes(openingMode);
+    notice.classList.toggle('hidden', !hasLegacyOpening);
+}
+
 function toggleChapterImageSettingsForChapter() {
-    const parityField = document.getElementById('chapter_start_parity');
     const enabledField = document.getElementById('chapter_image_enabled');
     const wrapper = document.getElementById('chapter_image_settings_wrapper');
     const modeWrapper = document.getElementById('chapter_image_mode_wrapper');
@@ -510,10 +520,16 @@ function toggleChapterImageSettingsForChapter() {
 
     if (!wrapper || !modeField) return;
 
-    const isLeftStart = parityField ? parityField.value === 'even' : false;
-    wrapper.classList.toggle('hidden', !isLeftStart);
+    const settings = typeof bookState !== 'undefined' && bookState && bookState.settings
+        ? bookState.settings
+        : {};
+    const bookFlowMode = typeof window.getBookChapterFlowMode === 'function'
+        ? window.getBookChapterFlowMode(settings)
+        : (settings.book_chapter_flow_mode === 'left' ? 'left' : 'continuous');
+    const isLeftFlow = bookFlowMode === 'left';
+    wrapper.classList.toggle('hidden', !isLeftFlow);
 
-    const isEnabled = !!(enabledField && enabledField.checked && isLeftStart);
+    const isEnabled = !!(enabledField && enabledField.checked && isLeftFlow);
     if (modeWrapper) {
         modeWrapper.classList.toggle('hidden', !isEnabled);
     }

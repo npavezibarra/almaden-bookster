@@ -39,7 +39,6 @@
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-physical-pages.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-single-chapter-rule.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-compiler-parity.js?v=' . time(), __FILE__ ) ); ?>"></script>
-    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-dom.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-semantic-blocks.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-html-hyphenation.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-html-images.js?v=' . time(), __FILE__ ) ); ?>"></script>

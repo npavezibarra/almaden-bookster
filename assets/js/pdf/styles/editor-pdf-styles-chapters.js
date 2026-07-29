@@ -62,47 +62,8 @@ function getPDFStylesChapters(settings, toPx) {
         if (type === 'custom') return `"${String(customText || '').replace(/"/g, '\\"')}"`;
         return '""';
     };
-    const getEffectiveOpeningPageMode = window.getEffectiveOpeningPageMode || function(chapter) {
-        const configuredMode = chapter && chapter.opening_page_mode ? chapter.opening_page_mode : 'auto';
-        if (configuredMode === 'auto') {
-            return chapter && chapter.parity_image ? 'image' : 'none';
-        }
-        if (configuredMode === 'image' && !(chapter && chapter.parity_image)) {
-            return 'blank';
-        }
-        return configuredMode;
-    };
-    const shouldSeparateChapterOpening = window.shouldSeparateChapterOpening || function(chapter, settings) {
-        const getEffectiveOpeningSeparation = window.getEffectiveOpeningSeparation || function(chapter, settings) {
-            const isEnabled = (value, fallback = true) => {
-                if (value === undefined || value === null || value === '') {
-                    return fallback;
-                }
-                return !['0', 'false', 'off', 'no'].includes(String(value).trim().toLowerCase());
-            };
-            const globalSeparate = isEnabled(settings && settings.book_separate_opening_content);
-            if (chapter && chapter.is_toc === '1' && chapter.toc_separate_opening_content !== undefined && chapter.toc_separate_opening_content !== '') {
-                return isEnabled(chapter.toc_separate_opening_content);
-            }
-            if (chapter && chapter.opening_separate_content !== undefined && chapter.opening_separate_content !== '') {
-                return isEnabled(chapter.opening_separate_content);
-            }
-            return globalSeparate;
-        };
-
-        if (!getEffectiveOpeningSeparation(chapter, settings)) {
-            return false;
-        }
-
-        const hasVisibleOpeningBlock = !!(chapter
-            && chapter.title
-            && String(chapter.title).trim() !== ''
-            && chapter.hide_title !== '1'
-            && chapter.is_credits !== '1');
-        const openingMode = getEffectiveOpeningPageMode(chapter);
-
-        return hasVisibleOpeningBlock || openingMode === 'blank' || openingMode === 'image';
-    };
+    const getEffectiveOpeningPageMode = window.getEffectiveOpeningPageMode;
+    const shouldSeparateChapterOpening = window.shouldSeparateChapterOpening;
 
     if (bookState.chapters) {
         bookState.chapters.forEach((ch, idx) => {
@@ -113,17 +74,30 @@ function getPDFStylesChapters(settings, toPx) {
                 ? ch.first_page_header_type
                 : (settings.first_page_header_type || 'blank');
             const firstHeaderCustom = ch.first_page_header_custom || settings.first_page_header_custom || '';
-            const firstPageFooterType = ch.first_page_footer_type || settings.first_page_footer_type || 'page_number';
+            const firstPageFooterType = (ch.first_page_footer_type && ch.first_page_footer_type !== 'global')
+                ? ch.first_page_footer_type
+                : (settings.first_page_footer_type || 'page_number');
             const firstPageFooterCustom = ch.first_page_footer_custom || settings.first_page_footer_custom || '';
             const headerAlign = settings.header_align || 'center';
             const footerAlign = settings.footer_align || 'center';
             const footerEvenType = settings.footer_even_type || 'page_number';
             const footerOddType = settings.footer_odd_type || 'page_number';
+            const effectiveStartParity = window.getChapterStartParity
+                ? window.getChapterStartParity(ch, settings)
+                : (ch.start_parity || 'any');
+            const firstPageFooterBox = getFooterMarginBox(footerAlign, effectiveStartParity === 'even');
             const hideTocHeader = ch.is_toc === '1' && ch.toc_hide_header !== '0';
             const hideCreditsHeader = ch.is_credits === '1' && ch.credits_hide_header === '1';
             const hideCreditsPageNumber = ch.is_credits === '1' && ch.credits_hide_page_number === '1';
             const hideTocPageNumber = ch.is_toc === '1' && ch.toc_hide_page_numbers !== '0';
             const hideChapterPageNumber = hideCreditsPageNumber || hideTocPageNumber;
+            const isEditorialChapter = ch.is_toc !== '1' && ch.is_credits !== '1';
+            // The opening is the page registered in the TOC, so normal
+            // chapters always show its folio even when generic first-page
+            // footer settings request a blank treatment.
+            const editorialFirstPageFooterType = isEditorialChapter
+                ? 'page_number'
+                : firstPageFooterType;
             const chapterImageMode = window.getEffectiveChapterImageMode
                 ? window.getEffectiveChapterImageMode(ch, settings)
                 : ((ch.chapter_image_mode || settings.chapter_image_mode || 'page_blank'));
@@ -148,7 +122,9 @@ function getPDFStylesChapters(settings, toPx) {
                     ? ch.first_page_header_type
                     : (settings.first_page_header_type || 'blank');
                 const firstHeaderCustom = ch.first_page_header_custom || settings.first_page_header_custom || '';
-                const firstPageFooterType = ch.first_page_footer_type || settings.first_page_footer_type || 'page_number';
+                const firstPageFooterType = (ch.first_page_footer_type && ch.first_page_footer_type !== 'global')
+                    ? ch.first_page_footer_type
+                    : (settings.first_page_footer_type || 'page_number');
                 const firstPageFooterCustom = ch.first_page_footer_custom || settings.first_page_footer_custom || '';
                 const headerAlign = settings.header_align || 'center';
                 const footerAlign = settings.footer_align || 'center';
@@ -237,8 +213,11 @@ function getPDFStylesChapters(settings, toPx) {
                 chapterCSSRules += `
                     .chapter-image-page-section-${ch.id} {
                         page: chapter-${ch.id}-image;
-                        break-before: left;
-                        page-break-before: left;
+                        /* Transition blanks are emitted explicitly by the
+                         * compiler. A forced left break makes Paged.js add an
+                         * invisible implicit page and skips a physical folio. */
+                        break-before: page;
+                        page-break-before: always;
                         break-after: page;
                         display: block !important;
                         position: relative !important;
@@ -342,9 +321,13 @@ function getPDFStylesChapters(settings, toPx) {
                     bookTitle
                 );
                 const openingFooterContent = getFirstPageFooterContent(
-                    ch.first_page_footer_type || settings.first_page_footer_type || 'page_number',
+                    isEditorialChapter
+                        ? 'page_number'
+                        : ((ch.first_page_footer_type && ch.first_page_footer_type !== 'global')
+                            ? ch.first_page_footer_type
+                            : (settings.first_page_footer_type || 'page_number')),
                     ch.first_page_footer_custom || settings.first_page_footer_custom || '',
-                    hideChapterPageNumber || !firstPageFooterShow,
+                    hideChapterPageNumber || (!isEditorialChapter && !firstPageFooterShow),
                     bookTitle
                 );
                 if (openingPageMode === 'image' && mode === 'bleed') {
@@ -433,7 +416,7 @@ function getPDFStylesChapters(settings, toPx) {
                     }
                     
                     .pagedjs_chapter-${ch.id}-opening_page .pagedjs_margin {
-                        visibility: ${firstPageHeaderShow || firstPageFooterShow ? 'visible' : 'hidden'} !important;
+                        visibility: ${firstPageHeaderShow || firstPageFooterShow || isEditorialChapter ? 'visible' : 'hidden'} !important;
                     }
                     .pagedjs_chapter-${ch.id}-opening_page .pagedjs_margin-top,
                     .pagedjs_chapter-${ch.id}-opening_page .pagedjs_margin-top-left-corner-holder,
@@ -443,7 +426,7 @@ function getPDFStylesChapters(settings, toPx) {
                     .pagedjs_chapter-${ch.id}-opening_page .pagedjs_margin-bottom,
                     .pagedjs_chapter-${ch.id}-opening_page .pagedjs_margin-bottom-left-corner-holder,
                     .pagedjs_chapter-${ch.id}-opening_page .pagedjs_margin-bottom-right-corner-holder {
-                        ${firstPageFooterShow ? '' : 'display: none !important;'}
+                        ${firstPageFooterShow || isEditorialChapter ? '' : 'display: none !important;'}
                     }
                 `;
                 
@@ -472,6 +455,10 @@ function getPDFStylesChapters(settings, toPx) {
                 let breakBefore = 'page';
 
                 if (idx === 0 && ch.is_toc === '1') {
+                    breakBefore = 'page';
+                } else if (hasChapterImagePage) {
+                    // The image owns the first page and already ends it.
+                    // The opening/content must continue on the next page.
                     breakBefore = 'page';
                 } else if (idx > 0) {
                     if (bookFlowMode === 'left') {
@@ -503,9 +490,9 @@ function getPDFStylesChapters(settings, toPx) {
             
             // Reglas de cabecera específicas de la primera página del capítulo
             const firstPageHeaderHidden = hideTocHeader || hideCreditsHeader || (!separateOpening && !firstPageHeaderShow);
-            const firstPageFooterHidden = hideChapterPageNumber || (!separateOpening && !firstPageFooterShow);
+            const firstPageFooterHidden = hideChapterPageNumber || (!isEditorialChapter && !separateOpening && !firstPageFooterShow);
             const firstPageHeaderContent = getFirstPageHeaderContent(firstHeaderType, firstHeaderCustom, firstPageHeaderHidden, bookTitle);
-            const firstPageFooterContent = getFirstPageFooterContent(firstPageFooterType, firstPageFooterCustom, firstPageFooterHidden, bookTitle);
+            const firstPageFooterContent = getFirstPageFooterContent(editorialFirstPageFooterType, firstPageFooterCustom, firstPageFooterHidden, bookTitle);
             const globalMarginTop = resolveMargin(settings.margin_top, 2.5);
             const globalMarginBottom = resolveMargin(settings.margin_bottom, 2.5);
             const creditsMarginTop = ch.is_credits === '1'
@@ -531,6 +518,10 @@ function getPDFStylesChapters(settings, toPx) {
                     @top-left { content: "" !important; }
                     @top-center { content: "" !important; }
                     @top-right { content: ""; }
+                    @bottom-left { content: ""; }
+                    @bottom-center { content: ""; }
+                    @bottom-right { content: ""; }
+                    @${firstPageFooterBox} { content: ${firstPageFooterContent}; }
                 }
                 @page chapter-${ch.id}:first:left {
                     ${ch.is_credits === '1' ? `margin-top: ${creditsMarginTop}${unit};

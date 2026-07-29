@@ -69,8 +69,13 @@ window.chapterHasLeadingImagePage = function(chapter, settings) {
         return false;
     }
 
-    const startParity = chapter && chapter.start_parity ? chapter.start_parity : 'any';
-    if (startParity !== 'even') {
+    const flowMode = window.getBookChapterFlowMode
+        ? window.getBookChapterFlowMode(settings)
+        : 'continuous';
+    const startParity = window.getChapterStartParity
+        ? window.getChapterStartParity(chapter, settings)
+        : (chapter && chapter.start_parity ? chapter.start_parity : 'any');
+    if (flowMode !== 'left' || startParity !== 'even') {
         return false;
     }
 
@@ -81,6 +86,27 @@ window.chapterHasLeadingImagePage = function(chapter, settings) {
     return ['page_blank', 'image_full_page', 'image_inner'].includes(
         window.getEffectiveChapterImageMode ? window.getEffectiveChapterImageMode(chapter, settings) : 'page_blank'
     );
+};
+
+// Every chapter follows the same sequence: optional image, opening, content.
+// The image is visual-only and never becomes the editorial TOC anchor.
+window.getChapterEditorialStructure = function(chapter, settings) {
+    const hasLeadingImage = window.chapterHasLeadingImagePage
+        ? window.chapterHasLeadingImagePage(chapter, settings)
+        : false;
+    const separateOpening = window.shouldSeparateChapterOpening
+        ? window.shouldSeparateChapterOpening(chapter, settings)
+        : false;
+
+    return {
+        hasLeadingImage,
+        imageMode: hasLeadingImage && window.getEffectiveChapterImageMode
+            ? window.getEffectiveChapterImageMode(chapter, settings)
+            : 'none',
+        separateOpening,
+        openingPlacement: separateOpening ? 'dedicated-page' : 'with-content',
+        tocAnchor: separateOpening ? 'opening' : 'content'
+    };
 };
 
 window.chapterHasOpeningPage = function(chapter) {

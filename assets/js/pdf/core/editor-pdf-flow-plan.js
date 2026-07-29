@@ -46,13 +46,20 @@ window.buildBookFlowPlan = function(isSingleChapterMode, bookState, settings, bo
 
     if (isSingleChapterMode && activeChapter) {
         const isBookStartChapter = firstChapter && firstChapter.id === activeChapter.id;
+        const editorialStructure = window.getChapterEditorialStructure
+            ? window.getChapterEditorialStructure(activeChapter, settings)
+            : null;
+        // The map stores the TOC anchor (opening/content). The active preview
+        // must begin at the physical chapter start, which is one page earlier
+        // when a chapter image precedes that anchor.
+        const leadingImagePageCount = editorialStructure && editorialStructure.hasLeadingImage ? 1 : 0;
         needsBookStartLeadingPage = isBookStartChapter && flowMode === 'left';
 
         const cachedPageNum = bookChapterPages ? bookChapterPages[activeChapter.id] : undefined;
         if (needsBookStartLeadingPage) {
             startPageNum = 1;
         } else if (cachedPageNum !== undefined && cachedPageNum !== null) {
-            startPageNum = cachedPageNum;
+            startPageNum = Math.max(1, cachedPageNum - leadingImagePageCount);
         } else if (window.chapterHasLeadingImagePage && window.chapterHasLeadingImagePage(activeChapter, settings)) {
             startPageNum = 1;
         } else if (window.shouldSeparateChapterOpening && window.shouldSeparateChapterOpening(activeChapter, settings)) {

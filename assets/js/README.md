@@ -75,9 +75,7 @@ assets/js/
 *   **[editor-pdf-compiler-dimensions.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/core/editor-pdf-compiler-dimensions.js)**: 
     Cálculos de escala física de hojas en px/mm y layouts de página.
 *   **[editor-pdf-compiler-parity.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/core/editor-pdf-compiler-parity.js)**: 
-    Reglas de asignación de paridad (páginas pares e impares, imágenes de paridad y márgenes dinámicos).
-*   **[editor-pdf-dom.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/core/editor-pdf-dom.js)**: 
-    Generador del esqueleto virtual de las hojas (Headers, Footers, Page-numbering, y Footnote wrappers).
+    Regla de cierre: agrega la última página técnica cuando el libro debe terminar en una página par.
 *   **[editor-pdf-pagination.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/core/editor-pdf-pagination.js)**: 
     Algoritmos de detección de desborde y división de bloques de párrafos en múltiples páginas.
 *   **[editor-pdf-html.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/core/editor-pdf-html.js)**: 

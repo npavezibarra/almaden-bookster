@@ -37,7 +37,6 @@ graph TD
     HTML --> Hyphenation[editor-pdf-html-hyphenation.js]
     HTML --> SafeBreaks[editor-pdf-safe-breaks.js]
     HTML --> Semantic[editor-pdf-semantic-blocks.js]
-    HTML --> DOM[editor-pdf-dom.js]
 ```
 
 ---
@@ -113,9 +112,6 @@ graph TD
     *   **Responsabilidad**: Algoritmo de silabación y guionado (hyphenation) automático de texto en español.
     *   **Funciones Clave**:
         *   `window.almadenApplyHyphenationToHtml`: Recorre los nodos de texto e inyecta guiones suaves (soft-hyphens `\u00AD`) basados en las reglas silábicas del español (diptongos, triptongos, excepciones).
-
-*   **[editor-pdf-dom.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/core/editor-pdf-dom.js)**
-    *   **Responsabilidad**: Elementos de fábrica HTML para crear envolturas virtuales de páginas y contenedores de notas.
 
 *   **[editor-pdf-safe-breaks.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/core/editor-pdf-safe-breaks.js)**
     *   **Responsabilidad**: Aplica reglas de saltos de página seguros en elementos blockquote y listas.

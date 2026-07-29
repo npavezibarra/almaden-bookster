@@ -114,10 +114,10 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
 
     // Version the style node so a live editor session cannot retain the old
     // pseudo-element-only implementation after a hot reload.
-    let overrideStyle = document.getElementById('bookster-active-footer-overrides-v8');
+    let overrideStyle = document.getElementById('bookster-active-footer-overrides-v9');
     if (!overrideStyle) {
         overrideStyle = document.createElement('style');
-        overrideStyle.id = 'bookster-active-footer-overrides-v8';
+        overrideStyle.id = 'bookster-active-footer-overrides-v9';
         overrideStyle.textContent = `
             #pdf-scroller .pagedjs_margin-content.bookster-header-hidden::after,
             #pdf-scroller .pagedjs_margin-content.bookster-page-number-hidden::after {
@@ -270,9 +270,16 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
             : (forcedPageNumber ?? physicalPageNumber);
 
         visiblePageIndex += 1;
-        const isFirstChapterPage = Number.isFinite(chapterFirstPhysicalPageNumber)
-            ? currentPageNumber === chapterFirstPhysicalPageNumber
-            : (forceBookStartSequence ? currentPageNumber === 2 : false);
+        // The rendered chapter marker is the source of truth. A configured
+        // physical number can be stale while Paged.js is rebuilding pages.
+        const isFirstChapterPage = firstChapterContentPageIndex >= 0
+            ? pageIndex === firstChapterContentPageIndex
+            : (Number.isFinite(chapterFirstPhysicalPageNumber)
+                ? currentPageNumber === chapterFirstPhysicalPageNumber
+                : (forceBookStartSequence ? currentPageNumber === 2 : false));
+        const isEditorialChapterStart = isFirstChapterPage
+            && activeChapter.is_toc !== '1'
+            && activeChapter.is_credits !== '1';
         const isTransitionBlankFullPage = !!page.querySelector('.chapter-transition-blank-page--full');
         const isTransitionBlankIntentionalTextPage = !!page.querySelector('.chapter-transition-blank-page--intentional-text');
         const isBookEndBlankFullPage = !!page.querySelector('.book-end-blank-page--full');
@@ -316,7 +323,11 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
                 ? (settings.header_even_type || 'book_title')
                 : (settings.header_odd_type || 'chapter_title'));
         const firstPageFooterType = settings.first_page_footer_type || 'page_number';
-        const effectiveFooterType = isFirstChapterPage ? firstPageFooterType : footerType;
+        // The first editorial page is the TOC target. Its folio is mandatory;
+        // generic first-page footer settings only apply to non-editorial pages.
+        const effectiveFooterType = isEditorialChapterStart
+            ? 'page_number'
+            : (isFirstChapterPage ? firstPageFooterType : footerType);
 
         let shouldRenderPageNumber = false;
         let targetBox = null;
@@ -324,7 +335,7 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
         if (isBookStartLeadingPage) {
             shouldRenderPageNumber = true;
             targetBox = getResolvedFooterBox(settings.footer_align || 'center', false);
-        } else if (!hideAllHeadersFooters && !hideCreditsPageNumber && !hideTocPageNumber && (!isFirstChapterPage || firstPageFooterShow)) {
+        } else if (!hideAllHeadersFooters && !hideCreditsPageNumber && !hideTocPageNumber && (isEditorialChapterStart || !isFirstChapterPage || firstPageFooterShow)) {
             if (effectiveFooterType === 'page_number') {
                 shouldRenderPageNumber = true;
                 targetBox = getResolvedFooterBox(settings.footer_align || 'center', isEvenPage);

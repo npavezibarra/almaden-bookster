@@ -16,9 +16,16 @@
             </p>
         </div>
 
-        <div class="grid grid-cols-1 gap-4">
+        <div id="chapter_legacy_opening_notice" class="hidden rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+            <p class="text-xs font-semibold">Configuracion anterior detectada</p>
+            <p class="mt-1 text-xs">Este capitulo conserva una pagina previa legacy. Se mantiene sin cambios para evitar alterar libros existentes y se migrara en una fase posterior.</p>
+        </div>
+
+        <!-- Keep legacy values in the form for backwards compatibility, without
+             presenting a second editorial system to newly configured chapters. -->
+        <div id="chapter_legacy_opening_settings" class="hidden" aria-hidden="true">
             <div>
-                <label class="block font-semibold mb-1">Página previa a la apertura</label>
+                <label class="block font-semibold mb-1">Pagina previa a la apertura</label>
                 <p class="text-xs text-[var(--text-muted)] mb-2">Controla si este capítulo debe abrir con una página previa especial antes de la página de título/contenido.</p>
                 <select id="chapter_opening_page_mode" name="opening_page_mode" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-[var(--text-main)] focus:outline-none focus:border-black dark:border-white" onchange="toggleOpeningPageControls()">
                     <option value="auto">Automático (compatibilidad actual)</option>
@@ -63,16 +70,16 @@
 
     <div id="chapter_image_settings_wrapper" class="space-y-3 rounded-xl border border-[var(--border-color)] bg-[var(--bg-app)] p-4 hidden">
         <div>
-            <label class="block font-semibold mb-1">Chapter Image</label>
+            <label class="block font-semibold mb-1">Imagen de capitulo</label>
             <p class="text-xs text-[var(--text-muted)]">
-                Se activa solo cuando este capítulo inicia en página par/izquierda y el switch está encendido. Esta configuración define la primera página del capítulo.
+                Disponible cuando el flujo del libro es "Iniciar izquierda (par)". Esta configuracion define la primera pagina del capitulo.
             </p>
         </div>
 
         <div class="flex items-center justify-between p-3 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
             <div>
-                <label class="font-semibold block mb-1 text-[10px]">Activar Chapter Image</label>
-                <span class="text-[10px] text-[var(--text-muted)]">Muestra la imagen portada para la primera página del capítulo.</span>
+                <label class="font-semibold block mb-1 text-[10px]">Activar imagen de capitulo</label>
+                <span class="text-[10px] text-[var(--text-muted)]">Agrega una pagina previa a la apertura editorial.</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" id="chapter_image_enabled" onchange="toggleChapterImageSettingsForChapter()" class="sr-only peer">
@@ -95,7 +102,7 @@
         </div>
 
         <div id="chapter_image_mode_wrapper">
-            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Modo de Chapter Image</label>
+            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Modo de imagen de capitulo</label>
             <select id="chapter_image_mode" onchange="toggleChapterImageSettingsForChapter()" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                 <option value="page_blank">Page Blank</option>
                 <option value="image_full_page">Image Full Page</option>
@@ -290,36 +297,6 @@
             </div>
         </div>
 
-        <div id="chapter_opening_image_controls" class="grid grid-cols-1 gap-4 hidden">
-            <div>
-                <label class="block font-semibold mb-1">Imagen de apertura</label>
-                <p class="text-xs text-[var(--text-muted)] mb-2">Selecciona la imagen que se mostrará en la página previa al capítulo.</p>
-                <div class="flex items-center gap-2 mb-4">
-                    <button type="button" onclick="openParityImageUploader()" class="px-4 py-2 bg-neutral-100 text-black dark:text-white hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700 border border-neutral-300 dark:border-neutral-700 rounded-lg text-sm font-semibold transition flex items-center gap-2">
-                        <i class="fa-solid fa-upload"></i> Subir / Seleccionar Imagen
-                    </button>
-                </div>
-
-                <label class="block font-semibold mb-1">Modo de imagen</label>
-                <p class="text-xs text-[var(--text-muted)] mb-2">Define si la imagen se extiende hasta el borde, respeta el content box o usa tamaño personalizado.</p>
-                <select id="chapter_parity_image_mode" name="parity_image_mode" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-[var(--text-main)] focus:outline-none focus:border-black dark:border-white" onchange="toggleParityImageSizeInputs()">
-                    <option value="content">Full dentro del content box</option>
-                    <option value="bleed">Full page con bleed</option>
-                    <option value="custom">Ajustable por el usuario</option>
-                </select>
-
-                <div id="parity_image_custom_size" class="hidden grid-cols-2 gap-4 mt-3">
-                    <div>
-                        <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Ancho (%)</label>
-                        <input type="number" id="chapter_parity_image_width" name="parity_image_width" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 100">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Alto (%)</label>
-                        <input type="number" id="chapter_parity_image_height" name="parity_image_height" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 100">
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <div id="tab-header-footer" class="chapter-tab-content space-y-6 hidden">
