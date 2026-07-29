@@ -57,6 +57,11 @@ if (!headers_sent()) {
                 </button>
             </div>
 
+            <button onclick="saveStateToLocalStorage(true)" id="toolbar-save-btn" class="hidden md:inline-flex px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800/50 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-lg transition items-center gap-2 text-sm font-semibold" title="Guardar cambios (Ctrl+S / Cmd+S)">
+                <i class="fa-solid fa-floppy-disk text-sm"></i>
+                <span>Guardar</span>
+            </button>
+
             <!-- Botones de Acción -->
             <div class="flex gap-2">
                 <button onclick="toggleSettingsModal(true)" class="p-2 border border-[var(--border-color)] hover:bg-[var(--bg-app)] rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] transition" title="Configuración de Maquetación del PDF">
@@ -265,13 +270,6 @@ if (!headers_sent()) {
                         </div>
                     </div>
 
-                    <!-- Botón de guardado -->
-                    <div class="text-xs font-semibold flex items-center gap-3">
-                        <button onclick="saveStateToLocalStorage(true)" id="toolbar-save-btn" class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800/50 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded transition flex items-center gap-1.5" title="Guardar cambios (Ctrl+S / Cmd+S)">
-                            <i class="fa-solid fa-floppy-disk text-[10px]"></i>
-                            <span>Guardar</span>
-                        </button>
-                    </div>
                 </div>
 
                 <!-- Campo de Entrada del Título del Capítulo -->
@@ -320,7 +318,16 @@ if (!headers_sent()) {
                         <i class="fa-solid fa-magnifying-glass-doc text-xs text-black dark:text-white"></i> Vista Previa
                     </span>
                     <div class="flex items-center gap-3">
-
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">Zoom</span>
+                            <select id="pdf-preview-zoom" class="h-7 rounded-md border border-[var(--border-color)] bg-[var(--bg-app)] px-2 text-xs font-semibold text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-black">
+                                <option value="0.25">25%</option>
+                                <option value="0.5">50%</option>
+                                <option value="0.75">75%</option>
+                                <option value="1" selected>100%</option>
+                                <option value="2">200%</option>
+                            </select>
+                        </div>
                         <button id="btn-toggle-ruler" class="text-[var(--text-muted)] hover:text-black dark:hover:text-white transition-colors" title="Mostrar Regla" onclick="window.toggleRuler()">
                             <i class="fa-solid fa-ruler-horizontal"></i>
                         </button>

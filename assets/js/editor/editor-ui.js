@@ -1,5 +1,48 @@
 // editor-ui.js
 
+const PDF_PREVIEW_ZOOM_STORAGE_KEY = 'almaden_pdf_preview_zoom';
+const PDF_PREVIEW_ZOOM_LEVELS = new Set(['0.25', '0.5', '0.75', '1', '2']);
+
+function normalizePdfPreviewZoom(value) {
+    const normalized = String(value ?? '1');
+    return PDF_PREVIEW_ZOOM_LEVELS.has(normalized) ? normalized : '1';
+}
+
+function applyPdfPreviewZoom(value, persist = true) {
+    const scroller = document.getElementById('pdf-scroller');
+    const zoomSelect = document.getElementById('pdf-preview-zoom');
+    const normalized = normalizePdfPreviewZoom(value);
+
+    if (scroller) {
+        scroller.style.zoom = normalized;
+        scroller.style.webkitZoom = normalized;
+        scroller.dataset.previewZoom = normalized;
+    }
+
+    if (zoomSelect && zoomSelect.value !== normalized) {
+        zoomSelect.value = normalized;
+    }
+
+    if (persist) {
+        localStorage.setItem(PDF_PREVIEW_ZOOM_STORAGE_KEY, normalized);
+    }
+}
+
+function initPdfPreviewZoom() {
+    const zoomSelect = document.getElementById('pdf-preview-zoom');
+    const savedZoom = normalizePdfPreviewZoom(localStorage.getItem(PDF_PREVIEW_ZOOM_STORAGE_KEY));
+
+    applyPdfPreviewZoom(savedZoom, false);
+
+    if (zoomSelect && !zoomSelect.dataset.zoomBound) {
+        zoomSelect.dataset.zoomBound = '1';
+        zoomSelect.value = savedZoom;
+        zoomSelect.addEventListener('change', function() {
+            applyPdfPreviewZoom(this.value, true);
+        });
+    }
+}
+
 // Modos de vista del espacio de trabajo (Dividido, Solo Editor, Solo PDF)
 function setViewMode(mode) {
     const editorPane = document.getElementById('editor-pane');
@@ -200,6 +243,7 @@ document.addEventListener('click', function(event) {
 
 document.addEventListener('DOMContentLoaded', () => {
     initSidebarCollapseState();
+    initPdfPreviewZoom();
 });
 
 // Ruler Logic
