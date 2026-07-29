@@ -180,7 +180,6 @@ La tabla recibe, entre otros:
   - `header_*`
   - `footer_*`
   - `first_page_*`
-  - `book_start_page_footer_type`
   - `footnote_*`
   - `chapter_*`
 

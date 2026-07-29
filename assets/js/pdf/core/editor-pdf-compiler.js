@@ -357,10 +357,11 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
                     ? bookState.chapters[idx + 1]
                     : null;
                 const rawNextStart = nextChapter ? chapterStartPagesRaw[nextChapter.id] : null;
+                const leadingBookStartPages = idx === 0 && flowPlan.needsBookStartLeadingPage ? 1 : 0;
 
                 const safeStart = rawStart || 1;
                 const safeNextStart = rawNextStart || (visiblePageNumber + 1);
-                const physicalChapterLength = Math.max(1, safeNextStart - safeStart);
+                const physicalChapterLength = Math.max(1, safeNextStart - safeStart + leadingBookStartPages);
                 window.bookChapterPhysicalLengths[ch.id] = physicalChapterLength;
 
                 // La longitud representa las paginas fisicas hasta el inicio

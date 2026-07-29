@@ -247,7 +247,6 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-first-page-header-custom')) document.getElementById('setting-first-page-header-custom').value = settings.first_page_header_custom || '';
     if (document.getElementById('setting-first-page-footer-type')) document.getElementById('setting-first-page-footer-type').value = settings.first_page_footer_type || 'page_number';
     if (document.getElementById('setting-first-page-footer-custom')) document.getElementById('setting-first-page-footer-custom').value = settings.first_page_footer_custom || '';
-    if (document.getElementById('setting-book-start-page-footer-type')) document.getElementById('setting-book-start-page-footer-type').value = settings.book_start_page_footer_type || 'blank';
     if (document.getElementById('setting-chapter-transition-blank-mode')) document.getElementById('setting-chapter-transition-blank-mode').value = settings.chapter_transition_blank_mode || 'full_blank';
     if (document.getElementById('setting-chapter-transition-blank-text')) document.getElementById('setting-chapter-transition-blank-text').value = settings.chapter_transition_blank_text || '...';
 

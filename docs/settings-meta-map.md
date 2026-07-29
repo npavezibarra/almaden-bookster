@@ -16,7 +16,6 @@ This document maps the canonical source of truth for the current book layout sys
 | Global PDF | Page size, margins, padding, bleed, export mode | Table `almaden_book_settings` | `unit`, `page_size`, `page_width`, `page_height`, `margin_*`, `padding_*`, `bleeding`, `export_grayscale` |
 | Global PDF | Header/footer layout | Table `almaden_book_settings` | `header_*`, `footer_*`, `first_page_header_*`, `first_page_footer_*`, `first_page_header_show`, `first_page_footer_show` |
 | Global PDF | Chapter flow | Table `almaden_book_settings` + book `post_meta` | `chapter_start_parity`, `chapter_page_one_vertical`, `_almaden_book_separate_opening_content`, `_almaden_book_chapter_flow_mode` |
-| Global PDF | Book start leading page | Table `almaden_book_settings` | `book_start_page_footer_type` |
 | Global PDF | Chapter title style | Table `almaden_book_settings` | `chapter_title_*` |
 | Global PDF | Chapter prefix style | Table `almaden_book_settings` | `chapter_prefix_*` |
 | Global PDF | Footnote separator | Table `almaden_book_settings` | `footnote_separator_*` |
@@ -35,6 +34,7 @@ This document maps the canonical source of truth for the current book layout sys
 These keys may still exist in old books or exports, but they are no longer part of the active chapter editing flow:
 
 - `chapter_page_one_align` (schema-only / unused)
+- `book_start_page_footer_type` (schema-only / retired; page 1 is always a technical blank)
 - `_page_one_vertical`
 - `_toc_page_one_vertical`
 

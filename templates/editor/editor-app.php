@@ -20,20 +20,25 @@ if (!headers_sent()) {
 <body class="theme-light h-full overflow-hidden flex flex-col bg-[var(--bg-app)] text-[var(--text-main)]">
 
     <!-- CABECERA PRINCIPAL -->
-    <header class="h-16 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] px-6 flex items-center justify-between z-10 no-print transition-all">
-        <div class="flex items-center gap-3">
-            <a href="<?php echo esc_url( almaden_bookster_get_creator_page_url() ); ?>" class="mr-2 text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors flex items-center gap-1.5 text-sm font-semibold" title="Volver al Taller">
-                <i class="fa-solid fa-arrow-left"></i>
-                <span class="hidden sm:inline">Volver</span>
+    <header class="h-16 border-b border-[var(--border-color)] px-4 flex items-center justify-between z-10 no-print transition-all" style="background-color: #f0f0f0;">
+        <div class="flex items-center">
+            <a href="<?php echo esc_url( almaden_bookster_get_creator_page_url() ); ?>" class="inline-flex h-10 w-10 items-center justify-center rounded-full text-[var(--text-muted)] hover:bg-[var(--bg-app)] hover:text-[var(--text-main)] transition-colors" title="Volver al Taller" aria-label="Volver al Taller">
+                <svg aria-hidden="true" viewBox="0 0 24 24" class="h-7 w-7" focusable="false" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M11.25 8.5 7.75 12l3.5 3.5" />
+                    <path d="M8 12h8" />
+                </svg>
             </a>
-            <div class="bg-black text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-black/30">
-                <i class="fa-solid fa-book-open text-lg"></i>
-            </div>
-            <div>
-                <input id="book-title-input" type="text" value="Mi Novela Inédita" 
-                    class="bg-transparent font-bold text-lg focus:outline-none focus:ring-2 focus:ring-black rounded px-1 w-48 md:w-64 border-b border-transparent hover:border-dashed hover:border-gray-400 transition-all" 
-                    title="Haz clic para renombrar el libro">
-                <p class="text-xs text-[var(--text-muted)] -mt-1 font-medium">Editor de Manuscritos</p>
+            <div class="w-0 shrink-0" aria-hidden="true"></div>
+            <div class="flex items-center gap-3">
+                <div class="bg-black text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-black/30">
+                    <i class="fa-solid fa-book-open text-lg"></i>
+                </div>
+                <div>
+                    <input id="book-title-input" type="text" value="Mi Novela Inédita" 
+                        class="bg-transparent font-bold text-lg focus:outline-none focus:ring-2 focus:ring-black rounded px-1 w-48 md:w-64 border-b border-transparent hover:border-dashed hover:border-gray-400 transition-all" 
+                        title="Haz clic para renombrar el libro">
+                </div>
             </div>
         </div>
 
@@ -108,9 +113,9 @@ if (!headers_sent()) {
                 </div>
             </div>
 
-            <div id="sidebar-chapters-section" class="px-4 pb-4 flex flex-col flex-1 overflow-y-auto">
+            <div id="sidebar-chapters-section" class="flex flex-col flex-1 overflow-y-auto">
                 <!-- Listado de Capítulos -->
-                <div class="flex-1 mt-2">
+                <div class="flex-1">
                     <div id="chapters-list" class="divide-y divide-[var(--border-color)] space-y-0">
                         <!-- Generado dinámicamente -->
                     </div>

@@ -32,13 +32,6 @@
                             <input id="setting-chapter-transition-blank-text" type="text" value="..." class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="...">
                             <p class="text-[10px] text-[var(--text-muted)] mt-1">Se mostrará centrado dentro de la página en blanco cuando selecciones el modo de texto intencional.</p>
                         </div>
-                        <div>
-                            <label class="block text-[9px] text-[var(--text-muted)] mb-1">Pie de la página inicial del libro</label>
-                            <select id="setting-book-start-page-footer-type" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
-                                <option value="blank">Dejar en blanco</option>
-                                <option value="page_number">Mostrar número 1</option>
-                            </select>
-                        </div>
                         <input type="hidden" id="setting-chapter-start-parity" value="any">
                     </div>
                 </div>

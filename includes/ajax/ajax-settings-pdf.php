@@ -127,7 +127,6 @@ function almaden_get_book_pdf_settings( $book_id ) {
 		'first_page_footer_show'     => 1,
 		'first_page_footer_type'     => 'page_number',
 		'first_page_footer_custom'   => '',
-		'book_start_page_footer_type' => 'blank',
 		'book_separate_opening_content' => 1,
 		'book_chapter_flow_mode'     => 'continuous',
 		'chapter_start_parity'       => 'any',

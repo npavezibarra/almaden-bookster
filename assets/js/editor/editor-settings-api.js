@@ -163,7 +163,6 @@ window.savePDFSettings = function(silent = false) {
     data.append('first_page_footer_show', getChecked('setting-first-page-footer-show'));
     data.append('first_page_footer_type', getVal('setting-first-page-footer-type'));
     data.append('first_page_footer_custom', getVal('setting-first-page-footer-custom'));
-    data.append('book_start_page_footer_type', getVal('setting-book-start-page-footer-type'));
     data.append('book_separate_opening_content', getChecked('setting-book-separate-opening-content'));
     data.append('book_chapter_flow_mode', getBookFlowMode());
     data.append('chapter_transition_blank_mode', getVal('setting-chapter-transition-blank-mode') || 'full_blank');

@@ -115,7 +115,6 @@ function almaden_bookster_save_settings_ajax() {
 		'first_page_footer_show'     => isset( $_POST['first_page_footer_show'] ) ? intval( $_POST['first_page_footer_show'] ) : 1,
 		'first_page_footer_type'     => sanitize_text_field( $_POST['first_page_footer_type'] ),
 		'first_page_footer_custom'   => sanitize_text_field( $_POST['first_page_footer_custom'] ),
-		'book_start_page_footer_type' => ( isset( $_POST['book_start_page_footer_type'] ) && in_array( $_POST['book_start_page_footer_type'], array( 'blank', 'page_number' ), true ) ) ? sanitize_text_field( $_POST['book_start_page_footer_type'] ) : 'blank',
 		'chapter_transition_blank_mode' => ( isset( $_POST['chapter_transition_blank_mode'] ) && in_array( $_POST['chapter_transition_blank_mode'], array( 'full_blank', 'blank_with_header_footer', 'intentional_text' ), true ) ) ? sanitize_text_field( $_POST['chapter_transition_blank_mode'] ) : 'full_blank',
 		'chapter_transition_blank_text' => isset( $_POST['chapter_transition_blank_text'] ) ? sanitize_text_field( wp_unslash( $_POST['chapter_transition_blank_text'] ) ) : '...',
 		'footnote_font_family'       => isset( $_POST['footnote_font_family'] ) ? sanitize_text_field( $_POST['footnote_font_family'] ) : 'Merriweather',

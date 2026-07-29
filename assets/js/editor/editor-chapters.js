@@ -78,7 +78,7 @@ function renderSidebar() {
         }
 
         chapterEl.innerHTML = `
-            <div class="flex items-center gap-3 overflow-hidden flex-1 px-2 py-3">
+            <div class="flex items-center gap-3 overflow-hidden flex-1 pl-4 pr-2 py-3">
                 <span class="text-xs font-bold text-neutral-500/80 dark:text-neutral-400/80 group-hover:scale-110 transition-transform">${displayStr}</span>
                 <div class="truncate flex-1">
                     <div class="flex items-center justify-between gap-2">

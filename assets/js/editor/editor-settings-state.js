@@ -131,7 +131,6 @@ window.almadenBuildPDFSettingsState = function(ctx) {
         first_page_footer_show: getChecked('setting-first-page-footer-show'),
         first_page_footer_type: getVal('setting-first-page-footer-type'),
         first_page_footer_custom: getVal('setting-first-page-footer-custom'),
-        book_start_page_footer_type: getVal('setting-book-start-page-footer-type'),
         book_separate_opening_content: getChecked('setting-book-separate-opening-content'),
         book_chapter_flow_mode: getBookFlowMode(),
         chapter_transition_blank_mode: getVal('setting-chapter-transition-blank-mode') || 'full_blank',
