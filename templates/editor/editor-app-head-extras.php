@@ -14,6 +14,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Librería para exportar PDF directamente -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- PDF.js para renderizar el PDF Typst en vistas de una página y spread -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <!-- Google Fonts: Inter para la interfaz, Merriweather para el estilo de libro PDF -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

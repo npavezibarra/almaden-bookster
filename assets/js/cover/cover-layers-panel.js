@@ -63,14 +63,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Nombre de capa
+        const layerName = getLayerDisplayName(layer);
         let nameHtml = '';
         if (layer.type === 'group') {
-            nameHtml = `<span class="truncate flex-1 font-bold">${layer.name || 'Grupo'}</span>`;
+            nameHtml = `<span class="truncate flex-1 font-bold">${layerName}</span>`;
             if (layer.isBookLogo) {
                 nameHtml += `<span class="text-[8px] bg-yellow-100 text-yellow-800 font-bold px-1 py-0.5 rounded ml-1 tracking-wider">LOGO</span>`;
             }
         } else {
-            nameHtml = `<span class="truncate flex-1 pointer-events-none">${layer.type === 'image' ? 'Imagen' : (layer.type === 'shape' ? 'Forma' : (layer.text || 'Texto vacío'))}</span>`;
+            nameHtml = `<span class="truncate flex-1 pointer-events-none">${layerName}</span>`;
         }
 
         const lockIcon = isLocked ? 'fa-lock' : 'fa-unlock';
@@ -81,6 +82,9 @@ document.addEventListener('DOMContentLoaded', () => {
             ${checkboxHtml}
             ${iconHtml}
             ${nameHtml}
+            <button type="button" class="layer-duplicate-btn w-6 h-6 rounded flex items-center justify-center text-gray-400 transition hover:bg-indigo-50 hover:text-indigo-600" title="Duplicar capa" aria-label="Duplicar capa" onclick="event.stopPropagation(); window.CoverEditor.actions.duplicateLayer('${layer.id}');">
+                <i class="fa-solid fa-copy text-[10px]"></i>
+            </button>
             <button type="button" class="layer-lock-btn w-6 h-6 rounded flex items-center justify-center text-gray-400 transition ${isLocked ? 'bg-gray-100 text-gray-600' : 'hover:bg-gray-100'}" title="${lockTitle}" aria-label="${lockTitle}" onclick="event.stopPropagation(); window.CoverEditor.actions.toggleLayerLock('${layer.id}');">
                 <i class="fa-solid ${lockIcon} text-[10px]"></i>
             </button>
@@ -176,6 +180,17 @@ document.addEventListener('DOMContentLoaded', () => {
         el.layersList.appendChild(btn);
     }
 
+    function getLayerDisplayName(layer) {
+        if (layer.name) {
+            return layer.name;
+        }
+
+        if (layer.type === 'group') return 'Grupo';
+        if (layer.type === 'image') return 'Imagen';
+        if (layer.type === 'shape') return 'Forma';
+        return layer.text || 'Texto vacío';
+    }
+
     // Toggle collapse/expand de grupo
     window.CoverEditor.actions.toggleGroupCollapse = function(groupId) {
         const group = s.textLayers.find(l => l.id === groupId);
@@ -196,6 +211,53 @@ document.addEventListener('DOMContentLoaded', () => {
             window.CoverEditor.actions.renderTextLayers();
         }
         window.CoverEditor.actions.renderLayersPanel();
+    };
+
+    window.CoverEditor.actions.duplicateLayer = function(layerId) {
+        const sourceLayer = s.textLayers.find(layer => layer.id === layerId);
+        if (!sourceLayer) {
+            return;
+        }
+
+        const maxZ = Math.max(...s.textLayers.map(layer => layer.zIndex || 30), 30);
+        const cloneLayer = (layer, overrides = {}) => ({
+            ...JSON.parse(JSON.stringify(layer)),
+            ...overrides,
+            id: window.CoverEditor.utils.generateId()
+        });
+        const sourceIndex = s.textLayers.findIndex(layer => layer.id === layerId);
+        const duplicate = cloneLayer(sourceLayer, {
+            name: `${getLayerDisplayName(sourceLayer)} (copy)`,
+            zIndex: maxZ + 1
+        });
+        const layersToInsert = [duplicate];
+
+        // A duplicated group includes copies of its direct children so it remains
+        // a usable group rather than an empty container.
+        if (sourceLayer.type === 'group') {
+            s.textLayers
+                .filter(layer => layer.parentId === sourceLayer.id)
+                .forEach(child => {
+                    layersToInsert.push(cloneLayer(child, {
+                        parentId: duplicate.id,
+                        zIndex: maxZ + 1.01
+                    }));
+                });
+        }
+
+        s.textLayers.splice(sourceIndex + 1, 0, ...layersToInsert);
+
+        // Match the expected duplicate behavior: keep every visual property, but
+        // offset the copy enough to make both objects immediately distinguishable.
+        if (window.CoverEditor.utils.moveLayerByPixels) {
+            window.CoverEditor.utils.moveLayerByPixels(duplicate, 24, 24, { useCurrentPosition: true });
+        }
+        s.selectedLayerIds = [duplicate.id];
+
+        if (window.CoverEditor.actions.renderTextLayers) {
+            window.CoverEditor.actions.renderTextLayers();
+        }
+        window.CoverEditor.actions.selectLayer(duplicate.id);
     };
 
     window.CoverEditor.actions.deleteLayer = function(layerId) {

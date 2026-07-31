@@ -202,6 +202,7 @@ window.savePDFSettings = function(silent = false) {
     data.append('chapter_title_font_style', getVal('setting-chapter-title-font-style'));
     data.append('chapter_title_align', getVal('setting-chapter-title-align'));
     data.append('chapter_title_text_transform', getVal('setting-chapter-title-text-transform'));
+    data.append('chapter_title_letter_spacing', getCleanVal('setting-chapter-title-letter-spacing'));
     data.append('chapter_title_padding_top', getCleanVal('setting-chapter-title-padding-top'));
     data.append('chapter_title_padding_bottom', getCleanVal('setting-chapter-title-padding-bottom'));
     data.append('chapter_title_padding_left', getCleanVal('setting-chapter-title-padding-left'));

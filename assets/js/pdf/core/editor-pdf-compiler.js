@@ -272,6 +272,20 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
             }
         }
 
+        const integrityReport = typeof window.verifyPdfContentIntegrity === 'function'
+            ? window.verifyPdfContentIntegrity(fullBookHTML, scroller)
+            : { valid: true };
+        window.pdfContentIntegrity = integrityReport;
+        scroller.dataset.pdfContentIntegrity = integrityReport.valid ? 'valid' : 'invalid';
+
+        if (!integrityReport.valid) {
+            const missingText = integrityReport.mismatch && integrityReport.mismatch.missing
+                ? ` Texto perdido cerca de: "${integrityReport.mismatch.missing}".`
+                : '';
+            console.warn('Bookster PDF integrity check reported a mismatch.', integrityReport);
+            console.warn(`La paginacion del PDF perdio o altero texto.${missingText}`);
+        }
+
         if (typeof window.applySpreadPageLayout === 'function') {
             window.applySpreadPageLayout(scroller, {
                 firstPhysicalPageNumber: isSingleChapterMode ? activePreviewFirstPhysicalPageNumber : 1
@@ -454,17 +468,18 @@ async function _compilePDFPreviewInternal(scrollToActive = false, targetScroller
 window._isPdfCompiling = false;
 window._pdfCompilePending = null;
 
-async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf-scroller', forceFull = false) {
+async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf-scroller', forceFull = false, ignoreVisualEditorState = false) {
     if (
         targetScrollerId === 'pdf-scroller' &&
         !forceFull &&
+        !ignoreVisualEditorState &&
         (window.visualEditorIsEditing || window.visualEditorIsDirty)
     ) {
         return Promise.resolve();
     }
 
     if (window._isPdfCompiling) {
-        window._pdfCompilePending = { scrollToActive, targetScrollerId, forceFull };
+        window._pdfCompilePending = { scrollToActive, targetScrollerId, forceFull, ignoreVisualEditorState };
         return;
     }
 
@@ -490,14 +505,14 @@ async function compilePDFPreview(scrollToActive = false, targetScrollerId = 'pdf
             window._isPdfCompiling = true;
         }
 
-        await _compilePDFPreviewInternal(scrollToActive, targetScrollerId, forceFull);
+        return await _compilePDFPreviewInternal(scrollToActive, targetScrollerId, forceFull);
     } finally {
         window._isPdfCompiling = false;
         if (window._pdfCompilePending) {
             const next = window._pdfCompilePending;
             window._pdfCompilePending = null;
             setTimeout(() => {
-                compilePDFPreview(next.scrollToActive, next.targetScrollerId, next.forceFull);
+                compilePDFPreview(next.scrollToActive, next.targetScrollerId, next.forceFull, next.ignoreVisualEditorState);
             }, 0);
         }
     }

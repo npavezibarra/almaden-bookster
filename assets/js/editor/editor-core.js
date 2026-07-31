@@ -177,11 +177,6 @@ function initEventListeners() {
         }
     });
 
-    const btnToggleSpread = document.getElementById('btn-toggle-spread');
-    if (btnToggleSpread) {
-        btnToggleSpread.addEventListener('click', toggleSpreadView);
-    }
-    
     // Botón de Guardado Manual
     const btnManualSave = document.getElementById('btn-manual-save');
     if (btnManualSave) {

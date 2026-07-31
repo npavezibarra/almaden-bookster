@@ -304,6 +304,7 @@ window.populateSettingsForm = function() {
         document.getElementById('setting-chapter-title-align').value = chapterTitleAlign;
     }
     if (document.getElementById('setting-chapter-title-text-transform')) document.getElementById('setting-chapter-title-text-transform').value = settings.chapter_title_text_transform || 'none';
+    if (document.getElementById('setting-chapter-title-letter-spacing')) document.getElementById('setting-chapter-title-letter-spacing').value = settings.chapter_title_letter_spacing ?? 0;
     if (document.getElementById('setting-chapter-title-padding-top')) document.getElementById('setting-chapter-title-padding-top').value = settings.chapter_title_padding_top ?? 0;
     if (document.getElementById('setting-chapter-title-padding-bottom')) document.getElementById('setting-chapter-title-padding-bottom').value = settings.chapter_title_padding_bottom ?? 1.5;
     if (document.getElementById('setting-chapter-title-padding-left')) document.getElementById('setting-chapter-title-padding-left').value = settings.chapter_title_padding_left ?? 0;

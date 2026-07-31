@@ -64,6 +64,7 @@ function creditsBuildCreditsSectionStyleCard(sectionId, label, style = {}) {
         letter_spacing: String(style.letter_spacing || ''),
         line_height: String(style.line_height || ''),
         text_align: String(style.text_align || ''),
+        item_gap_px: String(style.item_gap_px || ''),
     };
 
     return `
@@ -108,6 +109,12 @@ function creditsBuildCreditsSectionStyleCard(sectionId, label, style = {}) {
                         ], fields.text_align)}
                     </select>
                 </div>
+                ${sectionId === 'people' ? `
+                <div>
+                    <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Gap entre personas (px)</label>
+                    <input type="number" min="0" max="80" step="1" data-credits-field="section_${creditsEscapeHtml(sectionId)}_item_gap_px" value="${creditsEscapeHtml(fields.item_gap_px)}" placeholder="Heredar" class="w-full rounded-xl border border-[var(--border-color)] bg-white px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black">
+                </div>
+                ` : ''}
             </div>
         </div>
     `;

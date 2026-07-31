@@ -1,5 +1,9 @@
 let chapterWordCountCache = {};
 
+function getChapterItemDomId(chapterId) {
+    return `chapter-item-${String(chapterId ?? '').replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+}
+
 function getWordCount(text) {
     if (typeof text !== 'string') return 0;
     const cleanText = text.trim();
@@ -58,7 +62,9 @@ function renderSidebar() {
         const isActive = chapter.id === bookState.activeChapterId;
         
         const chapterEl = document.createElement('div');
-        chapterEl.className = `group flex items-stretch justify-between w-full cursor-pointer transition-colors ${
+        chapterEl.id = getChapterItemDomId(chapter.id);
+        chapterEl.dataset.chapterId = String(chapter.id);
+        chapterEl.className = `group flex items-stretch justify-between w-full cursor-pointer transition-colors pl-[9px] ${
             isActive
                 ? 'bg-neutral-100 dark:bg-neutral-800'
                 : 'bg-transparent hover:bg-[var(--bg-app)]'
@@ -264,7 +270,7 @@ function createNewChapter(isToc = false, isCredits = false) {
     const newChapter = {
         id: newId,
         title: isToc ? 'Índice' : (isCredits ? 'Créditos' : `Capítulo ${newIndex}: Título Nuevo`),
-        content: isToc ? `En este capítulo se generará automáticamente el Índice de contenidos.` : (isCredits ? `En este capítulo se generará automáticamente la página de Créditos.` : `# Capítulo ${newIndex}\n## Título Nuevo\n\nComienza a escribir la historia de este capítulo aquí...`),
+        content: isToc ? `En este capítulo se generará automáticamente el Índice de contenidos.` : (isCredits ? '' : `# Capítulo ${newIndex}\n## Título Nuevo\n\nComienza a escribir la historia de este capítulo aquí...`),
         is_toc: isToc ? '1' : '0',
         is_credits: isCredits ? '1' : '0',
         start_parity: isToc ? 'even' : 'any',
@@ -275,7 +281,9 @@ function createNewChapter(isToc = false, isCredits = false) {
         credits_margin_bottom: '',
         toc_hide_header: isToc ? '1' : '0',
         toc_hide_page_numbers: isToc ? '1' : '0',
-        toc_separate_opening_content: ''
+        toc_separate_opening_content: '',
+        toc_hide_title: isToc ? '0' : '0',
+        toc_title_text: isToc ? 'Índice' : ''
     };
 
     bookState.chapters.push(newChapter);
@@ -396,8 +404,15 @@ function saveStateToLocalStorage(immediate = false) {
             document.body.appendChild(dummyScroller);
         }
         
-        // Esperamos el cálculo del motor PDF (forceFull = true)
-        const totalPages = await compilePDFPreview(false, 'dummy-pdf-scroller', true);
+        // Esperamos el cálculo del motor PDF (forceFull = true), pero jamás
+        // permitimos que bloquee el guardado si el compilador se demora.
+        const compilePromise = typeof compilePDFPreview === 'function'
+            ? Promise.resolve(compilePDFPreview(false, 'dummy-pdf-scroller', true))
+            : Promise.resolve(0);
+        const timeoutPromise = new Promise((resolve) => {
+            setTimeout(() => resolve(0), 5000);
+        });
+        const totalPages = await Promise.race([compilePromise, timeoutPromise]).catch(() => 0);
         dummyScroller.innerHTML = ''; // Liberar memoria
         return totalPages;
     };
@@ -406,178 +421,178 @@ function saveStateToLocalStorage(immediate = false) {
 
     const executeSave = async () => {
         saveTimeout = null;
+        let saveCompleted = false;
         if (statusIndicator) {
             statusIndicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs mr-1"></i> Guardando...';
             statusIndicator.className = 'flex items-center gap-1 font-semibold text-amber-500';
         }
 
-        // Asegura que la última edición visual se vuelque al capítulo activo antes de serializar.
-        let visualChapterContent = null;
-        if (bookState && bookState.viewMode === 'split' && typeof getVisualEditorSurface === 'function' && typeof serializeVisualEditorSurface === 'function') {
-            const surface = getVisualEditorSurface();
-            if (surface) {
-                if (typeof syncVisualEditorToState === 'function') {
-                    visualChapterContent = syncVisualEditorToState();
-                } else {
-                    visualChapterContent = serializeVisualEditorSurface(surface);
-                }
+        const saveWatchdog = setTimeout(() => {
+            if (saveCompleted) return;
+            if (statusIndicator) {
+                statusIndicator.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-xs mr-1"></i> Guardado pendiente';
+                statusIndicator.className = 'flex items-center gap-1 font-semibold text-amber-600';
+            }
+        }, 10000);
 
-                if (visualChapterContent === null) {
-                    // Si la vista visual no expone un bloque editable para este capítulo,
-                    // preservamos la versión del textarea en lugar de reemplazarla por vacío.
-                    if (typeof syncRawEditorToState === 'function') {
-                        syncRawEditorToState();
-                    }
-                } else {
-                    const activeChapter = bookState.chapters.find(ch => ch.id === bookState.activeChapterId);
-                    if (activeChapter) {
-                        activeChapter.content = visualChapterContent;
-                    }
-                    const textarea = typeof getRawEditorSurface === 'function' ? getRawEditorSurface() : null;
-                    if (textarea) {
-                        textarea.value = visualChapterContent;
-                    }
-                }
+        try {
+            // RAW is canonical. Never serialize Paged.js fragments back into a chapter.
+            if (typeof syncRawEditorToState === 'function') {
+                syncRawEditorToState();
             }
-        } else if (typeof syncRawEditorToState === 'function') {
-            syncRawEditorToState();
-        }
-        const saveRevision = window.visualEditorRevision || 0;
-        
-        let totalPages = 0;
-        
-        // Compilar PDF JUSTO ANTES de guardar cuando estamos en modo de vista previa.
-        if (typeof compilePDFPreview === 'function' || typeof refreshEditorDisplay === 'function') {
-            if (immediate && typeof calculateAllPagesBackground === 'function') {
-                // 1. Calcular las páginas reales totales de fondo SOLO en guardado manual
-                // Esto actualiza window.bookChapterPages con las posiciones correctas
-                totalPages = await calculateAllPagesBackground();
-            } else {
-                // En autosave, rescatamos el total de páginas previo para evitar Layout Thrashing
-                const totalPagesSidebarEl = document.getElementById('total-pages-sidebar');
-                if (totalPagesSidebarEl) {
-                    totalPages = parseInt(totalPagesSidebarEl.textContent) || 0;
-                }
-            }
+            const saveRevision = window.visualEditorRevision || 0;
             
-            if (bookState.viewMode === 'preview' && typeof compilePDFPreview === 'function') {
-                compilePDFPreview();
-            }
-        }
-
-        const data = new FormData();
-        data.append('action', 'almaden_save_book');
-        data.append('book_id', bookState.bookId);
-        data.append('nonce', bookState.nonce);
-        data.append('title', bookState.title);
-        const chaptersPayload = Array.isArray(bookState.chapters)
-            ? bookState.chapters.map((chapter) => {
-                const payloadChapter = {
-                    id: chapter.id,
-                    title: chapter.title,
-                    content: chapter.content,
-                    parity_image: chapter.parity_image,
-                    opening_page_mode: chapter.opening_page_mode,
-                    opening_blank_intentional: chapter.opening_blank_intentional,
-                    opening_block_enabled: chapter.opening_block_enabled,
-                    opening_block_horizontal_align: chapter.opening_block_horizontal_align,
-                    opening_block_vertical_align: chapter.opening_block_vertical_align,
-                    hide_title: chapter.hide_title,
-                    hide_all_headers_footers: chapter.hide_all_headers_footers,
-                    exclude_from_numbering: chapter.exclude_from_numbering,
-                    custom_running_header: chapter.custom_running_header,
-                    subtitle_text: chapter.subtitle_text,
-                    subtitle_font_family: chapter.subtitle_font_family,
-                    subtitle_align: chapter.subtitle_align,
-                    subtitle_font_size: chapter.subtitle_font_size,
-                    subtitle_letter_spacing: chapter.subtitle_letter_spacing,
-                    subtitle_font_style: chapter.subtitle_font_style,
-                    subtitle_text_transform: chapter.subtitle_text_transform,
-                    subtitle_font_weight: chapter.subtitle_font_weight,
-                    subtitle_margin_top: chapter.subtitle_margin_top,
-                    subtitle_margin_bottom: chapter.subtitle_margin_bottom,
-                    drop_cap_enabled: chapter.drop_cap_enabled,
-                    disable_hyphenation: chapter.disable_hyphenation,
-                    start_parity: chapter.start_parity,
-                    first_page_header_type: chapter.first_page_header_type,
-                    first_page_header_custom: chapter.first_page_header_custom,
-                    first_page_footer_type: chapter.first_page_footer_type,
-                    first_page_footer_custom: chapter.first_page_footer_custom,
-                    opening_separate_content: chapter.opening_separate_content,
-                    chapter_image_enabled: chapter.chapter_image_enabled,
-                    chapter_image_mode: chapter.chapter_image_mode,
-                    chapter_image_url: chapter.chapter_image_url,
-                    chapter_image_inner_width: chapter.chapter_image_inner_width,
-                    chapter_image_inner_header: chapter.chapter_image_inner_header,
-                    chapter_image_inner_footer: chapter.chapter_image_inner_footer,
-                    parity_image_mode: chapter.parity_image_mode,
-                    parity_image_width: chapter.parity_image_width,
-                    parity_image_height: chapter.parity_image_height,
-                    is_toc: chapter.is_toc,
-                    is_credits: chapter.is_credits,
-                    credits_font_family: chapter.credits_font_family,
-                    credits_align: chapter.credits_align,
-                    credits_font_size: chapter.credits_font_size,
-                    credits_letter_spacing: chapter.credits_letter_spacing,
-                    credits_font_weight: chapter.credits_font_weight,
-                    credits_hide_header: chapter.credits_hide_header,
-                    credits_hide_page_number: chapter.credits_hide_page_number,
-                    credits_margin_top: chapter.credits_margin_top,
-                    credits_margin_bottom: chapter.credits_margin_bottom,
-                    toc_font_family: chapter.toc_font_family,
-                    toc_font_size: chapter.toc_font_size,
-                    toc_enumerate: chapter.toc_enumerate,
-                    toc_font_style: chapter.toc_font_style,
-                    toc_font_weight: chapter.toc_font_weight,
-                    toc_text_transform: chapter.toc_text_transform,
-                    toc_letter_spacing: chapter.toc_letter_spacing,
-                    toc_line_height: chapter.toc_line_height,
-                    toc_item_spacing: chapter.toc_item_spacing,
-                    toc_hide_header: chapter.toc_hide_header,
-                    toc_hide_page_numbers: chapter.toc_hide_page_numbers,
-                    toc_separate_opening_content: chapter.toc_separate_opening_content,
-                    toc_item_align: chapter.toc_item_align,
-                    toc_leader_style: chapter.toc_leader_style,
-                    toc_leader_position: chapter.toc_leader_position,
-                    toc_title_align: chapter.toc_title_align,
-                    toc_title_font_family: chapter.toc_title_font_family,
-                    toc_title_font_size: chapter.toc_title_font_size,
-                    toc_title_font_style: chapter.toc_title_font_style,
-                    toc_title_text_transform: chapter.toc_title_text_transform,
-                    toc_title_font_weight: chapter.toc_title_font_weight,
-                    toc_title_padding_top: chapter.toc_title_padding_top,
-                    toc_title_padding_bottom: chapter.toc_title_padding_bottom,
-                    toc_title_line_height: chapter.toc_title_line_height
-                };
-
-                if (visualChapterContent !== null && chapter.id === bookState.activeChapterId) {
-                    payloadChapter.content = visualChapterContent;
+            let totalPages = 0;
+            
+            // Compilar PDF JUSTO ANTES de guardar cuando estamos en modo de vista previa.
+            if (typeof compilePDFPreview === 'function' || typeof refreshEditorDisplay === 'function') {
+                if (immediate && typeof calculateAllPagesBackground === 'function') {
+                    // 1. Calcular las páginas reales totales de fondo SOLO en guardado manual
+                    // Esto actualiza window.bookChapterPages con las posiciones correctas
+                    totalPages = await calculateAllPagesBackground();
+                } else {
+                    // En autosave, rescatamos el total de páginas previo para evitar Layout Thrashing
+                    const totalPagesSidebarEl = document.getElementById('total-pages-sidebar');
+                    if (totalPagesSidebarEl) {
+                        totalPages = parseInt(totalPagesSidebarEl.textContent) || 0;
+                    }
                 }
-                return payloadChapter;
-            })
-            : [];
-        data.append('chapters', JSON.stringify(chaptersPayload));
-        data.append('total_pages', totalPages || 0);
-        const creditsConfig = typeof window.getCreditsConfigFromForm === 'function'
-            ? window.getCreditsConfigFromForm()
-            : (bookState.settings && bookState.settings.credits_config ? bookState.settings.credits_config : null);
-        if (creditsConfig && typeof window.saveCreditsConfig === 'function') {
-            try {
-                await window.saveCreditsConfig(creditsConfig);
-            } catch (error) {
-                console.warn('No se pudo sincronizar la configuracion de creditos antes del guardado general:', error);
+                
+                if (bookState.viewMode === 'preview' && typeof compilePDFPreview === 'function') {
+                    compilePDFPreview();
+                }
             }
-        }
-        if (creditsConfig) {
-            data.append('credits_config', JSON.stringify(creditsConfig));
-        }
 
-        fetch(bookState.ajaxUrl, {
-            method: 'POST',
-            body: data
-        })
-        .then(response => response.json())
-        .then(res => {
+            const data = new FormData();
+            data.append('action', 'almaden_save_book');
+            data.append('book_id', bookState.bookId);
+            data.append('nonce', bookState.nonce);
+            data.append('title', bookState.title);
+            const chaptersPayload = Array.isArray(bookState.chapters)
+                ? bookState.chapters.map((chapter) => {
+                    const payloadChapter = {
+                        id: chapter.id,
+                        title: chapter.title,
+                        content: chapter.content,
+                        parity_image: chapter.parity_image,
+                        opening_page_mode: chapter.opening_page_mode,
+                        opening_blank_intentional: chapter.opening_blank_intentional,
+                        opening_block_enabled: chapter.opening_block_enabled,
+                        opening_block_horizontal_align: chapter.opening_block_horizontal_align,
+                        opening_block_vertical_align: chapter.opening_block_vertical_align,
+                        hide_title: chapter.hide_title,
+                        hide_all_headers_footers: chapter.hide_all_headers_footers,
+                        exclude_from_numbering: chapter.exclude_from_numbering,
+                        custom_running_header: chapter.custom_running_header,
+                        subtitle_text: chapter.subtitle_text,
+                        subtitle_font_family: chapter.subtitle_font_family,
+                        subtitle_align: chapter.subtitle_align,
+                        subtitle_font_size: chapter.subtitle_font_size,
+                        subtitle_letter_spacing: chapter.subtitle_letter_spacing,
+                        subtitle_font_style: chapter.subtitle_font_style,
+                        subtitle_text_transform: chapter.subtitle_text_transform,
+                        subtitle_font_weight: chapter.subtitle_font_weight,
+                        subtitle_margin_top: chapter.subtitle_margin_top,
+                        subtitle_margin_bottom: chapter.subtitle_margin_bottom,
+                        drop_cap_enabled: chapter.drop_cap_enabled,
+                        disable_hyphenation: chapter.disable_hyphenation,
+                        start_parity: chapter.start_parity,
+                        first_page_header_type: chapter.first_page_header_type,
+                        first_page_header_custom: chapter.first_page_header_custom,
+                        first_page_footer_type: chapter.first_page_footer_type,
+                        first_page_footer_custom: chapter.first_page_footer_custom,
+                        opening_separate_content: chapter.opening_separate_content,
+                        chapter_image_enabled: chapter.chapter_image_enabled,
+                        chapter_image_mode: chapter.chapter_image_mode,
+                        chapter_image_url: chapter.chapter_image_url,
+                        chapter_image_inner_width: chapter.chapter_image_inner_width,
+                        chapter_image_inner_header: chapter.chapter_image_inner_header,
+                        chapter_image_inner_footer: chapter.chapter_image_inner_footer,
+                        parity_image_mode: chapter.parity_image_mode,
+                        parity_image_width: chapter.parity_image_width,
+                        parity_image_height: chapter.parity_image_height,
+                        is_toc: chapter.is_toc,
+                        is_credits: chapter.is_credits,
+                        credits_font_family: chapter.credits_font_family,
+                        credits_align: chapter.credits_align,
+                        credits_font_size: chapter.credits_font_size,
+                        credits_letter_spacing: chapter.credits_letter_spacing,
+                        credits_font_weight: chapter.credits_font_weight,
+                        credits_hide_header: chapter.credits_hide_header,
+                        credits_hide_page_number: chapter.credits_hide_page_number,
+                        credits_margin_top: chapter.credits_margin_top,
+                        credits_margin_bottom: chapter.credits_margin_bottom,
+                        toc_font_family: chapter.toc_font_family,
+                        toc_font_size: chapter.toc_font_size,
+                        toc_enumerate: chapter.toc_enumerate,
+                        toc_font_style: chapter.toc_font_style,
+                        toc_font_weight: chapter.toc_font_weight,
+                        toc_text_transform: chapter.toc_text_transform,
+                        toc_letter_spacing: chapter.toc_letter_spacing,
+                        toc_line_height: chapter.toc_line_height,
+                        toc_item_spacing: chapter.toc_item_spacing,
+                        toc_hide_header: chapter.toc_hide_header,
+                        toc_hide_page_numbers: chapter.toc_hide_page_numbers,
+                        toc_separate_opening_content: chapter.toc_separate_opening_content,
+                        toc_item_align: chapter.toc_item_align,
+                        toc_leader_style: chapter.toc_leader_style,
+                        toc_leader_position: chapter.toc_leader_position,
+                        toc_hide_title: chapter.toc_hide_title,
+                        toc_title_text: chapter.toc_title_text,
+                        toc_title_align: chapter.toc_title_align,
+                        toc_title_font_family: chapter.toc_title_font_family,
+                        toc_title_font_size: chapter.toc_title_font_size,
+                        toc_title_font_style: chapter.toc_title_font_style,
+                        toc_title_text_transform: chapter.toc_title_text_transform,
+                        toc_title_font_weight: chapter.toc_title_font_weight,
+                        toc_title_letter_spacing: chapter.toc_title_letter_spacing,
+                        toc_title_padding_top: chapter.toc_title_padding_top,
+                        toc_title_padding_bottom: chapter.toc_title_padding_bottom,
+                        toc_title_line_height: chapter.toc_title_line_height
+                    };
+
+                    return payloadChapter;
+                })
+                : [];
+            data.append('chapters', JSON.stringify(chaptersPayload));
+            data.append('total_pages', totalPages || 0);
+            const creditsConfig = typeof window.getCreditsConfigFromForm === 'function'
+                ? window.getCreditsConfigFromForm()
+                : (bookState.settings && bookState.settings.credits_config ? bookState.settings.credits_config : null);
+            if (creditsConfig) {
+                data.append('credits_config', JSON.stringify(creditsConfig));
+            }
+
+            if (creditsConfig && typeof window.saveCreditsConfig === 'function') {
+                try {
+                    const creditsSavePromise = window.saveCreditsConfig(creditsConfig);
+                    if (creditsSavePromise && typeof creditsSavePromise.catch === 'function') {
+                        creditsSavePromise.catch((error) => {
+                            console.warn('No se pudo sincronizar la configuracion de creditos antes del guardado general:', error);
+                        });
+                    }
+                } catch (error) {
+                    console.warn('No se pudo disparar la sincronizacion de creditos antes del guardado general:', error);
+                }
+            }
+
+            const saveAbortController = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            const saveTimeoutId = saveAbortController
+                ? setTimeout(() => {
+                    try {
+                        saveAbortController.abort();
+                    } catch (error) {
+                        // Ignore abort failures.
+                    }
+                }, 30000)
+                : null;
+
+            const response = await fetch(bookState.ajaxUrl, {
+                method: 'POST',
+                body: data,
+                signal: saveAbortController ? saveAbortController.signal : undefined
+            });
+            const res = await response.json();
             if (res.success) {
                 const isLatestVisualRevision = saveRevision === (window.visualEditorRevision || 0);
                 if (isLatestVisualRevision) {
@@ -628,14 +643,20 @@ function saveStateToLocalStorage(immediate = false) {
                     statusIndicator.className = 'flex items-center gap-1 font-semibold text-rose-600';
                 }
             }
-        })
-        .catch(err => {
+            saveCompleted = true;
+        } catch (err) {
             console.error(err);
             if (statusIndicator) {
                 statusIndicator.innerHTML = '<i class="fa-solid fa-wifi text-xs mr-1"></i> Error red';
                 statusIndicator.className = 'flex items-center gap-1 font-semibold text-rose-600';
             }
-        });
+        } finally {
+            saveCompleted = true;
+            clearTimeout(saveWatchdog);
+            if (typeof saveTimeoutId !== 'undefined' && saveTimeoutId) {
+                clearTimeout(saveTimeoutId);
+            }
+        }
     };
 
     if (immediate) {

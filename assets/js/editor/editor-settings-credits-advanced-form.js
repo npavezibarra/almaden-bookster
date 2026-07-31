@@ -18,6 +18,7 @@ function creditsReadSectionStyleValue(root, sectionId) {
         letter_spacing: numberValue('letter_spacing', -10, 20),
         line_height: numberValue('line_height', 0.5, 3),
         text_align: ['left', 'center', 'right'].includes(align) ? align : '',
+        item_gap_px: numberValue('item_gap_px', 0, 80),
     };
 }
 

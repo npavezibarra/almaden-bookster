@@ -163,6 +163,25 @@
                             <p class="text-xs">Sobrescribe el formato global del título de capítulo exclusivamente para esta página.</p>
                         </div>
 
+                        <div class="flex items-center justify-between gap-4 p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)] mb-4">
+                            <div class="flex-1">
+                                <label class="font-semibold block mb-1 text-sm">Ocultar Título</label>
+                                <span class="text-xs text-[var(--text-muted)]">Oculta completamente el título del Índice y elimina su espacio vertical.</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="chapter_toc_hide_title" name="toc_hide_title" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
+                            </label>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Texto del Título</label>
+                                <input type="text" id="chapter_toc_title_text" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Índice">
+                                <p class="text-[11px] text-[var(--text-muted)] mt-1">Deja este campo vacío para usar el título actual del capítulo.</p>
+                            </div>
+                        </div>
+
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Alineación del Título</label>
@@ -231,6 +250,10 @@
 
                         <div class="grid grid-cols-3 gap-4">
                             <div>
+                                <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Letter Spacing (px)</label>
+                                <input type="number" step="0.1" id="chapter_toc_title_letter_spacing" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Global">
+                            </div>
+                            <div>
                                 <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Pad. Arriba (cm)</label>
                                 <input type="number" step="0.1" id="chapter_toc_title_padding_top" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Global">
                             </div>
@@ -238,6 +261,9 @@
                                 <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Pad. Abajo (cm)</label>
                                 <input type="number" step="0.1" id="chapter_toc_title_padding_bottom" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Global">
                             </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Alt. Línea</label>
                                 <input type="number" step="0.1" id="chapter_toc_title_line_height" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Global">

@@ -48,6 +48,14 @@ async function triggerPrint() {
     // Llamar al compilador forzando el modo full
     await compilePDFPreview(false, 'pdf-scroller', true);
 
+    if (!window.pdfContentIntegrity || !window.pdfContentIntegrity.valid) {
+        console.error('La impresion fue bloqueada porque el PDF no conserva el texto fuente.');
+        if (typeof showToast === 'function') {
+            showToast('No se puede exportar: el PDF no conserva todo el texto.', 'fa-solid fa-circle-exclamation');
+        }
+        return;
+    }
+
     const geometry = getPageDimensions();
     const { unit, previewWidth, previewHeight, previewWidthPx, previewHeightPx } = geometry;
 

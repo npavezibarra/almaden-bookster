@@ -516,6 +516,9 @@ function almaden_bookster_load_cover_editor() {
 		if ( ! is_array( $cover_settings ) ) {
 			$cover_settings = array();
 		}
+		if ( function_exists( 'almaden_bookster_prepare_cover_settings_for_editor' ) ) {
+			$cover_settings = almaden_bookster_prepare_cover_settings_for_editor( $cover_settings );
+		}
 		$cover_nonce = wp_create_nonce( 'almaden_save_cover_nonce_' . $book_id );
 		$cover_export_nonce = wp_create_nonce( 'almaden_export_cover_pdf_' . $book_id );
 		

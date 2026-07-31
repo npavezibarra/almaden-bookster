@@ -145,6 +145,7 @@ function almaden_bookster_save_settings_ajax() {
 		'chapter_title_font_weight'  => sanitize_text_field( $_POST['chapter_title_font_weight'] ),
 		'chapter_title_font_style'   => sanitize_text_field( $_POST['chapter_title_font_style'] ),
 		'chapter_title_align'        => ( isset( $_POST['chapter_title_align'] ) && in_array( $_POST['chapter_title_align'], array( 'left', 'center', 'right' ), true ) ) ? sanitize_text_field( $_POST['chapter_title_align'] ) : 'center',
+		'chapter_title_letter_spacing' => isset( $_POST['chapter_title_letter_spacing'] ) ? floatval( str_replace( ',', '.', $_POST['chapter_title_letter_spacing'] ) ) : 0,
 		'chapter_title_padding_top'  => floatval( str_replace( ',', '.', $_POST['chapter_title_padding_top'] ) ),
 		'chapter_title_padding_bottom'=> floatval( str_replace( ',', '.', $_POST['chapter_title_padding_bottom'] ) ),
 		'chapter_title_padding_left' => isset($_POST['chapter_title_padding_left']) ? floatval( str_replace( ',', '.', $_POST['chapter_title_padding_left'] ) ) : 0,

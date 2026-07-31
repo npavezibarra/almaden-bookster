@@ -167,6 +167,7 @@ window.almadenBuildPDFSettingsState = function(ctx) {
         chapter_title_font_style: getVal('setting-chapter-title-font-style'),
         chapter_title_align: getVal('setting-chapter-title-align'),
         chapter_title_text_transform: getVal('setting-chapter-title-text-transform'),
+        chapter_title_letter_spacing: parseVal('setting-chapter-title-letter-spacing', 0),
         chapter_title_padding_top: parseVal('setting-chapter-title-padding-top', 0),
         chapter_title_padding_bottom: parseVal('setting-chapter-title-padding-bottom', 1.5),
         chapter_title_padding_left: parseVal('setting-chapter-title-padding-left', 0),

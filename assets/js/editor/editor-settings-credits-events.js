@@ -42,9 +42,22 @@ function creditsPersistRemoteConfig(config) {
         });
     }
 
+    const timeoutMs = 20000;
+    const abortController = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timeoutId = abortController
+        ? setTimeout(() => {
+            try {
+                abortController.abort();
+            } catch (error) {
+                // Ignore abort failures.
+            }
+        }, timeoutMs)
+        : null;
+
     return fetch(endpoint, {
         method: 'POST',
         body: payload,
+        signal: abortController ? abortController.signal : undefined,
     })
         .then((response) => {
             if (debug) {
@@ -79,7 +92,9 @@ function creditsPersistRemoteConfig(config) {
                 // Ignoramos errores de storage para no romper la edición.
             }
 
-            if (typeof refreshEditorDisplay === 'function') {
+            if (typeof compilePDFPreview === 'function') {
+                compilePDFPreview(false, 'pdf-scroller', false, true);
+            } else if (typeof refreshEditorDisplay === 'function') {
                 refreshEditorDisplay(false);
             }
             if (debug) {
@@ -100,6 +115,11 @@ function creditsPersistRemoteConfig(config) {
                 });
             }
             throw error;
+        })
+        .finally(() => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
         });
 }
 
@@ -132,4 +152,3 @@ function creditsForceRemoteSave(config) {
     creditsRemoteSaveQueuedConfig = creditsNormalizeConfig(config || creditsGetConfigFromForm());
     return creditsFlushRemoteSave();
 }
-

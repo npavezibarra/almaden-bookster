@@ -56,8 +56,8 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             hyphenate-limit-lines: 2 !important;
             -webkit-hyphenate-limit-before: auto !important;
             -webkit-hyphenate-limit-after: auto !important;
-            orphans: 2 !important;
-            widows: 2 !important;
+            orphans: 1 !important;
+            widows: 1 !important;
             text-rendering: geometricPrecision !important;
             -webkit-font-smoothing: antialiased !important;
         }
@@ -250,9 +250,10 @@ function getPDFStylesTypography(settings, tocSettings, toPx) {
             if (creditsChapter.credits_font_size) creditsSpecificCss += `font-size: ${toPx(creditsChapter.credits_font_size, true)}px !important;\n`;
             if (creditsChapter.credits_font_weight) creditsSpecificCss += `font-weight: ${creditsChapter.credits_font_weight} !important;\n`;
 
-            // Si la alineación es vacía (opción "Global / Centro"), aplicamos center por defecto
-            const align = creditsChapter.credits_align || 'center';
-            creditsSpecificCss += `text-align: ${align} !important;\n`;
+            // Preserve an empty value as inheritance so individual credit sections can align themselves.
+            if (['left', 'center', 'right'].includes(creditsChapter.credits_align)) {
+                creditsSpecificCss += `text-align: ${creditsChapter.credits_align} !important;\n`;
+            }
 
             if (creditsChapter.credits_letter_spacing) creditsSpecificCss += `letter-spacing: ${toPx(creditsChapter.credits_letter_spacing, true)}px !important;\n`;
 

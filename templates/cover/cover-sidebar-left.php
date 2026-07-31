@@ -67,7 +67,8 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <i class="fa-solid fa-image mr-1"></i> Seleccionar Imagen
                 </button>
                 <input type="hidden" id="upload-front-cover" />
-                <button id="clear-front-cover" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Eliminar Portada</button>
+                <input type="hidden" id="upload-front-cover-attachment-id" value="0" />
+                <button type="button" id="clear-front-cover" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Eliminar Portada</button>
                 <div id="front-cover-diagnostics" class="mt-3 rounded-xl border border-dashed border-gray-200 bg-gray-50/80 px-3 py-3 text-[11px] leading-relaxed text-gray-600">
                     <div class="font-semibold text-gray-700 uppercase tracking-wider mb-1">Validación de impresión</div>
                     <div class="text-gray-500">Selecciona una imagen para ver si cumple con 14 x 21 cm a 300 dpi.</div>
@@ -83,7 +84,8 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <i class="fa-solid fa-image mr-1"></i> Seleccionar Imagen
                 </button>
                 <input type="hidden" id="upload-back-cover" />
-                <button id="clear-back-cover" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Eliminar Contraportada</button>
+                <input type="hidden" id="upload-back-cover-attachment-id" value="0" />
+                <button type="button" id="clear-back-cover" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Eliminar Contraportada</button>
                 <div id="back-cover-diagnostics" class="mt-3 rounded-xl border border-dashed border-gray-200 bg-gray-50/80 px-3 py-3 text-[11px] leading-relaxed text-gray-600">
                     <div class="font-semibold text-gray-700 uppercase tracking-wider mb-1">Validación de impresión</div>
                     <div class="text-gray-500">Selecciona una imagen para ver si cumple con 14 x 21 cm a 300 dpi.</div>
@@ -111,13 +113,14 @@ if ( ! defined( 'ABSPATH' ) ) {
                             <i class="fa-solid fa-image mr-1"></i> Imagen
                         </button>
                         <input type="hidden" id="upload-spine-image" />
+                        <input type="hidden" id="upload-spine-image-attachment-id" value="0" />
                     </div>
                     <div class="flex items-center gap-1 border border-gray-300 rounded-md px-2 bg-gray-50 hover:bg-gray-100 transition">
                         <i class="fa-solid fa-fill-drip text-gray-400 text-xs"></i>
                         <input type="color" id="spine-color-picker" value="#f9fafb" class="block w-6 h-6 p-0 border-0 rounded cursor-pointer bg-transparent" title="Color de Fondo" />
                     </div>
                 </div>
-                <button id="clear-spine" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Limpiar Lomo</button>
+                <button type="button" id="clear-spine" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Limpiar Lomo</button>
             </div>
 
             <div class="h-px bg-gray-200"></div>
@@ -130,7 +133,8 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <i class="fa-solid fa-image mr-1"></i> Seleccionar Imagen
                 </button>
                 <input type="hidden" id="upload-full-spread" />
-                <button id="clear-full-spread" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Eliminar Spread</button>
+                <input type="hidden" id="upload-full-spread-attachment-id" value="0" />
+                <button type="button" id="clear-full-spread" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Eliminar Spread</button>
             </div>
         </div>
     </div>
@@ -156,13 +160,14 @@ if ( ! defined( 'ABSPATH' ) ) {
                             <i class="fa-solid fa-image mr-1"></i> Imagen
                         </button>
                         <input type="hidden" id="upload-front-flap-image" />
+                        <input type="hidden" id="upload-front-flap-image-attachment-id" value="0" />
                     </div>
                     <div class="flex items-center gap-1 border border-gray-300 rounded-md px-2 bg-gray-50 hover:bg-gray-100 transition">
                         <i class="fa-solid fa-fill-drip text-gray-400 text-xs"></i>
                         <input type="color" id="front-flap-color-picker" value="#ffffff" class="block w-6 h-6 p-0 border-0 rounded cursor-pointer bg-transparent" title="Color de Fondo" />
                     </div>
                 </div>
-                <button id="clear-front-flap" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Limpiar Fondo</button>
+                <button type="button" id="clear-front-flap" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Limpiar Fondo</button>
             </div>
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Solapa Contraportada (mm)</label>
@@ -173,13 +178,14 @@ if ( ! defined( 'ABSPATH' ) ) {
                             <i class="fa-solid fa-image mr-1"></i> Imagen
                         </button>
                         <input type="hidden" id="upload-back-flap-image" />
+                        <input type="hidden" id="upload-back-flap-image-attachment-id" value="0" />
                     </div>
                     <div class="flex items-center gap-1 border border-gray-300 rounded-md px-2 bg-gray-50 hover:bg-gray-100 transition">
                         <i class="fa-solid fa-fill-drip text-gray-400 text-xs"></i>
                         <input type="color" id="back-flap-color-picker" value="#ffffff" class="block w-6 h-6 p-0 border-0 rounded cursor-pointer bg-transparent" title="Color de Fondo" />
                     </div>
                 </div>
-                <button id="clear-back-flap" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Limpiar Fondo</button>
+                <button type="button" id="clear-back-flap" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Limpiar Fondo</button>
             </div>
 
             <div id="fold-x-wrapper" class="hidden">

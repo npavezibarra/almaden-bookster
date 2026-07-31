@@ -69,7 +69,7 @@ if (!headers_sent()) {
                 </button>
                 <button id="btn-export-pdf" onclick="triggerPrint()" class="h-11 px-3 bg-black hover:bg-neutral-800 text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-lg transition flex items-center gap-2 leading-none">
                     <i class="fa-solid fa-file-pdf text-sm"></i>
-                    <span class="hidden sm:inline">Imprimir PDF</span>
+                    <span class="hidden sm:inline">Descargar PDF</span>
                 </button>
             </div>
         </div>
@@ -281,9 +281,14 @@ if (!headers_sent()) {
                             <div class="flex items-center gap-3 mb-4 border-b-2 border-transparent focus-within:border-black transition-all pb-2">
                                 <input id="chapter-title-input" type="text" placeholder="Título del Capítulo..."
                                     class="w-full bg-transparent font-serif font-semibold text-2xl md:text-3xl focus:outline-none text-[var(--text-main)]">
-                                <button onclick="openChapterSettingsModal()" class="text-[var(--text-muted)] hover:text-black dark:hover:text-white transition-colors p-2 rounded-lg hover:bg-[var(--bg-sidebar)]" title="Configuración de este Capítulo">
-                                    <i class="fa-solid fa-gear text-lg"></i>
-                                </button>
+                                <div class="flex items-center gap-1 shrink-0">
+                                    <button onclick="openChapterSettingsModal()" class="text-[var(--text-muted)] hover:text-black dark:hover:text-white transition-colors p-2 rounded-lg hover:bg-[var(--bg-sidebar)]" title="Configuración de este Capítulo" aria-label="Configuración de este Capítulo">
+                                        <i class="fa-solid fa-gear text-lg"></i>
+                                    </button>
+                                    <button onclick="openChapterNomenclatureGuideModal()" class="text-[var(--text-muted)] hover:text-black dark:hover:text-white transition-colors p-2 rounded-lg hover:bg-[var(--bg-sidebar)]" title="Guía de nomenclatura" aria-label="Guía de nomenclatura">
+                                        <i class="fa-solid fa-circle-question text-lg"></i>
+                                    </button>
+                                </div>
                             </div>
                             <!-- Área de escritura -->
                             <div id="raw-editor-container" class="flex-1 w-full flex min-h-0">
@@ -315,24 +320,30 @@ if (!headers_sent()) {
                 <!-- Barra informativa superior de página -->
                 <div class="h-12 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] px-4 flex items-center justify-between text-xs text-[var(--text-muted)] no-print">
                     <span id="pdf-pane-mode-label" class="font-semibold uppercase tracking-wider flex items-center gap-1">
-                        <i class="fa-solid fa-magnifying-glass-doc text-xs text-black dark:text-white"></i> Vista Previa
+                        <i class="fa-solid fa-magnifying-glass-doc text-xs text-black dark:text-white"></i> Vista Previa Typst
                     </span>
                     <div class="flex items-center gap-3">
+                        <span id="pdf-geometry-indicator" class="hidden xl:inline text-[10px] font-medium tabular-nums"></span>
                         <div class="flex items-center gap-2">
                             <span class="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">Zoom</span>
                             <select id="pdf-preview-zoom" class="h-7 rounded-md border border-[var(--border-color)] bg-[var(--bg-app)] px-2 text-xs font-semibold text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-black">
                                 <option value="0.25">25%</option>
                                 <option value="0.5">50%</option>
-                                <option value="0.75">75%</option>
-                                <option value="1" selected>100%</option>
+                                <option value="0.75" selected>75%</option>
+                                <option value="1">100%</option>
                                 <option value="2">200%</option>
                             </select>
                         </div>
-                        <button id="btn-toggle-ruler" class="text-[var(--text-muted)] hover:text-black dark:hover:text-white transition-colors" title="Mostrar Regla" onclick="window.toggleRuler()">
+                        <div class="flex items-center rounded-md border border-[var(--border-color)] bg-[var(--bg-app)] p-0.5 text-[10px] font-semibold">
+                            <button id="btn-preview-layout-single" type="button" onclick="setPdfPreviewLayout('single')" class="px-2.5 py-1 rounded-sm text-[var(--text-muted)] hover:text-[var(--text-main)] transition" aria-pressed="true" title="Vista de una página" aria-label="Vista de una página">
+                                <i class="fa-solid fa-file-lines"></i>
+                            </button>
+                            <button id="btn-toggle-spread" type="button" onclick="setPdfPreviewLayout('spread')" class="px-2.5 py-1 rounded-sm text-[var(--text-muted)] hover:text-[var(--text-main)] transition" aria-pressed="false" title="Vista de pliego, páginas pares a la izquierda e impares a la derecha" aria-label="Vista de pliego, páginas pares a la izquierda e impares a la derecha">
+                                <i class="fa-solid fa-book-open"></i>
+                            </button>
+                        </div>
+                        <button id="btn-toggle-ruler" class="hidden text-[var(--text-muted)] hover:text-black dark:hover:text-white transition-colors" title="Mostrar Regla" onclick="window.toggleRuler()">
                             <i class="fa-solid fa-ruler-horizontal"></i>
-                        </button>
-                        <button id="btn-toggle-spread" class="text-[var(--text-muted)] hover:text-black dark:hover:text-white transition-colors" title="Alternar Vista a Doble Página">
-                            <i class="fa-solid fa-file-lines"></i>
                         </button>
                         <span id="pdf-page-indicator">0 Páginas</span>
                     </div>
@@ -341,7 +352,7 @@ if (!headers_sent()) {
                 <!-- Visor Scrollable de Páginas PDF -->
                 <div id="pdf-ruler-wrapper" class="hidden w-full h-6 bg-white border-b border-gray-300 relative overflow-hidden pointer-events-none select-none shrink-0"><div id="pdf-ruler" class="absolute top-0 bottom-0 h-full"></div></div>
                 <div id="pdf-scroller" class="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 relative">
-                    <!-- Contenido dinámico del PDF compilado por JS -->
+                    <!-- PDF binario compilado y verificado por Typst -->
                 </div>
             </section>
         </main>
@@ -350,6 +361,7 @@ if (!headers_sent()) {
     <!-- Modals -->
     <?php include plugin_dir_path( __FILE__ ) . 'editor-settings-modal.php'; ?>
     <?php include plugin_dir_path( __FILE__ ) . 'chapter-settings-modal.php'; ?>
+    <?php include plugin_dir_path( __FILE__ ) . 'chapter-nomenclature-modal.php'; ?>
     <?php include plugin_dir_path( __FILE__ ) . 'document-import-modal.php'; ?>
 
     <!-- VIEWPORT EDITOR DE IMAGEN -->

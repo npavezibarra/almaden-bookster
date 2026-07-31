@@ -114,6 +114,29 @@ window.chapterHasOpeningPage = function(chapter) {
     return mode === 'blank' || mode === 'image';
 };
 
+window.getChapterOpeningVisibility = function(chapter, settings) {
+    const hasTitle = !!(chapter && chapter.title && String(chapter.title).trim() !== '');
+    const isToc = chapter && chapter.is_toc === '1';
+    const isCredits = chapter && chapter.is_credits === '1';
+    const showTitle = hasTitle && chapter.hide_title !== '1' && !isCredits;
+    const showPrefix = !isToc
+        && !isCredits
+        && String(settings && settings.chapter_prefix_show ? settings.chapter_prefix_show : '') === '1'
+        && chapter.exclude_from_numbering !== '1';
+    const showSubtitle = !isToc
+        && !isCredits
+        && !!(chapter && chapter.subtitle_text && String(chapter.subtitle_text).trim() !== '')
+        && (settings && (settings.chapter_subtitle_show == 1 || settings.chapter_subtitle_show === undefined));
+
+    return {
+        hasTitle,
+        showTitle,
+        showPrefix,
+        showSubtitle,
+        hasVisibleContent: showTitle || showPrefix || showSubtitle,
+    };
+};
+
 window.shouldSeparateChapterOpening = function(chapter, settings) {
     const separateOpening = window.getEffectiveOpeningSeparation
         ? window.getEffectiveOpeningSeparation(chapter, settings)
@@ -122,11 +145,16 @@ window.shouldSeparateChapterOpening = function(chapter, settings) {
         return false;
     }
 
-    const hasVisibleOpeningBlock = !!(chapter
-        && chapter.title
-        && String(chapter.title).trim() !== ''
-        && chapter.hide_title !== '1'
-        && chapter.is_credits !== '1');
+    const openingVisibility = window.getChapterOpeningVisibility
+        ? window.getChapterOpeningVisibility(chapter, settings)
+        : null;
+    const hasVisibleOpeningBlock = openingVisibility
+        ? openingVisibility.hasVisibleContent
+        : !!(chapter
+            && chapter.title
+            && String(chapter.title).trim() !== ''
+            && chapter.hide_title !== '1'
+            && chapter.is_credits !== '1');
     const openingMode = window.getEffectiveOpeningPageMode ? window.getEffectiveOpeningPageMode(chapter) : 'none';
 
     return hasVisibleOpeningBlock || openingMode === 'blank' || openingMode === 'image';

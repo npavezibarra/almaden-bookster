@@ -204,11 +204,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addImageLayerBtn) {
         addImageLayerBtn.addEventListener('click', () => {
             if (window.CoverEditor.actions.openMediaUploader) {
-                window.CoverEditor.actions.openMediaUploader('Seleccionar Imagen para Capa', (url) => {
+                window.CoverEditor.actions.openMediaUploader('Seleccionar Imagen para Capa', (media) => {
                     const newLayer = {
                         id: window.CoverEditor.utils.generateId(),
                         type: 'image',
-                        url: url,
+                        url: media.originalUrl || media.url,
+                        previewUrl: media.previewUrl || media.originalUrl || media.url,
                         x: 50,
                         y: 50,
                         rotation: 0,
@@ -335,8 +336,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            window.CoverEditor.actions.openMediaUploader('Reemplazar Imagen de Capa', (url) => {
-                layer.url = url;
+            window.CoverEditor.actions.openMediaUploader('Reemplazar Imagen de Capa', (media) => {
+                layer.url = media.originalUrl || media.url;
+                layer.previewUrl = media.previewUrl || media.originalUrl || media.url;
                 window.CoverEditor.actions.renderTextLayers();
                 window.CoverEditor.actions.renderLayersPanel();
                 window.CoverEditor.actions.selectLayer(layer.id);

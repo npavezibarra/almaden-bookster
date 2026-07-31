@@ -30,6 +30,50 @@ function almaden_bookster_cover_export_url_to_data_uri( $url ) {
 	return 'data:' . $mime_type . ';base64,' . base64_encode( $contents );
 }
 
+function almaden_bookster_cover_export_attachment_id_to_data_uri( $attachment_id ) {
+	$attachment_id = absint( $attachment_id );
+	if ( $attachment_id <= 0 ) {
+		return '';
+	}
+
+	$file_path = '';
+	if ( function_exists( 'wp_get_original_image_path' ) ) {
+		$file_path = wp_get_original_image_path( $attachment_id );
+	}
+	if ( empty( $file_path ) && function_exists( 'get_attached_file' ) ) {
+		$file_path = get_attached_file( $attachment_id );
+	}
+	if ( empty( $file_path ) || ! file_exists( $file_path ) ) {
+		return '';
+	}
+
+	$filetype = wp_check_filetype( $file_path );
+	$mime_type = ! empty( $filetype['type'] ) ? $filetype['type'] : mime_content_type( $file_path );
+	if ( empty( $mime_type ) ) {
+		$mime_type = 'application/octet-stream';
+	}
+
+	$contents = file_get_contents( $file_path );
+	if ( false === $contents ) {
+		return '';
+	}
+
+	return 'data:' . $mime_type . ';base64,' . base64_encode( $contents );
+}
+
+function almaden_bookster_cover_export_image_data_uri_from_settings( $cover_settings, $key ) {
+	$cover_settings = is_array( $cover_settings ) ? $cover_settings : array();
+	$attachment_id = ! empty( $cover_settings[ $key . '_attachment_id' ] ) ? absint( $cover_settings[ $key . '_attachment_id' ] ) : 0;
+	if ( $attachment_id > 0 ) {
+		$data_uri = almaden_bookster_cover_export_attachment_id_to_data_uri( $attachment_id );
+		if ( ! empty( $data_uri ) ) {
+			return $data_uri;
+		}
+	}
+
+	return ! empty( $cover_settings[ $key ] ) ? almaden_bookster_cover_export_url_to_data_uri( $cover_settings[ $key ] ) : '';
+}
+
 /**
  * Handle CMYK PDF export for the cover editor.
  */
@@ -139,12 +183,12 @@ function almaden_bookster_handle_export_cover_pdf() {
 		'front_flap' => 'width:' . $front_flap_render_mm . 'mm;',
 	);
 
-	$spread_image_data = $spread_image ? almaden_bookster_cover_export_url_to_data_uri( $spread_image ) : '';
-	$back_flap_image_data = ! empty( $cover_settings['back_flap_image'] ) ? almaden_bookster_cover_export_url_to_data_uri( $cover_settings['back_flap_image'] ) : '';
-	$back_image_data = ! empty( $cover_settings['back_image'] ) ? almaden_bookster_cover_export_url_to_data_uri( $cover_settings['back_image'] ) : '';
-	$spine_image_data = ! empty( $cover_settings['spine_image'] ) ? almaden_bookster_cover_export_url_to_data_uri( $cover_settings['spine_image'] ) : '';
-	$front_image_data = ! empty( $cover_settings['front_image'] ) ? almaden_bookster_cover_export_url_to_data_uri( $cover_settings['front_image'] ) : '';
-	$front_flap_image_data = ! empty( $cover_settings['front_flap_image'] ) ? almaden_bookster_cover_export_url_to_data_uri( $cover_settings['front_flap_image'] ) : '';
+	$spread_image_data = ( ! empty( $cover_settings['spread_image'] ) || ! empty( $cover_settings['spread_image_attachment_id'] ) ) ? almaden_bookster_cover_export_image_data_uri_from_settings( $cover_settings, 'spread_image' ) : '';
+	$back_flap_image_data = ( ! empty( $cover_settings['back_flap_image'] ) || ! empty( $cover_settings['back_flap_image_attachment_id'] ) ) ? almaden_bookster_cover_export_image_data_uri_from_settings( $cover_settings, 'back_flap_image' ) : '';
+	$back_image_data = ( ! empty( $cover_settings['back_image'] ) || ! empty( $cover_settings['back_image_attachment_id'] ) ) ? almaden_bookster_cover_export_image_data_uri_from_settings( $cover_settings, 'back_image' ) : '';
+	$spine_image_data = ( ! empty( $cover_settings['spine_image'] ) || ! empty( $cover_settings['spine_image_attachment_id'] ) ) ? almaden_bookster_cover_export_image_data_uri_from_settings( $cover_settings, 'spine_image' ) : '';
+	$front_image_data = ( ! empty( $cover_settings['front_image'] ) || ! empty( $cover_settings['front_image_attachment_id'] ) ) ? almaden_bookster_cover_export_image_data_uri_from_settings( $cover_settings, 'front_image' ) : '';
+	$front_flap_image_data = ( ! empty( $cover_settings['front_flap_image'] ) || ! empty( $cover_settings['front_flap_image_attachment_id'] ) ) ? almaden_bookster_cover_export_image_data_uri_from_settings( $cover_settings, 'front_flap_image' ) : '';
 
 	if ( empty( $spread_image_data ) ) {
 		$back_flap_style = $part_styles['back_flap'] . 'background:' . ( ! empty( $cover_settings['back_flap_image'] ) ? 'transparent' : ( ! empty( $cover_settings['back_flap_color'] ) ? sanitize_hex_color( $cover_settings['back_flap_color'] ) : '#ffffff' ) ) . ';';

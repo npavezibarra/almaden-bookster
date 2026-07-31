@@ -1,7 +1,18 @@
+window.isCreditsChapter = function(chapter) {
+    if (!chapter || typeof chapter !== 'object') return false;
+    const chapterTitle = String(chapter.title || '').trim().toLocaleLowerCase('es');
+    const chapterContent = String(chapter.content || '').replace(/<[^>]+>/g, ' ').trim();
+    const isGeneratedCreditsPlaceholder = /^en este cap[ií]tulo se generar[aá] autom[aá]ticamente la p[aá]gina de cr[eé]ditos\.?$/i.test(chapterContent);
+    return String(chapter.is_credits ?? '') === '1'
+        || chapter.is_credits === true
+        || (chapterTitle === 'créditos' && isGeneratedCreditsPlaceholder);
+};
+
 window.buildChapterHTML = function(chapter, index, settings, bookState, options = {}) {
     let compiledHtml = '';
     const includeOpeningBlock = options.includeOpeningBlock !== false;
     const openingVariant = options.openingVariant || 'standard';
+    const isCreditsChapter = window.isCreditsChapter(chapter);
     const chapterTitleAlign = ['left', 'center', 'right'].includes(String(settings.chapter_title_align || '').toLowerCase())
         ? String(settings.chapter_title_align).toLowerCase()
         : 'center';
@@ -67,20 +78,21 @@ window.buildChapterHTML = function(chapter, index, settings, bookState, options 
         });
         tocHtml += '</div>'; // Cierra .toc-container
         compiledHtml = tocHtml;
-    } else if (chapter.is_credits == '1') {
-        const creditsConfig = typeof window.almadenNormalizeCreditsConfig === 'function'
-            ? window.almadenNormalizeCreditsConfig(settings.credits_config || settings || {})
+    } else if (isCreditsChapter) {
+        const defaultCreditsConfig = typeof window.almadenGetCreditsConfigDefaults === 'function'
+            ? window.almadenGetCreditsConfigDefaults()
             : {
                 editorial: {
-                    edition_number: settings.credits_edition || '',
-                    publication_date: settings.credits_date || '',
-                    isbn: settings.credits_isbn || '',
-                    printer: settings.credits_printer || '',
-                    blank_before: settings.credits_blank_before || 0,
-                    blank_after: settings.credits_blank_after || 0,
+                    edition_number: '',
+                    publication_date: '',
+                    isbn: '',
+                    printer: '',
+                    blank_before: 0,
+                    blank_after: 0,
                 },
                 people: [],
                 collaborators: [],
+                collaborators_visible: 1,
                 collaborators_title: 'Colaboradores',
                 collaborators_styles: {
                     title: { font_family: '', font_size: 12, font_weight: '700', line_height: 1.2 },
@@ -97,10 +109,95 @@ window.buildChapterHTML = function(chapter, index, settings, bookState, options 
                     legal: { show_separator: 0, font_family: '', font_size: '', letter_spacing: '', line_height: '', text_align: '' },
                 },
                 legal: {
-                    copyright_text: settings.credits_copyright || '',
-                    license: settings.credits_license || 'all_rights_reserved',
+                    copyright_text: 'Queda rigurosamente prohibida, sin la autorización escrita de los titulares del "copyright", bajo las sanciones establecidas en las leyes, la reproducción parcial o total de esta obra por cualquier medio o procedimiento.',
+                    license: 'all_rights_reserved',
                 }
             };
+        // Credits are book-level structured data. Never use the chapter's
+        // placeholder body as a source for this generated page.
+        const creditsSource = settings.credits_config
+            || (bookState && bookState.settings && bookState.settings.credits_config)
+            || settings
+            || {};
+        let rawCreditsSource = creditsSource;
+        if (typeof rawCreditsSource === 'string') {
+            try {
+                rawCreditsSource = JSON.parse(rawCreditsSource);
+            } catch (error) {
+                rawCreditsSource = {};
+            }
+        }
+        if (!rawCreditsSource || typeof rawCreditsSource !== 'object') {
+            rawCreditsSource = {};
+        }
+        const creditsConfig = typeof window.almadenNormalizeCreditsConfig === 'function'
+            ? window.almadenNormalizeCreditsConfig(creditsSource)
+            : {
+                ...defaultCreditsConfig,
+                editorial: {
+                    ...defaultCreditsConfig.editorial,
+                    ...(rawCreditsSource.editorial && typeof rawCreditsSource.editorial === 'object' ? rawCreditsSource.editorial : {}),
+                    edition_number: rawCreditsSource.editorial?.edition_number || rawCreditsSource.credits_edition || '',
+                    publication_date: rawCreditsSource.editorial?.publication_date || rawCreditsSource.credits_date || '',
+                    isbn: rawCreditsSource.editorial?.isbn || rawCreditsSource.credits_isbn || '',
+                    printer: rawCreditsSource.editorial?.printer || rawCreditsSource.credits_printer || '',
+                    blank_before: rawCreditsSource.editorial?.blank_before ?? rawCreditsSource.credits_blank_before ?? 0,
+                    blank_after: rawCreditsSource.editorial?.blank_after ?? rawCreditsSource.credits_blank_after ?? 0,
+                },
+                people: Array.isArray(rawCreditsSource.people) ? rawCreditsSource.people : [],
+                collaborators: Array.isArray(rawCreditsSource.collaborators) ? rawCreditsSource.collaborators : [],
+                collaborators_visible: rawCreditsSource.collaborators_visible ?? rawCreditsSource.credits_collaborators_visible ?? defaultCreditsConfig.collaborators_visible,
+                collaborators_title: rawCreditsSource.collaborators_title || rawCreditsSource.credits_collaborators_title || defaultCreditsConfig.collaborators_title,
+                collaborators_styles: {
+                    ...defaultCreditsConfig.collaborators_styles,
+                    ...(rawCreditsSource.collaborators_styles && typeof rawCreditsSource.collaborators_styles === 'object' ? rawCreditsSource.collaborators_styles : {}),
+                },
+                logos: Array.isArray(rawCreditsSource.logos) ? rawCreditsSource.logos : [],
+                section_order: Array.isArray(rawCreditsSource.section_order) ? rawCreditsSource.section_order : defaultCreditsConfig.section_order.slice(),
+                section_styles: {
+                    ...defaultCreditsConfig.section_styles,
+                    ...(rawCreditsSource.section_styles && typeof rawCreditsSource.section_styles === 'object' ? rawCreditsSource.section_styles : {}),
+                },
+                legal: {
+                    ...defaultCreditsConfig.legal,
+                    ...(rawCreditsSource.legal && typeof rawCreditsSource.legal === 'object' ? rawCreditsSource.legal : {}),
+                    copyright_text: rawCreditsSource.legal?.copyright_text || rawCreditsSource.credits_copyright || defaultCreditsConfig.legal.copyright_text,
+                    license: rawCreditsSource.legal?.license || rawCreditsSource.credits_license || defaultCreditsConfig.legal.license,
+                },
+            };
+        creditsConfig.editorial = {
+            ...defaultCreditsConfig.editorial,
+            ...(creditsConfig.editorial || {}),
+        };
+        creditsConfig.collaborators_styles = {
+            ...defaultCreditsConfig.collaborators_styles,
+            ...(creditsConfig.collaborators_styles || {}),
+            title: {
+                ...defaultCreditsConfig.collaborators_styles.title,
+                ...(creditsConfig.collaborators_styles && creditsConfig.collaborators_styles.title ? creditsConfig.collaborators_styles.title : {}),
+            },
+            item: {
+                ...defaultCreditsConfig.collaborators_styles.item,
+                ...(creditsConfig.collaborators_styles && creditsConfig.collaborators_styles.item ? creditsConfig.collaborators_styles.item : {}),
+            },
+        };
+        creditsConfig.section_order = Array.isArray(creditsConfig.section_order) && creditsConfig.section_order.length
+            ? creditsConfig.section_order
+            : defaultCreditsConfig.section_order.slice();
+        creditsConfig.section_styles = {
+            ...defaultCreditsConfig.section_styles,
+            ...(creditsConfig.section_styles || {}),
+        };
+        creditsConfig.legal = {
+            ...defaultCreditsConfig.legal,
+            ...(creditsConfig.legal || {}),
+        };
+        if (!String(creditsConfig.legal.copyright_text || '').trim()) {
+            creditsConfig.legal.copyright_text = defaultCreditsConfig.legal.copyright_text;
+        }
+        if (!String(creditsConfig.legal.license || '').trim()) {
+            creditsConfig.legal.license = defaultCreditsConfig.legal.license;
+        }
         const escapeHtml = (value) => String(value ?? '')
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
@@ -136,7 +233,7 @@ window.buildChapterHTML = function(chapter, index, settings, bookState, options 
         };
         const licenseLabel = typeof window.almadenGetCreditsLicenseLabel === 'function' ? window.almadenGetCreditsLicenseLabel : (value) => value;
         const normalizeSectionStyle = (sectionId) => {
-            const defaultStyle = { show_separator: 0, font_family: '', font_size: '', letter_spacing: '', line_height: '', text_align: '' };
+            const defaultStyle = { show_separator: 0, font_family: '', font_size: '', letter_spacing: '', line_height: '', text_align: '', item_gap_px: '' };
             const source = creditsConfig.section_styles && typeof creditsConfig.section_styles === 'object' ? creditsConfig.section_styles[sectionId] : null;
             const style = source && typeof source === 'object' ? source : defaultStyle;
             const textAlign = ['left', 'center', 'right'].includes(String(style.text_align || '').toLowerCase()) ? String(style.text_align).toLowerCase() : '';
@@ -147,6 +244,7 @@ window.buildChapterHTML = function(chapter, index, settings, bookState, options 
                 letter_spacing: style.letter_spacing !== undefined && style.letter_spacing !== '' && !Number.isNaN(parseFloat(style.letter_spacing)) ? Math.min(Math.max(parseFloat(style.letter_spacing), -10), 20) : '',
                 line_height: style.line_height !== undefined && style.line_height !== '' && !Number.isNaN(parseFloat(style.line_height)) ? Math.min(Math.max(parseFloat(style.line_height), 0.5), 3) : '',
                 text_align: textAlign,
+                item_gap_px: style.item_gap_px !== undefined && style.item_gap_px !== '' && !Number.isNaN(parseFloat(style.item_gap_px)) ? Math.min(Math.max(parseFloat(style.item_gap_px), 0), 80) : '',
             };
         };
         const cssFontFamily = (value) => {
@@ -212,7 +310,8 @@ window.buildChapterHTML = function(chapter, index, settings, bookState, options 
         const wrapSection = (sectionId, innerHtml, options = {}) => {
             if (!innerHtml) return '';
             const { style, css, styleTag } = buildSectionStyle(sectionId);
-            const separator = style.show_separator && !options.isFirst
+            // The separator belongs to this section and is drawn after it, matching Typst.
+            const separator = style.show_separator && options.hasNext
                 ? '<div class="credits-section-separator" style="width: 100%; border-top: 0.25px solid #000; margin: 1.25em 0 1em 0;"></div>'
                 : '';
             return `${styleTag}${separator}<div class="credits-section-block credits-section-${sectionId}" style="${css}">${innerHtml}</div>`;
@@ -229,13 +328,33 @@ window.buildChapterHTML = function(chapter, index, settings, bookState, options 
         const legalSectionLayoutStyle = `width: 100%; display: flex; flex-direction: column; align-items: ${legalBlockAlignItems};`;
         const legalBlockLayoutStyle = `width: ${legalBlockWidth}; max-width: 100%; padding-left: 0; padding-right: 0; ${legalAlignmentStyle}`;
         const legalParagraphLayoutStyle = `width: 100%; margin: 0; padding: 0; ${legalAlignmentStyle}`;
-        let creditsHtml = '<div class="content-box credits-page-content" style="display: flex; flex-direction: column; height: calc(100% - 4px);">';
-        let parsedTopContent = '';
-        if (chapter.content && chapter.content.trim() !== '') {
-            parsedTopContent = compileMarkdownToHTML(chapter.content);
-        }
-        creditsHtml += `<div class="credits-top-section" style="flex-grow: 1; margin-bottom: 2em;">${parsedTopContent}</div>`;
-        creditsHtml += '<div class="credits-bottom-section" style="padding-bottom: 2cm;">';
+        const peopleSectionStyle = normalizeSectionStyle('people');
+        const peopleTextAlignment = peopleSectionStyle.text_align;
+        const peopleItemGapPx = peopleSectionStyle.item_gap_px === '' ? 10 : peopleSectionStyle.item_gap_px;
+        const peopleAlignItems = peopleTextAlignment === 'right'
+            ? 'flex-end'
+            : (peopleTextAlignment === 'center' ? 'center' : 'flex-start');
+        const peopleAlignmentStyle = peopleTextAlignment
+            ? `text-align: ${peopleTextAlignment} !important; text-align-last: ${peopleTextAlignment} !important;`
+            : '';
+        const peopleSectionLayoutStyle = `width: 100%; display: flex; flex-direction: column; ${peopleTextAlignment ? `align-items: ${peopleAlignItems};` : ''}`;
+        const peopleEntryLayoutStyle = `display: flex; flex-direction: column; width: 100%; ${peopleTextAlignment ? `align-items: ${peopleAlignItems};` : ''} ${peopleAlignmentStyle}`;
+        const peopleLineLayoutStyle = `display: block; width: fit-content; max-width: 100%; ${peopleTextAlignment ? `align-self: ${peopleAlignItems};` : ''} white-space: normal; overflow-wrap: anywhere; ${peopleAlignmentStyle}`;
+        const collaboratorsSectionStyle = normalizeSectionStyle('collaborators');
+        const collaboratorsTextAlignment = collaboratorsSectionStyle.text_align;
+        const collaboratorsAlignItems = collaboratorsTextAlignment === 'right'
+            ? 'flex-end'
+            : (collaboratorsTextAlignment === 'left' ? 'flex-start' : 'center');
+        const collaboratorsAlignmentStyle = collaboratorsTextAlignment
+            ? `text-align: ${collaboratorsTextAlignment} !important; text-align-last: ${collaboratorsTextAlignment} !important;`
+            : '';
+        const collaboratorsSectionLayoutStyle = `width: 100%; display: flex; flex-direction: column; ${collaboratorsTextAlignment ? `align-items: ${collaboratorsAlignItems};` : ''}`;
+        const collaboratorsCellLayoutStyle = `display: flex; flex-direction: column; ${collaboratorsTextAlignment ? `align-items: ${collaboratorsAlignItems};` : ''} min-width: 0; height: 100%; break-inside: avoid; page-break-inside: avoid; ${buildCollaboratorsTextStyle(collaboratorsStyles.item)} ${collaboratorsAlignmentStyle}`;
+        const collaboratorsTextStackLayoutStyle = `width: fit-content; max-width: 100%; display: flex; flex-direction: column; ${collaboratorsTextAlignment ? `align-items: ${collaboratorsAlignItems}; text-align: ${collaboratorsTextAlignment};` : ''} justify-content: flex-end;`;
+        // Keep credits as normal flowing content so Paged can create as many
+        // pages as needed. Each tab becomes one ordered, independently styled block.
+        let creditsHtml = '<div class="content-box credits-page-content">';
+        creditsHtml += '<div class="credits-sections-flow">';
         const sectionOrder = Array.isArray(creditsConfig.section_order) && creditsConfig.section_order.length > 0
             ? creditsConfig.section_order
             : ['editorial', 'people', 'collaborators', 'logos', 'legal'];
@@ -289,20 +408,20 @@ window.buildChapterHTML = function(chapter, index, settings, bookState, options 
         }
 
         if (Array.isArray(creditsConfig.people) && creditsConfig.people.length > 0) {
-            let peopleHtml = '<div class="credits-people-section" style="margin-top: 1.6em; display: flex; flex-direction: column; align-items: flex-start; width: 100%; text-align: left !important; text-align-last: left !important;">';
+            let peopleHtml = `<div class="credits-people-section" style="margin-top: 1.6em; ${peopleSectionLayoutStyle}">`;
             creditsConfig.people.forEach((person) => {
                 if (!person || (!person.name && !person.role && !person.email && !person.website)) return;
                 const role = roleLabel(person.role || 'author');
-                peopleHtml += '<div class="credits-person-entry" style="display: flex; flex-direction: column; align-items: flex-start; width: 100%; text-align: left !important; text-align-last: left !important; margin: 0 0 0.9em 0;">';
+                peopleHtml += `<div class="credits-person-entry" style="${peopleEntryLayoutStyle}; margin: 0 0 ${peopleItemGapPx}px 0;">`;
                 if (person.name) {
-                    peopleHtml += `<span class="credits-person-name" style="display: inline-block; width: auto; max-width: 100%; font-weight: 700; text-align: left !important; text-align-last: left !important; white-space: normal; overflow-wrap: anywhere;">${escapeHtml(person.name)}</span>`;
+                    peopleHtml += `<span class="credits-person-name" style="${peopleLineLayoutStyle}; font-weight: 700;">${escapeHtml(person.name)}</span>`;
                 }
                 if (role) {
-                    peopleHtml += `<span class="credits-person-role" style="display: inline-block; width: auto; max-width: 100%; font-style: italic; text-align: left !important; text-align-last: left !important; white-space: normal; overflow-wrap: anywhere;">${escapeHtml(role)}</span>`;
+                    peopleHtml += `<span class="credits-person-role" style="${peopleLineLayoutStyle}; font-style: italic;">${escapeHtml(role)}</span>`;
                 }
                 if (person.show_contact === 1 || person.show_contact === '1') {
-                    if (person.email) peopleHtml += `<span class="credits-person-email" style="display: inline-block; width: auto; max-width: 100%; font-style: italic; text-align: left !important; text-align-last: left !important; white-space: normal; overflow-wrap: anywhere;">${escapeHtml(person.email)}</span>`;
-                    if (person.website) peopleHtml += `<span class="credits-person-website" style="display: inline-block; width: auto; max-width: 100%; text-align: left !important; text-align-last: left !important; white-space: normal; overflow-wrap: anywhere;">${escapeHtml(formatCreditsWebsite(person.website))}</span>`;
+                    if (person.email) peopleHtml += `<span class="credits-person-email" style="${peopleLineLayoutStyle}; font-style: italic;">${escapeHtml(person.email)}</span>`;
+                    if (person.website) peopleHtml += `<span class="credits-person-website" style="${peopleLineLayoutStyle};">${escapeHtml(formatCreditsWebsite(person.website))}</span>`;
                 }
                 peopleHtml += '</div>';
             });
@@ -312,27 +431,33 @@ window.buildChapterHTML = function(chapter, index, settings, bookState, options 
 
         const collaboratorsVisible = creditsConfig.collaborators_visible === 1 || creditsConfig.collaborators_visible === '1' || creditsConfig.collaborators_visible === true;
         const validCollaborators = Array.isArray(creditsConfig.collaborators)
-            ? creditsConfig.collaborators.filter((item) => item && (item.name || item.logo_url || item.website))
+            ? creditsConfig.collaborators.filter((item) => item && (item.name || item.type || item.logo_url || item.website || item.text))
             : [];
         if (collaboratorsVisible && validCollaborators.length > 0) {
-            let collaboratorsHtml = '<div class="credits-collaborators-section" style="margin-top: 1.6em;">';
+            let collaboratorsHtml = `<div class="credits-collaborators-section" style="margin-top: 1.6em; ${collaboratorsSectionLayoutStyle}">`;
             const collaboratorsTitle = String(creditsConfig.collaborators_title || 'Colaboradores').trim();
             const collaboratorsTitleStyle = buildCollaboratorsTextStyle(collaboratorsStyles.title);
             const collaboratorsItemStyle = buildCollaboratorsTextStyle(collaboratorsStyles.item);
             const collaboratorsImageSlotHeight = Math.max(96, collaboratorsStyles.image_max_width);
             const collaboratorsTextAreaHeight = Number.parseFloat((collaboratorsStyles.item.line_height * 2).toFixed(2));
             const renderCollaboratorCell = (item) => {
-                let cellHtml = `<div class="credits-collaborator-cell" style="display: flex; flex-direction: column; align-items: center; min-width: 0; height: 100%; text-align: center; break-inside: avoid; page-break-inside: avoid; ${collaboratorsItemStyle}">`;
+                let cellHtml = `<div class="credits-collaborator-cell" style="${collaboratorsCellLayoutStyle};">`;
                 cellHtml += `<div class="credits-collaborator-image-area" style="height: ${collaboratorsImageSlotHeight}px; display: flex; align-items: center; justify-content: center; width: 100%;">`;
                 if (item.logo_url) {
                     cellHtml += `<img src="${escapeHtml(item.logo_url)}" alt="" style="width: auto; max-width: ${collaboratorsStyles.image_max_width}px !important; height: auto; max-height: ${collaboratorsImageSlotHeight}px; object-fit: contain; display: block; margin: 0 auto;">`;
                 }
-                cellHtml += `</div><div class="credits-collaborator-text-area" style="flex: 1 1 auto; min-height: ${collaboratorsTextAreaHeight}em; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; width: 100%; padding-top: 0.55em; box-sizing: border-box;"><div class="credits-collaborator-text-stack" style="width: fit-content; max-width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; text-align: center;">`;
+                cellHtml += `</div><div class="credits-collaborator-text-area" style="flex: 1 1 auto; min-height: ${collaboratorsTextAreaHeight}em; display: flex; flex-direction: column; justify-content: flex-end; align-items: ${collaboratorsAlignItems}; width: 100%; padding-top: 0.55em; box-sizing: border-box;"><div class="credits-collaborator-text-stack" style="${collaboratorsTextStackLayoutStyle}">`;
                 if (item.name) {
-                    cellHtml += `<p class="credits-collaborator-name" style="margin: 0; width: fit-content; max-width: 100%; text-align: center; ${collaboratorsItemStyle}">${escapeHtml(item.name)}</p>`;
+                    cellHtml += `<p class="credits-collaborator-name" style="margin: 0; width: fit-content; max-width: 100%; text-align: inherit; ${collaboratorsItemStyle}">${escapeHtml(item.name)}</p>`;
+                }
+                if (item.type) {
+                    cellHtml += `<p class="credits-collaborator-type" style="margin: 0; width: fit-content; max-width: 100%; font-style: italic; text-align: inherit; ${collaboratorsItemStyle}">${escapeHtml(item.type)}</p>`;
                 }
                 if (item.website) {
-                    cellHtml += `<p class="credits-collaborator-website" style="margin: 0; width: fit-content; max-width: 100%; opacity: 0.8; text-align: center; overflow-wrap: anywhere; ${collaboratorsItemStyle}">${escapeHtml(formatCreditsWebsite(item.website))}</p>`;
+                    cellHtml += `<p class="credits-collaborator-website" style="margin: 0; width: fit-content; max-width: 100%; opacity: 0.8; text-align: inherit; overflow-wrap: anywhere; ${collaboratorsItemStyle}">${escapeHtml(formatCreditsWebsite(item.website))}</p>`;
+                }
+                if (item.text) {
+                    cellHtml += `<p class="credits-collaborator-text" style="margin: 0; width: fit-content; max-width: 100%; text-align: inherit; ${collaboratorsItemStyle}">${escapeHtml(item.text)}</p>`;
                 }
                 cellHtml += '</div></div></div>';
                 return cellHtml;
@@ -345,7 +470,10 @@ window.buildChapterHTML = function(chapter, index, settings, bookState, options 
                 if (isFirstRow && collaboratorsTitle) {
                     collaboratorsHtml += `<div class="credits-section-title" style="margin-bottom: 0.75em; break-after: avoid; page-break-after: avoid; ${collaboratorsTitleStyle}">${escapeHtml(collaboratorsTitle)}</div>`;
                 }
-                collaboratorsHtml += '<div class="credits-collaborators-grid-row" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25em; width: 100%;">';
+                const collaboratorsJustifyItems = collaboratorsTextAlignment === 'right'
+                    ? 'end'
+                    : (collaboratorsTextAlignment === 'left' ? 'start' : (collaboratorsTextAlignment === 'center' ? 'center' : ''));
+                collaboratorsHtml += `<div class="credits-collaborators-grid-row" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25em; width: 100%; ${collaboratorsJustifyItems ? `justify-items: ${collaboratorsJustifyItems};` : ''}">`;
                 rowItems.forEach((item) => {
                     collaboratorsHtml += renderCollaboratorCell(item);
                 });
@@ -413,12 +541,11 @@ window.buildChapterHTML = function(chapter, index, settings, bookState, options 
             sectionHtml.legal = `<div class="credits-legal-section" style="margin-top: 1.6em; ${legalSectionLayoutStyle}"><div class="credits-license" style="font-size: 0.9em; opacity: 0.8; ${legalBlockLayoutStyle}"><p style="${legalParagraphLayoutStyle}">${escapeHtml(licenseLabel(creditsConfig.legal.license || 'all_rights_reserved'))}</p></div></div>`;
         }
 
-        let renderedCreditsSections = 0;
-        normalizedSectionOrder.forEach((sectionId) => {
-            if (sectionHtml[sectionId]) {
-                creditsHtml += wrapSection(sectionId, sectionHtml[sectionId], { isFirst: renderedCreditsSections === 0 });
-                renderedCreditsSections += 1;
-            }
+        const renderableSectionIds = normalizedSectionOrder.filter((sectionId) => sectionHtml[sectionId]);
+        renderableSectionIds.forEach((sectionId, sectionIndex) => {
+            creditsHtml += wrapSection(sectionId, sectionHtml[sectionId], {
+                hasNext: sectionIndex < renderableSectionIds.length - 1,
+            });
         });
 
         creditsHtml += '</div></div>';
@@ -435,7 +562,7 @@ window.buildChapterHTML = function(chapter, index, settings, bookState, options 
         compiledHtml = compiledHtml.replace(/<p>/, '<p class="drop-cap">');
     }
 
-    const openingHtml = includeOpeningBlock && chapter.title && chapter.title.trim() !== '' && chapter.hide_title !== '1' && chapter.is_credits !== '1'
+    const openingHtml = includeOpeningBlock && !isCreditsChapter
         ? buildChapterOpeningHtml(chapter, index, settings, bookState, { variant: openingVariant })
         : '';
 

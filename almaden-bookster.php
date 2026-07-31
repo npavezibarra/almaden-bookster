@@ -58,7 +58,9 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-filesize.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/gdrive-client.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/epub-export.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/helpers/cover-thumbnail.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/helpers/cover-upload.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/process-utils.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-typst-pdf.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/book-import.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/document-import.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/book-export.php';
@@ -233,6 +235,7 @@ function almaden_bookster_create_settings_table() {
 			chapter_title_font_style varchar(20) DEFAULT 'normal' NOT NULL,
 			chapter_title_text_transform varchar(20) DEFAULT 'none' NOT NULL,
 			chapter_title_align varchar(20) DEFAULT 'center' NOT NULL,
+			chapter_title_letter_spacing float DEFAULT 0.0 NOT NULL,
 			chapter_title_line_height float DEFAULT 1.2 NOT NULL,
 			chapter_title_padding_top float DEFAULT 0.0 NOT NULL,
 			chapter_title_padding_bottom float DEFAULT 1.5 NOT NULL,
@@ -440,6 +443,7 @@ add_action('init', function() {
 		'chapter_prefix_font_style' => "varchar(20) DEFAULT 'normal' NOT NULL",
 		'chapter_prefix_letter_spacing' => 'float DEFAULT 0.0 NOT NULL',
 		'chapter_prefix_ornament' => "varchar(20) DEFAULT 'none' NOT NULL",
+		'chapter_title_letter_spacing' => 'float DEFAULT 0.0 NOT NULL',
 		'chapter_title_line_height' => 'float DEFAULT 1.2 NOT NULL',
 		'chapter_title_text_transform' => "varchar(20) DEFAULT 'none' NOT NULL",
 		'ebook_bg_type' => "varchar(20) DEFAULT 'color' NOT NULL",

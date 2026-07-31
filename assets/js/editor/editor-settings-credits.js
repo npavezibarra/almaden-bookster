@@ -75,7 +75,11 @@ function creditsSyncStateFromForm() {
         // Ignore storage failures and keep the server-backed state.
     }
     creditsScheduleRemoteSave(config);
-    if (typeof refreshEditorDisplay === 'function') {
+    if (typeof compilePDFPreview === 'function') {
+        // Credit settings are independent of the editable chapter surface.
+        // Refresh them even while that surface has unsaved visual changes.
+        compilePDFPreview(false, 'pdf-scroller', false, true);
+    } else if (typeof refreshEditorDisplay === 'function') {
         refreshEditorDisplay(false);
     }
 }

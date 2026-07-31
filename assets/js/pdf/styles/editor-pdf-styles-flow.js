@@ -55,6 +55,18 @@ function getPDFStylesFlow(settings, toPx) {
         }
     ` : '';
     return `
+        .pdf-content .chapter-editable-content,
+        .pdf-content .chapter-editable-content > p,
+        .pdf-content .chapter-editable-content > ul,
+        .pdf-content .chapter-editable-content > ol,
+        .pdf-content .almaden-align-left,
+        .pdf-content .almaden-align-center,
+        .pdf-content .almaden-align-right,
+        .pdf-content .almaden-align-justify {
+            break-inside: auto !important;
+            page-break-inside: auto !important;
+        }
+
         .pdf-content .split-paragraph-start {
             margin-bottom: 0px !important;
             padding-bottom: 0px !important;

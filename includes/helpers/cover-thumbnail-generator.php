@@ -418,6 +418,17 @@ function almaden_get_cover_thumbnail_html( $book_id ) {
         return '';
     }
 
+    // Card thumbnails must use the same screen-safe assets as the cover editor.
+    // This keeps CMYK originals for print while avoiding broken or color-shifted
+    // images in the browser.
+    if ( function_exists( 'almaden_bookster_prepare_cover_settings_for_editor' ) ) {
+        $cover_settings = almaden_bookster_prepare_cover_settings_for_editor( $cover_settings );
+    }
+    $spread_preview_url = ! empty( $cover_settings['spread_image_preview_url'] ) ? $cover_settings['spread_image_preview_url'] : '';
+    $front_preview_url = ! empty( $cover_settings['front_image_preview_url'] ) ? $cover_settings['front_image_preview_url'] : '';
+    $back_preview_url = ! empty( $cover_settings['back_image_preview_url'] ) ? $cover_settings['back_image_preview_url'] : '';
+    $spine_preview_url = ! empty( $cover_settings['spine_image_preview_url'] ) ? $cover_settings['spine_image_preview_url'] : '';
+
     // Check if there are any layers or front image
     if ( empty($cover_settings['text_layers']) && empty($cover_settings['front_image']) && empty($cover_settings['spread_image']) ) {
         return '';
@@ -472,17 +483,17 @@ function almaden_get_cover_thumbnail_html( $book_id ) {
         <div class="cover-spread-container absolute top-0 left-0" 
              style="width: <?php echo $totalSpreadWidthPx; ?>px; height: <?php echo $actualHeightPx; ?>px; transform-origin: top left; pointer-events: none;">
             
-            <?php if ( !empty($cover_settings['spread_image']) ) : ?>
-                <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('<?php echo esc_url($cover_settings['spread_image']); ?>');"></div>
+            <?php if ( !empty($spread_preview_url) ) : ?>
+                <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('<?php echo esc_url($spread_preview_url); ?>');"></div>
             <?php else : ?>
-                <?php if ( !empty($cover_settings['front_image']) ) : ?>
-                    <div class="absolute top-0 bottom-0 bg-cover bg-center" style="left: <?php echo $frontCoverStartPx; ?>px; width: <?php echo $frontCoverPx; ?>px; background-image: url('<?php echo esc_url($cover_settings['front_image']); ?>');"></div>
+                <?php if ( !empty($front_preview_url) ) : ?>
+                    <div class="absolute top-0 bottom-0 bg-cover bg-center" style="left: <?php echo $frontCoverStartPx; ?>px; width: <?php echo $frontCoverPx; ?>px; background-image: url('<?php echo esc_url($front_preview_url); ?>');"></div>
                 <?php endif; ?>
-                <?php if ( !empty($cover_settings['back_image']) ) : ?>
-                    <div class="absolute top-0 bottom-0 bg-cover bg-center" style="left: <?php echo $backFlapPx; ?>px; width: <?php echo $backCoverPx; ?>px; background-image: url('<?php echo esc_url($cover_settings['back_image']); ?>');"></div>
+                <?php if ( !empty($back_preview_url) ) : ?>
+                    <div class="absolute top-0 bottom-0 bg-cover bg-center" style="left: <?php echo $backFlapPx; ?>px; width: <?php echo $backCoverPx; ?>px; background-image: url('<?php echo esc_url($back_preview_url); ?>');"></div>
                 <?php endif; ?>
-                <?php if ( !empty($cover_settings['spine_image']) ) : ?>
-                    <div class="absolute top-0 bottom-0 bg-cover bg-center" style="left: <?php echo ($backFlapPx + $backCoverPx); ?>px; width: <?php echo $spineWidthPx; ?>px; background-image: url('<?php echo esc_url($cover_settings['spine_image']); ?>');"></div>
+                <?php if ( !empty($spine_preview_url) ) : ?>
+                    <div class="absolute top-0 bottom-0 bg-cover bg-center" style="left: <?php echo ($backFlapPx + $backCoverPx); ?>px; width: <?php echo $spineWidthPx; ?>px; background-image: url('<?php echo esc_url($spine_preview_url); ?>');"></div>
                 <?php elseif ( !empty($cover_settings['spine_color']) ) : ?>
                     <div class="absolute top-0 bottom-0 bg-cover bg-center" style="left: <?php echo ($backFlapPx + $backCoverPx); ?>px; width: <?php echo $spineWidthPx; ?>px; background-color: <?php echo esc_attr($cover_settings['spine_color']); ?>;"></div>
                 <?php endif; ?>
@@ -571,4 +582,3 @@ function almaden_get_cover_thumbnail_html( $book_id ) {
     <?php
     return ob_get_clean();
 }
-

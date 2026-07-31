@@ -1,139 +1,83 @@
 // ============================================================
 // MODULO: editor-pdf-safe-breaks.js
-// Responsabilidad: Evitar que Paged.js corte texto dentro de
-// palabras o elementos inline y deje fragmentos invisibles.
+// Responsabilidad: Reparar solo BreakTokens que retroceden.
 // ============================================================
 
-(function registerAlmadenSafeBreaks() {
+window.almadenResolveBreakTokenOffset = function(context) {
+    const previousOffset = Number(context.previousOffset);
+    const nativeOffset = Number(context.nativeOffset);
+    const relativeOffset = Number(context.relativeOffset);
+    const sourceLength = Number(context.sourceLength);
+    const renderedLength = Number(context.renderedLength);
+
+    if (
+        Number.isInteger(previousOffset)
+        && Number.isInteger(relativeOffset)
+        && renderedLength === sourceLength - previousOffset
+    ) {
+        const absoluteOffset = previousOffset + relativeOffset;
+        if (absoluteOffset > previousOffset && absoluteOffset <= sourceLength) {
+            return absoluteOffset;
+        }
+    }
+
+    return nativeOffset;
+};
+
+(function registerAlmadenMonotonicBreakTokens() {
     if (!window.Paged || !window.Paged.Handler || window.__almadenSafeBreaksRegistered) {
         return;
     }
 
-    const WORD_CHAR_RE = /[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9]/;
-    const SOFT_HYPHEN = '\u00AD';
-    const SAFE_BOUNDARY_RE = /[\s\u00ad\-–—.,;:!?¿¡()[\]{}"“”‘’'«»/]/;
-    const SENSITIVE_INLINE_SELECTOR = [
-        'em',
-        'strong',
-        'i',
-        'b',
-        'u',
-        'span[lang]',
-        'span[style]',
-        'span[data-footnote-id]',
-        'a[data-footnote-call]',
-        '.almaden-inline'
-    ].join(',');
-
-    function isTextNode(node) {
-        return node && node.nodeType === Node.TEXT_NODE;
-    }
-
-    function isInsideSensitiveInline(node) {
-        return !!(
-            node &&
-            node.parentElement &&
-            node.parentElement.closest(SENSITIVE_INLINE_SELECTOR)
-        );
-    }
-
-    function isUnsafeWordOffset(text, offset) {
-        if (!text || offset <= 0 || offset >= text.length) {
-            return false;
+    class AlmadenMonotonicBreakTokens extends window.Paged.Handler {
+        constructor(chunker, polisher, caller) {
+            super(chunker, polisher, caller);
+            this.lastOffsetByTextNode = new WeakMap();
         }
 
-        const before = text.charAt(offset - 1);
-        const after = text.charAt(offset);
-
-        if (before === SOFT_HYPHEN || after === SOFT_HYPHEN) {
-            return false;
-        }
-
-        return WORD_CHAR_RE.test(before) && WORD_CHAR_RE.test(after);
-    }
-
-    function previousSafeOffset(text, offset) {
-        for (let i = Math.min(offset, text.length) - 1; i >= 0; i--) {
-            if (SAFE_BOUNDARY_RE.test(text.charAt(i))) {
-                return i + 1;
-            }
-        }
-
-        return 0;
-    }
-
-    function previousSoftHyphenOffset(text, offset) {
-        for (let i = Math.min(offset, text.length) - 1; i >= 0; i--) {
-            const ch = text.charAt(i);
-
-            if (ch === SOFT_HYPHEN) {
-                return i + 1;
+        onBreakToken(breakToken, overflow) {
+            const sourceNode = breakToken && breakToken.node;
+            if (!sourceNode || sourceNode.nodeType !== Node.TEXT_NODE) {
+                return breakToken;
             }
 
-            if (SAFE_BOUNDARY_RE.test(ch)) {
-                break;
-            }
-        }
+            const sourceLength = String(sourceNode.textContent || '').length;
+            const previousOffset = this.lastOffsetByTextNode.get(sourceNode);
+            const nativeOffset = Number(breakToken.offset);
+            const relativeOffset = overflow ? Number(overflow.startOffset) : NaN;
+            const renderedLength = overflow && overflow.startContainer
+                ? String(overflow.startContainer.textContent || '').length
+                : NaN;
 
-        return null;
-    }
-
-    function getSafeOffsetForTextNode(node, offset) {
-        if (!isTextNode(node)) {
-            return offset;
-        }
-
-        const text = node.textContent || '';
-        const normalizedOffset = Number(offset || 0);
-
-        if (normalizedOffset <= 0 || normalizedOffset >= text.length) {
-            return normalizedOffset;
-        }
-
-        if (isUnsafeWordOffset(text, normalizedOffset)) {
-            const softHyphenOffset = previousSoftHyphenOffset(text, normalizedOffset);
-            if (softHyphenOffset !== null) {
-                return softHyphenOffset;
-            }
-
-            const safeOffset = previousSafeOffset(text, normalizedOffset);
-            return safeOffset > 0 ? safeOffset : normalizedOffset;
-        }
-
-        if (isInsideSensitiveInline(node)) {
-            const safeOffset = previousSafeOffset(text, normalizedOffset);
-
-            if (safeOffset < normalizedOffset) {
-                return safeOffset;
-            }
-        }
-
-        return normalizedOffset;
-    }
-
-    class AlmadenSafeBreaksHandler extends window.Paged.Handler {
-        onOverflow(overflow) {
-            if (!overflow || !isTextNode(overflow.startContainer)) {
-                return overflow;
-            }
-
-            const safeOffset = getSafeOffsetForTextNode(
-                overflow.startContainer,
-                overflow.startOffset
-            );
+            breakToken.offset = window.almadenResolveBreakTokenOffset({
+                previousOffset,
+                nativeOffset,
+                relativeOffset,
+                sourceLength,
+                renderedLength
+            });
 
             if (
-                Number.isInteger(safeOffset) &&
-                safeOffset > 0 &&
-                safeOffset < overflow.startOffset
+                Number.isInteger(previousOffset)
+                && Number.isInteger(Number(breakToken.offset))
+                && Number(breakToken.offset) <= previousOffset
             ) {
-                overflow.setStart(overflow.startContainer, safeOffset);
+                console.warn('Paged.js produjo un BreakToken no monotónico.', {
+                    previousOffset,
+                    nativeOffset: Number(breakToken.offset)
+                });
             }
 
-            return overflow;
+            const finalOffset = Number(breakToken.offset);
+            if (Number.isInteger(finalOffset) && finalOffset > 0) {
+                this.lastOffsetByTextNode.set(sourceNode, finalOffset);
+            }
+
+            return breakToken;
         }
     }
 
-    window.Paged.registerHandlers(AlmadenSafeBreaksHandler);
+    window.Paged.registerHandlers(AlmadenMonotonicBreakTokens);
     window.__almadenSafeBreaksRegistered = true;
+    window.almadenPdfSafeBreakStrategy = 'monotonic-continuation-offsets';
 })();

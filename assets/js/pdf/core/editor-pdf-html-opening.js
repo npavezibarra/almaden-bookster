@@ -97,21 +97,29 @@ function buildChapterOpeningHtml(chapter, index, settings, bookState, options = 
 
     const forceRenderOpeningBlock = options.forceRenderOpeningBlock === true;
     const openingBlockEnabled = forceRenderOpeningBlock || chapter.is_toc == '1' ? true : (chapter.opening_block_enabled !== '0');
-    const forceRenderTitle = options.forceRenderTitle === true;
-    const hasTitle = chapter.title && chapter.title.trim() !== '';
-    const shouldRenderTitle = forceRenderTitle ? hasTitle : (hasTitle && chapter.hide_title !== '1');
-    const shouldRenderOpening = shouldRenderTitle && chapter.is_credits !== '1';
-    if (!openingBlockEnabled || !shouldRenderOpening) {
+    const openingVisibility = window.getChapterOpeningVisibility
+        ? window.getChapterOpeningVisibility(chapter, settings)
+        : {
+            hasTitle: !!(chapter.title && chapter.title.trim() !== ''),
+            showTitle: !!(chapter.title && chapter.title.trim() !== '' && chapter.hide_title !== '1' && chapter.is_credits !== '1' && chapter.is_toc !== '1'),
+            showPrefix: false,
+            showSubtitle: false,
+            hasVisibleContent: !!(chapter.title && chapter.title.trim() !== '' && chapter.hide_title !== '1' && chapter.is_credits !== '1' && chapter.is_toc !== '1'),
+        };
+
+    if (!openingBlockEnabled || !openingVisibility.hasVisibleContent) {
         return '';
     }
 
     const titleClass = chapter.is_toc == '1' ? 'toc-main-title' : 'chapter-main-title';
-    const hasSubtitle = chapter.subtitle_text && chapter.subtitle_text.trim() !== '' && chapter.is_toc !== '1';
-    let extraTitleStyle = hasSubtitle ? 'padding-bottom: 0 !important;' : '';
-    let titleHtml = `<h1 class="${titleClass}" style="${extraTitleStyle}">${chapter.title.trim()}</h1>`;
-    let openerMinHeightEm = hasSubtitle ? 8.5 : 7.25;
+    const hasSubtitle = openingVisibility.showSubtitle;
+    const hasTitle = openingVisibility.showTitle;
+    const hasPrefix = openingVisibility.showPrefix;
+    const prefixPosition = String(settings.chapter_prefix_position || 'above').toLowerCase() === 'below' ? 'below' : 'above';
+    const openingParts = [];
+    let openerMinHeightEm = 0;
 
-    if (settings.chapter_prefix_show == 1 && chapter.is_toc != '1' && chapter.exclude_from_numbering !== '1') {
+    if (hasPrefix) {
         let chapterNumber = 0;
         for (let i = 0; i <= index; i++) {
             const c = bookState.chapters[i];
@@ -163,18 +171,20 @@ function buildChapterOpeningHtml(chapter, index, settings, bookState, options = 
                 ${ornamentHtml}
             </div>
         `;
-
-        if (settings.chapter_prefix_position === 'below') {
-            titleHtml = titleHtml + prefixHtml;
-        } else {
-            titleHtml = prefixHtml + titleHtml;
+        if (prefixPosition === 'above') {
+            openingParts.push(prefixHtml);
         }
-
-        openerMinHeightEm += 0.8;
+        if (hasTitle) {
+            const titleExtraStyle = hasSubtitle ? 'padding-bottom: 0 !important;' : '';
+            openingParts.push(`<h1 class="${titleClass}" style="${titleExtraStyle}">${chapter.title.trim()}</h1>`);
+        }
+        if (prefixPosition === 'below') {
+            openingParts.push(prefixHtml);
+        }
     }
 
     const showGlobalSubtitle = settings.chapter_subtitle_show == 1 || settings.chapter_subtitle_show === undefined;
-    if (chapter.subtitle_text && chapter.subtitle_text.trim() !== '' && chapter.is_toc !== '1' && showGlobalSubtitle) {
+    if (hasSubtitle && showGlobalSubtitle) {
         const subText = chapter.subtitle_text.trim().replace(/\n/g, '<br>');
         const subStyles = [];
         
@@ -212,12 +222,23 @@ function buildChapterOpeningHtml(chapter, index, settings, bookState, options = 
         if (mBot !== undefined && mBot !== '') subStyles.push(`margin-bottom: ${mBot}cm`);
         
         const subtitleHtml = `<div class="chapter-subtitle" style="line-height: 1.4; width: 100%; ${subStyles.join('; ')}">${subText}</div>`;
-        titleHtml = titleHtml + subtitleHtml;
+        openingParts.push(subtitleHtml);
+    }
+
+    if (hasTitle) {
+        openerMinHeightEm = hasSubtitle ? 8.5 : 7.25;
+        if (hasPrefix) {
+            openerMinHeightEm += 0.8;
+        }
+    } else if (hasSubtitle) {
+        openerMinHeightEm = hasPrefix ? 3.0 : 2.2;
+    } else if (hasPrefix) {
+        openerMinHeightEm = 1.2;
     }
 
     const openingContentHtml = `
         <div class="chapter-opening-content" data-align="${getOpeningPageHorizontalAlign(chapter, settings)}">
-            ${titleHtml}
+            ${openingParts.join('\n')}
         </div>
     `;
 
@@ -246,4 +267,3 @@ function buildChapterOpeningHtml(chapter, index, settings, bookState, options = 
         </div>
     `;
 }
-

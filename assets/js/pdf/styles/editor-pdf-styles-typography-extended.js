@@ -136,6 +136,7 @@ function getPDFStylesTypographyExtended(settings, tocSettings, toPx, chapterTitl
             font-weight: ${settings.chapter_title_font_weight || 'bold'} !important;
             font-style: ${settings.chapter_title_font_style || 'normal'} !important;
             text-transform: ${settings.chapter_title_text_transform || 'none'} !important;
+            letter-spacing: ${toPx(settings.chapter_title_letter_spacing || 0, true)}px !important;
             text-align: ${chapterTitleAlign} !important;
             text-align-last: auto !important;
             word-spacing: normal !important;
@@ -198,6 +199,7 @@ function getPDFStylesTypographyExtended(settings, tocSettings, toPx, chapterTitl
             font-weight: ${tocSettings.titleFontWeight || 'bold'} !important;
             font-style: ${tocSettings.titleFontStyle || 'normal'} !important;
             text-transform: ${tocSettings.titleTextTransform || 'none'} !important;
+            letter-spacing: ${toPx(tocSettings.titleLetterSpacing || 0, true)}px !important;
             text-align: ${tocSettings.titleAlign || 'center'} !important;
             line-height: ${tocSettings.titleLineHeight || 1.2} !important;
             margin-top: 0 !important;

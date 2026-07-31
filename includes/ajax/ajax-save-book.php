@@ -3,6 +3,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+function almaden_bookster_get_allowed_chapter_html() {
+	$allowed = wp_kses_allowed_html( 'post' );
+
+	// Preservar etiquetas semánticas propias del editor raw.
+	$allowed['foreign'] = array(
+		'lang' => true,
+	);
+
+	$allowed['lang'] = array(
+		'code' => true,
+	);
+
+	return $allowed;
+}
+
 // --- AJAX Guardar Libro en Base de Datos ---
 
 function almaden_bookster_save_book_ajax() {
@@ -37,7 +52,7 @@ function almaden_bookster_save_book_ajax() {
 		if ( current_user_can( 'unfiltered_html' ) ) {
 			$chapter_content = $chapter['content'];
 		} else {
-			$chapter_content = wp_kses_post( $chapter['content'] );
+			$chapter_content = wp_kses( $chapter['content'], almaden_bookster_get_allowed_chapter_html() );
 		}
 		
 		// Meta-datos locales
@@ -83,6 +98,12 @@ function almaden_bookster_save_book_ajax() {
 		$parity_image_height   = isset( $chapter['parity_image_height'] ) ? sanitize_text_field( $chapter['parity_image_height'] ) : '';
 		$is_toc                = isset( $chapter['is_toc'] ) ? sanitize_text_field( $chapter['is_toc'] ) : '0';
 		$is_credits            = isset( $chapter['is_credits'] ) ? sanitize_text_field( $chapter['is_credits'] ) : '0';
+		if ( '1' === (string) $is_credits ) {
+			// Credits prose is derived from the book-level structured config.
+			// Never persist the generated fallback (or the legacy placeholder)
+			// as editable chapter content.
+			$chapter_content = '';
+		}
 		
 		// Credits metadata
 		$credits_font_family   = isset( $chapter['credits_font_family'] ) ? sanitize_text_field( $chapter['credits_font_family'] ) : '';
@@ -108,17 +129,19 @@ function almaden_bookster_save_book_ajax() {
 		$toc_default_hidden    = '1' === (string) $is_toc ? '1' : '0';
 		$toc_hide_header       = isset( $chapter['toc_hide_header'] ) ? sanitize_text_field( $chapter['toc_hide_header'] ) : $toc_default_hidden;
 		$toc_hide_page_numbers = isset( $chapter['toc_hide_page_numbers'] ) ? sanitize_text_field( $chapter['toc_hide_page_numbers'] ) : $toc_default_hidden;
+		$toc_hide_title        = isset( $chapter['toc_hide_title'] ) ? sanitize_text_field( $chapter['toc_hide_title'] ) : '0';
 		$toc_separate_opening_content = isset( $chapter['toc_separate_opening_content'] ) ? sanitize_text_field( $chapter['toc_separate_opening_content'] ) : '';
 		$toc_item_align        = isset( $chapter['toc_item_align'] ) ? sanitize_text_field( $chapter['toc_item_align'] ) : 'left';
 		$toc_leader_style      = isset( $chapter['toc_leader_style'] ) ? sanitize_text_field( $chapter['toc_leader_style'] ) : 'dotted';
 		$toc_leader_position   = isset( $chapter['toc_leader_position'] ) ? sanitize_text_field( $chapter['toc_leader_position'] ) : 'middle';
-		
+		$toc_title_text        = isset( $chapter['toc_title_text'] ) ? sanitize_text_field( $chapter['toc_title_text'] ) : '';
 		$toc_title_align       = isset( $chapter['toc_title_align'] ) ? sanitize_text_field( $chapter['toc_title_align'] ) : '';
 		$toc_title_font_family = isset( $chapter['toc_title_font_family'] ) ? sanitize_text_field( $chapter['toc_title_font_family'] ) : '';
 		$toc_title_font_size   = isset( $chapter['toc_title_font_size'] ) ? sanitize_text_field( $chapter['toc_title_font_size'] ) : '';
 		$toc_title_font_style  = isset( $chapter['toc_title_font_style'] ) ? sanitize_text_field( $chapter['toc_title_font_style'] ) : '';
 		$toc_title_text_transform = isset( $chapter['toc_title_text_transform'] ) ? sanitize_text_field( $chapter['toc_title_text_transform'] ) : '';
 		$toc_title_font_weight = isset( $chapter['toc_title_font_weight'] ) ? sanitize_text_field( $chapter['toc_title_font_weight'] ) : '';
+		$toc_title_letter_spacing = isset( $chapter['toc_title_letter_spacing'] ) ? sanitize_text_field( $chapter['toc_title_letter_spacing'] ) : '';
 		$toc_title_padding_top = isset( $chapter['toc_title_padding_top'] ) ? sanitize_text_field( $chapter['toc_title_padding_top'] ) : '';
 		$toc_title_padding_bottom = isset( $chapter['toc_title_padding_bottom'] ) ? sanitize_text_field( $chapter['toc_title_padding_bottom'] ) : '';
 		$toc_title_line_height = isset( $chapter['toc_title_line_height'] ) ? sanitize_text_field( $chapter['toc_title_line_height'] ) : '';
@@ -218,13 +241,15 @@ function almaden_bookster_save_book_ajax() {
 			update_post_meta( $post_id, '_toc_item_align', $toc_item_align );
 			update_post_meta( $post_id, '_toc_leader_style', $toc_leader_style );
 			update_post_meta( $post_id, '_toc_leader_position', $toc_leader_position );
-			
+			update_post_meta( $post_id, '_toc_hide_title', $toc_hide_title );
+			update_post_meta( $post_id, '_toc_title_text', $toc_title_text );
 			update_post_meta( $post_id, '_toc_title_align', $toc_title_align );
 			update_post_meta( $post_id, '_toc_title_font_family', $toc_title_font_family );
 			update_post_meta( $post_id, '_toc_title_font_size', $toc_title_font_size );
 			update_post_meta( $post_id, '_toc_title_font_style', $toc_title_font_style );
 			update_post_meta( $post_id, '_toc_title_text_transform', $toc_title_text_transform );
 			update_post_meta( $post_id, '_toc_title_font_weight', $toc_title_font_weight );
+			update_post_meta( $post_id, '_toc_title_letter_spacing', $toc_title_letter_spacing );
 			update_post_meta( $post_id, '_toc_title_padding_top', $toc_title_padding_top );
 			update_post_meta( $post_id, '_toc_title_padding_bottom', $toc_title_padding_bottom );
 			update_post_meta( $post_id, '_toc_title_line_height', $toc_title_line_height );
@@ -299,12 +324,15 @@ function almaden_bookster_save_book_ajax() {
 				'toc_item_align'        => $toc_item_align,
 				'toc_leader_style'      => $toc_leader_style,
 				'toc_leader_position'   => $toc_leader_position,
+				'toc_hide_title'        => $toc_hide_title,
+				'toc_title_text'        => $toc_title_text,
 				'toc_title_align'       => $toc_title_align,
 				'toc_title_font_family' => $toc_title_font_family,
 				'toc_title_font_size'   => $toc_title_font_size,
 				'toc_title_font_style'  => $toc_title_font_style,
 				'toc_title_text_transform' => $toc_title_text_transform,
 				'toc_title_font_weight' => $toc_title_font_weight,
+				'toc_title_letter_spacing' => $toc_title_letter_spacing,
 				'toc_title_padding_top' => $toc_title_padding_top,
 				'toc_title_padding_bottom' => $toc_title_padding_bottom,
 				'toc_title_line_height' => $toc_title_line_height,

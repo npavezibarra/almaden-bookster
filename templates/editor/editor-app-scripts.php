@@ -35,6 +35,7 @@
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/vendor/paged.polyfill.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-language.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-safe-breaks.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-content-integrity.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-chapter-flow.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-physical-pages.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/core/editor-pdf-single-chapter-rule.js?v=' . time(), __FILE__ ) ); ?>"></script>
@@ -59,3 +60,4 @@
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/styles/editor-pdf-styles-typography.js?v='   . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/styles/editor-pdf-styles-semantic.js?v='   . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/styles/editor-pdf-styles.js?v='   . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/typst/editor-typst-pdf.js?v=' . time(), __FILE__ ) ); ?>"></script>

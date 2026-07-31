@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const frontInput = document.getElementById('upload-front-cover');
     const backInput = document.getElementById('upload-back-cover');
+    const frontAttachmentInput = document.getElementById('upload-front-cover-attachment-id');
+    const backAttachmentInput = document.getElementById('upload-back-cover-attachment-id');
     const frontPanel = document.getElementById('front-cover-diagnostics');
     const backPanel = document.getElementById('back-cover-diagnostics');
     const overallPanel = document.getElementById('cover-editorial-diagnostics');
@@ -248,13 +250,27 @@ document.addEventListener('DOMContentLoaded', () => {
         s.coverPreflight.lastStatus = success ? 'ok' : 'warning';
     }
 
-    async function fetchDiagnostics(targetKey, imageUrl) {
+    const diagnosticsCache = new Map();
+
+    function isImagesPanelOpen() {
+        const panel = document.getElementById('images-section-content');
+        return !!panel && !panel.classList.contains('hidden');
+    }
+
+    async function fetchDiagnostics(targetKey, imageUrl, attachmentId) {
         const panel = targetKey === 'front' ? frontPanel : backPanel;
         const label = targetKey === 'front' ? 'Validación de portada' : 'Validación de contraportada';
 
         if (!imageUrl) {
             renderNoImage(panel, label);
             return null;
+        }
+
+        const cacheKey = [targetKey, attachmentId || 0, imageUrl, coverWidthCm, coverHeightCm].join('|');
+        if (diagnosticsCache.has(cacheKey)) {
+            const cached = diagnosticsCache.get(cacheKey);
+            renderImageResult(panel, label, cached);
+            return cached;
         }
 
         renderLoading(panel, label);
@@ -264,6 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('book_id', coverDataRef.bookId || 0);
         formData.append('nonce', coverDataRef.nonce || '');
         formData.append('image_url', imageUrl);
+        formData.append('attachment_id', String(attachmentId || 0));
         formData.append('target_width_cm', String(coverWidthCm));
         formData.append('target_height_cm', String(coverHeightCm));
 
@@ -294,6 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return null;
             }
 
+            diagnosticsCache.set(cacheKey, data);
             renderImageResult(panel, label, data);
             return data;
         } catch (error) {
@@ -527,19 +545,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let refreshTimer = null;
-    function scheduleRefresh() {
+    let refreshForced = false;
+    function scheduleRefresh(force = false) {
+        refreshForced = refreshForced || force === true;
         if (refreshTimer) {
             window.clearTimeout(refreshTimer);
         }
         refreshTimer = window.setTimeout(() => {
-            refreshAll();
+            const shouldForce = refreshForced;
+            refreshForced = false;
+            refreshAll(shouldForce);
         }, 120);
     }
 
-    async function refreshAll() {
+    async function refreshAll(force = false) {
+        if (!force && !isImagesPanelOpen()) {
+            return;
+        }
+
         await Promise.all([
-            fetchDiagnostics('front', frontInput.value || ''),
-            fetchDiagnostics('back', backInput.value || '')
+            fetchDiagnostics('front', frontInput.value || '', frontAttachmentInput ? frontAttachmentInput.value : 0),
+            fetchDiagnostics('back', backInput.value || '', backAttachmentInput ? backAttachmentInput.value : 0)
         ]);
         renderEditorialDiagnostics();
     }
@@ -603,5 +629,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     observeLayoutChanges();
-    refreshAll();
+    renderNoImage(frontPanel, 'Validación de portada');
+    renderNoImage(backPanel, 'Validación de contraportada');
 });

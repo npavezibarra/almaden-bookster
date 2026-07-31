@@ -31,11 +31,14 @@ function applyDynamicPDFStyles() {
         titleFontWeight: tocChapter.toc_title_font_weight || settings.chapter_title_font_weight || 'bold',
         titleTextTransform: tocChapter.toc_title_text_transform || settings.chapter_title_text_transform || 'none',
         titleAlign: tocChapter.toc_title_align || settings.chapter_title_align || 'center',
+        titleLetterSpacing: tocChapter.toc_title_letter_spacing ? parseFloat(tocChapter.toc_title_letter_spacing) : parseFloat(settings.chapter_title_letter_spacing || 0),
         titlePaddingTop: tocChapter.toc_title_padding_top ? parseFloat(tocChapter.toc_title_padding_top) : parseFloat(settings.chapter_title_padding_top || 0.0),
         titlePaddingBottom: tocChapter.toc_title_padding_bottom ? parseFloat(tocChapter.toc_title_padding_bottom) : parseFloat(settings.chapter_title_padding_bottom || 1.5),
         titlePaddingLeft: tocChapter.toc_title_padding_left ? parseFloat(tocChapter.toc_title_padding_left) : parseFloat(settings.chapter_title_padding_left || 0.0),
         titlePaddingRight: tocChapter.toc_title_padding_right ? parseFloat(tocChapter.toc_title_padding_right) : parseFloat(settings.chapter_title_padding_right || 0.0),
-        titleLineHeight: tocChapter.toc_title_line_height ? parseFloat(tocChapter.toc_title_line_height) : parseFloat(settings.chapter_title_line_height || 1.2)
+        titleLineHeight: tocChapter.toc_title_line_height ? parseFloat(tocChapter.toc_title_line_height) : parseFloat(settings.chapter_title_line_height || 1.2),
+        titleText: tocChapter.toc_title_text || tocChapter.title || 'Índice',
+        hideTitle: tocChapter.toc_hide_title === '1'
     } : {
         fontFamily: settings.font_family_content || 'Merriweather',
         fontSize: parseFloat(settings.font_size_content || 11.5),
@@ -52,11 +55,14 @@ function applyDynamicPDFStyles() {
         titleFontWeight: settings.chapter_title_font_weight || 'bold',
         titleTextTransform: settings.chapter_title_text_transform || 'none',
         titleAlign: settings.chapter_title_align || 'center',
+        titleLetterSpacing: parseFloat(settings.chapter_title_letter_spacing || 0),
         titlePaddingTop: parseFloat(settings.chapter_title_padding_top || 0.0),
         titlePaddingBottom: parseFloat(settings.chapter_title_padding_bottom || 1.5),
         titlePaddingLeft: parseFloat(settings.chapter_title_padding_left || 0.0),
         titlePaddingRight: parseFloat(settings.chapter_title_padding_right || 0.0),
-        titleLineHeight: parseFloat(settings.chapter_title_line_height || 1.2)
+        titleLineHeight: parseFloat(settings.chapter_title_line_height || 1.2),
+        titleText: settings.chapter_title_text || 'Índice',
+        hideTitle: false
     };
 
     let styleEl = document.getElementById('dynamic-pdf-settings');

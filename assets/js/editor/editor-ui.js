@@ -2,10 +2,15 @@
 
 const PDF_PREVIEW_ZOOM_STORAGE_KEY = 'almaden_pdf_preview_zoom';
 const PDF_PREVIEW_ZOOM_LEVELS = new Set(['0.25', '0.5', '0.75', '1', '2']);
+const PDF_PREVIEW_LAYOUT_STORAGE_KEY = 'almaden_pdf_preview_layout';
+
+function normalizePdfPreviewLayout(value) {
+    return String(value ?? 'single') === 'spread' ? 'spread' : 'single';
+}
 
 function normalizePdfPreviewZoom(value) {
-    const normalized = String(value ?? '1');
-    return PDF_PREVIEW_ZOOM_LEVELS.has(normalized) ? normalized : '1';
+    const normalized = String(value ?? '0.75');
+    return PDF_PREVIEW_ZOOM_LEVELS.has(normalized) ? normalized : '0.75';
 }
 
 function getPdfPreviewZoomFactor() {
@@ -22,9 +27,15 @@ function applyPdfPreviewZoom(value, persist = true) {
     const normalized = normalizePdfPreviewZoom(value);
 
     if (scroller) {
-        scroller.style.zoom = normalized;
-        scroller.style.webkitZoom = normalized;
         scroller.dataset.previewZoom = normalized;
+        if (window.almadenTypstPdf && typeof window.almadenTypstPdf.applyZoom === 'function') {
+            scroller.style.zoom = '';
+            scroller.style.webkitZoom = '';
+            window.almadenTypstPdf.applyZoom();
+        } else {
+            scroller.style.zoom = normalized;
+            scroller.style.webkitZoom = normalized;
+        }
     }
 
     if (zoomSelect && zoomSelect.value !== normalized) {
@@ -55,6 +66,48 @@ function initPdfPreviewZoom() {
     }
 }
 
+function applyPdfPreviewLayout(layout, persist = true) {
+    const scroller = document.getElementById('pdf-scroller');
+    const singleBtn = document.getElementById('btn-preview-layout-single');
+    const spreadBtn = document.getElementById('btn-toggle-spread');
+    const normalized = normalizePdfPreviewLayout(layout);
+    const isSpread = normalized === 'spread';
+
+    if (scroller) {
+        scroller.dataset.previewLayout = normalized;
+        scroller.classList.toggle('spread-view', isSpread);
+        if (window.almadenTypstPdf && typeof window.almadenTypstPdf.applyLayout === 'function') {
+            window.almadenTypstPdf.applyLayout(normalized);
+        }
+    }
+
+    if (singleBtn) {
+        singleBtn.className = isSpread
+            ? 'px-2.5 py-1 rounded-sm text-[var(--text-muted)] hover:text-[var(--text-main)] transition'
+            : 'px-2.5 py-1 rounded-sm bg-black text-white shadow-sm transition';
+        singleBtn.setAttribute('aria-pressed', isSpread ? 'false' : 'true');
+    }
+
+    if (spreadBtn) {
+        spreadBtn.className = isSpread
+            ? 'px-2.5 py-1 rounded-sm bg-black text-white shadow-sm transition'
+            : 'px-2.5 py-1 rounded-sm text-[var(--text-muted)] hover:text-[var(--text-main)] transition';
+        spreadBtn.setAttribute('aria-pressed', isSpread ? 'true' : 'false');
+    }
+
+    if (persist) {
+        localStorage.setItem(PDF_PREVIEW_LAYOUT_STORAGE_KEY, normalized);
+    }
+
+    if (typeof window.renderRuler === 'function') {
+        window.renderRuler();
+    }
+}
+
+function setPdfPreviewLayout(layout) {
+    applyPdfPreviewLayout(layout, true);
+}
+
 // Modos de vista del espacio de trabajo (Dividido, Editor Raw, Solo PDF)
 function setViewMode(mode) {
     const editorPane = document.getElementById('editor-pane');
@@ -76,7 +129,7 @@ function setViewMode(mode) {
     if (mode === 'split') {
         if (editorPane) editorPane.classList.remove('hidden');
         if (previewPane) previewPane.classList.remove('hidden');
-        if (paneLabel) paneLabel.innerHTML = '<i class="fa-solid fa-magnifying-glass-doc text-xs text-black dark:text-white"></i> Vista Previa PDF';
+        if (paneLabel) paneLabel.innerHTML = '<i class="fa-solid fa-magnifying-glass-doc text-xs text-black dark:text-white"></i> Vista Previa Typst';
         if (splitBtn) splitBtn.className = "px-3 py-1.5 rounded-md bg-black text-white shadow-sm transition";
         if (typeof refreshSplitPreview === 'function') {
             refreshSplitPreview(true);
@@ -91,7 +144,7 @@ function setViewMode(mode) {
     } else if (mode === 'preview') {
         if (editorPane) editorPane.classList.add('hidden');
         if (previewPane) previewPane.classList.remove('hidden');
-        if (paneLabel) paneLabel.innerHTML = '<i class="fa-solid fa-magnifying-glass-doc text-xs text-black dark:text-white"></i> Vista Previa PDF';
+        if (paneLabel) paneLabel.innerHTML = '<i class="fa-solid fa-magnifying-glass-doc text-xs text-black dark:text-white"></i> Vista Previa Typst';
         if (previewBtn) previewBtn.className = "px-3 py-1.5 rounded-md bg-black text-white shadow-sm transition";
         if (typeof compilePDFPreview === 'function') {
             compilePDFPreview(true);
@@ -166,39 +219,16 @@ function toggleSidebar() {
 // Spread View Logic
 function toggleSpreadView() {
     const scroller = document.getElementById('pdf-scroller');
-    const btn = document.getElementById('btn-toggle-spread');
-    if (!scroller || !btn) return;
-
-    scroller.classList.toggle('spread-view');
-    const isSpread = scroller.classList.contains('spread-view');
-    
-    // Save to localStorage
-    localStorage.setItem('bookcraft_spread_view', isSpread ? 'true' : 'false');
-    
-    // Update icon
-    btn.innerHTML = isSpread ? '<i class="fa-solid fa-book-open"></i>' : '<i class="fa-solid fa-file-lines"></i>';
-
-    if (typeof window.applySpreadPageLayout === 'function') {
-        window.applySpreadPageLayout(scroller);
-    }
-
-    // Re-render ruler if visible
-    if (typeof window.renderRuler === 'function') {
-        setTimeout(window.renderRuler, 10);
-    }
+    const current = scroller && scroller.classList.contains('spread-view') ? 'spread' : 'single';
+    applyPdfPreviewLayout(current === 'spread' ? 'single' : 'spread', true);
 }
 
 function initSpreadView() {
-    const isSpread = localStorage.getItem('bookcraft_spread_view') === 'true';
-    if (isSpread) {
-        const scroller = document.getElementById('pdf-scroller');
-        const btn = document.getElementById('btn-toggle-spread');
-        if (scroller) scroller.classList.add('spread-view');
-        if (scroller && typeof window.applySpreadPageLayout === 'function') {
-            window.applySpreadPageLayout(scroller);
-        }
-        if (btn) btn.innerHTML = '<i class="fa-solid fa-book-open"></i>';
-    }
+    const legacySpread = localStorage.getItem('bookcraft_spread_view');
+    const savedLayout = normalizePdfPreviewLayout(
+        localStorage.getItem(PDF_PREVIEW_LAYOUT_STORAGE_KEY) || (legacySpread === 'true' ? 'spread' : 'single')
+    );
+    applyPdfPreviewLayout(savedLayout, false);
 }
 
 function initSidebarCollapseState() {

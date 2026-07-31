@@ -169,7 +169,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="grid grid-cols-5 gap-2">
+                    <div class="grid grid-cols-6 gap-2">
                         <div>
                             <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Padd. Arriba (cm)</label>
                             <input id="setting-chapter-title-padding-top" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
@@ -189,6 +189,10 @@
                         <div>
                             <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Altura Línea</label>
                             <input id="setting-chapter-title-line-height" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Let. Spacing</label>
+                            <input id="setting-chapter-title-letter-spacing" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
                         </div>
                     </div>
                 </div>

@@ -1,5 +1,9 @@
 const md = window.markdownit({ html: true, breaks: true }).use(window.markdownitFootnote);
 
+function getReaderChapterItemDomId(chapterId) {
+    return `chapter-item-${String(chapterId ?? '').replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+}
+
 function showFootnote(event, btn, htmlContent) {
     event.stopPropagation();
     
@@ -64,6 +68,8 @@ function renderIndex() {
         if (chapter.is_toc === '1' || chapter.is_credits === '1') return; // Skip TOC and Credits chapter in Ebook
 
         const item = document.createElement('div');
+        item.id = getReaderChapterItemDomId(chapter.id);
+        item.dataset.chapterId = String(chapter.id);
         item.className = 'flex justify-between items-center py-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors group px-4 -mx-4 rounded-md';
         item.onclick = () => {
             if (typeof showChapterView === 'function') {

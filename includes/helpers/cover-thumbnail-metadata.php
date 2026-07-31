@@ -51,9 +51,11 @@ function almaden_bookster_get_cover_thumbnail_snapshot_metadata( $book_id ) {
         $path = '';
     }
 
-    if ( empty( $url ) && empty( $path ) ) {
-        return array();
-    }
+	// Snapshots are stored locally. Rendering a stale attachment URL produces a
+	// broken image in the book list, so fall back to the lightweight cover preview.
+	if ( empty( $path ) ) {
+		return array();
+	}
 
     return array(
         'attachment_id' => $attachment_id,
@@ -194,4 +196,3 @@ function almaden_bookster_delete_cover_thumbnail_snapshot( $book_id ) {
     almaden_bookster_clear_cover_thumbnail_snapshot_metadata( $book_id );
     return true;
 }
-

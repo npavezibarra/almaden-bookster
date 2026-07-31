@@ -32,10 +32,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!layer.height) div.style.height = '200px';
 
                 const img = document.createElement('img');
-                img.src = layer.url;
+                img.src = layer.previewUrl || layer.url;
                 img.alt = '';
                 img.setAttribute('aria-hidden', 'true');
                 img.className = 'cover-media-image cover-media-image--contain';
+                img.loading = 'eager';
+                img.decoding = 'async';
                 img.style.objectFit = 'contain';
                 div.appendChild(img);
             } else if (layer.type === 'shape') {

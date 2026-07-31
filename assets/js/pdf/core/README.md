@@ -4,12 +4,15 @@ Este directorio contiene los módulos JavaScript del núcleo del motor de pagina
 
 ## Actualizacion reciente: compatibilidad con el editor visual del PDF
 
-La compilacion PDF ahora convive con una superficie editable en `Dividido` sin romper la maqueta de Paged.js. El flujo actual conserva el HTML semantico del capitulo mientras la vista visual permite edicion inline, y solo recompila cuando la edicion ya se ha sincronizado.
+La compilacion PDF usa el RAW como fuente canonica y trata las paginas de
+Paged.js como un derivado de solo lectura. Los fragmentos paginados nunca se
+serializan de vuelta al capitulo.
 
 Puntos clave del cambio:
 
 - `editor-pdf-compiler.js` respeta el estado de edicion y evita recompilaciones durante la interaccion activa.
-- `editor-pdf-html.js` ahora marca bloques editables con identificadores estables para poder serializar fragmentos repartidos por Paged.js.
+- `editor-pdf-html.js` marca bloques con identificadores estables para verificar
+  que todas sus continuaciones conserven el texto y el orden originales.
 - La recompilacion posterior al guardado se aplaza hasta que el contenido ya quedo persistido.
 
 ---

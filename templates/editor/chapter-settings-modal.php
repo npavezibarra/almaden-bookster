@@ -94,8 +94,34 @@
 
                     <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
                         <div>
+                            <label class="font-semibold block mb-1">Ocultar Titulo</label>
+                            <span class="text-xs text-[var(--text-muted)]">Oculta el título grande que dice "CRÉDITOS" en la página de créditos.</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="chapter_credits_hide_title" name="credits_hide_title" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4">
+                        <h4 class="font-bold border-b border-[var(--border-color)] pb-2">Páginas en blanco</h4>
+                        <p class="text-xs text-[var(--text-muted)] -mt-2">Agrega páginas completamente vacías inmediatamente antes o después de la página de créditos.</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Antes de créditos</label>
+                            <input type="number" min="0" max="999" step="1" id="chapter_credits_blank_before" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" value="0">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Después de créditos</label>
+                            <input type="number" min="0" max="999" step="1" id="chapter_credits_blank_after" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" value="0">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+                        <div>
                             <label class="font-semibold block mb-1">Ocultar Cabecera</label>
-                            <span class="text-xs text-[var(--text-muted)]">Oculta la cabecera superior en esta página de créditos.</span>
+                            <span class="text-xs text-[var(--text-muted)]">Oculta toda la cabecera superior en las páginas de créditos.</span>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="chapter_credits_hide_header" name="credits_hide_header" class="sr-only peer">
@@ -105,8 +131,8 @@
 
                     <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
                         <div>
-                            <label class="font-semibold block mb-1">Ocultar número de página</label>
-                            <span class="text-xs text-[var(--text-muted)]">Oculta el número de página en este capítulo de créditos.</span>
+                            <label class="font-semibold block mb-1">Ocultar pie de página</label>
+                            <span class="text-xs text-[var(--text-muted)]">Oculta todo el pie, incluido el número de página, en las páginas de créditos.</span>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="chapter_credits_hide_page_number" name="credits_hide_page_number" class="sr-only peer">

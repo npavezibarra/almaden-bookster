@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>Bookster PDF pagination regression</title>
+    <style>
+        body { margin: 0; font-family: sans-serif; }
+        #result { position: fixed; inset: 0 auto auto 0; z-index: 10; background: white; padding: 8px; }
+    </style>
+</head>
+<body>
+    <pre id="result">running</pre>
+    <div id="output"></div>
+    <script>window.PagedConfig = { auto: false };</script>
+    <script src="../assets/js/vendor/paged.polyfill.js"></script>
+    <script src="../assets/js/pdf/core/editor-pdf-safe-breaks.js"></script>
+    <script src="../assets/js/pdf/core/editor-pdf-content-integrity.js"></script>
+    <script src="../assets/js/pdf/core/editor-pdf-html-hyphenation.js"></script>
+    <script>
+        window.breakDiagnostics = [];
+        class RegressionBreakDiagnostics extends window.Paged.Handler {
+            onBreakToken(token, overflow) {
+                if (!token || !token.node || token.node.nodeType !== Node.TEXT_NODE) return token;
+                window.breakDiagnostics.push({
+                    offset: Number(token.offset),
+                    relative: overflow ? Number(overflow.startOffset) : null,
+                    sourceLength: String(token.node.textContent || '').length,
+                    renderedLength: overflow && overflow.startContainer
+                        ? String(overflow.startContainer.textContent || '').length
+                        : null
+                });
+                return token;
+            }
+        }
+        window.Paged.registerHandlers(RegressionBreakDiagnostics);
+
+        (async function runRegression() {
+            const repeated = [
+                'En los próximos años, la ventaja competitiva no dependerá únicamente del acceso a la tecnología,',
+                'sino de la habilidad para integrarla de manera inteligente en procesos, organizaciones y proyectos personales.',
+                'Quienes aprendan a combinar pensamiento crítico, conocimiento especializado y herramientas de inteligencia artificial',
+                'estarán mejor preparados para adaptarse a un entorno en constante cambio y para convertir los avances tecnológicos',
+                'en oportunidades reales de crecimiento. La inteligencia artificial está transformando la forma en que las personas crean,',
+                'aprenden y trabajan. Lo que antes requería equipos completos o largos procesos técnicos ahora puede realizarse',
+                'en cuestión de minutos, permitiendo que individuos y pequeñas organizaciones desarrollen proyectos con una velocidad sin precedentes.'
+            ].join(' ');
+            const longText = Array(8).fill(repeated).join(' ');
+            const rawSourceHtml = `
+                <section class="chapter-section-test pdf-content" data-chapter-editorial-role="content">
+                    <div class="chapter-editable-content" data-editor-content="chapter">
+                        <p data-editor-block-id="block-0">${longText}</p>
+                        <p data-editor-block-id="block-1">Texto final con <strong>estilo conservado</strong> y <span class="almaden-foreign" lang="en">foreign language</span>.</p>
+                    </div>
+                </section>
+            `;
+            const sourceHtml = window.almadenApplyHyphenationToHtml(rawSourceHtml, {
+                content_hyphenation: 1,
+                book_language: 'es'
+            });
+            const css = `
+                @page { size: 320px 420px; margin: 34px 32px; }
+                .pdf-content { font-family: Georgia, serif; font-size: 13px; line-height: 1.45; }
+                .pdf-content p {
+                    margin: 0 0 10px;
+                    text-align: justify;
+                    text-align-last: left;
+                    hyphens: manual;
+                    orphans: 1;
+                    widows: 1;
+                    break-inside: auto;
+                }
+                .pdf-content p[data-split-to] { text-align-last: justify; }
+            `;
+            const output = document.getElementById('output');
+            const previewer = new window.Paged.Previewer();
+            await previewer.preview(sourceHtml, [{ regression: css }], output);
+
+            const integrity = window.verifyPdfContentIntegrity(sourceHtml, output);
+            const pages = Array.from(output.querySelectorAll('.pagedjs_page'));
+            const nonFinalGaps = pages.slice(0, -1).map((page) => {
+                const content = page.querySelector('.pagedjs_page_content');
+                const editable = page.querySelector('.chapter-editable-content');
+                if (!content || !editable || !editable.textContent.trim()) return 0;
+
+                const range = document.createRange();
+                range.selectNodeContents(editable);
+                const rects = Array.from(range.getClientRects()).filter((rect) => rect.height > 0);
+                const lastRect = rects[rects.length - 1];
+                return lastRect ? Math.max(0, content.getBoundingClientRect().bottom - lastRect.bottom) : 0;
+            });
+            const maxGap = nonFinalGaps.length ? Math.max(...nonFinalGaps) : 0;
+            const repairedRelativeOffset = window.almadenResolveBreakTokenOffset({
+                previousOffset: 1465,
+                nativeOffset: 1382,
+                relativeOffset: 725,
+                sourceLength: 6463,
+                renderedLength: 4998
+            });
+            const preservedAbsoluteOffset = window.almadenResolveBreakTokenOffset({
+                previousOffset: 1465,
+                nativeOffset: 2190,
+                relativeOffset: 2190,
+                sourceLength: 6463,
+                renderedLength: 6463
+            });
+            const offsetModesPreserved = repairedRelativeOffset === 2190
+                && preservedAbsoluteOffset === 2190;
+            const renderedStrong = output.querySelector('strong');
+            const renderedForeign = output.querySelector('.almaden-foreign[lang="en"]');
+            const renderedParagraph = output.querySelector('[data-editor-block-id="block-0"]');
+            const paragraphStyle = renderedParagraph ? getComputedStyle(renderedParagraph) : null;
+            const stylesPreserved = !!(
+                renderedStrong
+                && renderedForeign
+                && paragraphStyle
+                && paragraphStyle.textAlign === 'justify'
+                && paragraphStyle.hyphens === 'manual'
+                && !output.querySelector('.almaden-pdf-token')
+            );
+            const result = {
+                pass: integrity.valid
+                    && stylesPreserved
+                    && offsetModesPreserved
+                    && pages.length > 2
+                    && maxGap <= 32,
+                strategy: window.almadenPdfSafeBreakStrategy,
+                pages: pages.length,
+                maxNonFinalGap: Number(maxGap.toFixed(2)),
+                stylesPreserved,
+                offsetModesPreserved,
+                breakDiagnostics: window.breakDiagnostics,
+                integrity
+            };
+            document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+            document.documentElement.dataset.testStatus = result.pass ? 'passed' : 'failed';
+        })().catch((error) => {
+            document.getElementById('result').textContent = String(error && error.stack || error);
+            document.documentElement.dataset.testStatus = 'failed';
+        });
+    </script>
+</body>
+</html>

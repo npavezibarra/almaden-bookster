@@ -44,7 +44,7 @@ function clearVisualEditorOverlay() {
         detachVisualEditorMutationObserver();
     }
     if (scroller) {
-        scroller.classList.remove('visual-editor-mode');
+        scroller.classList.remove('visual-editor-mode', 'visual-editor-readonly');
         const surface = scroller.querySelector('.pagedjs_pages[data-visual-editor-surface="1"]');
         if (surface) {
             surface.removeAttribute('data-visual-editor-surface');
@@ -312,14 +312,12 @@ function syncRawEditorToState() {
 }
 
 function syncVisualEditorToState() {
-    const surface = getVisualEditorSurface();
     const chapter = getActiveChapter();
-    if (!surface || !chapter) return;
+    if (!chapter) return null;
 
-    const nextContent = serializeVisualEditorSurface(surface);
-    if (nextContent === null) return null;
-    setRawChapterContent(nextContent);
-    return nextContent;
+    // Paged.js fragments are a render artifact and must never replace RAW.
+    syncRawEditorToState();
+    return chapter.content;
 }
 
 function updateVisualEditorFromState() {
@@ -332,58 +330,12 @@ function updateVisualEditorFromState() {
 
 function renderVisualEditorPane() {
     const scroller = document.getElementById('pdf-scroller');
-    const previewPane = document.getElementById('pdf-preview-pane');
-    const chapter = getActiveChapter();
-    const pagesContainer = scroller ? scroller.querySelector('.pagedjs_pages') : null;
-
-    if (!scroller || !previewPane || !chapter || bookState.viewMode !== 'split' || !pagesContainer) {
-        return;
-    }
+    if (!scroller) return;
 
     clearVisualEditorOverlay();
-    pagesContainer.id = 'visual-editor-surface';
-    pagesContainer.setAttribute('data-visual-editor-surface', '1');
-    pagesContainer.setAttribute('data-chapter-id', chapter.id);
-    const editableFragments = pagesContainer.querySelectorAll(`.chapter-section-${chapter.id} [data-editor-content="chapter"]`);
-    editableFragments.forEach((fragment) => {
-        fragment.contentEditable = 'true';
-        fragment.spellcheck = false;
-        fragment.setAttribute('role', 'textbox');
-        fragment.setAttribute('aria-multiline', 'true');
-    });
-    scroller.classList.add('visual-editor-mode');
-
-    const surface = getVisualEditorSurface();
-    if (!surface) return;
-    if (typeof attachVisualEditorMutationObserver === 'function') {
-        attachVisualEditorMutationObserver(surface);
-    }
-
-    surface.addEventListener('input', (event) => {
-        if (!event.target.closest('[data-editor-content="chapter"]')) return;
-        window.visualEditorIsDirty = true;
-        window.visualEditorIsEditing = true;
-        window.visualEditorRevision += 1;
-        syncVisualEditorToState();
-        if (typeof updateWordCounts === 'function') updateWordCounts();
-        if (typeof saveStateToLocalStorage === 'function') saveStateToLocalStorage();
-    });
-
-    surface.addEventListener('focusin', (event) => {
-        if (!event.target.closest('[data-editor-content="chapter"]')) return;
-        window.editorSelectionSurface = 'visual';
-        window.visualEditorIsEditing = true;
-        trackVisualEditorSelection();
-    });
-    surface.addEventListener('focusout', () => {
-        window.visualEditorIsEditing = false;
-    });
-    surface.addEventListener('mouseup', trackVisualEditorSelection);
-    surface.addEventListener('keyup', trackVisualEditorSelection);
-
-    if (window.editorSelectionSurface === 'visual' && typeof window.restoreVisualSelectionFromRange === 'function') {
-        window.restoreVisualSelectionFromRange(surface);
-    }
+    window.visualEditorIsDirty = false;
+    window.visualEditorIsEditing = false;
+    scroller.classList.add('visual-editor-readonly');
 }
 
 function trackVisualEditorSelection() {

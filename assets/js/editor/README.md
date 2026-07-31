@@ -2,15 +2,18 @@
 
 Este directorio contiene la arquitectura modular en JavaScript vanilla que impulsa el editor interactivo de libros de **Almaden Bookster**. Diseñado bajo un estricto principio de modularidad y bajo la regla de que ningún archivo individual debe exceder las **500 líneas de código**, este sistema orquesta la interfaz del usuario, la toolbar de formato, el motor de parsing de Markdown, la sincronización de ajustes y la compilación/paginación dinámica del PDF mediante Paged.js.
 
-## Actualizacion reciente: PDF editable en modo Dividido
+## Fuente canonica y preview PDF
 
-La vista `Dividido` ya no usa un visor separado para el PDF. Ahora el contenido visible de Paged.js se reutiliza como superficie editable real, de modo que:
+El contenido RAW del capitulo es la unica fuente canonica. La vista generada por
+Paged.js es un derivado de solo lectura y nunca se serializa de vuelta al estado
+del libro. Esta separacion garantiza que los saltos de pagina, guiones visuales y
+clones internos de Paged.js no puedan eliminar espacios, tags ni texto original.
 
-- el usuario puede hacer clic directamente sobre el texto del PDF y editarlo inline;
-- la toolbar aplica formatos sobre la misma seleccion visual que se ve en pantalla;
-- el contenido se serializa de vuelta al estado raw manteniendo marks como `bold`, `italic`, alineacion y etiquetas semanticas como `<foreign lang="la">`;
-- el re-render de Paged.js queda bloqueado mientras el usuario esta editando, para no perder cambios por recompilacion;
-- el guardado sincroniza primero la superficie visual y luego persiste el HTML resultante en la base de datos.
+- El usuario edita el textarea RAW.
+- La toolbar aplica formatos sobre el RAW.
+- Paged.js recibe un clon HTML continuo con hifenacion exclusiva de render.
+- Guardar sincroniza el textarea, no los fragmentos `.pagedjs_page`.
+- La integridad se comprueba por bloque antes de permitir la exportacion.
 
 Los archivos que participan en este flujo son:
 

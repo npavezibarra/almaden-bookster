@@ -144,6 +144,7 @@ function almaden_get_book_pdf_settings( $book_id ) {
 		'chapter_title_font_weight'  => 'bold',
 		'chapter_title_font_style'   => 'normal',
 		'chapter_title_align'        => 'center',
+		'chapter_title_letter_spacing' => 0.0,
 		'chapter_title_padding_top'  => 0.0,
 		'chapter_title_padding_bottom'=> 1.5,
 		'chapter_title_padding_left' => 0.0,

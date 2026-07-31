@@ -3,6 +3,136 @@
 /**
  * Abre el modal de configuración del capítulo actual y carga los valores.
  */
+function getChapterNomenclatureGuideText() {
+    return `Guía rápida de nomenclatura para el editor raw de Almaden Bookster
+
+Regla general
+- Usa una sola forma canónica por concepto.
+- No inventes tags nuevos.
+- Si existe un alias viejo, úsalo sólo para compatibilidad de lectura, no como salida preferida.
+
+1. Idioma extranjero
+Forma preferida:
+<foreign lang="la">carpe diem</foreign>
+
+Lenguajes principales:
+es = español
+en = inglés
+fr = francés
+de = alemán
+it = italiano
+pt = portugués
+
+2. Citas
+> Esta es una cita.
+> Puede ocupar varias líneas.
+
+3. Notas al pie
+Texto con nota[^1].
+
+[^1]: Explicación de la nota al pie.
+
+4. Maquetación
+[box]
+Contenido destacado.
+[/box]
+
+[columns]
+[col]Columna izquierda[/col]
+[col]Columna derecha[/col]
+[/columns]
+
+[align=center]
+Texto centrado.
+[/align]
+
+[gap:10mm]
+[pagebreak]
+[logo]
+
+[html]
+<div>HTML crudo</div>
+[/html]
+
+5. Formato inline
+[size=12px]texto[/size]
+[font="Merriweather"]texto[/font]
+
+Preferencia final
+- Para idioma, usa siempre <foreign lang="xx"> cuando generes contenido nuevo.
+- Para citas, usa bloque Markdown con >.
+- Para notas, usa [^id] y su definición al final.`;
+}
+
+function openChapterNomenclatureGuideModal() {
+    const modal = document.getElementById('chapter-nomenclature-modal');
+    if (!modal) return;
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        const panel = modal.querySelector('div');
+        if (panel) {
+            panel.classList.remove('scale-95');
+            panel.classList.add('scale-100');
+        }
+    }, 10);
+}
+
+function closeChapterNomenclatureGuideModal() {
+    const modal = document.getElementById('chapter-nomenclature-modal');
+    if (!modal) return;
+
+    modal.classList.add('opacity-0');
+    const panel = modal.querySelector('div');
+    if (panel) {
+        panel.classList.remove('scale-100');
+        panel.classList.add('scale-95');
+    }
+
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 200);
+}
+
+function copyChapterNomenclatureGuide() {
+    const text = getChapterNomenclatureGuideText();
+    const done = () => {
+        if (typeof showToast === 'function') {
+            showToast('Guía copiada al portapapeles.', 'fa-solid fa-copy');
+        }
+    };
+    const failed = () => {
+        if (typeof showToast === 'function') {
+            showToast('No se pudo copiar la guía.', 'fa-solid fa-triangle-exclamation');
+        }
+    };
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(done).catch(failed);
+        return;
+    }
+
+    try {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', 'true');
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        const ok = document.execCommand('copy');
+        textarea.remove();
+        if (ok) {
+            done();
+        } else {
+            failed();
+        }
+    } catch (error) {
+        failed();
+    }
+}
+
 function getChapterSettingsModalLabels(chapter) {
     if (!chapter) {
         return {
@@ -139,17 +269,28 @@ function openChapterSettingsModal() {
         document.getElementById('chapter_toc_item_align').value = activeChapter.toc_item_align || 'left';
         
         // TOC Title Formats
+        document.getElementById('chapter_toc_hide_title').checked = activeChapter.toc_hide_title === '1';
+        document.getElementById('chapter_toc_title_text').value = activeChapter.toc_title_text || activeChapter.title || 'Índice';
         document.getElementById('chapter_toc_title_align').value = activeChapter.toc_title_align || '';
         document.getElementById('chapter_toc_title_font_family').value = activeChapter.toc_title_font_family || '';
         document.getElementById('chapter_toc_title_font_size').value = activeChapter.toc_title_font_size || '';
         document.getElementById('chapter_toc_title_font_style').value = activeChapter.toc_title_font_style || '';
         document.getElementById('chapter_toc_title_text_transform').value = activeChapter.toc_title_text_transform || '';
         document.getElementById('chapter_toc_title_font_weight').value = activeChapter.toc_title_font_weight || '';
+        document.getElementById('chapter_toc_title_letter_spacing').value = activeChapter.toc_title_letter_spacing || '';
         document.getElementById('chapter_toc_title_padding_top').value = activeChapter.toc_title_padding_top || '';
         document.getElementById('chapter_toc_title_padding_bottom').value = activeChapter.toc_title_padding_bottom || '';
         document.getElementById('chapter_toc_title_line_height').value = activeChapter.toc_title_line_height || '';
     } else if (isCredits) {
         // Poblar las tipografías de créditos si no se ha hecho
+        const settings = bookState.settings || {};
+        const creditFontFamilyDefault = settings.font_family_content || '';
+        const creditAlignDefault = ['left', 'center', 'right'].includes(String(settings.content_text_align || '').toLowerCase())
+            ? String(settings.content_text_align).toLowerCase()
+            : 'center';
+        const creditFontSizeDefault = settings.font_size_content || '';
+        const creditFontWeightDefault = settings.font_weight_content || '';
+
         const creditsFontSelect = document.getElementById('chapter_credits_font_family');
         if (creditsFontSelect && creditsFontSelect.options.length <= 1 && bookState.installedFonts) {
             bookState.installedFonts.forEach(font => {
@@ -160,11 +301,18 @@ function openChapterSettingsModal() {
             });
         }
         
-        document.getElementById('chapter_credits_font_family').value = activeChapter.credits_font_family || '';
-        document.getElementById('chapter_credits_align').value = activeChapter.credits_align || '';
-        document.getElementById('chapter_credits_font_size').value = activeChapter.credits_font_size || '';
+        document.getElementById('chapter_credits_font_family').value = activeChapter.credits_font_family || creditFontFamilyDefault;
+        document.getElementById('chapter_credits_align').value = activeChapter.credits_align || creditAlignDefault;
+        document.getElementById('chapter_credits_font_size').value = activeChapter.credits_font_size || creditFontSizeDefault;
         document.getElementById('chapter_credits_letter_spacing').value = activeChapter.credits_letter_spacing || '';
-        document.getElementById('chapter_credits_font_weight').value = activeChapter.credits_font_weight || '';
+        document.getElementById('chapter_credits_font_weight').value = activeChapter.credits_font_weight || creditFontWeightDefault;
+        document.getElementById('chapter_credits_hide_title').checked = activeChapter.hide_title === '1';
+        const creditsConfig = typeof creditsNormalizeConfig === 'function'
+            ? creditsNormalizeConfig(settings.credits_config || settings)
+            : (settings.credits_config || {});
+        const creditsEditorial = creditsConfig && creditsConfig.editorial ? creditsConfig.editorial : {};
+        document.getElementById('chapter_credits_blank_before').value = creditsEditorial.blank_before ?? settings.credits_blank_before ?? 0;
+        document.getElementById('chapter_credits_blank_after').value = creditsEditorial.blank_after ?? settings.credits_blank_after ?? 0;
         document.getElementById('chapter_credits_hide_header').checked = activeChapter.credits_hide_header === '1';
         document.getElementById('chapter_credits_hide_page_number').checked = activeChapter.credits_hide_page_number === '1';
         document.getElementById('chapter_credits_margin_top').value = activeChapter.credits_margin_top ?? '';
@@ -331,21 +479,46 @@ function saveChapterSettings() {
         activeChapter.toc_item_align = document.getElementById('chapter_toc_item_align').value;
         
         // TOC Title formats
+        activeChapter.toc_hide_title = document.getElementById('chapter_toc_hide_title').checked ? '1' : '0';
+        activeChapter.toc_title_text = document.getElementById('chapter_toc_title_text').value.trim();
         activeChapter.toc_title_align = document.getElementById('chapter_toc_title_align').value;
         activeChapter.toc_title_font_family = document.getElementById('chapter_toc_title_font_family').value;
         activeChapter.toc_title_font_size = cleanFloat('chapter_toc_title_font_size');
         activeChapter.toc_title_font_style = document.getElementById('chapter_toc_title_font_style').value;
         activeChapter.toc_title_text_transform = document.getElementById('chapter_toc_title_text_transform').value;
         activeChapter.toc_title_font_weight = document.getElementById('chapter_toc_title_font_weight').value;
+        activeChapter.toc_title_letter_spacing = cleanFloat('chapter_toc_title_letter_spacing');
         activeChapter.toc_title_padding_top = cleanFloat('chapter_toc_title_padding_top');
         activeChapter.toc_title_padding_bottom = cleanFloat('chapter_toc_title_padding_bottom');
         activeChapter.toc_title_line_height = cleanFloat('chapter_toc_title_line_height');
     } else if (isCredits) {
         activeChapter.credits_font_family = document.getElementById('chapter_credits_font_family').value;
+        // An empty value means inherit the book/default section alignment; do not force center.
         activeChapter.credits_align = document.getElementById('chapter_credits_align').value;
         activeChapter.credits_font_size = cleanFloat('chapter_credits_font_size');
         activeChapter.credits_letter_spacing = cleanFloat('chapter_credits_letter_spacing');
         activeChapter.credits_font_weight = document.getElementById('chapter_credits_font_weight').value;
+        const blankBefore = Math.min(999, Math.max(0, parseInt(document.getElementById('chapter_credits_blank_before').value, 10) || 0));
+        const blankAfter = Math.min(999, Math.max(0, parseInt(document.getElementById('chapter_credits_blank_after').value, 10) || 0));
+        const currentCreditsConfig = typeof creditsNormalizeConfig === 'function'
+            ? creditsNormalizeConfig(bookState.settings.credits_config || bookState.settings)
+            : {
+                ...(bookState.settings.credits_config || {}),
+                editorial: {
+                    ...((bookState.settings.credits_config && bookState.settings.credits_config.editorial) || {}),
+                },
+            };
+        currentCreditsConfig.editorial = currentCreditsConfig.editorial || {};
+        currentCreditsConfig.editorial.blank_before = blankBefore;
+        currentCreditsConfig.editorial.blank_after = blankAfter;
+        bookState.settings.credits_config = currentCreditsConfig;
+        bookState.settings.credits_blank_before = blankBefore;
+        bookState.settings.credits_blank_after = blankAfter;
+        const globalBlankBefore = document.getElementById('setting-credits-blank-before');
+        const globalBlankAfter = document.getElementById('setting-credits-blank-after');
+        if (globalBlankBefore) globalBlankBefore.value = String(blankBefore);
+        if (globalBlankAfter) globalBlankAfter.value = String(blankAfter);
+        activeChapter.hide_title = document.getElementById('chapter_credits_hide_title').checked ? '1' : '0';
         activeChapter.credits_hide_header = document.getElementById('chapter_credits_hide_header').checked ? '1' : '0';
         activeChapter.credits_hide_page_number = document.getElementById('chapter_credits_hide_page_number').checked ? '1' : '0';
         activeChapter.credits_margin_top = cleanFloat('chapter_credits_margin_top');

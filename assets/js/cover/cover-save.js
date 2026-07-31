@@ -11,13 +11,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const backFlapWidth = document.getElementById('back-flap-width');
     const foldXMm = document.getElementById('fold-x');
     const uploadFront = document.getElementById('upload-front-cover');
+    const uploadFrontAttachment = document.getElementById('upload-front-cover-attachment-id');
     const uploadBack = document.getElementById('upload-back-cover');
+    const uploadBackAttachment = document.getElementById('upload-back-cover-attachment-id');
     const uploadSpine = document.getElementById('upload-spine-image');
+    const uploadSpineAttachment = document.getElementById('upload-spine-image-attachment-id');
     const spineColorPicker = document.getElementById('spine-color-picker');
     const uploadSpread = document.getElementById('upload-full-spread');
+    const uploadSpreadAttachment = document.getElementById('upload-full-spread-attachment-id');
     const uploadFrontFlapImage = document.getElementById('upload-front-flap-image');
+    const uploadFrontFlapAttachment = document.getElementById('upload-front-flap-image-attachment-id');
     const frontFlapColorPicker = document.getElementById('front-flap-color-picker');
     const uploadBackFlapImage = document.getElementById('upload-back-flap-image');
+    const uploadBackFlapAttachment = document.getElementById('upload-back-flap-image-attachment-id');
     const backFlapColorPicker = document.getElementById('back-flap-color-picker');
 
     const clearFront = document.getElementById('clear-front-cover');
@@ -40,14 +46,20 @@ document.addEventListener('DOMContentLoaded', () => {
         data.append('back_flap_width', backFlapWidth.value);
         data.append('fold_x', foldXMm ? foldXMm.value : '0');
         data.append('front_image', uploadFront.value);
+        data.append('front_image_attachment_id', uploadFrontAttachment ? uploadFrontAttachment.value : '0');
         data.append('back_image', uploadBack.value);
+        data.append('back_image_attachment_id', uploadBackAttachment ? uploadBackAttachment.value : '0');
         data.append('spine_image', uploadSpine.value);
+        data.append('spine_image_attachment_id', uploadSpineAttachment ? uploadSpineAttachment.value : '0');
         data.append('spine_color', spineColorPicker.value);
         data.append('spread_image', uploadSpread.value);
+        data.append('spread_image_attachment_id', uploadSpreadAttachment ? uploadSpreadAttachment.value : '0');
         
         data.append('front_flap_image', uploadFrontFlapImage.value);
+        data.append('front_flap_image_attachment_id', uploadFrontFlapAttachment ? uploadFrontFlapAttachment.value : '0');
         data.append('front_flap_color', frontFlapColorPicker.value);
         data.append('back_flap_image', uploadBackFlapImage.value);
+        data.append('back_flap_image_attachment_id', uploadBackFlapAttachment ? uploadBackFlapAttachment.value : '0');
         data.append('back_flap_color', backFlapColorPicker.value);
 
         data.append('text_layers', JSON.stringify(s.textLayers));
@@ -83,6 +95,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     const num = parseFloat(value);
                     return Number.isFinite(num) && num > 0 ? Math.ceil(num) : 0;
                 };
+            const resolveMedia = (baseKey) => {
+                const previewSafe = settings[`${baseKey}_preview_safe`] === true;
+                const originalUrl = settings[`${baseKey}_original_url`] || settings[baseKey] || '';
+                const previewUrl = settings[`${baseKey}_preview_url`] || '';
+                return {
+                    originalUrl,
+                    previewUrl,
+                    attachmentId: settings[`${baseKey}_attachment_id`] || 0,
+                    previewSafe
+                };
+            };
+
             if (settings.paper_type) el.paperTypeSelect.value = settings.paper_type;
 
             if (settings.spine_width_mode) {
@@ -110,17 +134,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             if (settings.spread_image) {
-                act.applySpreadImage(settings.spread_image);
+                act.applySpreadImage(resolveMedia('spread_image'));
             } else {
                 if (settings.front_image) {
-                    act.applyImageToCover(settings.front_image, el.frontCover, uploadFront, clearFront);
+                    act.applyImageToCover(resolveMedia('front_image'), el.frontCover, uploadFront, uploadFrontAttachment, clearFront);
                 }
                 if (settings.back_image) {
-                    act.applyImageToCover(settings.back_image, el.backCover, uploadBack, clearBack);
+                    act.applyImageToCover(resolveMedia('back_image'), el.backCover, uploadBack, uploadBackAttachment, clearBack);
                 }
                 
                 if (settings.spine_image) {
-                    act.applyImageToCover(settings.spine_image, el.spine, uploadSpine, clearSpine);
+                    act.applyImageToCover(resolveMedia('spine_image'), el.spine, uploadSpine, uploadSpineAttachment, clearSpine);
                 } else if (settings.spine_color && settings.spine_color !== '#f9fafb') {
                     spineColorPicker.value = settings.spine_color;
                     el.spine.style.backgroundColor = settings.spine_color;
@@ -130,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             if (settings.front_flap_image) {
-                act.applyImageToCover(settings.front_flap_image, el.frontFlap, uploadFrontFlapImage, clearFrontFlap);
+                act.applyImageToCover(resolveMedia('front_flap_image'), el.frontFlap, uploadFrontFlapImage, uploadFrontFlapAttachment, clearFrontFlap);
             } else if (settings.front_flap_color && settings.front_flap_color !== '#ffffff') {
                 frontFlapColorPicker.value = settings.front_flap_color;
                 el.frontFlap.style.backgroundColor = settings.front_flap_color;
@@ -140,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (settings.back_flap_image) {
-                act.applyImageToCover(settings.back_flap_image, el.backFlap, uploadBackFlapImage, clearBackFlap);
+                act.applyImageToCover(resolveMedia('back_flap_image'), el.backFlap, uploadBackFlapImage, uploadBackFlapAttachment, clearBackFlap);
             } else if (settings.back_flap_color && settings.back_flap_color !== '#ffffff') {
                 backFlapColorPicker.value = settings.back_flap_color;
                 el.backFlap.style.backgroundColor = settings.back_flap_color;

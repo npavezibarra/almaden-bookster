@@ -35,9 +35,15 @@ if ( $chapter_posts ) {
 		$is_toc = get_post_meta( $cp->ID, '_is_toc', true );
 		$toc_hide_header = get_post_meta( $cp->ID, '_toc_hide_header', true );
 		$toc_hide_page_numbers = get_post_meta( $cp->ID, '_toc_hide_page_numbers', true );
+		$toc_hide_title = get_post_meta( $cp->ID, '_toc_hide_title', true );
+		$toc_title_text = get_post_meta( $cp->ID, '_toc_title_text', true );
 		if ( '1' === (string) $is_toc ) {
 			$toc_hide_header = '' === (string) $toc_hide_header ? '1' : $toc_hide_header;
 			$toc_hide_page_numbers = '' === (string) $toc_hide_page_numbers ? '1' : $toc_hide_page_numbers;
+			$toc_hide_title = '' === (string) $toc_hide_title ? '0' : $toc_hide_title;
+			if ( '' === trim( (string) $toc_title_text ) ) {
+				$toc_title_text = $cp->post_title ?: 'Índice';
+			}
 		}
 
 		$saved_chapters[] = array(
@@ -105,16 +111,19 @@ if ( $chapter_posts ) {
 			'toc_item_spacing'         => get_post_meta( $cp->ID, '_toc_item_spacing', true ),
 			'toc_hide_header'         => $toc_hide_header,
 			'toc_hide_page_numbers'   => $toc_hide_page_numbers,
+			'toc_hide_title'          => $toc_hide_title,
 			'toc_separate_opening_content' => get_post_meta( $cp->ID, '_toc_separate_opening_content', true ),
 			'toc_item_align'          => get_post_meta( $cp->ID, '_toc_item_align', true ),
 			'toc_leader_style'         => get_post_meta( $cp->ID, '_toc_leader_style', true ),
 			'toc_leader_position'      => get_post_meta( $cp->ID, '_toc_leader_position', true ),
+			'toc_title_text'           => $toc_title_text,
 			'toc_title_align'          => get_post_meta( $cp->ID, '_toc_title_align', true ),
 			'toc_title_font_family'    => get_post_meta( $cp->ID, '_toc_title_font_family', true ),
 			'toc_title_font_size'      => get_post_meta( $cp->ID, '_toc_title_font_size', true ),
 			'toc_title_font_style'     => get_post_meta( $cp->ID, '_toc_title_font_style', true ),
 			'toc_title_text_transform' => get_post_meta( $cp->ID, '_toc_title_text_transform', true ),
 			'toc_title_font_weight'    => get_post_meta( $cp->ID, '_toc_title_font_weight', true ),
+			'toc_title_letter_spacing' => get_post_meta( $cp->ID, '_toc_title_letter_spacing', true ),
 			'toc_title_padding_top'    => get_post_meta( $cp->ID, '_toc_title_padding_top', true ),
 			'toc_title_padding_bottom' => get_post_meta( $cp->ID, '_toc_title_padding_bottom', true ),
 			'toc_title_line_height'    => get_post_meta( $cp->ID, '_toc_title_line_height', true ),
@@ -126,6 +135,29 @@ if ( $chapter_posts ) {
 $pdf_settings = almaden_get_book_pdf_settings( $book_id );
 if ( function_exists( 'almaden_bookster_get_book_language_from_settings' ) ) {
 	$pdf_settings['book_language'] = almaden_bookster_get_book_language_from_settings( $pdf_settings, 'es' );
+}
+
+// Credits are structured book data, not editable chapter prose. Give every
+// render path a generated chapter body so a generic/legacy compiler cannot
+// fall back to the historical placeholder stored in post_content.
+if (
+	! empty( $saved_chapters )
+	&& ! empty( $pdf_settings['credits_config'] )
+	&& function_exists( 'almaden_bookster_build_credits_chapter_content' )
+) {
+	$generated_credits_content = almaden_bookster_build_credits_chapter_content(
+		$pdf_settings['credits_config'],
+		$book_author_label
+	);
+	foreach ( $saved_chapters as &$saved_chapter ) {
+		if ( '1' !== (string) ( $saved_chapter['is_credits'] ?? '' ) ) {
+			continue;
+		}
+		$saved_chapter['content'] = $generated_credits_content;
+		$saved_chapter['credits_config'] = $pdf_settings['credits_config'];
+		$saved_chapter['credits_author_label'] = $book_author_label;
+	}
+	unset( $saved_chapter );
 }
 
 // Migrar en memoria la configuración heredada de Chapter Image al nivel del capítulo.

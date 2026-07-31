@@ -32,6 +32,7 @@ function creditsGetDefaultSectionStyle() {
         letter_spacing: '',
         line_height: '',
         text_align: '',
+        item_gap_px: '',
     };
 }
 
@@ -80,6 +81,7 @@ function creditsNormalizeSectionStyleValue(value) {
         letter_spacing: creditsNormalizeOptionalDecimal(source.letter_spacing ?? defaults.letter_spacing, -10, 20, ''),
         line_height: creditsNormalizeOptionalDecimal(source.line_height ?? defaults.line_height, 0.5, 3, ''),
         text_align: ['left', 'center', 'right'].includes(align) ? align : '',
+        item_gap_px: creditsNormalizeOptionalInteger(source.item_gap_px ?? defaults.item_gap_px, 0, 80, ''),
     };
 }
 
