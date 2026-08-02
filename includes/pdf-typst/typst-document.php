@@ -190,12 +190,15 @@ function almaden_bookster_typst_chapter_opening_visibility( $chapter, $settings 
 	$has_title = '' !== trim( (string) ( $chapter['title'] ?? '' ) );
 	$is_toc    = isset( $chapter['is_toc'] ) && '1' === (string) $chapter['is_toc'];
 	$is_credits = almaden_bookster_typst_is_credits_chapter( $chapter );
-	$show_title = $has_title && empty( $chapter['hide_title'] ) && ! $is_credits;
-	$show_prefix = ! $is_toc
+	$hide_opening = '1' === (string) ( $chapter['hide_opening'] ?? '0' ) && ! $is_toc && ! $is_credits;
+	$show_title = $has_title && empty( $chapter['hide_title'] ) && ! $is_credits && ! $hide_opening;
+	$show_prefix = ! $hide_opening
+		&& ! $is_toc
 		&& ! $is_credits
 		&& almaden_bookster_typst_bool( $settings['chapter_prefix_show'] ?? false )
 		&& '1' !== (string) ( $chapter['exclude_from_numbering'] ?? '0' );
-	$show_subtitle = ! $is_toc
+	$show_subtitle = ! $hide_opening
+		&& ! $is_toc
 		&& ! $is_credits
 		&& '' !== trim( (string) ( $chapter['subtitle_text'] ?? '' ) )
 		&& ( ! isset( $settings['chapter_subtitle_show'] ) || almaden_bookster_typst_bool( $settings['chapter_subtitle_show'] ) );
@@ -929,6 +932,27 @@ function almaden_bookster_build_typst_document( $payload ) {
 		$toc_font_cache[ $key ] = $resolved['family'];
 		return $resolved['family'];
 	};
+	$inline_font_assets = array();
+	$inline_font_error  = null;
+	$inline_font_cache  = array();
+	$resolve_inline_font = static function ( $family ) use ( &$inline_font_assets, &$inline_font_error, &$inline_font_cache ) {
+		$family = almaden_bookster_typst_font_family( $family, '' );
+		if ( '' === $family ) {
+			return '';
+		}
+		$key = strtolower( $family );
+		if ( isset( $inline_font_cache[ $key ] ) ) {
+			return $inline_font_cache[ $key ];
+		}
+		$resolved = almaden_bookster_typst_resolve_font( $family, 400 );
+		if ( is_wp_error( $resolved ) ) {
+			$inline_font_error = $resolved;
+			return '';
+		}
+		$inline_font_assets = array_merge( $inline_font_assets, (array) ( $resolved['files'] ?? array() ) );
+		$inline_font_cache[ $key ] = $resolved['family'];
+		return $inline_font_cache[ $key ];
+	};
 	$rendered     = 0;
 	$numbered_chapter_index = 0;
 	foreach ( $chapters as $chapter_index => $chapter ) {
@@ -937,6 +961,9 @@ function almaden_bookster_build_typst_document( $payload ) {
 		}
 		$title   = isset( $chapter['title'] ) ? (string) $chapter['title'] : '';
 		$content = isset( $chapter['content'] ) ? (string) $chapter['content'] : '';
+		foreach ( almaden_bookster_typst_inline_font_families( $content ) as $inline_font_family ) {
+			$resolve_inline_font( $inline_font_family );
+		}
 		$is_toc  = isset( $chapter['is_toc'] ) && '1' === (string) $chapter['is_toc'];
 		$is_credits = almaden_bookster_typst_is_credits_chapter( $chapter );
 		if ( $is_toc ) {
@@ -1169,7 +1196,8 @@ function almaden_bookster_build_typst_document( $payload ) {
 			$heading2_font_error ? array() : $heading2_font['files'],
 			$heading3_font_error ? array() : $heading3_font['files'],
 			$toc_font_assets,
-			$credits_font_assets
+			$credits_font_assets,
+			$inline_font_assets
 		)
 	);
 
@@ -1179,7 +1207,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 		'semantic_extras' => $plain_extras,
 		'assets'        => $assets,
 		'font_assets'   => array_values( array_unique( $font_assets ) ),
-		'build_error'   => $font_error ?: $title_font_error ?: $header_font_error ?: $footer_font_error ?: $heading1_font_error ?: $heading2_font_error ?: $heading3_font_error ?: $toc_font_error ?: $credits_font_error,
+		'build_error'   => $font_error ?: $title_font_error ?: $header_font_error ?: $footer_font_error ?: $heading1_font_error ?: $heading2_font_error ?: $heading3_font_error ?: $toc_font_error ?: $credits_font_error ?: $inline_font_error,
 		'heading_styles' => array(
 			1 => array(
 				'font_family'    => $heading1_font_family,

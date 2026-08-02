@@ -56,6 +56,7 @@ if ( $chapter_posts ) {
 			'opening_block_enabled'   => get_post_meta( $cp->ID, '_opening_block_enabled', true ),
 			'opening_block_horizontal_align' => get_post_meta( $cp->ID, '_opening_block_horizontal_align', true ),
 			'opening_block_vertical_align' => get_post_meta( $cp->ID, '_opening_block_vertical_align', true ),
+			'hide_opening'            => get_post_meta( $cp->ID, '_hide_opening', true ),
 			'hide_title'               => get_post_meta( $cp->ID, '_hide_title', true ),
 			'hide_all_headers_footers' => get_post_meta( $cp->ID, '_hide_all_headers_footers', true ),
 			'exclude_from_numbering'   => get_post_meta( $cp->ID, '_exclude_from_numbering', true ),

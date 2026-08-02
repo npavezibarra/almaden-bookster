@@ -111,7 +111,15 @@ function almaden_bookster_typst_render_inline( $text, $footnotes = array(), $dep
 				almaden_bookster_typst_render_inline( $match[3][0], $footnotes, $depth + 1, $exceptions ) . ']';
 			break;
 		case 5:
-			$output .= almaden_bookster_typst_render_inline( $match[2][0], $footnotes, $depth + 1, $exceptions );
+			$family = function_exists( 'almaden_bookster_typst_font_family' )
+				? almaden_bookster_typst_font_family( $match[1][0], '' )
+				: trim( (string) $match[1][0] );
+			if ( '' === $family ) {
+				$output .= almaden_bookster_typst_render_inline( $match[2][0], $footnotes, $depth + 1, $exceptions );
+				break;
+			}
+			$output .= '#text(font: "' . almaden_bookster_typst_escape_string( $family ) . '")[' .
+				almaden_bookster_typst_render_inline( $match[2][0], $footnotes, $depth + 1, $exceptions ) . ']';
 			break;
 		case 6:
 			$id = $match[1][0];
@@ -125,6 +133,25 @@ function almaden_bookster_typst_render_inline( $text, $footnotes = array(), $dep
 	}
 
 	return $output . almaden_bookster_typst_render_inline( $after, $footnotes, $depth + 1, $exceptions );
+}
+
+/**
+ * Return the font families requested by inline [font="..."] shortcodes.
+ */
+function almaden_bookster_typst_inline_font_families( $text ) {
+	$matches = array();
+	preg_match_all( '/\[font=(?:"|\')([^\]]+?)(?:"|\')\]/i', (string) $text, $matches );
+	$families = array();
+	foreach ( $matches[1] ?? array() as $family ) {
+		$family = function_exists( 'almaden_bookster_typst_font_family' )
+			? almaden_bookster_typst_font_family( $family, '' )
+			: trim( (string) $family );
+		if ( '' !== $family ) {
+			$families[ strtolower( $family ) ] = $family;
+		}
+	}
+
+	return array_values( $families );
 }
 
 /**

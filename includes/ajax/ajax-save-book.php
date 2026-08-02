@@ -62,6 +62,7 @@ function almaden_bookster_save_book_ajax() {
 		$opening_block_enabled = isset( $chapter['opening_block_enabled'] ) ? sanitize_text_field( $chapter['opening_block_enabled'] ) : '1';
 		$opening_block_horizontal_align = isset( $chapter['opening_block_horizontal_align'] ) ? sanitize_text_field( $chapter['opening_block_horizontal_align'] ) : 'center';
 		$opening_block_vertical_align = isset( $chapter['opening_block_vertical_align'] ) ? sanitize_text_field( $chapter['opening_block_vertical_align'] ) : 'top';
+		$hide_opening          = isset( $chapter['hide_opening'] ) ? sanitize_text_field( $chapter['hide_opening'] ) : '0';
 		$hide_title            = isset( $chapter['hide_title'] ) ? sanitize_text_field( $chapter['hide_title'] ) : '0';
 		$hide_all_headers_footers = isset( $chapter['hide_all_headers_footers'] ) ? sanitize_text_field( $chapter['hide_all_headers_footers'] ) : '0';
 		$exclude_from_numbering= isset( $chapter['exclude_from_numbering'] ) ? sanitize_text_field( $chapter['exclude_from_numbering'] ) : '0';
@@ -179,6 +180,7 @@ function almaden_bookster_save_book_ajax() {
 			update_post_meta( $post_id, '_opening_block_enabled', $opening_block_enabled );
 			update_post_meta( $post_id, '_opening_block_horizontal_align', $opening_block_horizontal_align );
 			update_post_meta( $post_id, '_opening_block_vertical_align', $opening_block_vertical_align );
+			update_post_meta( $post_id, '_hide_opening', $hide_opening );
 			update_post_meta( $post_id, '_hide_title', $hide_title );
 			update_post_meta( $post_id, '_hide_all_headers_footers', $hide_all_headers_footers );
 			update_post_meta( $post_id, '_exclude_from_numbering', $exclude_from_numbering );
@@ -266,6 +268,7 @@ function almaden_bookster_save_book_ajax() {
 				'opening_block_enabled' => $opening_block_enabled,
 				'opening_block_horizontal_align' => $opening_block_horizontal_align,
 				'opening_block_vertical_align' => $opening_block_vertical_align,
+				'hide_opening'          => $hide_opening,
 				'hide_title'            => $hide_title,
 				'hide_all_headers_footers' => $hide_all_headers_footers,
 				'exclude_from_numbering'=> $exclude_from_numbering,
