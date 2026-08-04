@@ -769,6 +769,7 @@ function getPDFStylesBase(settings, geometry, toPx) {
 function getHeaderFooterCSS(settings, bookTitle) {
     const headerAlign = settings.header_align || 'center';
     const footerAlign = settings.footer_align || 'center';
+    const headerHyphenate = settings.header_hyphenate == 1;
     
     const headerEvenType = settings.header_even_type || 'book_title';
     const headerOddType = settings.header_odd_type || 'chapter_title';
@@ -783,6 +784,10 @@ function getHeaderFooterCSS(settings, bookTitle) {
     return `
         @page :left {
             @${headerEvenBox} {
+                hyphens: ${headerHyphenate ? 'auto' : 'none'} !important;
+                -webkit-hyphens: ${headerHyphenate ? 'auto' : 'none'} !important;
+                overflow-wrap: normal !important;
+                word-break: normal !important;
                 content: ${getHeaderContent(headerEvenType, true, bookTitle, settings)};
             }
             @${footerEvenBox} {
@@ -791,6 +796,10 @@ function getHeaderFooterCSS(settings, bookTitle) {
         }
         @page :right {
             @${headerOddBox} {
+                hyphens: ${headerHyphenate ? 'auto' : 'none'} !important;
+                -webkit-hyphens: ${headerHyphenate ? 'auto' : 'none'} !important;
+                overflow-wrap: normal !important;
+                word-break: normal !important;
                 content: ${getHeaderContent(headerOddType, false, bookTitle, settings)};
             }
             @${footerOddBox} {

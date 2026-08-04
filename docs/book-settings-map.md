@@ -10,6 +10,7 @@ La idea principal es esta:
 - El libro principal es un post del CPT `almaden-books`.
 - PDF impreso y ebook comparten la misma tabla global, pero usan campos distintos.
 - El idioma base del libro vive en esa misma tabla y se expone en memoria como `book_language`.
+- La cabecera PDF puede activar hyphenation propio con `header_hyphenate`.
 
 ## Mapa rápido
 
@@ -41,7 +42,9 @@ La fila está indexada por `book_id` y contiene casi toda la configuración de m
 - Tipografía base.
 - Idioma base del libro.
 - Cabecera y pie.
+  - `header_hyphenate`
 - Footnotes.
+  - `footnote_line_height`, `footnote_letter_spacing`, `footnote_entry_spacing`, `footnote_hyphenate`.
 - Inicio de capítulo.
 - Ajustes de ebook.
 

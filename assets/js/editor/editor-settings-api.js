@@ -64,6 +64,9 @@ window.savePDFSettings = function(silent = false) {
     data.append('padding_right', getCleanVal('setting-padding-right'));
     data.append('bleeding', getCleanVal('setting-bleeding'));
     data.append('export_grayscale', getChecked('setting-export-grayscale'));
+    data.append('page_columns_enabled', getChecked('setting-page-columns-enabled'));
+    data.append('page_columns_count', getCleanVal('setting-page-columns-count'));
+    data.append('page_columns_gap', getCleanVal('setting-page-columns-gap'));
     data.append('ebook_bg_type', getVal('setting-ebook-bg-type'));
     data.append('ebook_bg_color', getVal('setting-ebook-bg-color-text'));
     data.append('ebook_bg_image', getVal('setting-ebook-bg-image'));
@@ -144,6 +147,7 @@ window.savePDFSettings = function(silent = false) {
     data.append('header_font_weight', getVal('setting-header-font-weight'));
     data.append('header_font_style', getVal('setting-header-font-style'));
     data.append('header_text_transform', getVal('setting-header-text-transform'));
+    data.append('header_hyphenate', getChecked('setting-header-hyphenate'));
     data.append('header_letter_spacing', getCleanVal('setting-header-letter-spacing'));
     data.append('header_even_type', getVal('setting-header-even-type'));
     data.append('header_even_custom', getVal('setting-header-even-custom'));
@@ -169,10 +173,17 @@ window.savePDFSettings = function(silent = false) {
     data.append('chapter_transition_blank_text', getVal('setting-chapter-transition-blank-text') || '...');
 
     // Footnotes
+    data.append('footnote_mode', getVal('setting-footnote-mode') || 'page');
+    data.append('footnote_chapter_title', getVal('setting-footnote-chapter-title') || 'Referencia');
+    data.append('footnote_book_title', getVal('setting-footnote-book-title') || 'Referencias');
     data.append('footnote_font_family', getVal('setting-footnote-font-family'));
     data.append('footnote_font_size', getCleanVal('setting-footnote-font-size'));
     data.append('footnote_font_weight', getVal('setting-footnote-font-weight'));
     data.append('footnote_align', getVal('setting-footnote-align'));
+    data.append('footnote_line_height', getCleanVal('setting-footnote-line-height'));
+    data.append('footnote_letter_spacing', getCleanVal('setting-footnote-letter-spacing'));
+    data.append('footnote_entry_spacing', getCleanVal('setting-footnote-entry-spacing'));
+    data.append('footnote_hyphenate', getChecked('setting-footnote-hyphenate'));
     data.append('footnote_call_scale', getCleanVal('setting-footnote-call-scale'));
     data.append('footnote_call_raise', getCleanVal('setting-footnote-call-raise'));
     data.append('footnote_padding_top', getCleanVal('setting-footnote-padding-top'));

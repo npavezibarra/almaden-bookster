@@ -79,7 +79,7 @@ function almaden_bookster_create_settings_table() {
 	
 	$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) === $table_name;
 	
-		if ( get_option( 'almaden_bookster_db_version' ) !== '2.4.4' || ! $table_exists ) {
+		if ( get_option( 'almaden_bookster_db_version' ) !== '2.4.6' || ! $table_exists ) {
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE $table_name (
@@ -103,6 +103,9 @@ function almaden_bookster_create_settings_table() {
 			padding_right float DEFAULT 0.0 NOT NULL,
 			bleeding float DEFAULT 0.0 NOT NULL,
 			export_grayscale tinyint(1) DEFAULT 0 NOT NULL,
+			page_columns_enabled tinyint(1) DEFAULT 0 NOT NULL,
+			page_columns_count tinyint(1) DEFAULT 2 NOT NULL,
+			page_columns_gap float DEFAULT 0.8 NOT NULL,
 			font_family_content varchar(50) DEFAULT 'Merriweather' NOT NULL,
 			font_weight_content varchar(20) DEFAULT 'normal' NOT NULL,
 			font_size_content float DEFAULT 11.5 NOT NULL,
@@ -144,6 +147,7 @@ function almaden_bookster_create_settings_table() {
 			header_font_weight varchar(20) DEFAULT 'normal' NOT NULL,
 			header_font_style varchar(20) DEFAULT 'normal' NOT NULL,
 			header_text_transform varchar(20) DEFAULT 'none' NOT NULL,
+			header_hyphenate tinyint(1) DEFAULT 0 NOT NULL,
 			header_align varchar(20) DEFAULT 'center' NOT NULL,
 			header_letter_spacing float DEFAULT 0.1 NOT NULL,
 			header_even_type varchar(50) DEFAULT 'book_title' NOT NULL,
@@ -163,10 +167,17 @@ function almaden_bookster_create_settings_table() {
 			footer_odd_type varchar(50) DEFAULT 'page_number' NOT NULL,
 			footer_margin_top float DEFAULT 0.5 NOT NULL,
 			footer_margin_bottom float DEFAULT 1.0 NOT NULL,
+			footnote_mode varchar(20) DEFAULT 'page' NOT NULL,
+			footnote_chapter_title varchar(120) DEFAULT 'Referencia' NOT NULL,
+			footnote_book_title varchar(120) DEFAULT 'Referencias' NOT NULL,
 			footnote_font_family varchar(50) DEFAULT 'Merriweather' NOT NULL,
 			footnote_font_size float DEFAULT 8.5 NOT NULL,
 			footnote_font_weight varchar(20) DEFAULT 'normal' NOT NULL,
-			footnote_align varchar(20) DEFAULT 'justify' NOT NULL,
+			footnote_align varchar(20) DEFAULT 'left' NOT NULL,
+			footnote_line_height float DEFAULT 11.5 NOT NULL,
+			footnote_letter_spacing float DEFAULT 0.0 NOT NULL,
+			footnote_entry_spacing float DEFAULT 6.0 NOT NULL,
+			footnote_hyphenate tinyint(1) DEFAULT 0 NOT NULL,
 			footnote_call_scale float DEFAULT 0.65 NOT NULL,
 			footnote_call_raise float DEFAULT 0.18 NOT NULL,
 			footnote_padding_top float DEFAULT 0.15 NOT NULL,
@@ -257,7 +268,7 @@ function almaden_bookster_create_settings_table() {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 
-		update_option( 'almaden_bookster_db_version', '2.4.4' );
+		update_option( 'almaden_bookster_db_version', '2.4.6' );
 	}
 }
 add_action( 'init', 'almaden_bookster_create_settings_table' );
@@ -402,6 +413,9 @@ add_action('init', function() {
 		'chapter_title_padding_left' => 'float DEFAULT 0.0 NOT NULL',
 		'chapter_title_padding_right' => 'float DEFAULT 0.0 NOT NULL',
 		'export_grayscale' => 'tinyint(1) DEFAULT 0 NOT NULL',
+		'page_columns_enabled' => 'tinyint(1) DEFAULT 0 NOT NULL',
+		'page_columns_count' => 'tinyint(1) DEFAULT 2 NOT NULL',
+		'page_columns_gap' => 'float DEFAULT 0.8 NOT NULL',
 		'header_even_type' => "varchar(50) DEFAULT 'book_title' NOT NULL",
 		'header_text_transform' => "varchar(20) DEFAULT 'none' NOT NULL",
 		'footer_text_transform' => "varchar(20) DEFAULT 'none' NOT NULL",
@@ -419,10 +433,17 @@ add_action('init', function() {
 		'book_start_page_footer_type' => "varchar(20) DEFAULT 'blank' NOT NULL",
 		'chapter_transition_blank_mode' => "varchar(50) DEFAULT 'full_blank' NOT NULL",
 		'chapter_transition_blank_text' => "varchar(255) DEFAULT '...' NOT NULL",
+		'footnote_mode' => "varchar(20) DEFAULT 'page' NOT NULL",
+		'footnote_chapter_title' => "varchar(120) DEFAULT 'Referencia' NOT NULL",
+		'footnote_book_title' => "varchar(120) DEFAULT 'Referencias' NOT NULL",
 		'footnote_font_family' => "varchar(50) DEFAULT 'Merriweather' NOT NULL",
 		'footnote_font_size' => 'float DEFAULT 8.5 NOT NULL',
 		'footnote_font_weight' => "varchar(20) DEFAULT 'normal' NOT NULL",
-		'footnote_align' => "varchar(20) DEFAULT 'justify' NOT NULL",
+		'footnote_align' => "varchar(20) DEFAULT 'left' NOT NULL",
+		'footnote_line_height' => 'float DEFAULT 11.5 NOT NULL',
+		'footnote_letter_spacing' => 'float DEFAULT 0.0 NOT NULL',
+		'footnote_entry_spacing' => 'float DEFAULT 6.0 NOT NULL',
+		'footnote_hyphenate' => 'tinyint(1) DEFAULT 0 NOT NULL',
 		'footnote_call_scale' => 'float DEFAULT 0.65 NOT NULL',
 		'footnote_call_raise' => 'float DEFAULT 0.18 NOT NULL',
 		'footnote_padding_top' => 'float DEFAULT 0.15 NOT NULL',
@@ -480,10 +501,17 @@ add_action('init', function() {
 		'ebook_chapter_prefix_font_style' => "varchar(20) DEFAULT 'normal' NOT NULL",
 		'ebook_chapter_prefix_letter_spacing' => "float DEFAULT 0.0 NOT NULL",
 		'ebook_chapter_prefix_ornament' => "varchar(20) DEFAULT 'none' NOT NULL",
+		'footnote_mode' => "varchar(20) DEFAULT 'page' NOT NULL",
+		'footnote_chapter_title' => "varchar(120) DEFAULT 'Referencia' NOT NULL",
+		'footnote_book_title' => "varchar(120) DEFAULT 'Referencias' NOT NULL",
 		'footnote_font_family' => "varchar(50) DEFAULT 'Merriweather' NOT NULL",
 		'footnote_font_size' => 'float DEFAULT 8.5 NOT NULL',
 		'footnote_font_weight' => "varchar(20) DEFAULT 'normal' NOT NULL",
-		'footnote_align' => "varchar(20) DEFAULT 'justify' NOT NULL",
+		'footnote_align' => "varchar(20) DEFAULT 'left' NOT NULL",
+		'footnote_line_height' => 'float DEFAULT 11.5 NOT NULL',
+		'footnote_letter_spacing' => 'float DEFAULT 0.0 NOT NULL',
+		'footnote_entry_spacing' => 'float DEFAULT 6.0 NOT NULL',
+		'footnote_hyphenate' => 'tinyint(1) DEFAULT 0 NOT NULL',
 		'footnote_padding_top' => 'float DEFAULT 0.15 NOT NULL',
 		'footnote_padding_bottom' => 'float DEFAULT 0.15 NOT NULL',
 		'footnote_padding_left' => 'float DEFAULT 0.0 NOT NULL',

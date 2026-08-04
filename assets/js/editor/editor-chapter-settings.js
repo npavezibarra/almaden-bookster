@@ -372,18 +372,13 @@ function openChapterSettingsModal() {
         document.getElementById('chapter_first_page_footer_custom').value = activeChapter.first_page_footer_custom || '';
         const legacyChapterImageDefaults = bookState.settings || {};
         const hasLegacyChapterImage = !!(
-            activeChapter.chapter_image_enabled === '1'
-            || activeChapter.chapter_image_enabled === 1
-            || activeChapter.chapter_image_mode
+            activeChapter.chapter_image_mode
                 && activeChapter.chapter_image_mode !== 'page_blank'
             || (activeChapter.chapter_image_url && String(activeChapter.chapter_image_url).trim() !== '')
             || (legacyChapterImageDefaults.chapter_image_mode && legacyChapterImageDefaults.chapter_image_mode !== 'page_blank')
             || (legacyChapterImageDefaults.chapter_image_url && String(legacyChapterImageDefaults.chapter_image_url).trim() !== '')
         );
         document.getElementById('chapter_opening_separate_content').value = activeChapter.opening_separate_content ?? '';
-        document.getElementById('chapter_image_enabled').checked = activeChapter.chapter_image_enabled !== undefined
-            ? (activeChapter.chapter_image_enabled === '1' || activeChapter.chapter_image_enabled === 1)
-            : hasLegacyChapterImage;
         document.getElementById('chapter_image_mode').value = activeChapter.chapter_image_mode || legacyChapterImageDefaults.chapter_image_mode || 'page_blank';
         document.getElementById('chapter_image_url').value = activeChapter.chapter_image_url || legacyChapterImageDefaults.chapter_image_url || '';
         document.getElementById('chapter_image_inner_width').value = activeChapter.chapter_image_inner_width || legacyChapterImageDefaults.chapter_image_inner_width || '100';
@@ -547,12 +542,15 @@ function saveChapterSettings() {
         activeChapter.first_page_footer_type = document.getElementById('chapter_first_page_footer_type').value;
         activeChapter.first_page_footer_custom = document.getElementById('chapter_first_page_footer_custom').value;
         activeChapter.opening_separate_content = document.getElementById('chapter_opening_separate_content').value;
-        activeChapter.chapter_image_enabled = document.getElementById('chapter_image_enabled').checked ? '1' : '0';
         activeChapter.chapter_image_mode = document.getElementById('chapter_image_mode').value;
         activeChapter.chapter_image_url = document.getElementById('chapter_image_url').value;
         activeChapter.chapter_image_inner_width = document.getElementById('chapter_image_inner_width').value;
         activeChapter.chapter_image_inner_header = document.getElementById('chapter_image_inner_header').checked ? '1' : '0';
         activeChapter.chapter_image_inner_footer = document.getElementById('chapter_image_inner_footer').checked ? '1' : '0';
+        activeChapter.chapter_image_enabled = (
+            activeChapter.chapter_image_mode !== 'page_blank'
+            || (activeChapter.chapter_image_url && String(activeChapter.chapter_image_url).trim() !== '')
+        ) ? '1' : '0';
         
         // Valores del subtítulo
         activeChapter.subtitle_text = document.getElementById('chapter_subtitle_text').value;
@@ -683,7 +681,6 @@ function toggleLegacyOpeningCompatibilityNotice(chapter) {
 }
 
 function toggleChapterImageSettingsForChapter() {
-    const enabledField = document.getElementById('chapter_image_enabled');
     const wrapper = document.getElementById('chapter_image_settings_wrapper');
     const modeWrapper = document.getElementById('chapter_image_mode_wrapper');
     const modeField = document.getElementById('chapter_image_mode');
@@ -704,20 +701,19 @@ function toggleChapterImageSettingsForChapter() {
     const isLeftFlow = bookFlowMode === 'left';
     wrapper.classList.toggle('hidden', !isLeftFlow);
 
-    const isEnabled = !!(enabledField && enabledField.checked && isLeftFlow);
     if (modeWrapper) {
-        modeWrapper.classList.toggle('hidden', !isEnabled);
+        modeWrapper.classList.toggle('hidden', !isLeftFlow);
     }
     const mode = modeField.value || 'page_blank';
-    const showImageControls = isEnabled && (mode === 'image_full_page' || mode === 'image_inner');
+    const showImageControls = isLeftFlow && (mode === 'image_full_page' || mode === 'image_inner');
     if (uploadWrapper) {
         uploadWrapper.classList.toggle('hidden', !showImageControls);
     }
     if (fullPageNote) {
-        fullPageNote.classList.toggle('hidden', !(isEnabled && mode === 'image_full_page'));
+        fullPageNote.classList.toggle('hidden', !(isLeftFlow && mode === 'image_full_page'));
     }
     if (innerControls) {
-        innerControls.classList.toggle('hidden', !(isEnabled && mode === 'image_inner'));
+        innerControls.classList.toggle('hidden', !(isLeftFlow && mode === 'image_inner'));
     }
     if (widthInput && widthLabel) {
         widthLabel.textContent = `${widthInput.value || '100'}%`;

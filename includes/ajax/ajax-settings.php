@@ -3,6 +3,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+function almaden_bookster_normalize_footnote_leading_pt( $value, $font_size = 8.5, $fallback = 11.5 ) {
+	$value = is_numeric( $value ) ? (float) $value : $fallback;
+	return max( 0.1, min( 40, $value ) );
+}
+
 function almaden_bookster_save_settings_ajax() {
 	$book_id = isset( $_POST['book_id'] ) ? intval( $_POST['book_id'] ) : 0;
 	
@@ -13,6 +18,9 @@ function almaden_bookster_save_settings_ajax() {
 	global $wpdb;
 	$table_name = $wpdb->prefix . 'almaden_book_settings';
 	$book_language = isset( $_POST['book_language'] ) ? sanitize_text_field( wp_unslash( $_POST['book_language'] ) ) : ( isset( $_POST['content_language'] ) ? sanitize_text_field( wp_unslash( $_POST['content_language'] ) ) : 'es' );
+	$footnote_font_size = isset( $_POST['footnote_font_size'] ) ? floatval( str_replace( ',', '.', $_POST['footnote_font_size'] ) ) : 8.5;
+	$footnote_line_height_raw = isset( $_POST['footnote_line_height'] ) ? floatval( str_replace( ',', '.', $_POST['footnote_line_height'] ) ) : 11.5;
+	$footnote_entry_spacing = isset( $_POST['footnote_entry_spacing'] ) ? max( 0, min( 40, floatval( str_replace( ',', '.', $_POST['footnote_entry_spacing'] ) ) ) ) : 6.0;
 
 	$data = array(
 		'book_id'                    => $book_id,
@@ -34,6 +42,13 @@ function almaden_bookster_save_settings_ajax() {
 		'padding_right'              => floatval( str_replace( ',', '.', $_POST['padding_right'] ) ),
 		'bleeding'                   => floatval( str_replace( ',', '.', $_POST['bleeding'] ) ),
 		'export_grayscale'           => isset($_POST['export_grayscale']) ? intval($_POST['export_grayscale']) : 0,
+		'page_columns_enabled'       => isset( $_POST['page_columns_enabled'] ) ? intval( $_POST['page_columns_enabled'] ) : 0,
+		'page_columns_count'         => isset( $_POST['page_columns_count'] ) && '' !== trim( (string) $_POST['page_columns_count'] )
+			? max( 1, min( 4, intval( $_POST['page_columns_count'] ) ) )
+			: 2,
+		'page_columns_gap'           => isset( $_POST['page_columns_gap'] ) && '' !== trim( (string) $_POST['page_columns_gap'] )
+			? max( 0, min( 20, floatval( str_replace( ',', '.', $_POST['page_columns_gap'] ) ) ) )
+			: 0.8,
 		'ebook_bg_type'              => isset($_POST['ebook_bg_type']) ? sanitize_text_field($_POST['ebook_bg_type']) : 'color',
 		'ebook_bg_color'             => isset($_POST['ebook_bg_color']) ? sanitize_text_field($_POST['ebook_bg_color']) : '#ffffff',
 		'ebook_bg_image'             => isset($_POST['ebook_bg_image']) ? esc_url_raw($_POST['ebook_bg_image']) : '',
@@ -96,6 +111,7 @@ function almaden_bookster_save_settings_ajax() {
 		'header_font_weight'         => sanitize_text_field( $_POST['header_font_weight'] ),
 		'header_font_style'          => sanitize_text_field( $_POST['header_font_style'] ),
 		'header_text_transform'      => isset($_POST['header_text_transform']) ? sanitize_text_field($_POST['header_text_transform']) : 'none',
+		'header_hyphenate'           => isset($_POST['header_hyphenate']) ? intval($_POST['header_hyphenate']) : 0,
 		'header_letter_spacing'      => floatval( str_replace( ',', '.', $_POST['header_letter_spacing'] ) ),
 		'header_even_type'           => sanitize_text_field( $_POST['header_even_type'] ),
 		'header_even_custom'         => sanitize_text_field( $_POST['header_even_custom'] ),
@@ -117,10 +133,17 @@ function almaden_bookster_save_settings_ajax() {
 		'first_page_footer_custom'   => sanitize_text_field( $_POST['first_page_footer_custom'] ),
 		'chapter_transition_blank_mode' => ( isset( $_POST['chapter_transition_blank_mode'] ) && in_array( $_POST['chapter_transition_blank_mode'], array( 'full_blank', 'blank_with_header_footer', 'intentional_text' ), true ) ) ? sanitize_text_field( $_POST['chapter_transition_blank_mode'] ) : 'full_blank',
 		'chapter_transition_blank_text' => isset( $_POST['chapter_transition_blank_text'] ) ? sanitize_text_field( wp_unslash( $_POST['chapter_transition_blank_text'] ) ) : '...',
+		'footnote_mode'              => ( isset( $_POST['footnote_mode'] ) && in_array( $_POST['footnote_mode'], array( 'page', 'chapter', 'book' ), true ) ) ? sanitize_text_field( $_POST['footnote_mode'] ) : 'page',
+		'footnote_chapter_title'     => isset( $_POST['footnote_chapter_title'] ) ? sanitize_text_field( wp_unslash( $_POST['footnote_chapter_title'] ) ) : 'Referencia',
+		'footnote_book_title'        => isset( $_POST['footnote_book_title'] ) ? sanitize_text_field( wp_unslash( $_POST['footnote_book_title'] ) ) : 'Referencias',
 		'footnote_font_family'       => isset( $_POST['footnote_font_family'] ) ? sanitize_text_field( $_POST['footnote_font_family'] ) : 'Merriweather',
-		'footnote_font_size'         => isset( $_POST['footnote_font_size'] ) ? floatval( str_replace( ',', '.', $_POST['footnote_font_size'] ) ) : 8.5,
+		'footnote_font_size'         => $footnote_font_size,
 		'footnote_font_weight'       => isset( $_POST['footnote_font_weight'] ) ? sanitize_text_field( $_POST['footnote_font_weight'] ) : 'normal',
-		'footnote_align'             => ( isset( $_POST['footnote_align'] ) && in_array( $_POST['footnote_align'], array( 'left', 'center', 'right', 'justify' ), true ) ) ? sanitize_text_field( $_POST['footnote_align'] ) : 'justify',
+		'footnote_align'             => ( isset( $_POST['footnote_align'] ) && in_array( $_POST['footnote_align'], array( 'left', 'center', 'right', 'justify' ), true ) ) ? sanitize_text_field( $_POST['footnote_align'] ) : 'left',
+		'footnote_line_height'       => almaden_bookster_normalize_footnote_leading_pt( $footnote_line_height_raw, $footnote_font_size ),
+		'footnote_letter_spacing'    => isset( $_POST['footnote_letter_spacing'] ) ? max( -20, min( 20, floatval( str_replace( ',', '.', $_POST['footnote_letter_spacing'] ) ) ) ) : 0.0,
+		'footnote_entry_spacing'     => $footnote_entry_spacing,
+		'footnote_hyphenate'         => isset( $_POST['footnote_hyphenate'] ) ? intval( $_POST['footnote_hyphenate'] ) : 0,
 		'footnote_call_scale'        => isset( $_POST['footnote_call_scale'] ) ? floatval( str_replace( ',', '.', $_POST['footnote_call_scale'] ) ) : 0.65,
 		'footnote_call_raise'        => isset( $_POST['footnote_call_raise'] ) ? floatval( str_replace( ',', '.', $_POST['footnote_call_raise'] ) ) : 0.18,
 		'footnote_padding_top'       => isset( $_POST['footnote_padding_top'] ) ? floatval( str_replace( ',', '.', $_POST['footnote_padding_top'] ) ) : 0.15,
@@ -246,7 +269,20 @@ function almaden_bookster_get_settings_ajax() {
 		wp_send_json_error( 'Validación de seguridad fallida.' );
 	}
 	$pdf_settings = almaden_get_book_pdf_settings( $book_id );
-	wp_send_json_success( array( 'settings' => $pdf_settings ) );
+	$book_authors_input_value = get_post_meta( $book_id, 'book_author', true );
+	if ( '' === trim( (string) $book_authors_input_value ) ) {
+		$book_authors_input_value = get_post_meta( $book_id, '_almaden_book_author', true );
+	}
+	if ( '' === trim( (string) $book_authors_input_value ) && function_exists( 'almaden_bookster_get_book_author_edit_tokens' ) ) {
+		$book_authors_input_value = almaden_bookster_get_book_author_edit_tokens( $book_id );
+	}
+
+	wp_send_json_success(
+		array(
+			'settings'                => $pdf_settings,
+			'book_authors_input_value' => $book_authors_input_value,
+		)
+	);
 }
 add_action( 'wp_ajax_almaden_get_book_settings', 'almaden_bookster_get_settings_ajax' );
 add_action( 'wp_ajax_nopriv_almaden_get_book_settings', 'almaden_bookster_get_settings_ajax' );

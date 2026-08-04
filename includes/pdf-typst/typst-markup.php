@@ -52,7 +52,7 @@ function almaden_bookster_typst_escape_with_exceptions( $text, $exceptions ) {
 	return $output . almaden_bookster_typst_escape_markup( substr( $text, $cursor ) );
 }
 
-function almaden_bookster_typst_render_inline( $text, $footnotes = array(), $depth = 0, $exceptions = array() ) {
+function almaden_bookster_typst_render_inline( $text, $footnotes = array(), $depth = 0, $exceptions = array(), $footnote_mode = 'page', $footnote_numbers = array() ) {
 	if ( $depth > 12 || '' === $text ) {
 		return almaden_bookster_typst_escape_with_exceptions( $text, $exceptions );
 	}
@@ -93,46 +93,51 @@ function almaden_bookster_typst_render_inline( $text, $footnotes = array(), $dep
 	switch ( $best['index'] ) {
 		case 0:
 			$lang    = strtolower( $match[1][0] );
-			$content = almaden_bookster_typst_render_inline( $match[2][0], $footnotes, $depth + 1, $exceptions );
+			$content = almaden_bookster_typst_render_inline( $match[2][0], $footnotes, $depth + 1, $exceptions, $footnote_mode, $footnote_numbers );
 			$output .= '#text(lang: "' . almaden_bookster_typst_escape_string( $lang ) . '")[' . $content . ']';
 			break;
 		case 1:
-			$output .= '#underline[' . almaden_bookster_typst_render_inline( $match[1][0], $footnotes, $depth + 1, $exceptions ) . ']';
+			$output .= '#underline[' . almaden_bookster_typst_render_inline( $match[1][0], $footnotes, $depth + 1, $exceptions, $footnote_mode, $footnote_numbers ) . ']';
 			break;
 		case 2:
-			$output .= '#strong[' . almaden_bookster_typst_render_inline( $match[1][0], $footnotes, $depth + 1, $exceptions ) . ']';
+			$output .= '#strong[' . almaden_bookster_typst_render_inline( $match[1][0], $footnotes, $depth + 1, $exceptions, $footnote_mode, $footnote_numbers ) . ']';
 			break;
 		case 3:
-			$output .= '#emph[' . almaden_bookster_typst_render_inline( $match[1][0], $footnotes, $depth + 1, $exceptions ) . ']';
+			$output .= '#emph[' . almaden_bookster_typst_render_inline( $match[1][0], $footnotes, $depth + 1, $exceptions, $footnote_mode, $footnote_numbers ) . ']';
 			break;
 		case 4:
 			$size_pt = almaden_bookster_typst_size_to_pt( $match[1][0], $match[2][0] );
 			$output .= '#text(size: ' . $size_pt . 'pt)[' .
-				almaden_bookster_typst_render_inline( $match[3][0], $footnotes, $depth + 1, $exceptions ) . ']';
+				almaden_bookster_typst_render_inline( $match[3][0], $footnotes, $depth + 1, $exceptions, $footnote_mode, $footnote_numbers ) . ']';
 			break;
 		case 5:
 			$family = function_exists( 'almaden_bookster_typst_font_family' )
 				? almaden_bookster_typst_font_family( $match[1][0], '' )
 				: trim( (string) $match[1][0] );
 			if ( '' === $family ) {
-				$output .= almaden_bookster_typst_render_inline( $match[2][0], $footnotes, $depth + 1, $exceptions );
+				$output .= almaden_bookster_typst_render_inline( $match[2][0], $footnotes, $depth + 1, $exceptions, $footnote_mode, $footnote_numbers );
 				break;
 			}
 			$output .= '#text(font: "' . almaden_bookster_typst_escape_string( $family ) . '")[' .
-				almaden_bookster_typst_render_inline( $match[2][0], $footnotes, $depth + 1, $exceptions ) . ']';
+				almaden_bookster_typst_render_inline( $match[2][0], $footnotes, $depth + 1, $exceptions, $footnote_mode, $footnote_numbers ) . ']';
 			break;
 		case 6:
 			$id = $match[1][0];
 			if ( isset( $footnotes[ $id ] ) ) {
-				$output .= '#footnote[' .
-					almaden_bookster_typst_render_inline( $footnotes[ $id ], $footnotes, $depth + 1, $exceptions ) . ']';
+				if ( 'page' === $footnote_mode ) {
+					$output .= '#footnote[' .
+						almaden_bookster_typst_render_inline( $footnotes[ $id ], $footnotes, $depth + 1, $exceptions, $footnote_mode, $footnote_numbers ) . ']';
+				} else {
+					$number = isset( $footnote_numbers[ $id ] ) ? (int) $footnote_numbers[ $id ] : 0;
+					$output .= $number > 0 ? '#super[' . $number . ']' : almaden_bookster_typst_escape_markup( $match[0][0] );
+				}
 			} else {
 				$output .= almaden_bookster_typst_escape_markup( $match[0][0] );
 			}
 			break;
 	}
 
-	return $output . almaden_bookster_typst_render_inline( $after, $footnotes, $depth + 1, $exceptions );
+	return $output . almaden_bookster_typst_render_inline( $after, $footnotes, $depth + 1, $exceptions, $footnote_mode, $footnote_numbers );
 }
 
 /**
@@ -158,18 +163,27 @@ function almaden_bookster_typst_inline_font_families( $text ) {
  * Render RAW block syntax.
  */
 function almaden_bookster_typst_render_blocks( $raw, $options = array() ) {
-	$raw       = str_replace( array( "\r\n", "\r" ), "\n", (string) $raw );
-	$footnotes = array();
-	$raw       = preg_replace_callback(
-		'/(?:^|\n)\[\^([^\]]+)\]:\s*([^\n]+)/',
-		function ( $match ) use ( &$footnotes ) {
-			$footnotes[ $match[1] ] = trim( $match[2] );
-			return "\n";
-		},
-		$raw
-	);
+	$raw = str_replace( array( "\r\n", "\r" ), "\n", (string) $raw );
+	$footnote_data = isset( $options['footnotes'] ) && is_array( $options['footnotes'] )
+		? $options['footnotes']
+		: ( function_exists( 'almaden_bookster_typst_collect_footnote_data' ) ? almaden_bookster_typst_collect_footnote_data( $raw ) : array( 'raw' => $raw, 'definitions' => array(), 'numbers' => array() ) );
+	$footnote_mode = 'page';
+	if ( isset( $options['footnote_mode'] ) && function_exists( 'almaden_bookster_typst_footnote_mode' ) ) {
+		$footnote_mode = almaden_bookster_typst_footnote_mode( array( 'footnote_mode' => $options['footnote_mode'] ) );
+	}
 
-	return almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, false, $options );
+	return almaden_bookster_typst_render_blocks_with_footnotes(
+		$footnote_data['raw'] ?? $raw,
+		$footnote_data['definitions'] ?? array(),
+		false,
+		array_merge(
+			$options,
+			array(
+				'footnote_mode'    => $footnote_mode,
+				'footnote_numbers' => $footnote_data['numbers'] ?? array(),
+			)
+		)
+	);
 }
 
 /**
@@ -183,12 +197,17 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 
 	$exceptions = (array) ( $options['hyphenation_exceptions'] ?? array() );
 	$heading_styles = (array) ( $options['heading_styles'] ?? array() );
-	$flush_paragraph = function () use ( &$paragraph, &$output, $footnotes, $exceptions ) {
+	$footnote_mode = 'page';
+	if ( isset( $options['footnote_mode'] ) && function_exists( 'almaden_bookster_typst_footnote_mode' ) ) {
+		$footnote_mode = almaden_bookster_typst_footnote_mode( array( 'footnote_mode' => $options['footnote_mode'] ) );
+	}
+	$footnote_numbers = (array) ( $options['footnote_numbers'] ?? array() );
+	$flush_paragraph = function () use ( &$paragraph, &$output, $footnotes, $exceptions, $footnote_mode, $footnote_numbers ) {
 		if ( empty( $paragraph ) ) {
 			return;
 		}
 		$text      = trim( implode( ' ', $paragraph ) );
-		$output[]  = '#par[' . almaden_bookster_typst_render_inline( $text, $footnotes, 0, $exceptions ) . ']';
+		$output[]  = '#par[' . almaden_bookster_typst_render_inline( $text, $footnotes, 0, $exceptions, $footnote_mode, $footnote_numbers ) . ']';
 		$paragraph = array();
 	};
 	$close_list = function () use ( &$list_type, &$output ) {
@@ -236,7 +255,7 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 			$flush_paragraph();
 			$close_list();
 			$level    = strlen( $heading[1] );
-			$rendered_heading = almaden_bookster_typst_render_inline( $heading[2], $footnotes, 0, $exceptions );
+			$rendered_heading = almaden_bookster_typst_render_inline( $heading[2], $footnotes, 0, $exceptions, $footnote_mode, $footnote_numbers );
 			if ( isset( $heading_styles[ $level ] ) && is_array( $heading_styles[ $level ] ) && ! empty( $heading_styles[ $level ]['font_family'] ) ) {
 				$style = $heading_styles[ $level ];
 				$output[] = '#heading(level: ' . $level . ')[#text(font: "' .
@@ -255,7 +274,7 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 			$flush_paragraph();
 			$close_list();
 			$output[] = '#quote(block: true)[' .
-				almaden_bookster_typst_render_inline( $quote[1], $footnotes, 0, $exceptions ) . ']';
+				almaden_bookster_typst_render_inline( $quote[1], $footnotes, 0, $exceptions, $footnote_mode, $footnote_numbers ) . ']';
 			continue;
 		}
 		if ( preg_match( '/^-\s+(.+)$/', $trimmed, $item ) ) {
@@ -265,7 +284,7 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 				$list_type = 'bullet';
 				$output[]  = '#list(';
 			}
-			$output[] = '[' . almaden_bookster_typst_render_inline( $item[1], $footnotes, 0, $exceptions ) . '],';
+			$output[] = '[' . almaden_bookster_typst_render_inline( $item[1], $footnotes, 0, $exceptions, $footnote_mode, $footnote_numbers ) . '],';
 			continue;
 		}
 		if ( preg_match( '/^\d+\.\s+(.+)$/', $trimmed, $item ) ) {
@@ -275,7 +294,7 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 				$list_type = 'enum';
 				$output[]  = '#enum(';
 			}
-			$output[] = '[' . almaden_bookster_typst_render_inline( $item[1], $footnotes, 0, $exceptions ) . '],';
+			$output[] = '[' . almaden_bookster_typst_render_inline( $item[1], $footnotes, 0, $exceptions, $footnote_mode, $footnote_numbers ) . '],';
 			continue;
 		}
 

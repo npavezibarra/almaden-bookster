@@ -7,6 +7,28 @@
             Estos controles estilizan el área de footnotes nativa de Paged.js, que vive entre el contenido y el pie de página.
         </p>
 
+        <div class="grid grid-cols-1 gap-3">
+            <div>
+                <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Ubicación de las notas</label>
+                <select id="setting-footnote-mode" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                    <option value="page">Pie de página</option>
+                    <option value="chapter">Final del capítulo</option>
+                    <option value="book">Final del libro</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+            <div>
+                <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Título para final de capítulo</label>
+                <input id="setting-footnote-chapter-title" type="text" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+            </div>
+            <div>
+                <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Título para final del libro</label>
+                <input id="setting-footnote-book-title" type="text" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+            </div>
+        </div>
+
         <div class="grid grid-cols-2 gap-3">
             <div>
                 <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Familia de Fuente</label>
@@ -36,15 +58,36 @@
                 </select>
             </div>
             <div>
-                <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Alineación / Justificación</label>
-                <select id="setting-footnote-align" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
-                    <option value="left">Izquierda</option>
-                    <option value="center">Centro</option>
-                    <option value="right">Derecha</option>
-                    <option value="justify">Justificado</option>
-                </select>
+                <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Alineación</label>
+                <input id="setting-footnote-align" type="hidden" value="left">
+                <div id="setting-footnote-align-controls" class="grid grid-cols-4 overflow-hidden rounded-lg border border-[var(--border-color)] bg-[var(--bg-sidebar)]" role="group" aria-label="Alineación de las notas">
+                    <button type="button" data-footnote-align="left" onclick="setFootnoteAlignment('left')" class="h-8 border-r border-[var(--border-color)] transition hover:bg-[var(--bg-app)]" title="Alinear a la izquierda" aria-label="Alinear a la izquierda"><i class="fa-solid fa-align-left"></i></button>
+                    <button type="button" data-footnote-align="center" onclick="setFootnoteAlignment('center')" class="h-8 border-r border-[var(--border-color)] transition hover:bg-[var(--bg-app)]" title="Centrar" aria-label="Centrar"><i class="fa-solid fa-align-center"></i></button>
+                    <button type="button" data-footnote-align="right" onclick="setFootnoteAlignment('right')" class="h-8 border-r border-[var(--border-color)] transition hover:bg-[var(--bg-app)]" title="Alinear a la derecha" aria-label="Alinear a la derecha"><i class="fa-solid fa-align-right"></i></button>
+                    <button type="button" data-footnote-align="justify" onclick="setFootnoteAlignment('justify')" class="h-8 transition hover:bg-[var(--bg-app)]" title="Justificar" aria-label="Justificar"><i class="fa-solid fa-align-justify"></i></button>
+                </div>
             </div>
         </div>
+
+        <div class="grid grid-cols-3 gap-3">
+            <div>
+                <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Interlineado (pt)</label>
+                <input id="setting-footnote-line-height" type="number" step="0.1" min="0.1" max="40" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+            </div>
+            <div>
+                <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Espaciado entre letras (pt)</label>
+                <input id="setting-footnote-letter-spacing" type="number" step="0.1" min="-20" max="20" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+            </div>
+            <div>
+                <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Espacio entre notas (pt)</label>
+                <input id="setting-footnote-entry-spacing" type="number" step="0.1" min="0" max="40" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+            </div>
+        </div>
+
+        <label class="flex items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--bg-sidebar)] px-3 py-2 text-xs font-semibold text-[var(--text-main)]">
+            <input id="setting-footnote-hyphenate" type="checkbox" class="rounded border-[var(--border-color)] text-black focus:ring-black bg-[var(--bg-app)] h-4 w-4">
+            <span>Hyphenate</span>
+        </label>
 
         <div>
             <h5 class="text-[10px] font-bold uppercase tracking-wider text-black dark:text-white mb-2 border-b border-[var(--border-color)] pb-1">Marcador inline</h5>

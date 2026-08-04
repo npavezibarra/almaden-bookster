@@ -107,6 +107,7 @@
                 if (data.success) {
                     bookState.bookId = bookId;
                     bookState.settings = data.data.settings;
+                    bookState.bookAuthorsInputValue = data.data.book_authors_input_value || '';
                     bookState.settingsNonce = nonce;
                     toggleSettingsModal(true);
                 } else {

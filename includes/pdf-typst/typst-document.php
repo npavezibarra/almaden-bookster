@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) && ! defined( 'ALMADEN_TYPST_TESTING' ) ) {
 
 require_once __DIR__ . '/typst-markup.php';
 require_once __DIR__ . '/typst-fonts.php';
+require_once __DIR__ . '/typst-footnotes.php';
 
 function almaden_bookster_typst_number( $settings, $key, $fallback, $min, $max ) {
 	$value = isset( $settings[ $key ] ) && is_numeric( $settings[ $key ] ) ? (float) $settings[ $key ] : $fallback;
@@ -749,6 +750,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 	$footer_font_style = isset( $settings['footer_font_style'] ) ? $settings['footer_font_style'] : 'normal';
 	$header_text_transform = isset( $settings['header_text_transform'] ) ? $settings['header_text_transform'] : 'none';
 	$footer_text_transform = isset( $settings['footer_text_transform'] ) ? $settings['footer_text_transform'] : 'none';
+	$header_hyphenate = almaden_bookster_typst_bool( $settings['header_hyphenate'] ?? false );
 	$header_letter_spacing = almaden_bookster_typst_number( $settings, 'header_letter_spacing', 0.1, -20, 20 );
 	$footer_letter_spacing = almaden_bookster_typst_number( $settings, 'footer_letter_spacing', 0, -20, 20 );
 	$header_align = isset( $settings['header_align'] ) ? $settings['header_align'] : 'center';
@@ -767,6 +769,44 @@ function almaden_bookster_build_typst_document( $payload ) {
 	if ( ! $footer_font_error ) {
 		$footer_font_family = $footer_font['family'];
 	}
+	$footnote_font_family = almaden_bookster_typst_font_family( $settings['footnote_font_family'] ?? $font_family, $font_family );
+	$footnote_font_size = almaden_bookster_typst_number( $settings, 'footnote_font_size', 8.5, 4, 48 );
+	$footnote_font_weight = almaden_bookster_typst_font_weight( $settings['footnote_font_weight'] ?? 'normal' );
+	$footnote_align = almaden_bookster_typst_footnote_alignment( $settings['footnote_align'] ?? 'left' );
+	$footnote_line_height = almaden_bookster_typst_footnote_leading_pt( $settings['footnote_line_height'] ?? null, $footnote_font_size, 11.5 );
+	$footnote_entry_spacing = almaden_bookster_typst_footnote_spacing_pt( $settings['footnote_entry_spacing'] ?? null, 6 );
+	$footnote_letter_spacing = almaden_bookster_typst_number( $settings, 'footnote_letter_spacing', 0, -20, 20 );
+	$footnote_hyphenate = almaden_bookster_typst_bool( $settings['footnote_hyphenate'] ?? false );
+	$footnote_call_scale = isset( $settings['footnote_call_scale'] ) && is_numeric( $settings['footnote_call_scale'] ) ? max( 0.1, min( 2.0, (float) $settings['footnote_call_scale'] ) ) : 0.65;
+	$footnote_call_raise = isset( $settings['footnote_call_raise'] ) && is_numeric( $settings['footnote_call_raise'] ) ? max( 0, min( 2.0, (float) $settings['footnote_call_raise'] ) ) : 0.18;
+	$footnote_padding_top = isset( $settings['footnote_padding_top'] ) && is_numeric( $settings['footnote_padding_top'] ) ? max( 0, min( 10, (float) $settings['footnote_padding_top'] ) ) : 0.15;
+	$footnote_padding_bottom = isset( $settings['footnote_padding_bottom'] ) && is_numeric( $settings['footnote_padding_bottom'] ) ? max( 0, min( 10, (float) $settings['footnote_padding_bottom'] ) ) : 0.15;
+	$footnote_padding_left = isset( $settings['footnote_padding_left'] ) && is_numeric( $settings['footnote_padding_left'] ) ? max( 0, min( 10, (float) $settings['footnote_padding_left'] ) ) : 0;
+	$footnote_padding_right = isset( $settings['footnote_padding_right'] ) && is_numeric( $settings['footnote_padding_right'] ) ? max( 0, min( 10, (float) $settings['footnote_padding_right'] ) ) : 0;
+	$footnote_separator_show = almaden_bookster_typst_bool( $settings['footnote_separator_show'] ?? false );
+	$footnote_separator_align = isset( $settings['footnote_separator_align'] ) && in_array( $settings['footnote_separator_align'], array( 'left', 'center', 'right' ), true ) ? $settings['footnote_separator_align'] : 'left';
+	$footnote_separator_width = isset( $settings['footnote_separator_width'] ) && in_array( (string) $settings['footnote_separator_width'], array( '100', '75', '50', '25' ), true ) ? (string) $settings['footnote_separator_width'] : '100';
+	$footnote_separator_thickness = isset( $settings['footnote_separator_thickness'] ) && is_numeric( $settings['footnote_separator_thickness'] ) ? max( 0.05, min( 5, (float) $settings['footnote_separator_thickness'] ) ) : 0.25;
+	$footnote_separator_margin_bottom = isset( $settings['footnote_separator_margin_bottom'] ) && is_numeric( $settings['footnote_separator_margin_bottom'] ) ? max( 0, min( 10, (float) $settings['footnote_separator_margin_bottom'] ) ) : 0.15;
+	$page_columns_enabled = almaden_bookster_typst_bool( $settings['page_columns_enabled'] ?? false );
+	$page_columns_count = isset( $settings['page_columns_count'] ) && is_numeric( $settings['page_columns_count'] )
+		? max( 1, min( 4, (int) $settings['page_columns_count'] ) )
+		: 2;
+	$page_columns_gap = isset( $settings['page_columns_gap'] ) && is_numeric( $settings['page_columns_gap'] )
+		? max( 0, min( 20, (float) $settings['page_columns_gap'] ) )
+		: 0.8;
+	$footnote_font = almaden_bookster_typst_resolve_font( $footnote_font_family, $footnote_font_weight );
+	$footnote_font_error = function_exists( 'is_wp_error' ) && is_wp_error( $footnote_font ) ? $footnote_font : null;
+	$footnote_font_assets = array();
+	if ( ! $footnote_font_error ) {
+		$footnote_font_family = $footnote_font['family'];
+		$footnote_font_assets = array_values( array_unique( (array) ( $footnote_font['files'] ?? array() ) ) );
+	} else {
+		$footnote_font_family = $font_family;
+	}
+	$footnote_mode = almaden_bookster_typst_footnote_mode( $settings );
+	$footnote_chapter_title = almaden_bookster_typst_footnote_title( $settings, 'chapter' );
+	$footnote_book_title = almaden_bookster_typst_footnote_title( $settings, 'book' );
 	$first_page_header_show = almaden_bookster_typst_bool( $settings['first_page_header_show'] ?? true );
 	$first_page_footer_show = almaden_bookster_typst_bool( $settings['first_page_footer_show'] ?? true );
 	$first_page_header_type = almaden_bookster_typst_normalize_header_footer_type( $settings['first_page_header_type'] ?? 'blank' );
@@ -842,7 +882,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 	$source .= '  if value != "" { value } else { "" }' . "\n";
 	$source .= '}' . "\n\n";
 
-	$source .= '#let almaden-running-area(content, box_align, font_family, font_size, font_weight, font_style, letter_spacing, margin_top, margin_bottom) = context {' . "\n";
+	$source .= '#let almaden-running-area(content, box_align, font_family, font_size, font_weight, font_style, letter_spacing, margin_top, margin_bottom, hyphenate) = context {' . "\n";
 	$source .= '  if content != "" {' . "\n";
 	$source .= '    let current = here().page()' . "\n";
 	$source .= '    let is_even = calc.even(current)' . "\n";
@@ -854,7 +894,8 @@ function almaden_bookster_build_typst_document( $payload ) {
 	$source .= '      box_align' . "\n";
 	$source .= '    }' . "\n";
 	$source .= '    box(width: 100%, inset: (top: margin_top, bottom: margin_bottom))[' . "\n";
-	$source .= '      #set text(font: font_family, size: font_size, weight: font_weight, style: font_style, tracking: letter_spacing)' . "\n";
+	$source .= '      #set text(font: font_family, size: font_size, weight: font_weight, style: font_style, tracking: letter_spacing, hyphenate: hyphenate)' . "\n";
+	$source .= '      #set par(justify: false, leading: 1em, spacing: 0pt)' . "\n";
 	$source .= '      #if resolved_align == "left" {' . "\n";
 	$source .= '        align(left)[#content]' . "\n";
 	$source .= '      } else if resolved_align == "right" {' . "\n";
@@ -873,11 +914,11 @@ function almaden_bookster_build_typst_document( $payload ) {
 		' binding: left, bleed: ' . $bleed . $unit . ',' .
 		' header: context {' . "\n" .
 		'  let running = almaden-resolve-running-element("' . almaden_bookster_typst_escape_string( $book_title ) . '", ' . ( $first_page_header_show ? 'true' : 'false' ) . ', "' . almaden_bookster_typst_escape_string( $first_page_header_type ) . '", "' . almaden_bookster_typst_escape_string( $first_page_header_custom ) . '", "' . almaden_bookster_typst_escape_string( $header_even_type ) . '", "' . almaden_bookster_typst_escape_string( $header_even_custom ) . '", "' . almaden_bookster_typst_escape_string( $header_odd_type ) . '", "' . almaden_bookster_typst_escape_string( $header_odd_custom ) . '", "' . almaden_bookster_typst_escape_string( $header_text_transform ) . '", "header")' . "\n" .
-		'  almaden-running-area(running, "' . almaden_bookster_typst_escape_string( $header_align ) . '", "' . $header_font_family . '", ' . $header_font_size . 'pt, ' . $header_font_weight . ', "' . almaden_bookster_typst_escape_string( $header_font_style ) . '", ' . $header_letter_spacing . 'pt, ' . $header_margin_top . $unit . ', ' . $header_margin_bottom . $unit . ')' . "\n" .
+		'  almaden-running-area(running, "' . almaden_bookster_typst_escape_string( $header_align ) . '", "' . $header_font_family . '", ' . $header_font_size . 'pt, ' . $header_font_weight . ', "' . almaden_bookster_typst_escape_string( $header_font_style ) . '", ' . $header_letter_spacing . 'pt, ' . $header_margin_top . $unit . ', ' . $header_margin_bottom . $unit . ', ' . ( $header_hyphenate ? 'true' : 'false' ) . ')' . "\n" .
 		'},' . "\n" .
 		' footer: context {' . "\n" .
 		'  let running = almaden-resolve-running-element("' . almaden_bookster_typst_escape_string( $book_title ) . '", ' . ( $first_page_footer_show ? 'true' : 'false' ) . ', "' . almaden_bookster_typst_escape_string( $first_page_footer_type ) . '", "' . almaden_bookster_typst_escape_string( $first_page_footer_custom ) . '", "' . almaden_bookster_typst_escape_string( $footer_even_type ) . '", "' . almaden_bookster_typst_escape_string( $footer_even_custom ) . '", "' . almaden_bookster_typst_escape_string( $footer_odd_type ) . '", "' . almaden_bookster_typst_escape_string( $footer_odd_custom ) . '", "' . almaden_bookster_typst_escape_string( $footer_text_transform ) . '", "footer")' . "\n" .
-		'  almaden-running-area(running, "' . almaden_bookster_typst_escape_string( $footer_align ) . '", "' . $footer_font_family . '", ' . $footer_font_size . 'pt, ' . $footer_font_weight . ', "' . almaden_bookster_typst_escape_string( $footer_font_style ) . '", ' . $footer_letter_spacing . 'pt, ' . $footer_margin_top . $unit . ', ' . $footer_margin_bottom . $unit . ')' . "\n" .
+		'  almaden-running-area(running, "' . almaden_bookster_typst_escape_string( $footer_align ) . '", "' . $footer_font_family . '", ' . $footer_font_size . 'pt, ' . $footer_font_weight . ', "' . almaden_bookster_typst_escape_string( $footer_font_style ) . '", ' . $footer_letter_spacing . 'pt, ' . $footer_margin_top . $unit . ', ' . $footer_margin_bottom . $unit . ', false)' . "\n" .
 		'})' . "\n";
 	$source .= '#set text(font: "' . almaden_bookster_typst_escape_string( $font_family ) . '", size: ' .
 		$font_size . 'pt, weight: ' . $font_weight . ', lang: "' .
@@ -886,6 +927,29 @@ function almaden_bookster_build_typst_document( $payload ) {
 	$source .= '#set par(justify: ' . ( $justify ? 'true' : 'false' ) . ', leading: ' . $leading_em .
 		'em, spacing: ' . $paragraph_gap . 'pt, first-line-indent: ' . $paragraph_indent . 'pt)' . "\n";
 	$source .= '#set heading(numbering: none)' . "\n\n";
+	$source .= '#set super(typographic: false, size: ' . round( max( 0.1, $footnote_call_scale ), 3 ) . 'em, baseline: -' . round( max( 0, $footnote_call_raise ), 3 ) . 'em)' . "\n";
+	if ( 'page' === $footnote_mode ) {
+		$source .= almaden_bookster_typst_render_page_footnote_rules(
+			array(
+				'font_family'             => $footnote_font_family,
+				'font_size'               => $footnote_font_size,
+				'font_weight'             => $footnote_font_weight,
+				'align'                   => $footnote_align,
+				'line_height'             => $footnote_line_height,
+				'letter_spacing'          => $footnote_letter_spacing,
+				'hyphenate'               => $footnote_hyphenate,
+				'padding_top'             => $footnote_padding_top,
+				'padding_bottom'          => $footnote_padding_bottom,
+				'padding_left'            => $footnote_padding_left,
+				'padding_right'           => $footnote_padding_right,
+				'separator_show'          => $footnote_separator_show,
+				'separator_align'         => $footnote_separator_align,
+				'separator_width'         => $footnote_separator_width,
+				'separator_thickness'     => $footnote_separator_thickness,
+				'separator_margin_bottom' => $footnote_separator_margin_bottom,
+			)
+		);
+	}
 
 	$plain_parts = array();
 	$plain_extras = array();
@@ -955,6 +1019,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 	};
 	$rendered     = 0;
 	$numbered_chapter_index = 0;
+	$book_reference_groups = array();
 	foreach ( $chapters as $chapter_index => $chapter ) {
 		if ( ! is_array( $chapter ) ) {
 			continue;
@@ -1140,37 +1205,93 @@ function almaden_bookster_build_typst_document( $payload ) {
 				$payload['coverSettings'] ?? ( $payload['cover_settings'] ?? array() )
 			);
 		} else {
+			if ( $page_columns_enabled && ! $is_credits ) {
+				$source .= '#set page(columns: ' . $page_columns_count . ')' . "\n";
+				$source .= '#set columns(gutter: ' . almaden_bookster_typst_length_literal( $page_columns_gap, $unit ) . ')' . "\n";
+			}
+			$chapter_footnotes = 'page' === $footnote_mode
+				? array(
+					'raw' => $content,
+					'definitions' => array(),
+					'order' => array(),
+					'numbers' => array(),
+				)
+				: almaden_bookster_typst_collect_footnote_data( $content );
+			$chapter_endnotes = array();
+			foreach ( (array) ( $chapter_footnotes['order'] ?? array() ) as $footnote_id ) {
+				if ( empty( $chapter_footnotes['definitions'][ $footnote_id ] ) ) {
+					continue;
+				}
+				$chapter_endnotes[] = array(
+					'id'     => $footnote_id,
+					'number' => (int) ( $chapter_footnotes['numbers'][ $footnote_id ] ?? 0 ),
+					'body'   => (string) $chapter_footnotes['definitions'][ $footnote_id ],
+				);
+			}
 			$content_align = $justify ? $last_align : $text_align;
+			$content_render_options = array(
+				'hyphenation_exceptions' => $hyphenation_exceptions,
+				'heading_styles'         => array(
+					1 => array(
+						'font_family'    => $heading1_font_family,
+						'font_size'      => $heading1_font_size,
+						'font_weight'    => $heading1_font_weight,
+						'font_style'     => $heading1_font_style,
+						'letter_spacing' => 0,
+					),
+					2 => array(
+						'font_family'    => $heading2_font_family,
+						'font_size'      => $heading2_font_size,
+						'font_weight'    => $heading2_font_weight,
+						'font_style'     => $heading2_font_style,
+						'letter_spacing' => 0,
+					),
+					3 => array(
+						'font_family'    => $heading3_font_family,
+						'font_size'      => $heading3_font_size,
+						'font_weight'    => $heading3_font_weight,
+						'font_style'     => $heading3_font_style,
+						'letter_spacing' => 0,
+					),
+				),
+			);
+			if ( 'page' !== $footnote_mode ) {
+				$content_render_options['footnotes'] = $chapter_footnotes;
+				$content_render_options['footnote_mode'] = $footnote_mode;
+			}
 			$source       .= '#align(' . $content_align . ")[\n";
 			$source       .= almaden_bookster_typst_render_blocks(
-				$content,
-				array(
-					'hyphenation_exceptions' => $hyphenation_exceptions,
-					'heading_styles'         => array(
-						1 => array(
-							'font_family'    => $heading1_font_family,
-							'font_size'      => $heading1_font_size,
-							'font_weight'    => $heading1_font_weight,
-							'font_style'     => $heading1_font_style,
-							'letter_spacing' => 0,
-						),
-						2 => array(
-							'font_family'    => $heading2_font_family,
-							'font_size'      => $heading2_font_size,
-							'font_weight'    => $heading2_font_weight,
-							'font_style'     => $heading2_font_style,
-							'letter_spacing' => 0,
-						),
-						3 => array(
-							'font_family'    => $heading3_font_family,
-							'font_size'      => $heading3_font_size,
-							'font_weight'    => $heading3_font_weight,
-							'font_style'     => $heading3_font_style,
-							'letter_spacing' => 0,
-						),
-					),
-				)
+				$chapter_footnotes['raw'] ?? $content,
+				$content_render_options
 			) . "\n]\n";
+			if ( ! empty( $chapter_endnotes ) ) {
+				if ( 'chapter' === $footnote_mode ) {
+					$source .= "\n" . almaden_bookster_typst_render_footnote_entries(
+						$chapter_endnotes,
+						array(
+							'title'         => $footnote_chapter_title,
+							'title_level'   => 2,
+							'font_family'   => $footnote_font_family,
+							'font_size'     => $footnote_font_size,
+							'font_weight'   => $footnote_font_weight,
+							'align'         => $footnote_align,
+							'leading'       => $footnote_line_height,
+							'letter_spacing'=> $footnote_letter_spacing,
+							'hyphenate'     => $footnote_hyphenate,
+							'entry_gap'     => $footnote_entry_spacing,
+							'heading_margin'=> 0.7,
+						)
+					);
+				} elseif ( 'book' === $footnote_mode ) {
+					$book_reference_groups[] = array(
+						'title'   => $title,
+						'entries' => $chapter_endnotes,
+					);
+				}
+			}
+			if ( $page_columns_enabled && ! $is_credits ) {
+				$source .= '#set page(columns: 1)' . "\n";
+			}
 		}
 		$plain_content  = almaden_bookster_typst_plain_text( $content );
 		if ( '' !== $plain_content ) {
@@ -1186,12 +1307,40 @@ function almaden_bookster_build_typst_document( $payload ) {
 		}
 	}
 
+	if ( 'book' === $footnote_mode && ! empty( $book_reference_groups ) ) {
+		$source .= "\n#pagebreak()\n\n";
+		$source .= '#metadata("' . almaden_bookster_typst_escape_string( $footnote_book_title ) . '") <almaden-chapter-start>' . "\n";
+		$source .= '#heading(level: 1)[#text(font: "' . almaden_bookster_typst_escape_string( $footnote_font_family ) . '", size: ' . max( 12, round( $footnote_font_size * 1.9, 2 ) ) . 'pt, weight: ' . $footnote_font_weight . ')[ ' . almaden_bookster_typst_escape_markup( $footnote_book_title ) . ' ]]' . "\n";
+		$source .= '#v(0.7cm)' . "\n";
+		foreach ( $book_reference_groups as $reference_group ) {
+			if ( empty( $reference_group['entries'] ) ) {
+				continue;
+			}
+			$source .= almaden_bookster_typst_render_footnote_entries(
+				$reference_group['entries'],
+				array(
+					'title'       => $reference_group['title'] ?? '',
+					'title_level' => 2,
+					'font_family' => $footnote_font_family,
+					'font_size'   => $footnote_font_size,
+					'font_weight' => $footnote_font_weight,
+					'align'       => $footnote_align,
+					'leading'     => $footnote_line_height,
+					'letter_spacing' => $footnote_letter_spacing,
+					'hyphenate'   => $footnote_hyphenate,
+					'entry_gap'   => $footnote_entry_spacing,
+				)
+			);
+		}
+	}
+
 	$font_assets = array_filter(
 		array_merge(
 			$font_error ? array() : $font['files'],
 			$title_font_error ? array() : $title_font['files'],
 			$header_font_error ? array() : $header_font['files'],
 			$footer_font_error ? array() : $footer_font['files'],
+			$footnote_font_error ? array() : $footnote_font_assets,
 			$heading1_font_error ? array() : $heading1_font['files'],
 			$heading2_font_error ? array() : $heading2_font['files'],
 			$heading3_font_error ? array() : $heading3_font['files'],

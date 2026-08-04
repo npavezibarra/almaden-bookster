@@ -69,6 +69,30 @@ function switchSettingTab(tabId) {
     }
 }
 
+window.setFootnoteAlignment = function(alignment) {
+    const allowed = ['left', 'center', 'right', 'justify'];
+    const value = allowed.includes(String(alignment).toLowerCase()) ? String(alignment).toLowerCase() : 'left';
+    const input = document.getElementById('setting-footnote-align');
+    if (input) input.value = value;
+
+    document.querySelectorAll('[data-footnote-align]').forEach((button) => {
+        const active = button.dataset.footnoteAlign === value;
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+        button.classList.toggle('bg-black', active);
+        button.classList.toggle('text-white', active);
+        button.classList.toggle('hover:bg-black', active);
+        button.classList.toggle('hover:text-white', active);
+    });
+};
+
+function normalizeFootnoteLineHeight(value, fontSize, fallback = 11.5) {
+    const parsed = parseFloat(value);
+    if (!Number.isFinite(parsed)) {
+        return fallback;
+    }
+    return Math.max(0.1, Math.min(40, parsed));
+}
+
 window.switchEbookSettingTab = function(tabId) {
     // Ocultar todos los contenidos de pestaña de ebook
     document.querySelectorAll('.ebook-setting-tab-content').forEach(el => {
@@ -116,6 +140,10 @@ window.populateSettingsForm = function() {
 
     // Grayscale Setting
     if (document.getElementById('setting-export-grayscale')) document.getElementById('setting-export-grayscale').checked = settings.export_grayscale == 1;
+    if (document.getElementById('setting-page-columns-enabled')) document.getElementById('setting-page-columns-enabled').checked = settings.page_columns_enabled == 1;
+    if (document.getElementById('setting-page-columns-count')) document.getElementById('setting-page-columns-count').value = settings.page_columns_count ?? 2;
+    if (document.getElementById('setting-page-columns-gap')) document.getElementById('setting-page-columns-gap').value = settings.page_columns_gap ?? 0.8;
+    if (typeof togglePageColumnsSettings === 'function') togglePageColumnsSettings();
 
     if (document.getElementById('setting-ebook-bg-type')) document.getElementById('setting-ebook-bg-type').value = settings.ebook_bg_type || 'color';
     if (document.getElementById('setting-ebook-bg-color')) {
@@ -228,6 +256,7 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-header-font-weight')) document.getElementById('setting-header-font-weight').value = settings.header_font_weight || 'normal';
     if (document.getElementById('setting-header-font-style')) document.getElementById('setting-header-font-style').value = settings.header_font_style || 'normal';
     if (document.getElementById('setting-header-text-transform')) document.getElementById('setting-header-text-transform').value = settings.header_text_transform || 'none';
+    if (document.getElementById('setting-header-hyphenate')) document.getElementById('setting-header-hyphenate').checked = settings.header_hyphenate == 1;
     if (document.getElementById('setting-header-letter-spacing')) document.getElementById('setting-header-letter-spacing').value = settings.header_letter_spacing || 0.1;
     if (document.getElementById('setting-header-even-type')) document.getElementById('setting-header-even-type').value = settings.header_even_type || 'book_title';
     if (document.getElementById('setting-header-even-custom')) document.getElementById('setting-header-even-custom').value = settings.header_even_custom || '';
@@ -251,10 +280,17 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-chapter-transition-blank-text')) document.getElementById('setting-chapter-transition-blank-text').value = settings.chapter_transition_blank_text || '...';
 
     // Pestaña Footnotes
+    if (document.getElementById('setting-footnote-mode')) document.getElementById('setting-footnote-mode').value = ['page', 'chapter', 'book'].includes(String(settings.footnote_mode || '').toLowerCase()) ? settings.footnote_mode : 'page';
+    if (document.getElementById('setting-footnote-chapter-title')) document.getElementById('setting-footnote-chapter-title').value = settings.footnote_chapter_title || 'Referencia';
+    if (document.getElementById('setting-footnote-book-title')) document.getElementById('setting-footnote-book-title').value = settings.footnote_book_title || 'Referencias';
     if (document.getElementById('setting-footnote-font-family')) document.getElementById('setting-footnote-font-family').value = settings.footnote_font_family || 'Merriweather';
     if (document.getElementById('setting-footnote-font-size')) document.getElementById('setting-footnote-font-size').value = settings.footnote_font_size ?? 8.5;
     if (document.getElementById('setting-footnote-font-weight')) document.getElementById('setting-footnote-font-weight').value = settings.footnote_font_weight || 'normal';
-    if (document.getElementById('setting-footnote-align')) document.getElementById('setting-footnote-align').value = settings.footnote_align || 'justify';
+    window.setFootnoteAlignment(['left', 'center', 'right', 'justify'].includes(String(settings.footnote_align || '').toLowerCase()) ? settings.footnote_align : 'left');
+    if (document.getElementById('setting-footnote-line-height')) document.getElementById('setting-footnote-line-height').value = normalizeFootnoteLineHeight(settings.footnote_line_height, settings.footnote_font_size ?? 8.5);
+    if (document.getElementById('setting-footnote-letter-spacing')) document.getElementById('setting-footnote-letter-spacing').value = settings.footnote_letter_spacing ?? 0;
+    if (document.getElementById('setting-footnote-entry-spacing')) document.getElementById('setting-footnote-entry-spacing').value = settings.footnote_entry_spacing ?? 6;
+    if (document.getElementById('setting-footnote-hyphenate')) document.getElementById('setting-footnote-hyphenate').checked = settings.footnote_hyphenate == 1;
     if (document.getElementById('setting-footnote-call-scale')) document.getElementById('setting-footnote-call-scale').value = settings.footnote_call_scale ?? 0.65;
     if (document.getElementById('setting-footnote-call-raise')) document.getElementById('setting-footnote-call-raise').value = settings.footnote_call_raise ?? 0.18;
     if (document.getElementById('setting-footnote-padding-top')) document.getElementById('setting-footnote-padding-top').value = settings.footnote_padding_top ?? 0.15;
@@ -279,6 +315,12 @@ window.populateSettingsForm = function() {
         ? 'left'
         : 'continuous';
     const derivedLegacyParity = derivedBookFlowMode === 'left' ? 'even' : 'any';
+    const bookAuthorsValue = String(
+        (typeof bookState !== 'undefined' && bookState && bookState.bookAuthorsInputValue)
+            || settings.book_authors_input_value
+            || settings.book_authors
+            || ''
+    );
     if (document.getElementById('setting-book-separate-opening-content')) {
         document.getElementById('setting-book-separate-opening-content').checked = settings.book_separate_opening_content !== 0 && settings.book_separate_opening_content !== '0';
     }
@@ -336,6 +378,7 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-chapter-prefix-font-style')) document.getElementById('setting-chapter-prefix-font-style').value = settings.chapter_prefix_font_style || 'normal';
     if (document.getElementById('setting-chapter-prefix-letter-spacing')) document.getElementById('setting-chapter-prefix-letter-spacing').value = settings.chapter_prefix_letter_spacing ?? 0;
     if (document.getElementById('setting-chapter-prefix-ornament')) document.getElementById('setting-chapter-prefix-ornament').value = settings.chapter_prefix_ornament || 'none';
+    if (document.getElementById('setting-book-authors')) document.getElementById('setting-book-authors').value = bookAuthorsValue;
 
     // Pestaña Créditos
     if (document.getElementById('setting-credits-edition')) document.getElementById('setting-credits-edition').value = settings.credits_edition || '';
@@ -353,6 +396,7 @@ window.populateSettingsForm = function() {
     if (typeof toggleCustomHeaderFields === 'function') toggleCustomHeaderFields();
     if (typeof toggleCustomFirstPageHeader === 'function') toggleCustomFirstPageHeader();
     if (typeof toggleCustomFirstPageFooter === 'function') toggleCustomFirstPageFooter();
+    if (typeof togglePageColumnsSettings === 'function') togglePageColumnsSettings();
     if (typeof syncBookFlowParityMode === 'function') syncBookFlowParityMode();
     else if (typeof toggleParityImageMode === 'function') toggleParityImageMode();
     if (typeof toggleChapterTransitionBlankSettings === 'function') toggleChapterTransitionBlankSettings();

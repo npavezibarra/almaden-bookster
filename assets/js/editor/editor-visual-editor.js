@@ -315,6 +315,19 @@ function syncVisualEditorToState() {
     const chapter = getActiveChapter();
     if (!chapter) return null;
 
+    const surface = getVisualEditorSurface();
+
+    // If the visual surface is available, serialize the editable DOM back to RAW
+    // before falling back to the textarea. This keeps the compiler aligned with
+    // the actual content the user sees in split/visual mode.
+    if (surface && typeof serializeVisualEditorSurface === 'function') {
+        const serialized = serializeVisualEditorSurface(surface);
+        if (serialized !== null) {
+            setRawChapterContent(serialized || '');
+            return chapter.content;
+        }
+    }
+
     // Paged.js fragments are a render artifact and must never replace RAW.
     syncRawEditorToState();
     return chapter.content;

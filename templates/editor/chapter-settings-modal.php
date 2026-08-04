@@ -20,19 +20,6 @@
         <!-- Formulario -->
         <div class="flex-1 overflow-y-auto p-6">
             <form id="chapter-settings-form" class="space-y-6 text-sm text-[var(--text-main)]">
-                
-                <!-- Inicio de Capítulo (Paridad) -->
-                <div class="grid grid-cols-1 gap-4">
-                    <div>
-                        <label id="chapter-settings-modal-start-label" class="block font-semibold mb-1">¿Dónde debe iniciar el contenido de este capítulo?</label>
-                        <p id="chapter-settings-modal-start-subtitle" class="text-xs text-[var(--text-muted)] mb-2">Define el lado donde empieza el contenido. La apertura se configura aparte en la pestaña "Apertura".</p>
-                        <select id="chapter_start_parity" name="chapter_start_parity" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-[var(--text-main)] focus:outline-none focus:border-black" onchange="toggleChapterImageSettingsForChapter()">
-                            <option value="any">Continuo / Cualquiera (Por defecto)</option>
-                            <option value="odd">Página Impar (Lado Derecho)</option>
-                            <option value="even">Página Par (Lado Izquierdo)</option>
-                        </select>
-                    </div>
-                </div>
 
                 <!-- Ajustes normales de capítulo -->
                 <?php include plugin_dir_path( __FILE__ ) . 'chapter-settings-normal.php'; ?>

@@ -130,6 +130,11 @@
                         </div>
                     </div>
 
+                    <label class="flex items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--bg-app)] px-3 py-2 text-xs font-semibold text-[var(--text-main)] mt-1">
+                        <input type="checkbox" id="setting-header-hyphenate" class="h-3.5 w-3.5 rounded border-[var(--border-color)] text-black focus:ring-black">
+                        <span>Hyphenate</span>
+                    </label>
+
                     <div class="grid grid-cols-2 gap-3 pt-1">
                         <div>
                             <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Margen Superior (<span class="unit-label">cm</span>)</label>
@@ -475,6 +480,7 @@
                 </select>
                 <p class="mt-2 text-[10px] leading-5 text-[var(--text-muted)]">Este valor define el idioma base para EPUB, PDF impreso y cualquier texto sin marca de idioma explícita. Los fragmentos con <code>&lt;foreign lang=&quot;...&quot;&gt;</code> siguen su propio idioma.</p>
                 <label class="block text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Autores del libro</label>
+                <?php $book_authors_input_value = isset( $book_authors_input_value ) ? $book_authors_input_value : ''; ?>
                 <textarea id="setting-book-authors" rows="2" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-black resize-none" placeholder="Escribe emails o usuarios separados por coma"><?php echo esc_textarea( $book_authors_input_value ); ?></textarea>
                 <p class="mt-2 text-[10px] leading-5 text-[var(--text-muted)]">Usa correos o nombres de usuario para vincular autores reales. La lista visible del libro se sigue mostrando con nombres legibles.</p>
             </div>

@@ -9,11 +9,16 @@
     </div>
 
     <div id="tab-structure" class="chapter-tab-content space-y-6 block">
-        <div class="p-4 rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)]">
-            <label class="block font-semibold mb-1">Arquitectura de apertura</label>
-            <p class="text-xs text-[var(--text-muted)]">
-                Define la estructura editorial previa al contenido: página intencional en blanco, imagen de capítulo o apertura continua.
-            </p>
+        <div class="grid grid-cols-1 gap-4 p-4 rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)]">
+            <div>
+                <label id="chapter-settings-modal-start-label" class="block font-semibold mb-1">¿Dónde debe iniciar el contenido de este capítulo?</label>
+                <p id="chapter-settings-modal-start-subtitle" class="text-xs text-[var(--text-muted)] mb-2">Define el lado donde empieza el contenido. La apertura se configura aparte en la sección "Apertura".</p>
+                <select id="chapter_start_parity" name="chapter_start_parity" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-[var(--text-main)] focus:outline-none focus:border-black" onchange="toggleChapterImageSettingsForChapter()">
+                    <option value="any">Continuo / Cualquiera (Por defecto)</option>
+                    <option value="odd">Página Impar (Lado Derecho)</option>
+                    <option value="even">Página Par (Lado Izquierdo)</option>
+                </select>
+            </div>
         </div>
 
         <div id="chapter_legacy_opening_notice" class="hidden rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
@@ -69,24 +74,6 @@
     </div>
 
     <div id="chapter_image_settings_wrapper" class="space-y-3 rounded-xl border border-[var(--border-color)] bg-[var(--bg-app)] p-4 hidden">
-        <div>
-            <label class="block font-semibold mb-1">Imagen de capitulo</label>
-            <p class="text-xs text-[var(--text-muted)]">
-                Disponible cuando el flujo del libro es "Iniciar izquierda (par)". Esta configuracion define la primera pagina del capitulo.
-            </p>
-        </div>
-
-        <div class="flex items-center justify-between p-3 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
-            <div>
-                <label class="font-semibold block mb-1 text-[10px]">Activar imagen de capitulo</label>
-                <span class="text-[10px] text-[var(--text-muted)]">Agrega una pagina previa a la apertura editorial.</span>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="chapter_image_enabled" onchange="toggleChapterImageSettingsForChapter()" class="sr-only peer">
-                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
-            </label>
-        </div>
-
         <div class="flex items-start justify-between gap-4 p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
             <div class="flex-1">
                 <label class="font-semibold block mb-1 text-[10px]">Separar apertura de contenido</label>

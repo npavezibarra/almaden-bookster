@@ -23,6 +23,25 @@
                             <span class="ml-2 text-xs font-semibold text-[var(--text-main)]">Forzar Blanco y Negro</span>
                         </label>
                     </div>
+                    <div>
+                        <label class="block text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">Columnas</label>
+                        <label class="relative inline-flex items-center cursor-pointer mt-1">
+                            <input type="checkbox" id="setting-page-columns-enabled" class="sr-only peer" onchange="togglePageColumnsSettings()">
+                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
+                            <span class="ml-2 text-xs font-semibold text-[var(--text-main)]">Activar columnas</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="setting-page-columns-fields" class="grid grid-cols-2 gap-4 hidden">
+                    <div>
+                        <label class="block text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">Número de columnas</label>
+                        <input id="setting-page-columns-count" type="number" min="1" max="4" step="1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:ring-2 focus:ring-black focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">Gap entre columnas (<span class="unit-label">cm</span>)</label>
+                        <input id="setting-page-columns-gap" type="number" min="0" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:ring-2 focus:ring-black focus:outline-none">
+                    </div>
                 </div>
 
                 <div id="custom-page-dimensions" class="grid grid-cols-2 gap-4 hidden">

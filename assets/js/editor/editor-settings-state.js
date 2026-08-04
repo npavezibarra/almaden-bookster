@@ -17,6 +17,14 @@ window.almadenBuildPDFSettingsState = function(ctx) {
         creditsLegacy
     } = ctx || {};
 
+    const normalizeFootnoteLineHeight = (value, fontSize, fallback = 11.5) => {
+        const parsed = parseFloat(value);
+        if (!Number.isFinite(parsed)) {
+            return fallback;
+        }
+        return Math.max(0.1, Math.min(40, parsed));
+    };
+
     return {
         unit: getVal('setting-unit'),
         page_size: getVal('setting-page-size'),
@@ -36,6 +44,9 @@ window.almadenBuildPDFSettingsState = function(ctx) {
         padding_right: parseVal('setting-padding-right', 1.0),
         bleeding: parseVal('setting-bleeding', 0.5),
         export_grayscale: getChecked('setting-export-grayscale'),
+        page_columns_enabled: getChecked('setting-page-columns-enabled'),
+        page_columns_count: parseVal('setting-page-columns-count', 2),
+        page_columns_gap: parseVal('setting-page-columns-gap', 0.8),
         ebook_bg_type: getVal('setting-ebook-bg-type'),
         ebook_bg_color: getVal('setting-ebook-bg-color-text'),
         ebook_bg_image: getVal('setting-ebook-bg-image'),
@@ -112,6 +123,7 @@ window.almadenBuildPDFSettingsState = function(ctx) {
         header_font_weight: getVal('setting-header-font-weight'),
         header_font_style: getVal('setting-header-font-style'),
         header_text_transform: getVal('setting-header-text-transform'),
+        header_hyphenate: getChecked('setting-header-hyphenate'),
         header_letter_spacing: parseVal('setting-header-letter-spacing', 0.1),
         header_even_type: getVal('setting-header-even-type'),
         header_even_custom: getVal('setting-header-even-custom'),
@@ -137,10 +149,17 @@ window.almadenBuildPDFSettingsState = function(ctx) {
         chapter_transition_blank_text: getVal('setting-chapter-transition-blank-text') || '...',
         chapter_start_parity: getLegacyParityFromFlowMode(),
 
+        footnote_mode: getVal('setting-footnote-mode') || 'page',
+        footnote_chapter_title: getVal('setting-footnote-chapter-title') || 'Referencia',
+        footnote_book_title: getVal('setting-footnote-book-title') || 'Referencias',
         footnote_font_family: getVal('setting-footnote-font-family'),
         footnote_font_size: parseVal('setting-footnote-font-size', 8.5),
         footnote_font_weight: getVal('setting-footnote-font-weight'),
         footnote_align: getVal('setting-footnote-align'),
+        footnote_line_height: normalizeFootnoteLineHeight(getVal('setting-footnote-line-height'), parseVal('setting-footnote-font-size', 8.5)),
+        footnote_letter_spacing: parseVal('setting-footnote-letter-spacing', 0),
+        footnote_entry_spacing: parseVal('setting-footnote-entry-spacing', 6),
+        footnote_hyphenate: getChecked('setting-footnote-hyphenate'),
         footnote_call_scale: parseVal('setting-footnote-call-scale', 0.65),
         footnote_call_raise: parseVal('setting-footnote-call-raise', 0.18),
         footnote_padding_top: parseVal('setting-footnote-padding-top', 0.15),

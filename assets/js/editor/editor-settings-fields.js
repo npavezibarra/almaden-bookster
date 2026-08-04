@@ -33,6 +33,15 @@ function toggleCustomFirstPageFooter() {
     }
 }
 
+function togglePageColumnsSettings() {
+    const enabled = document.getElementById('setting-page-columns-enabled');
+    const wrapper = document.getElementById('setting-page-columns-fields');
+
+    if (wrapper) {
+        wrapper.classList.toggle('hidden', !(enabled && enabled.checked));
+    }
+}
+
 // Actualizar las etiquetas de unidad en el formulario (cm o in)
 function updateUnitFields() {
     const unit = document.getElementById('setting-unit').value;

@@ -14,11 +14,12 @@ This document maps the canonical source of truth for the current book layout sys
 | Scope | Concept | Canonical storage | Key(s) |
 |---|---|---|---|
 | Global PDF | Page size, margins, padding, bleed, export mode | Table `almaden_book_settings` | `unit`, `page_size`, `page_width`, `page_height`, `margin_*`, `padding_*`, `bleeding`, `export_grayscale` |
-| Global PDF | Header/footer layout | Table `almaden_book_settings` | `header_*`, `footer_*`, `first_page_header_*`, `first_page_footer_*`, `first_page_header_show`, `first_page_footer_show` |
+| Global PDF | Header/footer layout | Table `almaden_book_settings` | `header_*`, `footer_*`, `first_page_header_*`, `first_page_footer_*`, `first_page_header_show`, `first_page_footer_show`, `header_hyphenate` |
 | Global PDF | Chapter flow | Table `almaden_book_settings` + book `post_meta` | `chapter_start_parity`, `chapter_page_one_vertical`, `_almaden_book_separate_opening_content`, `_almaden_book_chapter_flow_mode` |
 | Global PDF | Chapter title style | Table `almaden_book_settings` | `chapter_title_*` |
 | Global PDF | Chapter prefix style | Table `almaden_book_settings` | `chapter_prefix_*` |
 | Global PDF | Footnote separator | Table `almaden_book_settings` | `footnote_separator_*` |
+| Global PDF | Footnote placement and typography | Table `almaden_book_settings` | `footnote_mode`, `footnote_*_title`, `footnote_font_*`, `footnote_align`, `footnote_line_height`, `footnote_letter_spacing`, `footnote_entry_spacing`, `footnote_hyphenate` |
 | Global PDF | Subtitle defaults | `post_meta` on book | `_almaden_chapter_subtitle_*` |
 | Global Ebook | Ebook typography / chapter opener | Table `almaden_book_settings` | `ebook_*`, `ebook_chapter_*` |
 | Global Ebook | Ebook subtitle defaults | `post_meta` on book | `_almaden_ebook_subtitle_*` |
