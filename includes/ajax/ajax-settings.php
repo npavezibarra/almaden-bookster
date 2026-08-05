@@ -3,6 +3,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once dirname( __DIR__ ) . '/pdf-typst/page-templates/bootstrap.php';
+
 function almaden_bookster_normalize_footnote_leading_pt( $value, $font_size = 8.5, $fallback = 11.5 ) {
 	$value = is_numeric( $value ) ? (float) $value : $fallback;
 	return max( 0.1, min( 40, $value ) );
@@ -251,6 +253,13 @@ function almaden_bookster_save_settings_ajax() {
 				update_post_meta( $book_id, 'book_author', $book_authors );
 				update_post_meta( $book_id, '_almaden_book_author', $book_authors );
 			}
+		}
+
+		if ( isset( $_POST['page_templates'] ) ) {
+			almaden_bookster_typst_save_page_templates(
+				$book_id,
+				wp_unslash( $_POST['page_templates'] )
+			);
 		}
 
 		wp_send_json_success( array( 'message' => 'Configuración de maquetación guardada con éxito.' ) );

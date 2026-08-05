@@ -91,6 +91,8 @@ function getPDFStylesChapters(settings, toPx) {
             const hideCreditsPageNumber = ch.is_credits === '1' && ch.credits_hide_page_number === '1';
             const hideTocPageNumber = ch.is_toc === '1' && ch.toc_hide_page_numbers !== '0';
             const hideChapterPageNumber = hideCreditsPageNumber || hideTocPageNumber;
+            const hideHeader = ch.hide_header === '1' || ch.hide_all_headers_footers === '1';
+            const hideFooter = ch.hide_footer === '1' || ch.hide_all_headers_footers === '1';
             const isEditorialChapter = ch.is_toc !== '1' && ch.is_credits !== '1';
             // The opening is the page registered in the TOC, so normal
             // chapters always show its folio even when generic first-page
@@ -135,11 +137,13 @@ function getPDFStylesChapters(settings, toPx) {
                 const hideCreditsPageNumber = ch.is_credits === '1' && ch.credits_hide_page_number === '1';
                 const hideTocPageNumber = ch.is_toc === '1' && ch.toc_hide_page_numbers !== '0';
                 const hideChapterPageNumber = hideCreditsPageNumber || hideTocPageNumber;
-                const openingPageHeaderHidden = hideTocHeader || hideCreditsHeader || !firstPageHeaderShow;
-                const openingPageFooterHidden = hideChapterPageNumber || !firstPageFooterShow;
+                const effectiveImageInnerHeader = imageInnerHeader && !hideHeader;
+                const effectiveImageInnerFooter = imageInnerFooter && !hideFooter;
+                const openingPageHeaderHidden = hideHeader || hideTocHeader || hideCreditsHeader || !firstPageHeaderShow;
+                const openingPageFooterHidden = hideFooter || hideChapterPageNumber || !firstPageFooterShow;
                 const openingPageHeaderContent = getFirstPageHeaderContent(firstHeaderType, firstHeaderCustom, openingPageHeaderHidden, bookTitle);
                 const openingPageFooterContent = getFirstPageFooterContent(firstPageFooterType, firstPageFooterCustom, openingPageFooterHidden, bookTitle);
-                const headerContent = (chapterImageMode === 'image_inner' && imageInnerHeader)
+                const headerContent = (chapterImageMode === 'image_inner' && effectiveImageInnerHeader)
                     ? `
                         @top-left { content: ""; }
                         @top-center { content: ""; }
@@ -151,7 +155,7 @@ function getPDFStylesChapters(settings, toPx) {
                         @top-center { content: "" !important; }
                         @top-right { content: "" !important; }
                     `;
-                const footerContent = (chapterImageMode === 'image_inner' && imageInnerFooter)
+                const footerContent = (chapterImageMode === 'image_inner' && effectiveImageInnerFooter)
                     ? `
                         @bottom-left { content: ""; }
                         @bottom-center { content: ""; }
@@ -274,7 +278,7 @@ function getPDFStylesChapters(settings, toPx) {
                     ${imageBackgroundRules}
                     ${chapterImageMode === 'image_inner' ? `
                         .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin {
-                            visibility: ${imageInnerHeader || imageInnerFooter ? 'visible' : 'hidden'} !important;
+                            visibility: ${effectiveImageInnerHeader || effectiveImageInnerFooter ? 'visible' : 'hidden'} !important;
                         }
                         .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-top,
                         .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-top-left-corner-holder,
@@ -282,20 +286,20 @@ function getPDFStylesChapters(settings, toPx) {
                         .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-bottom,
                         .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-bottom-left-corner-holder,
                         .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-bottom-right-corner-holder {
-                            ${imageInnerHeader || imageInnerFooter ? '' : 'display: none !important;'}
+                            ${effectiveImageInnerHeader || effectiveImageInnerFooter ? '' : 'display: none !important;'}
                         }
                         .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-top-left,
                         .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-top-center,
                         .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-top-right {
-                            ${imageInnerHeader ? '' : 'display: none !important;'}
+                            ${effectiveImageInnerHeader ? '' : 'display: none !important;'}
                         }
                         .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-bottom-left,
                         .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-bottom-center,
                         .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-bottom-right {
-                            ${imageInnerFooter ? '' : 'display: none !important;'}
+                            ${effectiveImageInnerFooter ? '' : 'display: none !important;'}
                         }
                         .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin-content {
-                            ${!imageInnerHeader && !imageInnerFooter ? 'display: none !important;' : ''}
+                            ${!effectiveImageInnerHeader && !effectiveImageInnerFooter ? 'display: none !important;' : ''}
                         }
                     ` : `
                         .pagedjs_chapter-${ch.id}-image_page .pagedjs_margin {
@@ -535,14 +539,14 @@ function getPDFStylesChapters(settings, toPx) {
                     @${getHeaderMarginBox(headerAlign, false)} { content: ${firstPageHeaderContent}; }
                     @${getFooterMarginBox(footerAlign, false)} { content: ${firstPageFooterContent}; }
                 }
-                ${hideCreditsPageNumber ? `
+                ${hideFooter ? `
                 @page chapter-${ch.id} {
                     @bottom-left { content: "" !important; }
                     @bottom-center { content: "" !important; }
                     @bottom-right { content: "" !important; }
                 }
                 ` : ''}
-                ${hideCreditsHeader ? `
+                ${hideHeader ? `
                 @page chapter-${ch.id} {
                     @top-left { content: "" !important; }
                     @top-center { content: "" !important; }
@@ -576,19 +580,6 @@ function getPDFStylesChapters(settings, toPx) {
                 }
             `;
             
-            // Ocultar cabeceras/pies si está configurado en el capítulo
-            if (ch.hide_all_headers_footers === '1') {
-                chapterCSSRules += `
-                    @page chapter-${ch.id} {
-                        @top-left { content: ""; }
-                        @top-center { content: ""; }
-                        @top-right { content: ""; }
-                        @bottom-left { content: ""; }
-                        @bottom-center { content: ""; }
-                        @bottom-right { content: ""; }
-                    }
-                `;
-            }
         });
     }
 

@@ -20,10 +20,32 @@ function creditsSetCheckboxValue(root, selector, value) {
     el.checked = value === 1 || value === '1' || value === true;
 }
 
+function creditsGetPersonRoleLabel(person = {}) {
+    const role = String(person.role || 'author');
+    if (role === 'other' && String(person.custom_role_title || '').trim()) {
+        return String(person.custom_role_title).trim();
+    }
+    const option = CREDITS_ROLE_OPTIONS.find((opt) => opt.value === role);
+    return option ? option.label : role;
+}
+
+function creditsUpdatePersonCustomRoleField(row) {
+    if (!row || row.getAttribute('data-credits-row') !== 'person') return;
+    const roleField = row.querySelector('[data-credits-field="role"]');
+    const customWrap = row.querySelector('[data-credits-person-custom-role-wrap]');
+    const customField = row.querySelector('[data-credits-field="custom_role_title"]');
+    if (!roleField || !customWrap || !customField) return;
+
+    const isCustomRole = String(roleField.value || '') === 'other';
+    customWrap.classList.toggle('hidden', !isCustomRole);
+    customField.disabled = !isCustomRole;
+}
+
 function creditsBuildPersonRow(person = {}) {
     const selectedRole = CREDITS_ROLE_OPTIONS.some((opt) => opt.value === String(person.role || 'author'))
         ? String(person.role || 'author')
         : 'author';
+    const showCustomRole = selectedRole === 'other';
     return `
         <div class="credits-person-row rounded-2xl border border-[var(--border-color)] bg-[var(--bg-sidebar)]/40 p-4 space-y-4" data-credits-row="person">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -36,6 +58,10 @@ function creditsBuildPersonRow(person = {}) {
                     <select data-credits-field="role" class="w-full rounded-xl border border-[var(--border-color)] bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black">
                         ${creditsOptionMarkup(CREDITS_ROLE_OPTIONS, selectedRole)}
                     </select>
+                </div>
+                <div class="md:col-span-2 ${showCustomRole ? '' : 'hidden'}" data-credits-person-custom-role-wrap>
+                    <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Título personalizado</label>
+                    <input type="text" data-credits-field="custom_role_title" value="${creditsEscapeHtml(person.custom_role_title || '')}" placeholder="Ej: Ilustrador" class="w-full rounded-xl border border-[var(--border-color)] bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black" ${showCustomRole ? '' : 'disabled'}>
                 </div>
                 <div>
                     <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Email</label>
@@ -461,14 +487,16 @@ function creditsReadRepeaterRows(containerSelector, rowType) {
         };
 
         if (rowType === 'person') {
+            const role = getField('role') || 'author';
             const item = {
                 name: getField('name'),
-                role: getField('role') || 'author',
+                role,
+                custom_role_title: getField('custom_role_title'),
                 email: getField('email'),
                 website: getField('website'),
                 show_contact: getField('show_contact') ? 1 : 0,
             };
-            return (item.name || item.email || item.website) ? item : null;
+            return (item.name || item.email || item.website || item.custom_role_title) ? item : null;
         }
 
         if (rowType === 'collaborator') {

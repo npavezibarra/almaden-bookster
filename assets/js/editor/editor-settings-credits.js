@@ -128,6 +128,10 @@ function creditsBindRootEvents(root) {
                 const container = actionButton.closest('[id$="-container"]');
                 if (container && container.children.length === 0 && container.id === 'credits-people-container') {
                     container.insertAdjacentHTML('beforeend', creditsBuildPersonRow());
+                    const firstRow = container.querySelector('[data-credits-row="person"]');
+                    if (firstRow && typeof creditsUpdatePersonCustomRoleField === 'function') {
+                        creditsUpdatePersonCustomRoleField(firstRow);
+                    }
                 }
                 creditsSyncStateFromForm();
             }
@@ -166,6 +170,12 @@ function creditsBindRootEvents(root) {
         const input = event.target;
         if (!(input instanceof HTMLElement)) return;
         if (!input.matches('[data-credits-field], #setting-credits-edition, #setting-credits-date, #setting-credits-isbn, #setting-credits-printer, #setting-credits-blank-before, #setting-credits-blank-after, #setting-credits-copyright, #setting-credits-license')) return;
+        if (input.matches('[data-credits-field="role"]')) {
+            const row = input.closest('[data-credits-row="person"]');
+            if (row && typeof creditsUpdatePersonCustomRoleField === 'function') {
+                creditsUpdatePersonCustomRoleField(row);
+            }
+        }
         const field = input.getAttribute('data-credits-field');
         if (field === 'logo_url') {
             creditsUpdateImagePreview(input);
@@ -183,6 +193,12 @@ function creditsBindRootEvents(root) {
         const input = event.target;
         if (!(input instanceof HTMLElement)) return;
         if (!input.matches('[data-credits-field], #setting-credits-edition, #setting-credits-date, #setting-credits-isbn, #setting-credits-printer, #setting-credits-blank-before, #setting-credits-blank-after, #setting-credits-copyright, #setting-credits-license')) return;
+        if (input.matches('[data-credits-field="role"]')) {
+            const row = input.closest('[data-credits-row="person"]');
+            if (row && typeof creditsUpdatePersonCustomRoleField === 'function') {
+                creditsUpdatePersonCustomRoleField(row);
+            }
+        }
         const field = input.getAttribute('data-credits-field');
         if (field === 'logo_url') {
             creditsUpdateImagePreview(input);
@@ -197,6 +213,12 @@ function creditsBindRootEvents(root) {
     });
 
     root.dataset.creditsBound = '1';
+
+    root.querySelectorAll('[data-credits-row="person"]').forEach((row) => {
+        if (typeof creditsUpdatePersonCustomRoleField === 'function') {
+            creditsUpdatePersonCustomRoleField(row);
+        }
+    });
 
     if (typeof creditsBindCreditsAdvancedEvents === 'function') {
         creditsBindCreditsAdvancedEvents(root);
@@ -263,6 +285,7 @@ window.getCustomCreditsJSON = function() {
         (config.people || []).map((person) => ({
             role: person.role || '',
             name: person.name || '',
+            custom_role_title: person.custom_role_title || '',
         }))
     );
 };
@@ -283,6 +306,7 @@ window.renderCustomCredits = function(creditsJSON) {
         current.people = incoming.map((item) => ({
             name: item && item.name ? String(item.name) : '',
             role: item && item.role ? String(item.role) : 'author',
+            custom_role_title: item && item.custom_role_title ? String(item.custom_role_title) : '',
             email: '',
             website: '',
             show_contact: 0,
@@ -293,10 +317,11 @@ window.renderCustomCredits = function(creditsJSON) {
     creditsPopulateForm(current);
 };
 
-window.addCustomCreditRow = function(role = '', name = '') {
+window.addCustomCreditRow = function(role = '', name = '', customRoleTitle = '') {
     creditsAppendRow('person', {
         role: role || 'author',
         name: name || '',
+        custom_role_title: customRoleTitle || '',
     });
 };
 

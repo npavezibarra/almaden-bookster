@@ -125,6 +125,67 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 	file_put_contents( $input, $document['source'], LOCK_EX );
 	$stdout = '';
 	$stderr = '';
+	$GLOBALS['almaden_bookster_typst_page_flow_map'] = array();
+	$GLOBALS['almaden_bookster_typst_page_template_results'] = array();
+	if ( ! empty( $document['page_templates'] ) ) {
+		$flow_context = $document['page_template_context'] ?? array( 'templates' => $document['page_templates'] ?? array(), 'columns_count' => 2, 'columns_gap' => 0.8, 'unit' => 'cm' );
+		$read_query = static function ( $selector ) use ( $binary, $temp_dir, $font_path, $input, &$stdout, &$stderr ) {
+			$flow_command = array( $binary, 'query', '--root', $temp_dir, '--diagnostic-format', 'short' );
+			if ( '' !== $font_path ) {
+				$flow_command[] = '--font-path';
+				$flow_command[] = $font_path;
+			}
+			$flow_command[] = $input;
+			$flow_command[] = $selector;
+			$flow_result = almaden_bookster_run_process( $flow_command, $stdout, $stderr, 90 );
+			$flow_report = json_decode( $stdout, true );
+			return ! is_wp_error( $flow_result ) && isset( $flow_report[0]['value'] ) && is_array( $flow_report[0]['value'] )
+				? $flow_report[0]['value']
+				: array();
+		};
+		$read_flow_map = static function () use ( $read_query ) {
+			return $read_query( '<almaden-flow-report>' );
+		};
+
+		foreach ( (array) ( $flow_context['templates'] ?? array() ) as $template ) {
+			$flow_map = $read_flow_map();
+			$target_page = (int) ( $template['page_number'] ?? 0 );
+			$flow_rows = array_filter( $flow_map, static function ( $row ) use ( $target_page ) {
+				return is_array( $row ) && (int) ( $row['page'] ?? 0 ) === $target_page;
+			} );
+			if ( empty( $flow_map ) || ! function_exists( 'almaden_bookster_typst_apply_page_template_flow' ) ) {
+				$GLOBALS['almaden_bookster_typst_page_template_results'][] = array( 'page' => $target_page, 'flow_rows' => count( $flow_rows ), 'applied' => false );
+				break;
+			}
+			$word_probe = array();
+			if ( function_exists( 'almaden_bookster_typst_page_template_prepare_word_probe' ) ) {
+				$word_probe = almaden_bookster_typst_page_template_prepare_word_probe( $document['source'], $flow_context, $flow_map, $template );
+				if ( ! empty( $word_probe['source'] ) ) {
+					file_put_contents( $input, $word_probe['source'], LOCK_EX );
+					$cut = almaden_bookster_typst_page_template_probe_cut( $word_probe, $read_query( '<almaden-template-probe-report>' ) );
+					if ( ! empty( $cut ) ) {
+						$word_probe['cut'] = $cut;
+					}
+				}
+			}
+			$updated_source = almaden_bookster_typst_apply_page_template_flow( $document['source'], $flow_context, $flow_map, $template, $word_probe );
+			$GLOBALS['almaden_bookster_typst_page_template_results'][] = array(
+				'page'      => $target_page,
+				'flow_rows' => count( $flow_rows ),
+				'applied'   => $updated_source !== $document['source'],
+				'debug'     => $GLOBALS['almaden_bookster_typst_page_template_debug'] ?? array(),
+			);
+			if ( $updated_source === $document['source'] ) {
+				file_put_contents( $input, $document['source'], LOCK_EX );
+				continue;
+			}
+			$document['source'] = $updated_source;
+			file_put_contents( $input, $document['source'], LOCK_EX );
+		}
+
+		// Expose the final layout to the PDF viewer after all page templates have reflowed it.
+		$GLOBALS['almaden_bookster_typst_page_flow_map'] = $read_flow_map();
+	}
 	$command = array( $binary, 'compile', '--root', $temp_dir, '--diagnostic-format', 'short' );
 	if ( '' !== $font_path ) {
 		$command[] = '--font-path';

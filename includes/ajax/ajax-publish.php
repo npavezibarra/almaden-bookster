@@ -23,7 +23,10 @@ function almaden_toggle_publish_book() {
 		delete_post_meta( $book_id, '_almaden_is_published' );
 	}
 
+	if ( function_exists( 'almaden_bookster_bump_bookshelf_cache_version' ) ) {
+		almaden_bookster_bump_bookshelf_cache_version();
+	}
+
 	wp_send_json_success( 'Estado actualizado correctamente.' );
 }
 add_action( 'wp_ajax_almaden_toggle_publish_book', 'almaden_toggle_publish_book' );
-

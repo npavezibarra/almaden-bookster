@@ -319,11 +319,15 @@ if (!headers_sent()) {
             <section id="pdf-preview-pane" class="flex-1 flex flex-col pdf-page-container overflow-hidden transition-all">
                 <!-- Barra informativa superior de página -->
                 <div class="h-12 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] px-4 flex items-center justify-between text-xs text-[var(--text-muted)] no-print">
-                    <span id="pdf-pane-mode-label" class="font-semibold uppercase tracking-wider flex items-center gap-1">
-                        <i class="fa-solid fa-magnifying-glass-doc text-xs text-black dark:text-white"></i> Vista Previa Typst
-                    </span>
-                    <div class="flex items-center gap-3">
-                        <span id="pdf-geometry-indicator" class="hidden xl:inline text-[10px] font-medium tabular-nums"></span>
+                    <button id="pdf-text-bounds-toggle" type="button" class="h-7 rounded-md border border-[var(--border-color)] bg-[var(--bg-app)] px-2 text-[11px] text-[var(--text-muted)] transition hover:text-[var(--text-main)]" aria-pressed="false" title="Mostrar límites del área de texto" aria-label="Mostrar límites del área de texto">
+                        <i class="fa-solid fa-vector-square"></i>
+                    </button>
+                        <div class="flex items-center gap-3">
+                            <button id="pdf-page-template-action" type="button" class="hidden h-7 items-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-2.5 text-[10px] font-bold text-amber-900 hover:bg-amber-100 transition" onclick="window.almadenPageTemplateUI?.openModal()">
+                                <i class="fa-solid fa-table-cells-large"></i>
+                                <span>Aplicar plantilla</span>
+                            </button>
+                            <span id="pdf-geometry-indicator" class="hidden xl:inline text-[10px] font-medium tabular-nums"></span>
                         <div class="flex items-center gap-2">
                             <span class="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">Zoom</span>
                             <select id="pdf-preview-zoom" class="h-7 rounded-md border border-[var(--border-color)] bg-[var(--bg-app)] px-2 text-xs font-semibold text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-black">
@@ -363,6 +367,7 @@ if (!headers_sent()) {
     <?php include plugin_dir_path( __FILE__ ) . 'chapter-settings-modal.php'; ?>
     <?php include plugin_dir_path( __FILE__ ) . 'chapter-nomenclature-modal.php'; ?>
     <?php include plugin_dir_path( __FILE__ ) . 'document-import-modal.php'; ?>
+    <?php include plugin_dir_path( __FILE__ ) . 'page-template-modal.php'; ?>
 
     <!-- VIEWPORT EDITOR DE IMAGEN -->
     <div id="image-viewport-modal" class="fixed inset-0 z-50 hidden opacity-0 bg-slate-900/60 backdrop-blur-sm transition-all duration-200 no-print" onclick="if (event.target === this) closeImageViewportModal();">

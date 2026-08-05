@@ -124,6 +124,9 @@ function almaden_bookster_handle_upload_book() {
 		update_post_meta( $book_post_id, '_almaden_wc_product_id', intval( $book_info['wc_product_id'] ) );
 	}
 	update_post_meta( $book_post_id, '_almaden_is_published', $book_info['is_published'] );
+	if ( function_exists( 'almaden_bookster_bump_bookshelf_cache_version' ) ) {
+		almaden_bookster_bump_bookshelf_cache_version();
+	}
 	$imported_credits_config = array();
 	if ( ! empty( $book_info['credits_config'] ) ) {
 		$imported_credits_config = $book_info['credits_config'];

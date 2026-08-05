@@ -24,6 +24,8 @@ window.getBookPageMapSignature = function() {
         chapter_image_inner_header: ch.chapter_image_inner_header,
         chapter_image_inner_footer: ch.chapter_image_inner_footer,
         start_parity: ch.start_parity,
+        hide_header: ch.hide_header ?? (ch.hide_all_headers_footers === '1' ? '1' : '0'),
+        hide_footer: ch.hide_footer ?? (ch.hide_all_headers_footers === '1' ? '1' : '0'),
         hide_all_headers_footers: ch.hide_all_headers_footers,
         toc_hide_header: ch.toc_hide_header,
         toc_hide_page_numbers: ch.toc_hide_page_numbers,

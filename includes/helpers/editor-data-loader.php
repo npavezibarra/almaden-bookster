@@ -37,6 +37,9 @@ if ( $chapter_posts ) {
 		$toc_hide_page_numbers = get_post_meta( $cp->ID, '_toc_hide_page_numbers', true );
 		$toc_hide_title = get_post_meta( $cp->ID, '_toc_hide_title', true );
 		$toc_title_text = get_post_meta( $cp->ID, '_toc_title_text', true );
+		$hide_all_headers_footers = get_post_meta( $cp->ID, '_hide_all_headers_footers', true );
+		$hide_header = get_post_meta( $cp->ID, '_hide_header', true );
+		$hide_footer = get_post_meta( $cp->ID, '_hide_footer', true );
 		if ( '1' === (string) $is_toc ) {
 			$toc_hide_header = '' === (string) $toc_hide_header ? '1' : $toc_hide_header;
 			$toc_hide_page_numbers = '' === (string) $toc_hide_page_numbers ? '1' : $toc_hide_page_numbers;
@@ -44,6 +47,16 @@ if ( $chapter_posts ) {
 			if ( '' === trim( (string) $toc_title_text ) ) {
 				$toc_title_text = $cp->post_title ?: 'Índice';
 			}
+		}
+
+		if ( '' === (string) $hide_all_headers_footers ) {
+			$hide_all_headers_footers = ( '1' === (string) $hide_header && '1' === (string) $hide_footer ) ? '1' : '0';
+		}
+		if ( '' === (string) $hide_header && '1' === (string) $hide_all_headers_footers ) {
+			$hide_header = '1';
+		}
+		if ( '' === (string) $hide_footer && '1' === (string) $hide_all_headers_footers ) {
+			$hide_footer = '1';
 		}
 
 		$saved_chapters[] = array(
@@ -58,7 +71,9 @@ if ( $chapter_posts ) {
 			'opening_block_vertical_align' => get_post_meta( $cp->ID, '_opening_block_vertical_align', true ),
 			'hide_opening'            => get_post_meta( $cp->ID, '_hide_opening', true ),
 			'hide_title'               => get_post_meta( $cp->ID, '_hide_title', true ),
-			'hide_all_headers_footers' => get_post_meta( $cp->ID, '_hide_all_headers_footers', true ),
+			'hide_header'              => $hide_header,
+			'hide_footer'              => $hide_footer,
+			'hide_all_headers_footers' => $hide_all_headers_footers,
 			'exclude_from_numbering'   => get_post_meta( $cp->ID, '_exclude_from_numbering', true ),
 			'custom_running_header'    => get_post_meta( $cp->ID, '_custom_running_header', true ),
 			
@@ -146,6 +161,8 @@ if ( empty( $saved_chapters ) ) {
 		'opening_block_vertical_align' => '',
 		'hide_opening'               => '0',
 		'hide_title'                 => '0',
+		'hide_header'                => '0',
+		'hide_footer'                => '0',
 		'hide_all_headers_footers'   => '0',
 		'exclude_from_numbering'     => '0',
 		'custom_running_header'      => '',

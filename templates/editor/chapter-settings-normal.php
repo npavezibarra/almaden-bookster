@@ -1,14 +1,14 @@
 <div id="normal-chapter-settings" class="space-y-6">
     <div class="border-b border-[var(--border-color)] mb-4">
         <nav class="-mb-px flex gap-6" aria-label="Tabs">
-            <button type="button" onclick="switchChapterTab('tab-structure')" id="btn-tab-structure" class="chapter-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-black dark:border-white text-black dark:text-white">Estructura</button>
-            <button type="button" onclick="switchChapterTab('tab-opening')" id="btn-tab-opening" class="chapter-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-gray-300">Apertura</button>
-            <button type="button" onclick="switchChapterTab('tab-header-footer')" id="btn-tab-header-footer" class="chapter-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-gray-300">Cabecera y Pie</button>
-            <button type="button" onclick="switchChapterTab('tab-advanced')" id="btn-tab-advanced" class="chapter-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-gray-300">Avanzado</button>
+            <button type="button" onclick="switchChapterTab('chapter-tab-structure')" id="btn-chapter-tab-structure" class="chapter-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-black dark:border-white text-black dark:text-white">Estructura</button>
+            <button type="button" onclick="switchChapterTab('chapter-tab-opening')" id="btn-chapter-tab-opening" class="chapter-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-gray-300">Apertura</button>
+            <button type="button" onclick="switchChapterTab('chapter-tab-header-footer')" id="btn-chapter-tab-header-footer" class="chapter-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-gray-300">Cabecera y Pie</button>
+            <button type="button" onclick="switchChapterTab('chapter-tab-advanced')" id="btn-chapter-tab-advanced" class="chapter-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-gray-300">Avanzado</button>
         </nav>
     </div>
 
-    <div id="tab-structure" class="chapter-tab-content space-y-6 block">
+    <div id="chapter-tab-structure" class="chapter-tab-content space-y-6 block">
         <div class="grid grid-cols-1 gap-4 p-4 rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)]">
             <div>
                 <label id="chapter-settings-modal-start-label" class="block font-semibold mb-1">¿Dónde debe iniciar el contenido de este capítulo?</label>
@@ -150,7 +150,7 @@
         </div>
     </div>
 
-    <div id="tab-opening" class="chapter-tab-content space-y-6 hidden">
+    <div id="chapter-tab-opening" class="chapter-tab-content space-y-6 hidden">
 		<div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
 			<div>
 				<label class="font-semibold block mb-1">Ocultar apertura del capítulo</label>
@@ -297,7 +297,7 @@
 
     </div>
 
-    <div id="tab-header-footer" class="chapter-tab-content space-y-6 hidden">
+    <div id="chapter-tab-header-footer" class="chapter-tab-content space-y-6 hidden">
         <div class="grid grid-cols-1 gap-4">
             <div>
                 <label class="block font-semibold mb-1">Cabecera superior personalizada</label>
@@ -341,19 +341,31 @@
             </div>
         </div>
 
-        <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
-            <div>
-                <label class="font-semibold block mb-1">Ocultar cabeceras y pies</label>
-                <span class="text-xs text-[var(--text-muted)]">Desactiva cabecera y pie en todas las páginas del capítulo.</span>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+                <div>
+                    <label class="font-semibold block mb-1">Ocultar cabecera</label>
+                    <span class="text-xs text-[var(--text-muted)]">Elimina por completo la cabecera en todas las páginas de este capítulo.</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="chapter_hide_header" name="hide_header" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
+                </label>
             </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="chapter_hide_all_headers_footers" name="hide_all_headers_footers" class="sr-only peer">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
-            </label>
+            <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+                <div>
+                    <label class="font-semibold block mb-1">Ocultar pie</label>
+                    <span class="text-xs text-[var(--text-muted)]">Elimina por completo el pie en todas las páginas de este capítulo.</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="chapter_hide_footer" name="hide_footer" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
+                </label>
+            </div>
         </div>
     </div>
 
-    <div id="tab-advanced" class="chapter-tab-content space-y-6 hidden">
+    <div id="chapter-tab-advanced" class="chapter-tab-content space-y-6 hidden">
         <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
             <div>
                 <label class="font-semibold block mb-1">Excluir de numeración de capítulos</label>

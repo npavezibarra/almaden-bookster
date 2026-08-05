@@ -411,13 +411,17 @@ window.buildChapterHTML = function(chapter, index, settings, bookState, options 
             let peopleHtml = `<div class="credits-people-section" style="margin-top: 1.6em; ${peopleSectionLayoutStyle}">`;
             creditsConfig.people.forEach((person) => {
                 if (!person || (!person.name && !person.role && !person.email && !person.website)) return;
-                const role = roleLabel(person.role || 'author');
+                const customRoleTitle = String(person.custom_role_title || '').trim();
+                const role = String(person.role || 'author');
+                const displayRole = role === 'other' && customRoleTitle
+                    ? customRoleTitle
+                    : roleLabel(role);
                 peopleHtml += `<div class="credits-person-entry" style="${peopleEntryLayoutStyle}; margin: 0 0 ${peopleItemGapPx}px 0;">`;
                 if (person.name) {
                     peopleHtml += `<span class="credits-person-name" style="${peopleLineLayoutStyle}; font-weight: 700;">${escapeHtml(person.name)}</span>`;
                 }
-                if (role) {
-                    peopleHtml += `<span class="credits-person-role" style="${peopleLineLayoutStyle}; font-style: italic;">${escapeHtml(role)}</span>`;
+                if (displayRole) {
+                    peopleHtml += `<span class="credits-person-role" style="${peopleLineLayoutStyle}; font-style: italic;">${escapeHtml(displayRole)}</span>`;
                 }
                 if (person.show_contact === 1 || person.show_contact === '1') {
                     if (person.email) peopleHtml += `<span class="credits-person-email" style="${peopleLineLayoutStyle}; font-style: italic;">${escapeHtml(person.email)}</span>`;

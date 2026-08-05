@@ -231,13 +231,15 @@ function creditsNormalizeConfig(rawConfig) {
             const role = CREDITS_ROLE_OPTIONS.some((opt) => opt.value === String(item.role || 'author'))
                 ? String(item.role || 'author')
                 : 'author';
+            const customRoleTitle = role === 'other' ? String(item.custom_role_title || '').trim() : '';
             const email = String(item.email || '').trim();
             const website = String(item.website || '').trim();
             const showContact = item.show_contact === true || item.show_contact === 1 || item.show_contact === '1';
-            if (!name && !email && !website) return null;
+            if (!name && !email && !website && !customRoleTitle) return null;
             return {
                 name,
                 role,
+                custom_role_title: customRoleTitle,
                 email,
                 website,
                 show_contact: showContact ? 1 : 0,
@@ -337,6 +339,7 @@ function creditsConfigToLegacy(config) {
             normalized.people.map((person) => ({
                 role: person.role || '',
                 name: person.name || '',
+                custom_role_title: person.custom_role_title || '',
             }))
         ),
         credits_collaborators_visible: normalized.collaborators_visible ? 1 : 0,

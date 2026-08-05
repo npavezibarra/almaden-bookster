@@ -14,6 +14,7 @@
     let activeController = null;
     let currentGeometry = null;
     let currentLayout = 'single';
+    let showTextBounds = false;
 
     function getZoomFactor() {
         const select = document.getElementById('pdf-preview-zoom');
@@ -30,7 +31,85 @@
         if (!indicator || !currentGeometry) return;
         const g = currentGeometry;
         indicator.textContent = `${g.width} × ${g.height} ${g.unit} · márgenes ${g.inside}/${g.outside} ${g.unit}`;
-        indicator.title = `Hoja ${g.width} × ${g.height} ${g.unit}. Márgenes efectivos: superior ${g.top}, inferior ${g.bottom}, interior ${g.inside}, exterior ${g.outside} ${g.unit}. Sangrado ${g.bleed} ${g.unit}.`;
+        const contentTop = g.content_top ?? g.top;
+        const contentBottom = g.content_bottom ?? g.bottom;
+        indicator.title = `Hoja ${g.width} × ${g.height} ${g.unit}. Área de texto: superior ${contentTop}, inferior ${contentBottom}, interior ${g.inside}, exterior ${g.outside} ${g.unit}. Sangrado ${g.bleed} ${g.unit}.`;
+    }
+
+    function getTextBounds(pageNumber) {
+        const g = currentGeometry || {};
+        const width = Number.parseFloat(g.width);
+        const height = Number.parseFloat(g.height);
+        const top = Number.parseFloat(g.content_top ?? g.top);
+        const bottom = Number.parseFloat(g.content_bottom ?? g.bottom);
+        const inside = Number.parseFloat(g.inside);
+        const outside = Number.parseFloat(g.outside);
+
+        if (![width, height, top, bottom, inside, outside].every(Number.isFinite) || width <= 0 || height <= 0) {
+            return null;
+        }
+
+        // Typst uses left binding: odd pages have their inside margin on the left.
+        const oddPage = pageNumber % 2 === 1;
+        const left = oddPage ? inside : outside;
+        const right = oddPage ? outside : inside;
+
+        return {
+            top: `${(top / height) * 100}%`,
+            right: `${(right / width) * 100}%`,
+            bottom: `${(bottom / height) * 100}%`,
+            left: `${(left / width) * 100}%`
+        };
+    }
+
+    function updateTextBounds(root = document.getElementById('pdf-scroller')) {
+        if (!root) return;
+
+        root.querySelectorAll('[data-text-bounds-overlay]').forEach(overlay => overlay.remove());
+        if (!showTextBounds) return;
+
+        root.querySelectorAll('[data-page-number]').forEach(shell => {
+            if (shell.dataset.blank === '1') return;
+
+            const pageNumber = Number.parseInt(shell.dataset.pageNumber, 10);
+            const bounds = getTextBounds(pageNumber);
+            if (!bounds) return;
+
+            const overlay = document.createElement('div');
+            overlay.dataset.textBoundsOverlay = '1';
+            overlay.className = 'pointer-events-none absolute z-10 border border-dashed border-cyan-500 bg-cyan-300/10';
+            overlay.style.top = bounds.top;
+            overlay.style.right = bounds.right;
+            overlay.style.bottom = bounds.bottom;
+            overlay.style.left = bounds.left;
+            overlay.title = `Área de texto de la página ${pageNumber}`;
+            shell.appendChild(overlay);
+        });
+    }
+
+    function updateTextBoundsToggle() {
+        const toggle = document.getElementById('pdf-text-bounds-toggle');
+        if (!toggle) return;
+
+        toggle.setAttribute('aria-pressed', showTextBounds ? 'true' : 'false');
+        toggle.title = showTextBounds ? 'Ocultar límites del área de texto' : 'Mostrar límites del área de texto';
+        toggle.setAttribute('aria-label', toggle.title);
+        toggle.classList.toggle('border-cyan-600', showTextBounds);
+        toggle.classList.toggle('bg-cyan-50', showTextBounds);
+        toggle.classList.toggle('text-cyan-800', showTextBounds);
+    }
+
+    function bindTextBoundsToggle() {
+        const toggle = document.getElementById('pdf-text-bounds-toggle');
+        if (!toggle || toggle.dataset.bound === '1') return;
+
+        toggle.dataset.bound = '1';
+        toggle.addEventListener('click', () => {
+            showTextBounds = !showTextBounds;
+            updateTextBoundsToggle();
+            updateTextBounds();
+        });
+        updateTextBoundsToggle();
     }
 
     function setStatus(message, isError = false) {
@@ -274,7 +353,11 @@
             }
         }
 
+        if (window.almadenPageTemplateUI && typeof window.almadenPageTemplateUI.bind === 'function') {
+            window.almadenPageTemplateUI.bind(root);
+        }
         updateGeometryIndicator();
+        updateTextBounds(root);
     }
 
     function applyZoom() {
@@ -367,8 +450,40 @@
                 }
             }
 
-            let integrity = null;
-            const integrityHeader = response.headers.get('X-Almaden-PDF-Integrity');
+			let integrity = null;
+			const pageFlowHeader = response.headers.get('X-Almaden-Page-Flow');
+			if (pageFlowHeader) {
+				try {
+					window.almadenPageTemplateFlowMap = JSON.parse(decodeURIComponent(pageFlowHeader));
+				} catch (error) {
+					console.warn('No se pudo leer el mapa de flujo Typst.', error);
+				}
+			}
+			const pageTemplateResultsHeader = response.headers.get('X-Almaden-Page-Template-Results');
+			if (pageTemplateResultsHeader) {
+				try {
+					window.almadenPageTemplateResults = JSON.parse(decodeURIComponent(pageTemplateResultsHeader));
+					console.info(
+						'Typst page-template results:',
+						window.almadenPageTemplateResults.map(result => ({
+							page: result?.page,
+							flow_rows: result?.flow_rows,
+							applied: result?.applied,
+							reason: result?.debug?.reason || '',
+							fallback_used: !!result?.debug?.fallback_used,
+							selected_ids: Array.isArray(result?.debug?.selected_ids) ? result.debug.selected_ids : [],
+						}))
+					);
+					const skipped = window.almadenPageTemplateResults.find(result => result && !result.applied);
+					if (skipped && typeof window.showToast === 'function') {
+						const reason = skipped?.debug?.reason ? ` (${skipped.debug.reason})` : '';
+						window.showToast(`No se pudo aplicar la plantilla en la página ${skipped.page}${reason}.`, 'fa-solid fa-circle-exclamation');
+					}
+				} catch (error) {
+					console.warn('No se pudo leer el resultado de plantillas Typst.', error);
+				}
+			}
+			const integrityHeader = response.headers.get('X-Almaden-PDF-Integrity');
             if (integrityHeader) {
                 try {
                     integrity = JSON.parse(decodeURIComponent(integrityHeader));
@@ -439,6 +554,8 @@
         applyZoom,
         applyLayout
     };
+
+    bindTextBoundsToggle();
 
     window.addEventListener('resize', () => {
         if (currentPdfBlob) {

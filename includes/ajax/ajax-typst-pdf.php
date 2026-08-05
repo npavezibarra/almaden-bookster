@@ -31,6 +31,17 @@ function almaden_bookster_ajax_compile_typst_pdf() {
 	if ( ! is_array( $payload ) || empty( $payload['chapters'] ) || ! is_array( $payload['chapters'] ) ) {
 		wp_send_json_error( array( 'message' => 'El manuscrito enviado no es válido.' ), 400 );
 	}
+	$payload['settings'] = isset( $payload['settings'] ) && is_array( $payload['settings'] )
+		? $payload['settings']
+		: array();
+	/*
+	 * Page templates are persistent book layout data. Reading them here avoids a
+	 * stale editor state silently compiling a regular PDF after a template was
+	 * successfully saved through the settings endpoint.
+	 */
+	if ( function_exists( 'almaden_bookster_typst_get_page_templates' ) ) {
+		$payload['settings']['page_templates'] = almaden_bookster_typst_get_page_templates( $book_id );
+	}
 
 	$cover_settings = get_post_meta( $book_id, '_almaden_cover_settings', true );
 	if ( ! is_array( $cover_settings ) && '' === trim( (string) $cover_settings ) ) {
@@ -72,6 +83,12 @@ function almaden_bookster_ajax_compile_typst_pdf() {
 	header( 'X-Almaden-Source-Hash: ' . $document['source_hash'] );
 	header( 'X-Almaden-PDF-Geometry: ' . rawurlencode( wp_json_encode( $document['geometry'] ) ) );
 	header( 'X-Almaden-PDF-Typography: ' . rawurlencode( wp_json_encode( $document['typography'] ) ) );
+	if ( ! empty( $GLOBALS['almaden_bookster_typst_page_flow_map'] ) ) {
+		header( 'X-Almaden-Page-Flow: ' . rawurlencode( wp_json_encode( $GLOBALS['almaden_bookster_typst_page_flow_map'] ) ) );
+	}
+	if ( isset( $GLOBALS['almaden_bookster_typst_page_template_results'] ) ) {
+		header( 'X-Almaden-Page-Template-Results: ' . rawurlencode( wp_json_encode( $GLOBALS['almaden_bookster_typst_page_template_results'] ) ) );
+	}
 	if ( ! empty( $GLOBALS['almaden_bookster_typst_integrity_warning'] ) ) {
 		header( 'X-Almaden-PDF-Integrity: ' . rawurlencode( wp_json_encode( array(
 			'status'  => 'warning',

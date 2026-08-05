@@ -1,5 +1,5 @@
 // Enviar ajustes vía AJAX a la base de datos de WordPress
-window.savePDFSettings = function(silent = false) {
+window.savePDFSettings = function(silent = false, skipPreview = false) {
     const btn = document.getElementById('btn-save-settings');
     let originalBtnText = 'Guardar Cambios';
     if (btn && !silent) {
@@ -67,6 +67,7 @@ window.savePDFSettings = function(silent = false) {
     data.append('page_columns_enabled', getChecked('setting-page-columns-enabled'));
     data.append('page_columns_count', getCleanVal('setting-page-columns-count'));
     data.append('page_columns_gap', getCleanVal('setting-page-columns-gap'));
+    data.append('page_templates', JSON.stringify(bookState.settings?.page_templates || []));
     data.append('ebook_bg_type', getVal('setting-ebook-bg-type'));
     data.append('ebook_bg_color', getVal('setting-ebook-bg-color-text'));
     data.append('ebook_bg_image', getVal('setting-ebook-bg-image'));
@@ -285,7 +286,7 @@ window.savePDFSettings = function(silent = false) {
     data.append('credits_license', creditsLegacy.credits_license || 'all_rights_reserved');
     data.append('credits_custom', creditsLegacy.credits_custom || '[]');
 
-    fetch(bookState.ajaxUrl, {
+    return fetch(bookState.ajaxUrl, {
         method: 'POST',
         body: data
     })
@@ -298,6 +299,9 @@ window.savePDFSettings = function(silent = false) {
                 btn.classList.remove('opacity-75', 'cursor-not-allowed');
             }
             
+            const pageTemplates = Array.isArray(bookState.settings?.page_templates)
+                ? bookState.settings.page_templates
+                : [];
             bookState.settings = typeof almadenBuildPDFSettingsState === 'function'
                 ? almadenBuildPDFSettingsState({
                     getVal,
@@ -311,14 +315,15 @@ window.savePDFSettings = function(silent = false) {
                     creditsLegacy
                 })
                 : bookState.settings;
+            bookState.settings.page_templates = pageTemplates;
 
-            if (typeof applyDynamicPDFStyles === 'function') {
+            if (!skipPreview && typeof applyDynamicPDFStyles === 'function') {
                 try {
                     applyDynamicPDFStyles();
                 } catch (styleErr) {
                     console.error("Error al aplicar los estilos dinámicos del PDF:", styleErr);
                 }
-            } else if (typeof refreshEditorDisplay === 'function') {
+            } else if (!skipPreview && typeof refreshEditorDisplay === 'function') {
                 refreshEditorDisplay(false);
             }
             if (typeof updateParityButtonVisibility === 'function') updateParityButtonVisibility();
@@ -343,6 +348,8 @@ window.savePDFSettings = function(silent = false) {
                     }
                 }, 800);
             }
+
+            return true;
         } else {
             if (btn) {
                 btn.innerHTML = '<i class="fa-solid fa-circle-exclamation mr-1"></i> Error';
@@ -357,6 +364,7 @@ window.savePDFSettings = function(silent = false) {
                 }, 3000);
             }
             alert("Error al guardar: " + res.data);
+            return false;
         }
     })
     .catch(err => {
@@ -373,5 +381,6 @@ window.savePDFSettings = function(silent = false) {
                 btn.classList.replace('hover:bg-rose-700', 'hover:bg-neutral-800');
             }, 3000);
         }
+        return false;
     });
 }

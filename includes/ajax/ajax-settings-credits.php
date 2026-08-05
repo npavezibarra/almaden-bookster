@@ -441,15 +441,17 @@ function almaden_bookster_normalize_credits_config( $raw_config = array(), $lega
 			}
 			$name = sanitize_text_field( $row['name'] ?? '' );
 			$role = almaden_bookster_normalize_credits_role_value( $row['role'] ?? 'author' );
+			$custom_role_title = 'other' === $role ? sanitize_text_field( $row['custom_role_title'] ?? '' ) : '';
 			$email = sanitize_email( $row['email'] ?? '' );
 			$website = esc_url_raw( $row['website'] ?? '' );
 			$show_contact = ! empty( $row['show_contact'] ) ? 1 : 0;
-			if ( '' === trim( $name ) && '' === trim( $email ) && '' === trim( $website ) ) {
+			if ( '' === trim( $name ) && '' === trim( $email ) && '' === trim( $website ) && '' === trim( $custom_role_title ) ) {
 				continue;
 			}
 			$people[] = array(
 				'name' => $name,
 				'role' => $role,
+				'custom_role_title' => $custom_role_title,
 				'email' => $email,
 				'website' => $website,
 				'show_contact' => $show_contact,
@@ -543,6 +545,7 @@ function almaden_bookster_credits_config_to_legacy( $credits_config ) {
 		$people[] = array(
 			'role' => $person['role'],
 			'name' => $person['name'],
+			'custom_role_title' => isset( $person['custom_role_title'] ) ? $person['custom_role_title'] : '',
 		);
 	}
 
@@ -650,9 +653,10 @@ function almaden_bookster_build_credits_chapter_content( $credits_config, $book_
 	foreach ( $config['people'] as $person ) {
 		$name = trim( (string) ( $person['name'] ?? '' ) );
 		$role = trim( (string) ( $person['role'] ?? '' ) );
+		$custom_role_title = trim( (string) ( $person['custom_role_title'] ?? '' ) );
 		$email = trim( (string) ( $person['email'] ?? '' ) );
 		$website = trim( (string) ( $person['website'] ?? '' ) );
-		if ( '' === $name && '' === $role && '' === $email && '' === $website ) {
+		if ( '' === $name && '' === $role && '' === $custom_role_title && '' === $email && '' === $website ) {
 			continue;
 		}
 
@@ -661,7 +665,10 @@ function almaden_bookster_build_credits_chapter_content( $credits_config, $book_
 			$row_parts[] = '<span class="credits-person-name" style="display:block;width:fit-content;max-width:100%;' . esc_attr( $people_align_self_style ) . 'white-space:normal;overflow-wrap:anywhere;' . esc_attr( $people_alignment_style ) . 'font-weight:700;">' . esc_html( $name ) . '</span>';
 		}
 		if ( '' !== $role ) {
-			$row_parts[] = '<span class="credits-person-role" style="display:block;width:fit-content;max-width:100%;' . esc_attr( $people_align_self_style ) . 'white-space:normal;overflow-wrap:anywhere;' . esc_attr( $people_alignment_style ) . 'font-style:italic;"><em>' . esc_html( $role_labels[ $role ] ?? $role ) . '</em></span>';
+			$role_label = 'other' === $role && '' !== $custom_role_title ? $custom_role_title : ( $role_labels[ $role ] ?? $role );
+			$row_parts[] = '<span class="credits-person-role" style="display:block;width:fit-content;max-width:100%;' . esc_attr( $people_align_self_style ) . 'white-space:normal;overflow-wrap:anywhere;' . esc_attr( $people_alignment_style ) . 'font-style:italic;"><em>' . esc_html( $role_label ) . '</em></span>';
+		} elseif ( '' !== $custom_role_title ) {
+			$row_parts[] = '<span class="credits-person-role" style="display:block;width:fit-content;max-width:100%;' . esc_attr( $people_align_self_style ) . 'white-space:normal;overflow-wrap:anywhere;' . esc_attr( $people_alignment_style ) . 'font-style:italic;"><em>' . esc_html( $custom_role_title ) . '</em></span>';
 		}
 		if ( ! empty( $person['show_contact'] ) ) {
 			if ( '' !== $email ) {

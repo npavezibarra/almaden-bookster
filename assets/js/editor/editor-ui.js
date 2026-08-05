@@ -112,7 +112,6 @@ function setPdfPreviewLayout(layout) {
 function setViewMode(mode) {
     const editorPane = document.getElementById('editor-pane');
     const previewPane = document.getElementById('pdf-preview-pane');
-    const paneLabel = document.getElementById('pdf-pane-mode-label');
     const splitBtn = document.getElementById('view-split-btn');
     const editBtn = document.getElementById('view-edit-btn');
     const previewBtn = document.getElementById('view-preview-btn');
@@ -129,7 +128,6 @@ function setViewMode(mode) {
     if (mode === 'split') {
         if (editorPane) editorPane.classList.remove('hidden');
         if (previewPane) previewPane.classList.remove('hidden');
-        if (paneLabel) paneLabel.innerHTML = '<i class="fa-solid fa-magnifying-glass-doc text-xs text-black dark:text-white"></i> Vista Previa Typst';
         if (splitBtn) splitBtn.className = "px-3 py-1.5 rounded-md bg-black text-white shadow-sm transition";
         if (typeof refreshSplitPreview === 'function') {
             refreshSplitPreview(true);
@@ -139,12 +137,10 @@ function setViewMode(mode) {
     } else if (mode === 'edit') {
         if (editorPane) editorPane.classList.remove('hidden');
         if (previewPane) previewPane.classList.add('hidden');
-        if (paneLabel) paneLabel.innerHTML = '<i class="fa-solid fa-pen-to-square text-xs text-black dark:text-white"></i> Editor Raw';
         if (editBtn) editBtn.className = "px-3 py-1.5 rounded-md bg-black text-white shadow-sm transition";
     } else if (mode === 'preview') {
         if (editorPane) editorPane.classList.add('hidden');
         if (previewPane) previewPane.classList.remove('hidden');
-        if (paneLabel) paneLabel.innerHTML = '<i class="fa-solid fa-magnifying-glass-doc text-xs text-black dark:text-white"></i> Vista Previa Typst';
         if (previewBtn) previewBtn.className = "px-3 py-1.5 rounded-md bg-black text-white shadow-sm transition";
         if (typeof compilePDFPreview === 'function') {
             compilePDFPreview(true);

@@ -3,6 +3,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once dirname( __DIR__ ) . '/pdf-typst/page-templates/bootstrap.php';
+
 function almaden_get_book_pdf_settings( $book_id ) {
 	global $wpdb;
 	$settings_table = $wpdb->prefix . 'almaden_book_settings';
@@ -199,6 +201,8 @@ function almaden_get_book_pdf_settings( $book_id ) {
 		$pdf_settings['margin_left_even'] = $pdf_settings['margin_left'];
 		$pdf_settings['margin_right_even'] = $pdf_settings['margin_right'];
 	}
+
+	$pdf_settings['page_templates'] = almaden_bookster_typst_get_page_templates( $book_id );
 
 	$pdf_settings['book_language'] = function_exists( 'almaden_bookster_get_book_language_from_settings' )
 		? almaden_bookster_get_book_language_from_settings( $pdf_settings, 'es' )

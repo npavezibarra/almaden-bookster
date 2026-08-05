@@ -215,6 +215,8 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
     const hideTocHeader = activeChapter.is_toc === '1' && activeChapter.toc_hide_header !== '0';
     const hideTocPageNumber = activeChapter.is_toc === '1' && activeChapter.toc_hide_page_numbers !== '0';
     const hideAllHeadersFooters = activeChapter.hide_all_headers_footers === '1';
+    const hideHeader = activeChapter.hide_header === '1' || hideAllHeadersFooters;
+    const hideFooter = activeChapter.hide_footer === '1' || hideAllHeadersFooters;
     const firstPageHeaderShow = settings.first_page_header_show === undefined ? true : String(settings.first_page_header_show) !== '0';
     const firstPageFooterShow = settings.first_page_footer_show === undefined ? true : String(settings.first_page_footer_show) !== '0';
 
@@ -332,10 +334,10 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
         let shouldRenderPageNumber = false;
         let targetBox = null;
 
-        if (isBookStartLeadingPage) {
+        if (isBookStartLeadingPage && !hideFooter) {
             shouldRenderPageNumber = true;
             targetBox = getResolvedFooterBox(settings.footer_align || 'center', false);
-        } else if (!hideAllHeadersFooters && !hideCreditsPageNumber && !hideTocPageNumber && (isEditorialChapterStart || !isFirstChapterPage || firstPageFooterShow)) {
+        } else if (!hideFooter && !hideCreditsPageNumber && !hideTocPageNumber && (isEditorialChapterStart || !isFirstChapterPage || firstPageFooterShow)) {
             if (effectiveFooterType === 'page_number') {
                 shouldRenderPageNumber = true;
                 targetBox = getResolvedFooterBox(settings.footer_align || 'center', isEvenPage);
@@ -352,7 +354,7 @@ window.applyActiveNumericPageFooters = function(scroller, firstPhysicalPageNumbe
             }
         }
 
-        if (!isBookStartLeadingPage && !hideAllHeadersFooters && !hideTocHeader && !hideCreditsHeader && headerType !== 'blank' && (!isFirstChapterPage || firstPageHeaderShow)) {
+        if (!isBookStartLeadingPage && !hideHeader && !hideTocHeader && !hideCreditsHeader && headerType !== 'blank' && (!isFirstChapterPage || firstPageHeaderShow)) {
             const headerBox = getResolvedHeaderBox(settings.header_align || 'center', isEvenPage);
             const targetHeader = page.querySelector(getHeaderBoxClass(headerBox));
             let headerText = '';

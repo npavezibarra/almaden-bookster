@@ -64,7 +64,13 @@ function almaden_bookster_save_book_ajax() {
 		$opening_block_vertical_align = isset( $chapter['opening_block_vertical_align'] ) ? sanitize_text_field( $chapter['opening_block_vertical_align'] ) : 'top';
 		$hide_opening          = isset( $chapter['hide_opening'] ) ? sanitize_text_field( $chapter['hide_opening'] ) : '0';
 		$hide_title            = isset( $chapter['hide_title'] ) ? sanitize_text_field( $chapter['hide_title'] ) : '0';
+		$hide_header           = isset( $chapter['hide_header'] ) ? sanitize_text_field( $chapter['hide_header'] ) : ( isset( $chapter['hide_all_headers_footers'] ) && '1' === (string) $chapter['hide_all_headers_footers'] ? '1' : '0' );
+		$hide_footer           = isset( $chapter['hide_footer'] ) ? sanitize_text_field( $chapter['hide_footer'] ) : ( isset( $chapter['hide_all_headers_footers'] ) && '1' === (string) $chapter['hide_all_headers_footers'] ? '1' : '0' );
 		$hide_all_headers_footers = isset( $chapter['hide_all_headers_footers'] ) ? sanitize_text_field( $chapter['hide_all_headers_footers'] ) : '0';
+		if ( '1' === (string) $hide_all_headers_footers ) {
+			$hide_header = '1';
+			$hide_footer = '1';
+		}
 		$exclude_from_numbering= isset( $chapter['exclude_from_numbering'] ) ? sanitize_text_field( $chapter['exclude_from_numbering'] ) : '0';
 		$custom_running_header = isset( $chapter['custom_running_header'] ) ? sanitize_text_field( $chapter['custom_running_header'] ) : '';
 		
@@ -182,6 +188,8 @@ function almaden_bookster_save_book_ajax() {
 			update_post_meta( $post_id, '_opening_block_vertical_align', $opening_block_vertical_align );
 			update_post_meta( $post_id, '_hide_opening', $hide_opening );
 			update_post_meta( $post_id, '_hide_title', $hide_title );
+			update_post_meta( $post_id, '_hide_header', $hide_header );
+			update_post_meta( $post_id, '_hide_footer', $hide_footer );
 			update_post_meta( $post_id, '_hide_all_headers_footers', $hide_all_headers_footers );
 			update_post_meta( $post_id, '_exclude_from_numbering', $exclude_from_numbering );
 			update_post_meta( $post_id, '_custom_running_header', $custom_running_header );
@@ -270,6 +278,8 @@ function almaden_bookster_save_book_ajax() {
 				'opening_block_vertical_align' => $opening_block_vertical_align,
 				'hide_opening'          => $hide_opening,
 				'hide_title'            => $hide_title,
+				'hide_header'           => $hide_header,
+				'hide_footer'           => $hide_footer,
 				'hide_all_headers_footers' => $hide_all_headers_footers,
 				'exclude_from_numbering'=> $exclude_from_numbering,
 				'custom_running_header' => $custom_running_header,

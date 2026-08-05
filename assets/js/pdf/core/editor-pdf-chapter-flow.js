@@ -118,11 +118,14 @@ window.getChapterOpeningVisibility = function(chapter, settings) {
     const hasTitle = !!(chapter && chapter.title && String(chapter.title).trim() !== '');
     const isToc = chapter && chapter.is_toc === '1';
     const isCredits = chapter && chapter.is_credits === '1';
+    const hideHeader = String(chapter && chapter.hide_header ? chapter.hide_header : '0') === '1'
+        || String(chapter && chapter.hide_all_headers_footers ? chapter.hide_all_headers_footers : '0') === '1';
     const showTitle = hasTitle && chapter.hide_title !== '1' && !isCredits;
     const showPrefix = !isToc
         && !isCredits
         && String(settings && settings.chapter_prefix_show ? settings.chapter_prefix_show : '') === '1'
-        && chapter.exclude_from_numbering !== '1';
+        && chapter.exclude_from_numbering !== '1'
+        && !hideHeader;
     const showSubtitle = !isToc
         && !isCredits
         && !!(chapter && chapter.subtitle_text && String(chapter.subtitle_text).trim() !== '')

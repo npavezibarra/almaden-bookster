@@ -328,7 +328,7 @@ function openChapterSettingsModal() {
         
         // Reset a la pestaña Estructura por defecto
         if (typeof switchChapterTab === 'function') {
-            switchChapterTab('tab-structure');
+            switchChapterTab('chapter-tab-structure');
         }
 
         // Poblar tipografía del subtítulo si no se ha hecho
@@ -359,10 +359,14 @@ function openChapterSettingsModal() {
         document.getElementById('chapter_opening_block_enabled').checked = derivedOpeningBlockEnabled === '1';
         document.getElementById('chapter_opening_block_horizontal_align').value = derivedOpeningBlockHorizontalAlign;
         document.getElementById('chapter_opening_block_vertical_align').value = derivedOpeningBlockVerticalAlign;
-		document.getElementById('chapter_hide_opening').checked = activeChapter.hide_opening === '1';
+        document.getElementById('chapter_hide_opening').checked = activeChapter.hide_opening === '1';
         document.getElementById('chapter_hide_title').checked = activeChapter.hide_title === '1';
         document.getElementById('chapter_exclude_from_numbering').checked = activeChapter.exclude_from_numbering === '1';
-        document.getElementById('chapter_hide_all_headers_footers').checked = activeChapter.hide_all_headers_footers === '1';
+        const derivedHideAllHeadersFooters = activeChapter.hide_all_headers_footers === '1';
+        const derivedHideHeader = activeChapter.hide_header === '1' || derivedHideAllHeadersFooters;
+        const derivedHideFooter = activeChapter.hide_footer === '1' || derivedHideAllHeadersFooters;
+        document.getElementById('chapter_hide_header').checked = derivedHideHeader;
+        document.getElementById('chapter_hide_footer').checked = derivedHideFooter;
         document.getElementById('chapter_custom_running_header').value = activeChapter.custom_running_header || '';
     document.getElementById('chapter_drop_cap_enabled').checked = activeChapter.drop_cap_enabled === '1';
     document.getElementById('chapter_disable_hyphenation').checked = activeChapter.disable_hyphenation === '1';
@@ -530,10 +534,12 @@ function saveChapterSettings() {
         activeChapter.opening_block_vertical_align = ['top', 'center', 'bottom'].includes(String(document.getElementById('chapter_opening_block_vertical_align').value || '').toLowerCase())
             ? String(document.getElementById('chapter_opening_block_vertical_align').value).toLowerCase()
             : 'top';
-		activeChapter.hide_opening = document.getElementById('chapter_hide_opening').checked ? '1' : '0';
+        activeChapter.hide_opening = document.getElementById('chapter_hide_opening').checked ? '1' : '0';
         activeChapter.hide_title = document.getElementById('chapter_hide_title').checked ? '1' : '0';
         activeChapter.exclude_from_numbering = document.getElementById('chapter_exclude_from_numbering').checked ? '1' : '0';
-        activeChapter.hide_all_headers_footers = document.getElementById('chapter_hide_all_headers_footers').checked ? '1' : '0';
+        activeChapter.hide_header = document.getElementById('chapter_hide_header').checked ? '1' : '0';
+        activeChapter.hide_footer = document.getElementById('chapter_hide_footer').checked ? '1' : '0';
+        activeChapter.hide_all_headers_footers = (activeChapter.hide_header === '1' && activeChapter.hide_footer === '1') ? '1' : '0';
         activeChapter.custom_running_header = document.getElementById('chapter_custom_running_header').value.trim();
         activeChapter.drop_cap_enabled = document.getElementById('chapter_drop_cap_enabled').checked ? '1' : '0';
         activeChapter.disable_hyphenation = document.getElementById('chapter_disable_hyphenation').checked ? '1' : '0';
