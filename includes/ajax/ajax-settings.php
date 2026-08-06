@@ -10,6 +10,36 @@ function almaden_bookster_normalize_footnote_leading_pt( $value, $font_size = 8.
 	return max( 0.1, min( 40, $value ) );
 }
 
+function almaden_bookster_normalize_page_one_alignment( $combined_value, $legacy_vertical = 'top', $legacy_horizontal = 'center' ) {
+	$combined_value = strtolower( trim( str_replace( array( '/', ' ' ), '-', (string) $combined_value ) ) );
+	$parts = array_values( array_filter( explode( '-', $combined_value ) ) );
+
+	if ( count( $parts ) >= 2 ) {
+		$horizontal = in_array( $parts[0], array( 'left', 'center', 'right' ), true ) ? $parts[0] : '';
+		$vertical = in_array( $parts[1], array( 'top', 'center', 'bottom' ), true ) ? $parts[1] : '';
+		if ( $horizontal && $vertical ) {
+			return array(
+				'horizontal' => $horizontal,
+				'vertical'   => $vertical,
+				'combined'   => $horizontal . '-' . $vertical,
+			);
+		}
+	}
+
+	$horizontal = in_array( strtolower( (string) $legacy_horizontal ), array( 'left', 'center', 'right' ), true ) ? strtolower( (string) $legacy_horizontal ) : 'center';
+	$vertical = in_array( strtolower( (string) $legacy_vertical ), array( 'top', 'center', 'bottom' ), true ) ? strtolower( (string) $legacy_vertical ) : 'top';
+
+	if ( 'half' === strtolower( (string) $legacy_vertical ) ) {
+		$vertical = 'center';
+	}
+
+	return array(
+		'horizontal' => $horizontal,
+		'vertical'   => $vertical,
+		'combined'   => $horizontal . '-' . $vertical,
+	);
+}
+
 function almaden_bookster_save_settings_ajax() {
 	$book_id = isset( $_POST['book_id'] ) ? intval( $_POST['book_id'] ) : 0;
 	
@@ -23,6 +53,11 @@ function almaden_bookster_save_settings_ajax() {
 	$footnote_font_size = isset( $_POST['footnote_font_size'] ) ? floatval( str_replace( ',', '.', $_POST['footnote_font_size'] ) ) : 8.5;
 	$footnote_line_height_raw = isset( $_POST['footnote_line_height'] ) ? floatval( str_replace( ',', '.', $_POST['footnote_line_height'] ) ) : 11.5;
 	$footnote_entry_spacing = isset( $_POST['footnote_entry_spacing'] ) ? max( 0, min( 40, floatval( str_replace( ',', '.', $_POST['footnote_entry_spacing'] ) ) ) ) : 6.0;
+	$page_one_alignment = almaden_bookster_normalize_page_one_alignment(
+		isset( $_POST['chapter_page_one_align'] ) ? sanitize_text_field( wp_unslash( $_POST['chapter_page_one_align'] ) ) : '',
+		isset( $_POST['chapter_page_one_vertical'] ) ? sanitize_text_field( wp_unslash( $_POST['chapter_page_one_vertical'] ) ) : 'top',
+		isset( $_POST['chapter_title_align'] ) ? sanitize_text_field( wp_unslash( $_POST['chapter_title_align'] ) ) : 'center'
+	);
 
 	$data = array(
 		'book_id'                    => $book_id,
@@ -159,7 +194,8 @@ function almaden_bookster_save_settings_ajax() {
 		'footnote_separator_margin_bottom' => isset( $_POST['footnote_separator_margin_bottom'] ) ? floatval( str_replace( ',', '.', $_POST['footnote_separator_margin_bottom'] ) ) : 0.15,
 		'chapter_start_parity'       => sanitize_text_field( $_POST['chapter_start_parity'] ),
 		'parity_image_mode'          => sanitize_text_field( $_POST['parity_image_mode'] ),
-		'chapter_page_one_vertical'  => ( isset( $_POST['chapter_page_one_vertical'] ) && $_POST['chapter_page_one_vertical'] === 'half' ) ? 'center' : sanitize_text_field( $_POST['chapter_page_one_vertical'] ),
+		'chapter_page_one_align'     => $page_one_alignment['combined'],
+		'chapter_page_one_vertical'  => $page_one_alignment['vertical'],
 		'chapter_image_mode'         => ( isset( $_POST['chapter_image_mode'] ) && in_array( $_POST['chapter_image_mode'], array( 'page_blank', 'image_full_page', 'image_inner' ), true ) ) ? sanitize_text_field( $_POST['chapter_image_mode'] ) : 'page_blank',
 		'chapter_image_url'          => isset( $_POST['chapter_image_url'] ) ? esc_url_raw( $_POST['chapter_image_url'] ) : '',
 		'chapter_image_inner_width'   => isset( $_POST['chapter_image_inner_width'] ) ? max( 10.0, min( 100.0, floatval( str_replace( ',', '.', $_POST['chapter_image_inner_width'] ) ) ) ) : 100.0,

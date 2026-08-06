@@ -49,35 +49,78 @@ function stripLeadingDuplicateChapterHeading(markdownText, chapterTitle) {
     return markdownText;
 }
 
-function getOpeningPageVerticalAlign(chapter, settings) {
-    const chapterValue = String(chapter && chapter.opening_block_vertical_align ? chapter.opening_block_vertical_align : '').toLowerCase();
-    if (['top', 'center', 'bottom'].includes(chapterValue)) {
-        return chapterValue;
+function normalizeOpeningPageAlignmentValue(rawValue) {
+    const normalized = String(rawValue || '')
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/\//g, '-');
+
+    const parts = normalized.split('-').filter(Boolean);
+    if (parts.length >= 2) {
+        const horizontal = ['left', 'center', 'right'].includes(parts[0]) ? parts[0] : '';
+        const vertical = ['top', 'center', 'bottom'].includes(parts[1]) ? parts[1] : '';
+        if (horizontal && vertical) {
+            return `${horizontal}-${vertical}`;
+        }
     }
 
-    const globalValue = String(settings && settings.chapter_page_one_vertical ? settings.chapter_page_one_vertical : 'top').toLowerCase();
-    if (globalValue === 'half') return 'center';
-    if (['top', 'center', 'bottom'].includes(globalValue)) return globalValue;
-    return 'top';
+    return '';
+}
+
+function deriveOpeningPageAlignment(settings) {
+    const combined = normalizeOpeningPageAlignmentValue(settings && settings.chapter_page_one_align);
+    if (combined) {
+        const [horizontal, vertical] = combined.split('-');
+        return { horizontal, vertical, combined };
+    }
+
+    const legacyHorizontal = ['left', 'center', 'right'].includes(String(settings && settings.chapter_page_one_align ? settings.chapter_page_one_align : '').toLowerCase())
+        ? String(settings.chapter_page_one_align).toLowerCase()
+        : (['left', 'center', 'right'].includes(String(settings && settings.chapter_title_align ? settings.chapter_title_align : '').toLowerCase())
+            ? String(settings.chapter_title_align).toLowerCase()
+            : 'center');
+    const legacyVertical = ['top', 'center', 'bottom'].includes(String(settings && settings.chapter_page_one_vertical ? settings.chapter_page_one_vertical : '').toLowerCase())
+        ? String(settings.chapter_page_one_vertical).toLowerCase()
+        : (String(settings && settings.chapter_page_one_vertical ? settings.chapter_page_one_vertical : '').toLowerCase() === 'half' ? 'center' : 'top');
+
+    return {
+        horizontal: legacyHorizontal,
+        vertical: legacyVertical,
+        combined: `${legacyHorizontal}-${legacyVertical}`,
+    };
+}
+
+// The separated opening page has one authoritative 3x3 position.  It must
+// not inherit legacy per-chapter controls, which belong to the old flow mode.
+window.getSeparateOpeningPageAlignment = function(settings) {
+    // The preview can be rebuilt before the asynchronous settings state is
+    // replaced. The visible selector is therefore the authoritative source
+    // for the separated-opening canvas during that render.
+    const control = typeof document !== 'undefined'
+        ? document.getElementById('setting-chapter-page-one-align')
+        : null;
+    const selectedAlignment = normalizeOpeningPageAlignmentValue(control && control.value);
+    if (selectedAlignment) {
+        const [horizontal, vertical] = selectedAlignment.split('-');
+        return { horizontal, vertical, combined: selectedAlignment };
+    }
+
+    return deriveOpeningPageAlignment(settings);
+};
+
+function getOpeningPageVerticalAlign(chapter, settings) {
+    return getOpeningPageAlignment(chapter, settings).vertical;
 }
 
 function getOpeningPageHorizontalAlign(chapter, settings) {
-    const chapterValue = String(chapter && chapter.opening_block_horizontal_align ? chapter.opening_block_horizontal_align : '').toLowerCase();
-    if (['left', 'center', 'right'].includes(chapterValue)) {
-        return chapterValue;
-    }
-
-    const globalValue = String(settings && settings.chapter_title_align ? settings.chapter_title_align : 'center').toLowerCase();
-    if (['left', 'center', 'right'].includes(globalValue)) {
-        return globalValue;
-    }
-
-    return 'center';
+    return getOpeningPageAlignment(chapter, settings).horizontal;
 }
 
 function getOpeningPageAlignmentStyles(chapter, settings) {
-    const verticalAlign = getOpeningPageVerticalAlign(chapter, settings);
-    const horizontalAlign = getOpeningPageHorizontalAlign(chapter, settings);
+    const resolvedAlignment = getOpeningPageAlignment(chapter, settings);
+    const verticalAlign = resolvedAlignment.vertical;
+    const horizontalAlign = resolvedAlignment.horizontal;
 
     return {
         verticalAlign,
@@ -92,10 +135,77 @@ function getOpeningPageAlignmentStyles(chapter, settings) {
     };
 }
 
+function getOpeningPageAlignment(chapter, settings) {
+    const globalAlignment = deriveOpeningPageAlignment(settings);
+    const chapterHorizontal = String(chapter && chapter.opening_block_horizontal_align ? chapter.opening_block_horizontal_align : '').toLowerCase();
+    const chapterVertical = String(chapter && chapter.opening_block_vertical_align ? chapter.opening_block_vertical_align : '').toLowerCase();
+    const hasExplicitChapterOverride = (
+        ['left', 'center', 'right'].includes(chapterHorizontal) && chapterHorizontal !== 'center'
+    ) || (
+        ['top', 'center', 'bottom'].includes(chapterVertical) && chapterVertical !== 'top'
+    ) || (
+        chapterHorizontal === 'center' && chapterVertical === 'center'
+    );
+
+    if (hasExplicitChapterOverride) {
+        return {
+            horizontal: ['left', 'center', 'right'].includes(chapterHorizontal) ? chapterHorizontal : globalAlignment.horizontal,
+            vertical: ['top', 'center', 'bottom'].includes(chapterVertical) ? chapterVertical : globalAlignment.vertical,
+            combined: `${['left', 'center', 'right'].includes(chapterHorizontal) ? chapterHorizontal : globalAlignment.horizontal}-${['top', 'center', 'bottom'].includes(chapterVertical) ? chapterVertical : globalAlignment.vertical}`,
+        };
+    }
+
+    return globalAlignment;
+}
+
+function getOpeningPageAbsolutePositionStyles(chapter, settings) {
+    const resolvedAlignment = getOpeningPageAlignment(chapter, settings);
+    const verticalAlign = resolvedAlignment.vertical;
+    const horizontalAlign = resolvedAlignment.horizontal;
+    const styles = [
+        'position: absolute !important',
+        'display: block !important',
+        'width: fit-content !important',
+        'max-width: 100% !important',
+        'margin: 0 !important',
+        'padding: 0 !important',
+        'box-sizing: border-box !important',
+        'z-index: 1 !important',
+    ];
+
+    if (horizontalAlign === 'left') {
+        styles.push('left: 0 !important', 'right: auto !important');
+    } else if (horizontalAlign === 'right') {
+        styles.push('right: 0 !important', 'left: auto !important');
+    } else {
+        styles.push('left: 50% !important', 'right: auto !important');
+    }
+
+    if (verticalAlign === 'top') {
+        styles.push('top: 0 !important', 'bottom: auto !important');
+    } else if (verticalAlign === 'bottom') {
+        styles.push('bottom: 0 !important', 'top: auto !important');
+    } else {
+        styles.push('top: 50% !important', 'bottom: auto !important');
+    }
+
+    const transforms = [];
+    if (horizontalAlign === 'center') {
+        transforms.push('translateX(-50%)');
+    }
+    if (verticalAlign === 'center') {
+        transforms.push('translateY(-50%)');
+    }
+    styles.push(`transform: ${transforms.length ? transforms.join(' ') : 'none'} !important`);
+
+    return styles.join('; ');
+}
+
 function buildChapterOpeningHtml(chapter, index, settings, bookState, options = {}) {
     if (!chapter) return '';
 
     const forceRenderOpeningBlock = options.forceRenderOpeningBlock === true;
+    const separateOpeningCanvas = options.separateOpeningCanvas === true;
     const openingBlockEnabled = forceRenderOpeningBlock || chapter.is_toc == '1' ? true : (chapter.opening_block_enabled !== '0');
     const openingVisibility = window.getChapterOpeningVisibility
         ? window.getChapterOpeningVisibility(chapter, settings)
@@ -246,20 +356,18 @@ function buildChapterOpeningHtml(chapter, index, settings, bookState, options = 
     const openingClass = options.variant === 'blank-page'
         ? 'chapter-opening-page-block chapter-opening-page-block--blank'
         : 'chapter-opening-block';
-    const blockStyle = options.variant === 'blank-page'
-        ? [
-            'display: flex !important',
-            'flex-direction: column !important',
-            'width: 100% !important',
-            'min-height: 100% !important',
-            'height: 100% !important',
-            'flex: 1 1 auto !important',
-            'box-sizing: border-box !important',
-            `justify-content: ${alignStyles.justifyContent} !important`,
-            `align-items: ${alignStyles.alignItems} !important`,
-            `text-align: ${alignStyles.textAlign} !important`,
-        ].join('; ')
-        : `min-height: ${openerMinHeightEm}em;`;
+    const blockStyle = [
+        'position: static !important',
+        `display: ${separateOpeningCanvas ? 'inline-block' : 'block'} !important`,
+        'width: fit-content !important',
+        'max-width: 100% !important',
+        'height: fit-content !important',
+        'margin: 0 !important',
+        'padding: 0 !important',
+        'box-sizing: border-box !important',
+        'z-index: 1 !important',
+        `text-align: ${alignStyles.textAlign} !important`,
+    ].filter(Boolean).join('; ');
 
     return `
         <div class="${openingClass}" style="${blockStyle}">

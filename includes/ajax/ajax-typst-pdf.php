@@ -89,6 +89,9 @@ function almaden_bookster_ajax_compile_typst_pdf() {
 	if ( isset( $GLOBALS['almaden_bookster_typst_page_template_results'] ) ) {
 		header( 'X-Almaden-Page-Template-Results: ' . rawurlencode( wp_json_encode( $GLOBALS['almaden_bookster_typst_page_template_results'] ) ) );
 	}
+	if ( isset( $GLOBALS['almaden_bookster_typst_opening_debug'] ) ) {
+		header( 'X-Almaden-Typst-Opening-Debug: ' . rawurlencode( wp_json_encode( $GLOBALS['almaden_bookster_typst_opening_debug'] ) ) );
+	}
 	if ( ! empty( $GLOBALS['almaden_bookster_typst_integrity_warning'] ) ) {
 		header( 'X-Almaden-PDF-Integrity: ' . rawurlencode( wp_json_encode( array(
 			'status'  => 'warning',

@@ -107,12 +107,19 @@
                     <h4 class="text-[10px] font-bold uppercase tracking-wider text-black dark:text-white mb-2 border-b border-[var(--border-color)] pb-1">Diseño de Página 1 del Capítulo</h4>
                     <div class="grid grid-cols-2 gap-2">
                         <div class="col-span-2">
-                            <label class="block text-[9px] text-[var(--text-muted)] mb-1">Diseño Vertical</label>
-                            <select id="setting-chapter-page-one-vertical" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
-                                <option value="top">Arriba (Margen estándar)</option>
-                                <option value="center">Centrado vertical</option>
-                                <option value="bottom">Abajo</option>
+                            <label class="block text-[9px] text-[var(--text-muted)] mb-1">Posición de apertura</label>
+                            <select id="setting-chapter-page-one-align" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                <option value="center-center">Centro / Centro</option>
+                                <option value="center-top">Centro / Arriba</option>
+                                <option value="center-bottom">Centro / Abajo</option>
+                                <option value="right-top">Derecha / Arriba</option>
+                                <option value="right-center">Derecha / Centro</option>
+                                <option value="right-bottom">Derecha / Abajo</option>
+                                <option value="left-top">Izquierda / Arriba</option>
+                                <option value="left-center">Izquierda / Centro</option>
+                                <option value="left-bottom">Izquierda / Abajo</option>
                             </select>
+                            <p class="text-[10px] text-[var(--text-muted)] mt-1">Alinea el bloque de apertura respecto de toda la página, dentro de los márgenes editoriales.</p>
                         </div>
                     </div>
                 </div>

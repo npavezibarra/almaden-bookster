@@ -363,30 +363,37 @@ function getPDFStylesChapters(settings, toPx) {
                     ? 'page'
                     : (chapterFlowMode === 'left' && idx === 0 ? 'left' : 'page');
                 const openingPageBreakBefore = openingBreakBefore === 'left' ? 'left' : 'always';
-
                 chapterCSSRules += `
                     .chapter-opening-page-section-${ch.id} {
                         page: chapter-${ch.id}-opening;
                         break-before: ${openingBreakBefore};
                         page-break-before: ${openingPageBreakBefore};
                         break-after: page;
-                        display: flex !important;
-                        flex-direction: column !important;
-                        justify-content: center !important;
-                        align-items: stretch !important;
+                        display: block !important;
                         width: 100% !important;
-                        min-height: calc(
-                            var(--pagedjs-pagebox-height)
-                            - var(--pagedjs-margin-top)
-                            - var(--pagedjs-margin-bottom)
-                            - 1px
-                        ) !important;
-                        height: calc(
-                            var(--pagedjs-pagebox-height)
-                            - var(--pagedjs-margin-top)
-                            - var(--pagedjs-margin-bottom)
-                            - 1px
-                        ) !important;
+                        box-sizing: border-box !important;
+                        columns: initial !important;
+                        column-count: initial !important;
+                        column-width: auto !important;
+                    }
+                    .chapter-opening-page-section-${ch.id} .chapter-opening-canvas {
+                        position: relative !important;
+                        width: 100% !important;
+                        box-sizing: border-box !important;
+                    }
+                    .chapter-opening-page-section-${ch.id} .chapter-opening-positioner {
+                        position: absolute !important;
+                        display: block !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        box-sizing: border-box !important;
+                    }
+                    .chapter-opening-page-section-${ch.id} .chapter-opening-positioner > .chapter-opening-block,
+                    .chapter-opening-page-section-${ch.id} .chapter-opening-positioner > .chapter-opening-page-block {
+                        display: inline-block !important;
+                        width: fit-content !important;
+                        max-width: 100% !important;
+                        margin: 0 !important;
                     }
                     .chapter-section-${ch.id} {
                         page: chapter-${ch.id};

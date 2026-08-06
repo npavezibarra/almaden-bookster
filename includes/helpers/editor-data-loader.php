@@ -240,6 +240,45 @@ if ( function_exists( 'almaden_bookster_get_book_language_from_settings' ) ) {
 	$pdf_settings['book_language'] = almaden_bookster_get_book_language_from_settings( $pdf_settings, 'es' );
 }
 
+if ( ! function_exists( 'almaden_bookster_normalize_page_one_alignment_meta' ) ) {
+	function almaden_bookster_normalize_page_one_alignment_meta( $combined_value, $legacy_vertical = 'top', $legacy_horizontal = 'center' ) {
+		$combined_value = strtolower( trim( str_replace( array( '/', ' ' ), '-', (string) $combined_value ) ) );
+		$parts = array_values( array_filter( explode( '-', $combined_value ) ) );
+
+		if ( count( $parts ) >= 2 ) {
+			$horizontal = in_array( $parts[0], array( 'left', 'center', 'right' ), true ) ? $parts[0] : '';
+			$vertical = in_array( $parts[1], array( 'top', 'center', 'bottom' ), true ) ? $parts[1] : '';
+			if ( $horizontal && $vertical ) {
+				return array(
+					'horizontal' => $horizontal,
+					'vertical'   => $vertical,
+					'combined'   => $horizontal . '-' . $vertical,
+				);
+			}
+		}
+
+		$horizontal = in_array( strtolower( (string) $legacy_horizontal ), array( 'left', 'center', 'right' ), true ) ? strtolower( (string) $legacy_horizontal ) : 'center';
+		$vertical = in_array( strtolower( (string) $legacy_vertical ), array( 'top', 'center', 'bottom' ), true ) ? strtolower( (string) $legacy_vertical ) : 'top';
+		if ( 'half' === strtolower( (string) $legacy_vertical ) ) {
+			$vertical = 'center';
+		}
+
+		return array(
+			'horizontal' => $horizontal,
+			'vertical'   => $vertical,
+			'combined'   => $horizontal . '-' . $vertical,
+		);
+	}
+}
+
+$page_one_alignment = almaden_bookster_normalize_page_one_alignment_meta(
+	isset( $pdf_settings['chapter_page_one_align'] ) ? $pdf_settings['chapter_page_one_align'] : '',
+	isset( $pdf_settings['chapter_page_one_vertical'] ) ? $pdf_settings['chapter_page_one_vertical'] : 'top',
+	isset( $pdf_settings['chapter_title_align'] ) ? $pdf_settings['chapter_title_align'] : 'center'
+);
+$pdf_settings['chapter_page_one_align'] = $page_one_alignment['combined'];
+$pdf_settings['chapter_page_one_vertical'] = $page_one_alignment['vertical'];
+
 // Credits are structured book data, not editable chapter prose. Give every
 // render path a generated chapter body so a generic/legacy compiler cannot
 // fall back to the historical placeholder stored in post_content.

@@ -111,6 +111,7 @@
         "chapter_prefix_letter_spacing": 5,
         "chapter_prefix_ornament": "line_below",
         
+        "chapter_page_one_align": "center-top",
         "chapter_page_one_vertical": "top",
         "book_start_page_footer_type": "blank",
         "chapter_title_font_family": "Cormorant Garamond",

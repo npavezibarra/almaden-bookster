@@ -151,6 +151,7 @@ function almaden_get_book_pdf_settings( $book_id ) {
 		'chapter_image_inner_width'  => 100.0,
 		'chapter_image_inner_header' => 0,
 		'chapter_image_inner_footer' => 0,
+		'chapter_page_one_align'     => 'center-top',
 		'chapter_page_one_vertical'  => 'top',
 		'chapter_title_font_family'  => 'Playfair Display',
 		'chapter_title_font_size'    => 24.0,

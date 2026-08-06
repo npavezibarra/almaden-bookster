@@ -428,11 +428,23 @@
         activeController = new AbortController();
         setStatus('Componiendo el libro con Typst y renderizando el PDF...');
 
+        const compilePayload = payload();
+        console.info('[Typst opening layout: request]', {
+            alignment: compilePayload?.settings?.chapter_page_one_align || '',
+            separateOpening: compilePayload?.settings?.book_separate_opening_content,
+            chapters: (compilePayload?.chapters || []).map(chapter => ({
+                id: chapter?.id,
+                title: chapter?.title,
+                separateOpening: chapter?.opening_separate_content,
+                hideOpening: chapter?.hide_opening,
+            })),
+        });
+
         const form = new FormData();
         form.append('action', 'almaden_compile_typst_pdf');
         form.append('nonce', bookState.nonce);
         form.append('book_id', String(bookState.bookId));
-        form.append('payload', JSON.stringify(payload()));
+        form.append('payload', JSON.stringify(compilePayload));
 
         try {
             const response = await fetch(bookState.ajaxUrl, {
@@ -450,6 +462,16 @@
                     geometry = JSON.parse(decodeURIComponent(geometryHeader));
                 } catch (error) {
                     console.warn('No se pudo leer la geometría del PDF.', error);
+                }
+            }
+
+            const openingDebugHeader = response.headers.get('X-Almaden-Typst-Opening-Debug');
+            if (openingDebugHeader) {
+                try {
+                    window.almadenTypstOpeningDebug = JSON.parse(decodeURIComponent(openingDebugHeader));
+                    console.info('[Typst opening layout: document]', window.almadenTypstOpeningDebug);
+                } catch (error) {
+                    console.warn('No se pudo leer el diagnóstico de apertura Typst.', error);
                 }
             }
 

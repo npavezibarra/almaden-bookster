@@ -90,6 +90,34 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
         .replace(/>/g, '&gt;')
         .replace(/'/g, '&#039;');
 
+    const getOpeningCanvasHeight = () => {
+        const geometry = typeof window.resolvePDFGeometry === 'function'
+            ? window.resolvePDFGeometry(settings)
+            : null;
+        const unit = (geometry && geometry.unit) || settings.unit || 'cm';
+        const pageHeight = (geometry && geometry.height) || parseFloat(settings.page_height) || 29.7;
+        const ptToUnit = (points) => unit === 'cm' ? (points * 2.54 / 72) : (points / 72);
+        const valueOr = (value, fallback) => {
+            const parsed = parseFloat(value);
+            return Number.isFinite(parsed) ? parsed : fallback;
+        };
+        const headerHeight =
+            valueOr(settings.header_margin_top, 1.0) +
+            ptToUnit(valueOr(settings.header_font_size, 8.5)) +
+            valueOr(settings.header_margin_bottom, 0.5) +
+            valueOr(settings.padding_top, 0);
+        const footerHeight =
+            valueOr(settings.footer_margin_top, 0.5) +
+            ptToUnit(valueOr(settings.footer_font_size, 9.0)) +
+            valueOr(settings.footer_margin_bottom, 1.0) +
+            valueOr(settings.padding_bottom, 0);
+
+        return {
+            unit,
+            height: Math.max(pageHeight - headerHeight - footerHeight, 1),
+        };
+    };
+
     const buildChapterImagePageSection = (chapter, chapterIndex, isSingleChapterPreview = false) => {
         if (!chapter || !chapterHasLeadingImagePage(chapter, settings)) {
             return '';
@@ -176,7 +204,8 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
                 bookState,
                 {
                     variant: openingMode === 'blank' ? 'blank-page' : 'standard',
-                    forceRenderOpeningBlock: true
+                    forceRenderOpeningBlock: true,
+                    separateOpeningCanvas: true
                 }
             )
             : '';
@@ -185,16 +214,56 @@ window.buildContinuousBookHTML = function(isSingleChapterMode, bookState, settin
             openingContent = buildFallbackOpeningContent(chapter, chapterIndex);
         }
 
-        const openingSectionStyle = openingMode === 'blank'
-            ? 'display: flex; width: 100%; min-height: 100%; height: 100%; box-sizing: border-box;'
-            : '';
+        const canvas = getOpeningCanvasHeight();
+        const alignment = typeof window.getSeparateOpeningPageAlignment === 'function'
+            ? window.getSeparateOpeningPageAlignment(settings)
+            : { horizontal: 'center', vertical: 'top' };
+        const horizontalAlign = ['left', 'center', 'right'].includes(alignment.horizontal)
+            ? alignment.horizontal
+            : 'center';
+        const verticalAlign = alignment.vertical === 'bottom'
+            ? 'bottom'
+            : (alignment.vertical === 'center' ? 'middle' : 'top');
+
+        const openingCanvasStyle = [
+            'position: relative',
+            'width: 100%',
+            `height: ${canvas.height.toFixed(4)}${canvas.unit}`,
+            'margin: 0',
+            'padding: 0',
+            'box-sizing: border-box',
+        ].join('; ');
+        const openingPositionerStyle = [
+            'position: absolute',
+            'display: block',
+            'width: fit-content',
+            'max-width: 100%',
+            'margin: 0',
+            'padding: 0',
+            'box-sizing: border-box',
+            `text-align: ${horizontalAlign}`,
+            horizontalAlign === 'left' ? 'left: 0; right: auto' : '',
+            horizontalAlign === 'right' ? 'right: 0; left: auto' : '',
+            horizontalAlign === 'center' ? 'left: 50%; right: auto' : '',
+            verticalAlign === 'top' ? 'top: 0; bottom: auto' : '',
+            verticalAlign === 'bottom' ? 'bottom: 0; top: auto' : '',
+            verticalAlign === 'middle' ? 'top: 50%; bottom: auto' : '',
+            `transform: ${[
+                horizontalAlign === 'center' ? 'translateX(-50%)' : '',
+                verticalAlign === 'middle' ? 'translateY(-50%)' : '',
+            ].filter(Boolean).join(' ') || 'none'}`,
+        ].filter(Boolean).join('; ');
         const openingBreakClass = chapterImageLeadingPage
             ? 'chapter-opening-page-section--after-image'
             : 'chapter-opening-page-section--default';
 
         return `
-        <section class="chapter-opening-page-section-${chapter.id} ${openingBreakClass} pdf-content${isSingleChapterPreview ? ' single-chapter-opening-preview' : ''}" data-chapter-editorial-role="opening" data-opening-mode="${openingMode}" data-has-chapter-image-page="${chapterImageLeadingPage ? '1' : '0'}" style="${openingSectionStyle}">
-            ${openingContent}
+        <section class="chapter-opening-page-section-${chapter.id} ${openingBreakClass} pdf-content${isSingleChapterPreview ? ' single-chapter-opening-preview' : ''}" data-chapter-editorial-role="opening" data-opening-mode="${openingMode}" data-opening-position="${alignment.combined || `${alignment.horizontal}-${alignment.vertical}`}" data-has-chapter-image-page="${chapterImageLeadingPage ? '1' : '0'}">
+            <div class="chapter-opening-canvas" style="${openingCanvasStyle}">
+                <div class="chapter-opening-positioner" style="${openingPositionerStyle}">
+                    ${openingContent}
+                </div>
+            </div>
         </section>
     `;
     };

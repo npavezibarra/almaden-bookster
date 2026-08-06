@@ -344,14 +344,55 @@ function openChapterSettingsModal() {
         const derivedOpeningPageMode = activeChapter.opening_page_mode || (activeChapter.parity_image ? 'image' : 'auto');
         const derivedOpeningBlockEnabled = activeChapter.opening_block_enabled === '0' ? '0' : '1';
         const settings = bookState.settings || {};
+        const normalizeOpeningPageAlignmentValue = (rawValue) => {
+            const normalized = String(rawValue || '')
+                .toLowerCase()
+                .trim()
+                .replace(/\s+/g, '-')
+                .replace(/\//g, '-');
+
+            const parts = normalized.split('-').filter(Boolean);
+            if (parts.length >= 2) {
+                const horizontal = ['left', 'center', 'right'].includes(parts[0]) ? parts[0] : '';
+                const vertical = ['top', 'center', 'bottom'].includes(parts[1]) ? parts[1] : '';
+                if (horizontal && vertical) {
+                    return `${horizontal}-${vertical}`;
+                }
+            }
+
+            return '';
+        };
+
+        const deriveOpeningPageAlignment = () => {
+            const combined = normalizeOpeningPageAlignmentValue(settings.chapter_page_one_align);
+            if (combined) {
+                const [horizontal, vertical] = combined.split('-');
+                return { horizontal, vertical, combined };
+            }
+
+            const legacyHorizontal = ['left', 'center', 'right'].includes(String(settings.chapter_page_one_align || '').toLowerCase())
+                ? String(settings.chapter_page_one_align).toLowerCase()
+                : (['left', 'center', 'right'].includes(String(settings.chapter_title_align || '').toLowerCase())
+                    ? String(settings.chapter_title_align).toLowerCase()
+                    : 'center');
+            const legacyVertical = ['top', 'center', 'bottom'].includes(String(settings.chapter_page_one_vertical || '').toLowerCase())
+                ? String(settings.chapter_page_one_vertical).toLowerCase()
+                : (String(settings.chapter_page_one_vertical || '').toLowerCase() === 'half' ? 'center' : 'top');
+
+            return {
+                horizontal: legacyHorizontal,
+                vertical: legacyVertical,
+                combined: `${legacyHorizontal}-${legacyVertical}`,
+            };
+        };
+
+        const openingPageAlignment = deriveOpeningPageAlignment();
         const derivedOpeningBlockHorizontalAlign = ['left', 'center', 'right'].includes(String(activeChapter.opening_block_horizontal_align || '').toLowerCase())
             ? String(activeChapter.opening_block_horizontal_align).toLowerCase()
-            : (['left', 'center', 'right'].includes(String(settings.chapter_title_align || '').toLowerCase())
-                ? String(settings.chapter_title_align).toLowerCase()
-                : 'center');
+            : openingPageAlignment.horizontal;
         const derivedOpeningBlockVerticalAlign = ['top', 'center', 'bottom'].includes(String(activeChapter.opening_block_vertical_align || '').toLowerCase())
             ? String(activeChapter.opening_block_vertical_align).toLowerCase()
-            : (String(settings.chapter_page_one_vertical || 'top').toLowerCase() === 'half' ? 'center' : (['top', 'center', 'bottom'].includes(String(settings.chapter_page_one_vertical || '').toLowerCase()) ? String(settings.chapter_page_one_vertical).toLowerCase() : 'top'));
+            : openingPageAlignment.vertical;
 
         // Cargar valores Normales
         document.getElementById('chapter_opening_page_mode').value = derivedOpeningPageMode;

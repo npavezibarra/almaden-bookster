@@ -157,35 +157,50 @@ function getPDFStylesTypographyExtended(settings, tocSettings, toPx, chapterTitl
         }
 
         .pdf-content .chapter-opening-block {
-            width: 100% !important;
+            position: static !important;
+            display: block !important;
+            width: fit-content !important;
+            max-width: 100% !important;
             box-sizing: border-box !important;
-            display: flex !important;
-            flex-direction: column !important;
-            justify-content: center !important;
-            align-items: stretch !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
             margin: 0 !important;
             padding: 0 !important;
+            overflow: visible !important;
         }
 
         .pdf-content .chapter-opening-page-block--blank {
-            width: 100% !important;
+            position: static !important;
+            display: block !important;
+            width: fit-content !important;
+            max-width: 100% !important;
             box-sizing: border-box !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
             margin: 0 !important;
             padding: 0 !important;
+            overflow: visible !important;
         }
 
         .pdf-content .chapter-opening-page-block--blank .chapter-opening-content {
-            width: 100% !important;
+            width: fit-content !important;
             max-width: 100% !important;
         }
 
         .pdf-content .chapter-opening-content {
-            width: 100% !important;
+            display: inline-flex !important;
+            flex-direction: column !important;
+            width: fit-content !important;
+            max-width: 100% !important;
             box-sizing: border-box !important;
+        }
+
+        .pdf-content .chapter-opening-content .chapter-main-title,
+        .pdf-content .chapter-opening-content .toc-main-title,
+        .pdf-content .chapter-opening-content .chapter-subtitle,
+        .pdf-content .chapter-opening-content .chapter-prefix-wrapper {
+            width: fit-content !important;
+            max-width: 100% !important;
         }
 
         .pdf-content .chapter-opening-content[data-align="left"] { text-align: left !important; }

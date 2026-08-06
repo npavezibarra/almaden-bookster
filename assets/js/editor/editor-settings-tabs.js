@@ -93,6 +93,48 @@ function normalizeFootnoteLineHeight(value, fontSize, fallback = 11.5) {
     return Math.max(0.1, Math.min(40, parsed));
 }
 
+function normalizeOpeningPageAlignmentValue(rawValue) {
+    const normalized = String(rawValue || '')
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/\//g, '-');
+
+    const parts = normalized.split('-').filter(Boolean);
+    if (parts.length >= 2) {
+        const horizontal = ['left', 'center', 'right'].includes(parts[0]) ? parts[0] : '';
+        const vertical = ['top', 'center', 'bottom'].includes(parts[1]) ? parts[1] : '';
+        if (horizontal && vertical) {
+            return `${horizontal}-${vertical}`;
+        }
+    }
+
+    return '';
+}
+
+function deriveOpeningPageAlignment(settings) {
+    const combined = normalizeOpeningPageAlignmentValue(settings.chapter_page_one_align);
+    if (combined) {
+        const [horizontal, vertical] = combined.split('-');
+        return { horizontal, vertical, combined };
+    }
+
+    const legacyHorizontal = ['left', 'center', 'right'].includes(String(settings.chapter_page_one_align || '').toLowerCase())
+        ? String(settings.chapter_page_one_align).toLowerCase()
+        : (['left', 'center', 'right'].includes(String(settings.chapter_title_align || '').toLowerCase())
+            ? String(settings.chapter_title_align).toLowerCase()
+            : 'center');
+    const legacyVertical = ['top', 'center', 'bottom'].includes(String(settings.chapter_page_one_vertical || '').toLowerCase())
+        ? String(settings.chapter_page_one_vertical).toLowerCase()
+        : (String(settings.chapter_page_one_vertical || '').toLowerCase() === 'half' ? 'center' : 'top');
+
+    return {
+        horizontal: legacyHorizontal,
+        vertical: legacyVertical,
+        combined: `${legacyHorizontal}-${legacyVertical}`,
+    };
+}
+
 window.switchEbookSettingTab = function(tabId) {
     // Ocultar todos los contenidos de pestaña de ebook
     document.querySelectorAll('.ebook-setting-tab-content').forEach(el => {
@@ -331,9 +373,9 @@ window.populateSettingsForm = function() {
         document.getElementById('setting-chapter-start-parity').value = derivedLegacyParity;
     }
 
-    if (document.getElementById('setting-chapter-page-one-vertical')) {
-        const chapterPageOneVertical = settings.chapter_page_one_vertical || 'top';
-        document.getElementById('setting-chapter-page-one-vertical').value = chapterPageOneVertical === 'half' ? 'center' : chapterPageOneVertical;
+    if (document.getElementById('setting-chapter-page-one-align')) {
+        const openingPageAlignment = deriveOpeningPageAlignment(settings);
+        document.getElementById('setting-chapter-page-one-align').value = openingPageAlignment.combined;
     }
     if (document.getElementById('setting-chapter-title-font-family')) document.getElementById('setting-chapter-title-font-family').value = settings.chapter_title_font_family || 'Playfair Display';
     if (document.getElementById('setting-chapter-title-font-size')) document.getElementById('setting-chapter-title-font-size').value = settings.chapter_title_font_size || 24;

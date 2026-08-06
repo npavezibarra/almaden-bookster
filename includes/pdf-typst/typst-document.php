@@ -1028,6 +1028,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 	$rendered     = 0;
 	$numbered_chapter_index = 0;
 	$book_reference_groups = array();
+	$opening_debug = array();
 	foreach ( $chapters as $chapter_index => $chapter ) {
 		if ( ! is_array( $chapter ) ) {
 			continue;
@@ -1117,6 +1118,29 @@ function almaden_bookster_build_typst_document( $payload ) {
 		}
 
 		$opening_visibility = almaden_bookster_typst_chapter_opening_visibility( $chapter, $settings );
+		$separate_opening = isset( $chapter['opening_separate_content'] ) && '' !== (string) $chapter['opening_separate_content']
+			? almaden_bookster_typst_bool( $chapter['opening_separate_content'] )
+			: almaden_bookster_typst_bool( $settings['book_separate_opening_content'] ?? true );
+		$separate_opening = $separate_opening && ! $is_toc && ! $is_credits && ! empty( $opening_visibility['has_visible_content'] );
+		$opening_alignment = strtolower( trim( (string) ( $settings['chapter_page_one_align'] ?? 'center-top' ) ) );
+		if ( ! in_array( $opening_alignment, array( 'left-top', 'center-top', 'right-top', 'left-center', 'center-center', 'right-center', 'left-bottom', 'center-bottom', 'right-bottom' ), true ) ) {
+			$opening_alignment = 'center-top';
+		}
+		list( $opening_horizontal, $opening_vertical ) = explode( '-', $opening_alignment, 2 );
+		$opening_vertical_typst = 'center' === $opening_vertical ? 'horizon' : $opening_vertical;
+		$opening_place_alignment = $opening_horizontal . ' + ' . $opening_vertical_typst;
+		$opening_line_alignment = $separate_opening ? $opening_horizontal : $title_align;
+		$opening_debug[] = array(
+			'chapter_id'             => (string) ( $chapter['id'] ?? '' ),
+			'title'                  => $title,
+			'configured_alignment'   => $opening_alignment,
+			'configured_separation'  => $settings['book_separate_opening_content'] ?? null,
+			'chapter_separation'     => $chapter['opening_separate_content'] ?? null,
+			'opening_visible'        => ! empty( $opening_visibility['has_visible_content'] ),
+			'separated_page'         => $separate_opening,
+			'typst_place_alignment'  => $opening_place_alignment,
+			'source_strategy'        => $separate_opening ? 'full-page-box-and-place' : 'inline-opening',
+		);
 		$opening_lines = array();
 		$show_title = $opening_visibility['show_title'];
 		$show_prefix = $opening_visibility['show_prefix'] && null !== $chapter_number;
@@ -1136,12 +1160,12 @@ function almaden_bookster_build_typst_document( $payload ) {
 				),
 				$prefix_template
 			);
-			$opening_lines[] = '#align(' . $title_align . ')[#text(font: "' . almaden_bookster_typst_escape_string( $title_font_family ) . '", size: ' . $title_size . 'pt, weight: ' . $title_font_weight . ', style: "' . almaden_bookster_typst_escape_string( $title_font_style ) . '", tracking: ' . $title_letter_spacing . 'pt)[' . almaden_bookster_typst_escape_markup( $prefix_text ) . ']]';
+			$opening_lines[] = '#align(' . $opening_line_alignment . ')[#text(font: "' . almaden_bookster_typst_escape_string( $title_font_family ) . '", size: ' . $title_size . 'pt, weight: ' . $title_font_weight . ', style: "' . almaden_bookster_typst_escape_string( $title_font_style ) . '", tracking: ' . $title_letter_spacing . 'pt)[' . almaden_bookster_typst_escape_markup( $prefix_text ) . ']]';
 		}
 
 		if ( $show_title ) {
 			$display_title = almaden_bookster_typst_transform_title( $title, $title_transform );
-			$opening_lines[] = '#align(' . $title_align . ')[#heading(level: 1, outlined: true)[#text(font: "' . almaden_bookster_typst_escape_string( $title_font_family ) . '", size: ' . $title_size . 'pt, weight: ' . $title_font_weight . ', style: "' . almaden_bookster_typst_escape_string( $title_font_style ) . '", tracking: ' . $title_letter_spacing . 'pt)[' . almaden_bookster_typst_escape_markup( $display_title ) . ']]]' ;
+			$opening_lines[] = '#align(' . $opening_line_alignment . ')[#heading(level: 1, outlined: true)[#text(font: "' . almaden_bookster_typst_escape_string( $title_font_family ) . '", size: ' . $title_size . 'pt, weight: ' . $title_font_weight . ', style: "' . almaden_bookster_typst_escape_string( $title_font_style ) . '", tracking: ' . $title_letter_spacing . 'pt)[' . almaden_bookster_typst_escape_markup( $display_title ) . ']]]' ;
 		}
 
 		if ( $show_prefix && 'below' === $prefix_position ) {
@@ -1154,7 +1178,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 				),
 				$prefix_template
 			);
-			$opening_lines[] = '#align(' . $title_align . ')[#text(font: "' . almaden_bookster_typst_escape_string( $title_font_family ) . '", size: ' . $title_size . 'pt, weight: ' . $title_font_weight . ', style: "' . almaden_bookster_typst_escape_string( $title_font_style ) . '", tracking: ' . $title_letter_spacing . 'pt)[' . almaden_bookster_typst_escape_markup( $prefix_text ) . ']]';
+			$opening_lines[] = '#align(' . $opening_line_alignment . ')[#text(font: "' . almaden_bookster_typst_escape_string( $title_font_family ) . '", size: ' . $title_size . 'pt, weight: ' . $title_font_weight . ', style: "' . almaden_bookster_typst_escape_string( $title_font_style ) . '", tracking: ' . $title_letter_spacing . 'pt)[' . almaden_bookster_typst_escape_markup( $prefix_text ) . ']]';
 		}
 
 		if ( $show_subtitle ) {
@@ -1169,16 +1193,24 @@ function almaden_bookster_build_typst_document( $payload ) {
 			$subtitle_letter_spacing = almaden_bookster_typst_number( $chapter, 'subtitle_letter_spacing', almaden_bookster_typst_number( $settings, 'chapter_subtitle_letter_spacing', 0, -20, 20 ), -20, 20 );
 			$subtitle_text_transform = strtolower( trim( (string) ( $chapter['subtitle_text_transform'] ?? ( $settings['chapter_subtitle_text_transform'] ?? 'none' ) ) ) );
 			$subtitle_display = almaden_bookster_typst_transform_title( $subtitle_text, $subtitle_text_transform );
-			$opening_lines[] = '#align(' . $subtitle_align . ')[#text(font: "' . almaden_bookster_typst_escape_string( $subtitle_font_family ) . '", size: ' . round( max( 6, $subtitle_font_size * 0.75 ), 3 ) . 'pt, weight: ' . $subtitle_font_weight . ', style: "' . almaden_bookster_typst_escape_string( $subtitle_font_style ) . '", tracking: ' . round( $subtitle_letter_spacing * 0.75, 3 ) . 'pt)[' . almaden_bookster_typst_escape_markup( $subtitle_display ) . ']]';
+			$opening_lines[] = '#align(' . ( $separate_opening ? $opening_horizontal : $subtitle_align ) . ')[#text(font: "' . almaden_bookster_typst_escape_string( $subtitle_font_family ) . '", size: ' . round( max( 6, $subtitle_font_size * 0.75 ), 3 ) . 'pt, weight: ' . $subtitle_font_weight . ', style: "' . almaden_bookster_typst_escape_string( $subtitle_font_style ) . '", tracking: ' . round( $subtitle_letter_spacing * 0.75, 3 ) . 'pt)[' . almaden_bookster_typst_escape_markup( $subtitle_display ) . ']]';
 		}
 
 		if ( ! empty( $opening_lines ) ) {
-			$source .= ( $show_title ? '#v(10mm)' : '#v(4mm)' ) . "\n";
-			$source .= implode( "\n#v(3mm)\n", $opening_lines ) . "\n";
-			if ( $show_title ) {
-				$source .= '#v(' . $title_gap . $unit . ')' . "\n\n";
+			if ( $separate_opening ) {
+				$source .= '#box(width: 100%, height: 100%)[' . "\n";
+				$source .= '#place(' . $opening_place_alignment . ')[' . "\n";
+				$source .= '#block(breakable: false)[' . "\n";
+				$source .= implode( "\n#v(3mm)\n", $opening_lines ) . "\n";
+				$source .= "]\n]\n]\n#pagebreak()\n\n";
 			} else {
-				$source .= "\n";
+				$source .= ( $show_title ? '#v(10mm)' : '#v(4mm)' ) . "\n";
+				$source .= implode( "\n#v(3mm)\n", $opening_lines ) . "\n";
+				if ( $show_title ) {
+					$source .= '#v(' . $title_gap . $unit . ')' . "\n\n";
+				} else {
+					$source .= "\n";
+				}
 			}
 		}
 
@@ -1340,6 +1372,8 @@ function almaden_bookster_build_typst_document( $payload ) {
 			$source .= '#set page(margin: (top: ' . ( $margin_top + $chapter_header_reserve ) . $unit . ', bottom: ' . ( $margin_bot + $chapter_footer_reserve ) . $unit . ', inside: ' . $margin_inside . $unit . ', outside: ' . $margin_outside . $unit . '))' . "\n";
 		}
 	}
+
+	$GLOBALS['almaden_bookster_typst_opening_debug'] = $opening_debug;
 
 	if ( 'book' === $footnote_mode && ! empty( $book_reference_groups ) ) {
 		$source .= "\n#pagebreak()\n\n";

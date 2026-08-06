@@ -25,6 +25,50 @@ window.almadenBuildPDFSettingsState = function(ctx) {
         return Math.max(0.1, Math.min(40, parsed));
     };
 
+    const normalizeOpeningPageAlignmentValue = (rawValue) => {
+        const normalized = String(rawValue || '')
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, '-')
+            .replace(/\//g, '-');
+
+        const parts = normalized.split('-').filter(Boolean);
+        if (parts.length >= 2) {
+            const horizontal = ['left', 'center', 'right'].includes(parts[0]) ? parts[0] : '';
+            const vertical = ['top', 'center', 'bottom'].includes(parts[1]) ? parts[1] : '';
+            if (horizontal && vertical) {
+                return `${horizontal}-${vertical}`;
+            }
+        }
+
+        return '';
+    };
+
+    const deriveOpeningPageAlignment = () => {
+        const combined = normalizeOpeningPageAlignmentValue(getVal('setting-chapter-page-one-align'));
+        if (combined) {
+            const [horizontal, vertical] = combined.split('-');
+            return { horizontal, vertical, combined };
+        }
+
+        const legacyHorizontal = ['left', 'center', 'right'].includes(String(getVal('setting-chapter-page-one-align') || '').toLowerCase())
+            ? String(getVal('setting-chapter-page-one-align')).toLowerCase()
+            : (['left', 'center', 'right'].includes(String(getVal('setting-chapter-title-align') || '').toLowerCase())
+                ? String(getVal('setting-chapter-title-align')).toLowerCase()
+                : 'center');
+        const legacyVertical = ['top', 'center', 'bottom'].includes(String(getVal('setting-chapter-page-one-vertical') || '').toLowerCase())
+            ? String(getVal('setting-chapter-page-one-vertical')).toLowerCase()
+            : (String(getVal('setting-chapter-page-one-vertical') || '').toLowerCase() === 'half' ? 'center' : 'top');
+
+        return {
+            horizontal: legacyHorizontal,
+            vertical: legacyVertical,
+            combined: `${legacyHorizontal}-${legacyVertical}`,
+        };
+    };
+
+    const openingPageAlignment = deriveOpeningPageAlignment();
+
     return {
         unit: getVal('setting-unit'),
         page_size: getVal('setting-page-size'),
@@ -179,7 +223,8 @@ window.almadenBuildPDFSettingsState = function(ctx) {
         footer_margin_bottom: parseVal('setting-footer-margin-bottom', 1.0),
         footer_align: getVal('setting-footer-align'),
 
-        chapter_page_one_vertical: getVal('setting-chapter-page-one-vertical'),
+        chapter_page_one_align: openingPageAlignment.combined,
+        chapter_page_one_vertical: openingPageAlignment.vertical,
         chapter_title_font_family: getVal('setting-chapter-title-font-family'),
         chapter_title_font_size: parseVal('setting-chapter-title-font-size', 24),
         chapter_title_font_weight: getVal('setting-chapter-title-font-weight'),
