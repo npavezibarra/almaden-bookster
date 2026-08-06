@@ -15,9 +15,60 @@
         return Number.parseInt(page?.dataset.pageNumber || '', 10);
     }
 
+    function normalizeId(value) {
+        return String(value || '').toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    }
+
     function getTemplates() {
         const settings = window.bookState?.settings || {};
         return Array.isArray(settings.page_templates) ? settings.page_templates : [];
+    }
+
+    function getTemplateRegistry() {
+        return window.almadenPageTemplateRegistry || {};
+    }
+
+    function getTemplateDefinition(templateId) {
+        return getTemplateRegistry()[normalizeId(templateId)] || null;
+    }
+
+    function buildTemplateSlots(templateId, existingSlots = []) {
+        const definition = getTemplateDefinition(templateId);
+        const defaultSlots = Array.isArray(definition?.slots) ? definition.slots : [];
+        const existingMap = new Map(
+            (Array.isArray(existingSlots) ? existingSlots : []).map(slot => [normalizeId(slot?.id), slot])
+        );
+
+        const normalized = defaultSlots.map((slot, index) => {
+            const slotId = normalizeId(slot?.id) || `slot-${index + 1}`;
+            const existing = existingMap.get(slotId) || {};
+            return {
+                id: slotId,
+                label: slot?.label || existing.label || slotId,
+                kind: slot?.kind || existing.kind || 'image',
+                attachment_id: Number(existing.attachment_id) || 0,
+                url: existing.url || '',
+                preview_url: existing.preview_url || existing.url || '',
+                original_url: existing.original_url || existing.url || ''
+            };
+        });
+
+        existingMap.forEach((slot, slotId) => {
+            if (normalized.some(entry => normalizeId(entry.id) === slotId)) {
+                return;
+            }
+            normalized.push({
+                id: slotId,
+                label: slot?.label || slotId,
+                kind: slot?.kind || 'image',
+                attachment_id: Number(slot?.attachment_id) || 0,
+                url: slot?.url || '',
+                preview_url: slot?.preview_url || slot?.url || '',
+                original_url: slot?.original_url || slot?.url || ''
+            });
+        });
+
+        return normalized;
     }
 
     function getTemplateForSelectedPage() {
@@ -44,6 +95,11 @@
         if (removeButton) {
             removeButton.classList.toggle('hidden', !hasTemplate);
             removeButton.setAttribute('aria-hidden', hasTemplate ? 'false' : 'true');
+        }
+        const imagesButton = document.getElementById('page-template-images');
+        if (imagesButton) {
+            imagesButton.classList.toggle('hidden', !hasTemplate);
+            imagesButton.setAttribute('aria-hidden', hasTemplate ? 'false' : 'true');
         }
         if (confirmButton) {
             confirmButton.textContent = hasTemplate ? 'Reemplazar plantilla' : 'Aplicar plantilla';
@@ -92,11 +148,13 @@
         if (!Number.isFinite(selectedPageNumber) || selectedPageNumber < 1 || !window.bookState) return;
 
         window.bookState.settings = window.bookState.settings || {};
+        const existingTemplate = getTemplateForSelectedPage();
         const nextTemplate = {
-            id: `page-${selectedPageNumber}-one-column-one-image`,
+            id: existingTemplate?.id || `page-${selectedPageNumber}-one-column-one-image`,
             page_number: selectedPageNumber,
             template_id: 'one-column-one-image',
-            placeholder: { enabled: true }
+            placeholder: { enabled: true },
+            slots: buildTemplateSlots('one-column-one-image', existingTemplate?.slots || [])
         };
         const existingTemplates = getTemplates();
         window.bookState.settings.page_templates = [

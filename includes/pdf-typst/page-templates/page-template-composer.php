@@ -19,7 +19,7 @@ function almaden_bookster_typst_page_template_context( $settings ) {
 	);
 }
 
-function almaden_bookster_typst_compose_page_templates( $source, $context ) {
+function almaden_bookster_typst_compose_page_templates( $source, $context, &$assets = array() ) {
 	$source = (string) $source;
 	if ( empty( $context['templates'] ) ) {
 		return $source;
@@ -124,7 +124,7 @@ function almaden_bookster_typst_page_template_source_blocks( $source ) {
 	return array( $blocks, $ordered_ids );
 }
 
-function almaden_bookster_typst_page_template_apply_blocks( $source, $context, $template, $blocks, $ordered_ids, $page_ids, $left_ids, &$debug = array(), $layout = array() ) {
+function almaden_bookster_typst_page_template_apply_blocks( $source, $context, $template, $blocks, $ordered_ids, $page_ids, $left_ids, &$debug = array(), $layout = array(), &$assets = array() ) {
 	$page_ids = array_values( array_filter( $ordered_ids, static function ( $id ) use ( $page_ids ) {
 		return in_array( $id, $page_ids, true );
 	} ) );
@@ -157,7 +157,7 @@ function almaden_bookster_typst_page_template_apply_blocks( $source, $context, $
 		}, $deferred_ids ) );
 	}
 	$gap = round( (float) $context['columns_gap'], 4 ) . $context['unit'];
-	$placeholder = almaden_bookster_typst_page_template_placeholder( $template );
+	$placeholder = almaden_bookster_typst_page_template_placeholder( $template, $context, $assets );
 
 	/*
 	 * #page creates one physical page outside the book's normal multi-column
@@ -190,7 +190,7 @@ function almaden_bookster_typst_page_template_take_slice( $ordered_ids, $start_i
 	return array_slice( $ordered_ids, $start_index, $length );
 }
 
-function almaden_bookster_typst_apply_page_template_flow( $source, $context, $flow_map, $template = null, $word_probe = array() ) {
+function almaden_bookster_typst_apply_page_template_flow( $source, $context, $flow_map, $template = null, $word_probe = array(), &$assets = array() ) {
 	$GLOBALS['almaden_bookster_typst_page_template_debug'] = array();
 	$template = is_array( $template ) ? $template : ( $context['templates'][0] ?? null );
 	if ( ! is_array( $template ) || 'one-column-one-image' !== ( $template['template_id'] ?? '' ) ) {
@@ -259,7 +259,7 @@ function almaden_bookster_typst_apply_page_template_flow( $source, $context, $fl
 	}
 
 	$debug = array();
-	$updated_source = almaden_bookster_typst_page_template_apply_blocks( $source, $context, $template, $blocks, $ordered_ids, $page_ids, $left_ids, $debug, $layout );
+	$updated_source = almaden_bookster_typst_page_template_apply_blocks( $source, $context, $template, $blocks, $ordered_ids, $page_ids, $left_ids, $debug, $layout, $assets );
 	if ( $updated_source !== $source ) {
 		$selected_end_index = array_search( end( $page_blocks ), $ordered_ids, true );
 		$GLOBALS['almaden_bookster_typst_page_template_debug'] = array(

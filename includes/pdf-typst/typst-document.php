@@ -1383,7 +1383,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 			$inline_font_assets
 		)
 	);
-	$source = almaden_bookster_typst_compose_page_templates( $source, $page_template_context );
+	$source = almaden_bookster_typst_compose_page_templates( $source, $page_template_context, $assets );
 
 	return array(
 		'source'        => $source,

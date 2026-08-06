@@ -12,11 +12,18 @@ if ( ! defined( 'ABSPATH' ) && ! defined( 'ALMADEN_TYPST_TESTING' ) ) {
 function almaden_bookster_typst_page_template_registry() {
 	return array(
 		'one-column-one-image' => array(
-			'id'             => 'one-column-one-image',
-			'label'          => '1 col 1 image',
-			'placement'      => 'physical-page',
-			'placeholder'    => true,
-			'future_image'   => true,
+			'id'          => 'one-column-one-image',
+			'label'       => '1 col 1 image',
+			'placement'   => 'physical-page',
+			'placeholder' => true,
+			'future_image' => true,
+			'slots'       => array(
+				array(
+					'id'    => 'image-1',
+					'label' => 'Imagen 1',
+					'kind'  => 'image',
+				),
+			),
 		),
 	);
 }

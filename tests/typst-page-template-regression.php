@@ -45,6 +45,33 @@ if ( empty( $probe['source'] ) || empty( $probe['word_map'] ) ) {
 	fwrite( STDERR, "La sonda de palabras no pudo preparar la página de plantilla.\n" );
 	exit( 1 );
 }
+$default_slots = almaden_bookster_typst_page_template_normalize_slots( 'one-column-one-image', array() );
+if ( 1 !== count( $default_slots ) || 'image-1' !== ( $default_slots[0]['id'] ?? '' ) ) {
+	fwrite( STDERR, "La plantilla no normalizó el slot por defecto.\n" );
+	exit( 1 );
+}
+$slot_assets = array();
+$multi_slot_placeholder = almaden_bookster_typst_page_template_placeholder(
+	array(
+		'page_number' => 7,
+		'template_id' => 'one-column-one-image',
+		'slots'       => array(
+			array( 'id' => 'image-1', 'label' => 'Imagen 1', 'kind' => 'image' ),
+			array( 'id' => 'image-2', 'label' => 'Imagen 2', 'kind' => 'image' ),
+			array( 'id' => 'image-3', 'label' => 'Imagen 3', 'kind' => 'image' ),
+		),
+	),
+	$context,
+	$slot_assets
+);
+if ( 3 !== substr_count( $multi_slot_placeholder, 'almaden-template-slot-p7-one-column-one-image-image-' ) ) {
+	fwrite( STDERR, "La plantilla no renderizó los tres slots esperados.\n" );
+	exit( 1 );
+}
+if ( ! empty( $slot_assets ) ) {
+	fwrite( STDERR, "La plantilla no debería registrar assets sin imágenes adjuntas.\n" );
+	exit( 1 );
+}
 $probe_output = sys_get_temp_dir() . '/almaden-typst-page-template-probe.typ';
 file_put_contents( $probe_output, $probe['source'] );
 
@@ -79,6 +106,10 @@ file_put_contents( sys_get_temp_dir() . '/almaden-typst-page-template-partial.ty
 $result = almaden_bookster_typst_apply_page_template_flow( $source, $context, $flow_map, $template );
 if ( false === strpos( $result, '#page(columns: 1)[' ) ) {
 	fwrite( STDERR, "La plantilla no se emitió como una página física de Typst.\n" );
+	exit( 1 );
+}
+if ( false === strpos( $result, 'almaden-template-slot-p2-one-column-one-image-image-1' ) ) {
+	fwrite( STDERR, "La plantilla física no etiquetó el slot de imagen.\n" );
 	exit( 1 );
 }
 

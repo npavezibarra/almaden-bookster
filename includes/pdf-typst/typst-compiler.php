@@ -99,15 +99,6 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 
 	$input  = $temp_dir . '/book.typ';
 	$output = $temp_dir . '/book.pdf';
-	if ( ! empty( $document['assets'] ) ) {
-		$assets_dir = $temp_dir . '/assets';
-		wp_mkdir_p( $assets_dir );
-		foreach ( $document['assets'] as $name => $path ) {
-			if ( preg_match( '/^[a-f0-9]{64}\.[a-z0-9]+$/', $name ) && is_file( $path ) ) {
-				copy( $path, $assets_dir . '/' . $name );
-			}
-		}
-	}
 	$font_path = '';
 	if ( ! empty( $document['font_assets'] ) ) {
 		$fonts_dir = $temp_dir . '/fonts';
@@ -129,6 +120,7 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 	$GLOBALS['almaden_bookster_typst_page_template_results'] = array();
 	if ( ! empty( $document['page_templates'] ) ) {
 		$flow_context = $document['page_template_context'] ?? array( 'templates' => $document['page_templates'] ?? array(), 'columns_count' => 2, 'columns_gap' => 0.8, 'unit' => 'cm' );
+		$template_assets = isset( $document['assets'] ) && is_array( $document['assets'] ) ? $document['assets'] : array();
 		$read_query = static function ( $selector ) use ( $binary, $temp_dir, $font_path, $input, &$stdout, &$stderr ) {
 			$flow_command = array( $binary, 'query', '--root', $temp_dir, '--diagnostic-format', 'short' );
 			if ( '' !== $font_path ) {
@@ -168,7 +160,7 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 					}
 				}
 			}
-			$updated_source = almaden_bookster_typst_apply_page_template_flow( $document['source'], $flow_context, $flow_map, $template, $word_probe );
+			$updated_source = almaden_bookster_typst_apply_page_template_flow( $document['source'], $flow_context, $flow_map, $template, $word_probe, $template_assets );
 			$GLOBALS['almaden_bookster_typst_page_template_results'][] = array(
 				'page'      => $target_page,
 				'flow_rows' => count( $flow_rows ),
@@ -185,6 +177,16 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 
 		// Expose the final layout to the PDF viewer after all page templates have reflowed it.
 		$GLOBALS['almaden_bookster_typst_page_flow_map'] = $read_flow_map();
+		$document['assets'] = $template_assets;
+	}
+	if ( ! empty( $document['assets'] ) ) {
+		$assets_dir = $temp_dir . '/assets';
+		wp_mkdir_p( $assets_dir );
+		foreach ( $document['assets'] as $name => $path ) {
+			if ( preg_match( '/^[a-f0-9]{64}\.[a-z0-9]+$/', $name ) && is_file( $path ) ) {
+				copy( $path, $assets_dir . '/' . $name );
+			}
+		}
 	}
 	$command = array( $binary, 'compile', '--root', $temp_dir, '--diagnostic-format', 'short' );
 	if ( '' !== $font_path ) {

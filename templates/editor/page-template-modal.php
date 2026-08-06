@@ -27,6 +27,9 @@
         </div>
 
         <div class="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+            <button id="page-template-images" type="button" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100" onclick="window.almadenPageTemplateImagesUI?.openModal()">
+                Imágenes
+            </button>
             <button id="page-template-remove" type="button" class="hidden rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 hover:text-rose-700">
                 Quitar plantilla
             </button>

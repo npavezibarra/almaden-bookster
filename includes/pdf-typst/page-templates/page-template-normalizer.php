@@ -37,13 +37,18 @@ function almaden_bookster_typst_normalize_page_templates( $value ) {
 		}
 
 		$seen_pages[ $page_number ] = true;
+		$template_entry_id = preg_replace( '/[^A-Za-z0-9_-]/', '', (string) ( $entry['id'] ?? '' ) );
+		if ( '' === $template_entry_id ) {
+			$template_entry_id = 'page-' . $page_number . '-' . $template_id;
+		}
 		$normalized[] = array(
-			'id'          => preg_replace( '/[^A-Za-z0-9_-]/', '', (string) ( $entry['id'] ?? '' ) ),
+			'id'          => $template_entry_id,
 			'page_number' => $page_number,
 			'template_id' => $template_id,
 			'placeholder' => array(
 				'enabled' => ! isset( $entry['placeholder']['enabled'] ) || ! empty( $entry['placeholder']['enabled'] ),
 			),
+			'slots'      => almaden_bookster_typst_page_template_normalize_slots( $template_id, $entry['slots'] ?? array() ),
 		);
 	}
 
