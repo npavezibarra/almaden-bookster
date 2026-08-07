@@ -69,6 +69,31 @@ function almaden_bookster_typst_page_template_first_row_on_page( $flow_map, $pag
 	return $rows[0] ?? null;
 }
 
+function almaden_bookster_typst_page_template_target_rows( $flow_map, $template ) {
+	$template = is_array( $template ) ? $template : array();
+	$target_page = (int) ( $template['page_number'] ?? 0 );
+	$anchor_order = almaden_bookster_typst_page_template_flow_order( $template['anchor']['flow_id'] ?? '' );
+
+	return array_values( array_filter( (array) $flow_map, static function ( $row ) use ( $target_page, $anchor_order ) {
+		if ( ! is_array( $row ) || $target_page !== (int) ( $row['page'] ?? 0 ) ) {
+			return false;
+		}
+		return PHP_INT_MAX === $anchor_order
+			|| almaden_bookster_typst_page_template_flow_order( $row['id'] ?? '' ) >= $anchor_order;
+	} ) );
+}
+
+function almaden_bookster_typst_page_template_rows_before_anchor( $flow_map, $flow_id ) {
+	$anchor_order = almaden_bookster_typst_page_template_flow_order( $flow_id );
+	if ( PHP_INT_MAX === $anchor_order ) {
+		return array_values( (array) $flow_map );
+	}
+
+	return array_values( array_filter( (array) $flow_map, static function ( $row ) use ( $anchor_order ) {
+		return almaden_bookster_typst_page_template_flow_order( $row['id'] ?? '' ) < $anchor_order;
+	} ) );
+}
+
 /**
  * Resolve a stored instance against the current Typst flow map.
  *

@@ -537,6 +537,13 @@
             return 1;
         } catch (error) {
             if (error.name === 'AbortError') return 0;
+            console.warn('[Typst compile failed]', {
+                message: error.message,
+                pageTemplates: window.bookState?.settings?.page_templates || [],
+                pageTemplateResults: window.almadenPageTemplateResults || [],
+                openingDebug: window.almadenTypstOpeningDebug || null,
+                pageFlowMap: window.almadenPageTemplateFlowMap || [],
+            });
             window.pdfContentIntegrity = { valid: false, engine: 'typst', error: error.message };
             setStatus(`Error en el maquetador Typst: ${error.message}`, true);
             return 0;

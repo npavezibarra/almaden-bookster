@@ -52,6 +52,26 @@ if ( empty( $anchored['applied'] ) || 2 !== ( $anchored['template']['resolved_pa
 	exit( 1 );
 }
 
+$anchored_rows = almaden_bookster_typst_page_template_target_rows(
+	$flow_map,
+	array_merge( $template, array( 'anchor' => array( 'flow_id' => 'almaden-flow-3' ) ) )
+);
+if ( array( 'almaden-flow-3', 'almaden-flow-4' ) !== array_column( $anchored_rows, 'id' ) ) {
+	fwrite( STDERR, "La selección incluyó bloques anteriores al ancla de la plantilla.\n" );
+	exit( 1 );
+}
+$reserved_rows = almaden_bookster_typst_page_template_rows_before_anchor( $flow_map, 'almaden-flow-3' );
+if ( array( 'almaden-flow-1', 'almaden-flow-2' ) !== array_column( $reserved_rows, 'id' ) ) {
+	fwrite( STDERR, "La plantilla anterior consumió el ancla reservada para la siguiente.\n" );
+	exit( 1 );
+}
+
+$registry = almaden_bookster_typst_page_template_registry();
+if ( empty( $registry['inner-full-page'] ) ) {
+	fwrite( STDERR, "El registry no expuso la nueva plantilla Inner Full Page.\n" );
+	exit( 1 );
+}
+
 $probe = almaden_bookster_typst_page_template_prepare_word_probe( $source, $context, $flow_map, $template );
 if ( empty( $probe['source'] ) || empty( $probe['word_map'] ) ) {
 	fwrite( STDERR, "La sonda de palabras no pudo preparar la página de plantilla.\n" );
@@ -86,6 +106,30 @@ if ( ! empty( $slot_assets ) ) {
 	fwrite( STDERR, "La plantilla no debería registrar assets sin imágenes adjuntas.\n" );
 	exit( 1 );
 }
+
+$full_slots = almaden_bookster_typst_page_template_normalize_slots( 'inner-full-page', array() );
+if ( 1 !== count( $full_slots ) || 'image-1' !== ( $full_slots[0]['id'] ?? '' ) ) {
+	fwrite( STDERR, "La plantilla Inner Full Page no normalizó el slot por defecto.\n" );
+	exit( 1 );
+}
+$full_placeholder = almaden_bookster_typst_page_template_placeholder(
+	array(
+		'id'          => 'tpl-full',
+		'instance_id' => 'tpl-full',
+		'page_number' => 7,
+		'template_id' => 'inner-full-page',
+		'slots'       => array(
+			array( 'id' => 'image-1', 'label' => 'Imagen 1', 'kind' => 'image' ),
+		),
+	),
+	$context,
+	$slot_assets
+);
+if ( false === strpos( $full_placeholder, 'almaden-template-slot-tpl-full-image-1' ) ) {
+	fwrite( STDERR, "La plantilla Inner Full Page no etiquetó su slot de imagen.\n" );
+	exit( 1 );
+}
+
 $probe_output = sys_get_temp_dir() . '/almaden-typst-page-template-probe.typ';
 file_put_contents( $probe_output, $probe['source'] );
 
@@ -119,7 +163,7 @@ file_put_contents( sys_get_temp_dir() . '/almaden-typst-page-template-partial.ty
 
 $result = almaden_bookster_typst_apply_page_template_flow( $source, $context, $flow_map, $template );
 if ( false === strpos( $result, '#page(columns: 1)[' ) ) {
-	fwrite( STDERR, "La plantilla no se emitió como una página física de Typst.\n" );
+	fwrite( STDERR, "La plantilla no emitió una página de ancho completo.\n" );
 	exit( 1 );
 }
 if ( false === strpos( $result, 'almaden-template-slot-tpl-primary-image-1' ) ) {
@@ -127,13 +171,29 @@ if ( false === strpos( $result, 'almaden-template-slot-tpl-primary-image-1' ) ) 
 	exit( 1 );
 }
 
-if ( ! preg_match( '/#page\(columns: 1\)\[.*?\]\s*#metadata\("almaden-flow-2"\)/s', $result ) ) {
+if ( ! preg_match( '/#page\(columns: 1\).*?#metadata\("almaden-flow-2"\)/s', $result ) ) {
 	fwrite( STDERR, "El contenido de la columna reemplazada no se difirió después de la plantilla.\n" );
 	exit( 1 );
 }
 
 if ( false === strpos( $result, '#metadata("almaden-flow-5")' ) ) {
 	fwrite( STDERR, "El contenido posterior del libro se perdió al aplicar la plantilla.\n" );
+	exit( 1 );
+}
+
+$full_template = array(
+	'id'          => 'tpl-full',
+	'instance_id' => 'tpl-full',
+	'page_number' => 2,
+	'template_id' => 'inner-full-page',
+);
+$full_result = almaden_bookster_typst_apply_page_template_flow( $source, $context, $flow_map, $full_template );
+if ( false === strpos( $full_result, '#almaden-page-styled("content")[' ) ) {
+	fwrite( STDERR, "La plantilla Inner Full Page no se emitió dentro del área de content.\n" );
+	exit( 1 );
+}
+if ( false !== strpos( $full_result, '#grid(columns: (1fr, 1fr)' ) ) {
+	fwrite( STDERR, "La plantilla Inner Full Page no debería usar el layout split de dos columnas.\n" );
 	exit( 1 );
 }
 
@@ -154,10 +214,10 @@ $second_template = array(
 );
 $result = almaden_bookster_typst_apply_page_template_flow( $result, $context, $second_flow_map, $second_template );
 if ( 2 !== substr_count( $result, '#page(columns: 1)[' ) ) {
-	fwrite( STDERR, "La segunda plantilla no generó una segunda página física.\n" );
+	fwrite( STDERR, "La segunda plantilla no generó una segunda página de ancho completo.\n" );
 	exit( 1 );
 }
-if ( ! preg_match( '/#page\(columns: 1\)\[.*?\]\s*#metadata\("almaden-flow-4"\)/s', $result ) ) {
+if ( ! preg_match( '/#page\(columns: 1\).*?#metadata\("almaden-flow-4"\)/s', $result ) ) {
 	fwrite( STDERR, "La segunda columna reemplazada no continuó después de la segunda plantilla.\n" );
 	exit( 1 );
 }

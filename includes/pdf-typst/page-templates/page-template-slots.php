@@ -363,5 +363,8 @@ function almaden_bookster_typst_page_template_render_slot( $template, $slot, &$a
 		}
 	}
 
-	return '#block(width: 100%, height: 100%)[#metadata((' . implode( ', ', $entries ) . ')) <' . $anchor_id . '> ' . almaden_bookster_typst_page_template_slot_visual_with_assets( $template, $slot, $assets ) . ']';
+	$metadata = '#metadata((' . implode( ', ', $entries ) . ')) <' . $anchor_id . '>';
+	$visual = almaden_bookster_typst_page_template_slot_visual_with_assets( $template, $slot, $assets );
+
+	return "#block(width: 100%, height: 100%)[\n$metadata\n$visual\n]";
 }

@@ -115,15 +115,19 @@ function almaden_bookster_typst_page_template_source_blocks( $source ) {
 }
 
 function almaden_bookster_typst_page_template_apply_blocks( $source, $context, $template, $blocks, $ordered_ids, $page_ids, $left_ids, &$debug = array(), $layout = array(), &$assets = array() ) {
+	$page_ids = array_values( (array) $page_ids );
+	$left_ids = array_values( (array) $left_ids );
 	$page_ids = array_values( array_filter( $ordered_ids, static function ( $id ) use ( $page_ids ) {
 		return in_array( $id, $page_ids, true );
 	} ) );
 	$left_ids = array_values( array_filter( $ordered_ids, static function ( $id ) use ( $left_ids ) {
 		return in_array( $id, $left_ids, true );
 	} ) );
-	if ( empty( $page_ids ) || empty( $left_ids ) ) {
+	$layout_mode = strtolower( (string) ( $layout['mode'] ?? 'split' ) );
+	if ( empty( $page_ids ) || ( 'split' === $layout_mode && empty( $left_ids ) ) ) {
 		$debug = array(
 			'reason' => 'page_blocks_not_found_in_source',
+			'mode'   => $layout_mode,
 		);
 		return (string) $source;
 	}
@@ -132,7 +136,13 @@ function almaden_bookster_typst_page_template_apply_blocks( $source, $context, $
 	$last  = $page_ids[ count( $page_ids ) - 1 ];
 	$first_offset = $blocks[ $first ]['offset'];
 	$last_end = $blocks[ $last ]['offset'] + strlen( $blocks[ $last ]['text'] );
-	if ( ! empty( $layout['left_body'] ) ) {
+	if ( 'full' === $layout_mode ) {
+		$left_body = '';
+		$deferred_ids = array_values( (array) ( $layout['deferred_ids'] ?? $page_ids ) );
+		$deferred_body = (string) ( $layout['deferred_body'] ?? implode( "\n", array_map( static function ( $id ) use ( $blocks ) {
+			return $blocks[ $id ]['text'];
+		}, $deferred_ids ) ) );
+	} elseif ( ! empty( $layout['left_body'] ) ) {
 		$left_body = (string) $layout['left_body'];
 		$deferred_body = (string) ( $layout['deferred_body'] ?? '' );
 		$left_ids = array_values( (array) ( $layout['left_ids'] ?? $left_ids ) );
@@ -149,18 +159,26 @@ function almaden_bookster_typst_page_template_apply_blocks( $source, $context, $
 	$gap = round( (float) $context['columns_gap'], 4 ) . $context['unit'];
 	$placeholder = almaden_bookster_typst_page_template_placeholder( $template, $context, $assets );
 
-	/*
-	 * #page creates one physical page outside the book's normal multi-column
-	 * flow. The right-column blocks are deliberately emitted afterwards so
-	 * Typst paginates them on following regular pages instead of overlaying
-	 * them under the image placeholder.
-	 */
-	$replacement = "#page(columns: 1)[\n#box(width: 100%, height: 100%)[\n#grid(columns: (1fr, 1fr), rows: (1fr,), gutter: $gap, [\n#block(width: 100%)[\n#almaden-page-styled(\"content\")[\n$left_body\n]\n]\n], [\n#block(width: 100%, height: 100%)[\n$placeholder\n]\n])\n]\n]\n";
+	if ( 'full' === $layout_mode ) {
+		/*
+		 * Full-page image templates occupy the whole content area and reflow
+		 * every block that belonged to the selected physical page.
+		 */
+		$replacement = almaden_bookster_typst_page_template_render_full_replacement( $placeholder );
+	} else {
+		/*
+		 * The local #page override gives the template the complete content width.
+		 * The right-column blocks are emitted afterwards in the book's regular
+		 * multi-column flow.
+		 */
+		$replacement = almaden_bookster_typst_page_template_render_split_replacement( $gap, $left_body, $placeholder );
+	}
 	if ( '' !== $deferred_body ) {
 		$replacement .= "\n$deferred_body";
 	}
 	$debug = array(
 		'reason'       => 'applied',
+		'mode'         => $layout_mode,
 		'page_ids'     => $page_ids,
 		'left_ids'     => $left_ids,
 		'deferred_ids' => $deferred_ids,
@@ -180,18 +198,32 @@ function almaden_bookster_typst_page_template_take_slice( $ordered_ids, $start_i
 	return array_slice( $ordered_ids, $start_index, $length );
 }
 
+function almaden_bookster_typst_page_template_layout_mode( $template ) {
+	$template_id = is_array( $template ) ? (string) ( $template['template_id'] ?? '' ) : '';
+	$definition = '' !== $template_id ? almaden_bookster_typst_get_page_template_definition( $template_id ) : null;
+	$mode = strtolower( (string) ( $definition['layout'] ?? 'split' ) );
+	return in_array( $mode, array( 'split', 'full' ), true ) ? $mode : 'split';
+}
+
+function almaden_bookster_typst_page_template_render_split_replacement( $gap, $left_body, $placeholder ) {
+	return "#page(columns: 1)[\n#box(width: 100%, height: 100%)[\n#grid(columns: (1fr, 1fr), rows: (1fr,), gutter: $gap)[\n#block(width: 100%, height: 100%)[\n#almaden-page-styled(\"content\")[\n$left_body\n]\n]\n][\n#block(width: 100%, height: 100%)[\n$placeholder\n]\n]\n]\n]\n";
+}
+
+function almaden_bookster_typst_page_template_render_full_replacement( $placeholder ) {
+	return "#page(columns: 1)[\n#box(width: 100%, height: 100%)[\n#almaden-page-styled(\"content\")[\n$placeholder\n]\n]\n]\n";
+}
+
 function almaden_bookster_typst_apply_page_template_flow( $source, $context, $flow_map, $template = null, $word_probe = array(), &$assets = array() ) {
 	$GLOBALS['almaden_bookster_typst_page_template_debug'] = array();
 	$template = is_array( $template ) ? $template : ( $context['templates'][0] ?? null );
-	if ( ! is_array( $template ) || 'one-column-one-image' !== ( $template['template_id'] ?? '' ) ) {
+	if ( ! is_array( $template ) || ! almaden_bookster_typst_get_page_template_definition( $template['template_id'] ?? '' ) ) {
 		$GLOBALS['almaden_bookster_typst_page_template_debug'] = array( 'reason' => 'unsupported_template' );
 		return (string) $source;
 	}
+	$layout_mode = almaden_bookster_typst_page_template_layout_mode( $template );
 
 	$target_page = (int) ( $template['page_number'] ?? 0 );
-	$target_rows = array_values( array_filter( (array) $flow_map, static function ( $row ) use ( $target_page ) {
-		return is_array( $row ) && $target_page === (int) ( $row['page'] ?? 0 );
-	} ) );
+	$target_rows = almaden_bookster_typst_page_template_target_rows( $flow_map, $template );
 	if ( $target_page < 1 || empty( $target_rows ) ) {
 		$GLOBALS['almaden_bookster_typst_page_template_debug'] = array(
 			'reason' => 'no_rows_for_page',
@@ -200,7 +232,6 @@ function almaden_bookster_typst_apply_page_template_flow( $source, $context, $fl
 		return (string) $source;
 	}
 
-	$left_x = min( array_map( static function ( $row ) { return (float) ( $row['x'] ?? 0 ); }, $target_rows ) );
 	$page_ids = array();
 	$left_ids = array();
 	foreach ( $target_rows as $row ) {
@@ -209,18 +240,18 @@ function almaden_bookster_typst_apply_page_template_flow( $source, $context, $fl
 			continue;
 		}
 		$page_ids[] = $id;
-		if ( abs( (float) ( $row['x'] ?? 0 ) - $left_x ) < 1 ) {
+		if ( 'split' === $layout_mode ) {
 			$left_ids[] = $id;
 		}
 	}
 	$page_ids = array_values( array_unique( array_filter( $page_ids ) ) );
 	$left_ids = array_values( array_unique( array_filter( $left_ids ) ) );
-	if ( empty( $page_ids ) || empty( $left_ids ) ) {
+	if ( empty( $page_ids ) || ( 'split' === $layout_mode && empty( $left_ids ) ) ) {
 		$GLOBALS['almaden_bookster_typst_page_template_debug'] = array(
-			'reason'    => 'no_page_or_left_column_ids',
+			'reason'    => 'no_page_or_template_ids',
 			'page'      => $target_page,
-			'left_x'    => $left_x,
 			'row_count' => count( $target_rows ),
+			'mode'      => $layout_mode,
 		);
 		return (string) $source;
 	}
@@ -234,18 +265,36 @@ function almaden_bookster_typst_apply_page_template_flow( $source, $context, $fl
 			'page'         => $target_page,
 			'selected_ids' => $page_ids,
 			'block_ids'    => array_keys( $blocks ),
+			'mode'         => $layout_mode,
 		);
 		return (string) $source;
 	}
-	$layout = array();
-	if ( ! empty( $word_probe['cut'] ) && function_exists( 'almaden_bookster_typst_page_template_fragment_layout' ) ) {
-		$layout = almaden_bookster_typst_page_template_fragment_layout( $blocks, $page_blocks, $word_probe['cut'] );
-	}
-	if ( empty( $layout ) ) {
-		/* Keep the safe single-block fallback when Typst cannot provide a word probe. */
-		$left_ids = array_slice( $left_ids, 0, 1 );
+	$layout = array( 'mode' => $layout_mode );
+	if ( 'split' === $layout_mode ) {
+		$left_x = min( array_map( static function ( $row ) { return (float) ( $row['x'] ?? 0 ); }, $target_rows ) );
+		$left_ids = array_values( array_filter( $left_ids, static function ( $id ) use ( $target_rows, $left_x ) {
+			foreach ( $target_rows as $row ) {
+				if ( (string) ( $row['id'] ?? '' ) !== (string) $id ) {
+					continue;
+				}
+				return abs( (float) ( $row['x'] ?? 0 ) - $left_x ) < 1;
+			}
+			return false;
+		} ) );
+		if ( ! empty( $word_probe['cut'] ) && function_exists( 'almaden_bookster_typst_page_template_fragment_layout' ) ) {
+			$layout = almaden_bookster_typst_page_template_fragment_layout( $blocks, $page_blocks, $word_probe['cut'] );
+		}
+		if ( empty( $layout ) ) {
+			/* Keep the safe single-block fallback when Typst cannot provide a word probe. */
+			$left_ids = array_slice( $left_ids, 0, 1 );
+		} else {
+			$left_ids = array_values( (array) ( $layout['left_ids'] ?? $left_ids ) );
+		}
 	} else {
-		$left_ids = $layout['left_ids'];
+		$layout['deferred_ids'] = $page_ids;
+		$layout['deferred_body'] = implode( "\n", array_map( static function ( $id ) use ( $blocks ) {
+			return $blocks[ $id ]['text'];
+		}, $page_ids ) );
 	}
 
 	$debug = array();
@@ -255,6 +304,7 @@ function almaden_bookster_typst_apply_page_template_flow( $source, $context, $fl
 		$GLOBALS['almaden_bookster_typst_page_template_debug'] = array(
 			'page'         => $target_page,
 			'reason'       => 'applied',
+			'mode'         => $layout_mode,
 			'page_ids'     => $debug['page_ids'] ?? $page_blocks,
 			'left_ids'     => $debug['left_ids'] ?? $left_ids,
 			'deferred_ids' => $debug['deferred_ids'] ?? array(),

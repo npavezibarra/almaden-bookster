@@ -19,7 +19,7 @@ que la composición principal no crezca con la lógica de plantillas.
 
 - `page-template-registry.php`
   - Declara los presets disponibles.
-  - Hoy el preset activo es `one-column-one-image`.
+  - Hoy los presets activos incluyen `one-column-one-image` e `inner-full-page`.
   - Aquí se registran también el label visible y los slots esperados.
 
 - `page-template-normalizer.php`
@@ -57,8 +57,10 @@ que la composición principal no crezca con la lógica de plantillas.
   - Es el único boundary autorizado para transformar el source Typst
     generado.
   - Busca los bloques físicos del flujo.
-  - Reemplaza la región de la página objetivo por un wrapper de página completa
-    con placeholder y reflujo del texto restante.
+  - Reemplaza la región de la página objetivo por un wrapper de página
+    completa.
+  - Soporta layouts `split` y `full` para poder sumar más presets sin tocar el
+    composer principal en cada nuevo caso.
 
 - `page-template-word-flow.php`
   - Ejecuta el probe de Typst por palabra.

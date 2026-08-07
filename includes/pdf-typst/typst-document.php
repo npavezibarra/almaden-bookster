@@ -72,6 +72,14 @@ function almaden_bookster_build_typst_document( $payload ) {
 			: ( ! $is_toc ? almaden_bookster_typst_chapter_blank_count( $chapter, 'after' ) : 0 );
 		$chapter_hide_header = almaden_bookster_typst_bool( $chapter['hide_header'] ?? false ) || almaden_bookster_typst_bool( $chapter['hide_all_headers_footers'] ?? false );
 		$chapter_hide_footer = almaden_bookster_typst_bool( $chapter['hide_footer'] ?? false ) || almaden_bookster_typst_bool( $chapter['hide_all_headers_footers'] ?? false );
+		$credit_margin_top = $margin_top;
+		$credit_margin_bottom = $margin_bot;
+		if ( $is_credits && is_numeric( $chapter['credits_margin_top'] ?? null ) ) {
+			$credit_margin_top = max( 0, min( 30, (float) $chapter['credits_margin_top'] ) );
+		}
+		if ( $is_credits && is_numeric( $chapter['credits_margin_bottom'] ?? null ) ) {
+			$credit_margin_bottom = max( 0, min( 30, (float) $chapter['credits_margin_bottom'] ) );
+		}
 		if ( $rendered > 0 ) {
 			$source .= "\n#pagebreak()\n\n";
 		}
@@ -115,14 +123,6 @@ function almaden_bookster_build_typst_document( $payload ) {
 		if ( '' !== $image_asset ) {
 			$source .= '#align(center + horizon)[#image("' . almaden_bookster_typst_escape_string( $image_asset ) .
 				'", width: 100%, height: 100%, fit: "contain")]' . "\n#pagebreak()\n\n";
-		}
-		$credit_margin_top = $margin_top;
-		$credit_margin_bottom = $margin_bot;
-		if ( $is_credits && is_numeric( $chapter['credits_margin_top'] ?? null ) ) {
-			$credit_margin_top = max( 0, min( 30, (float) $chapter['credits_margin_top'] ) );
-		}
-		if ( $is_credits && is_numeric( $chapter['credits_margin_bottom'] ?? null ) ) {
-			$credit_margin_bottom = max( 0, min( 30, (float) $chapter['credits_margin_bottom'] ) );
 		}
 		if ( $is_credits ) {
 			$source .= '#set page(margin: (top: ' . ( $credit_margin_top + $chapter_header_reserve ) . $unit . ', bottom: ' . ( $credit_margin_bottom + $chapter_footer_reserve ) . $unit . ', inside: ' . $margin_inside . $unit . ', outside: ' . $margin_outside . $unit . '))' . "\n";

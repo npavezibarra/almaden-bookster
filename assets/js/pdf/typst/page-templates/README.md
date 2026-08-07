@@ -9,7 +9,8 @@ y dispara recompilaciones para que el backend Typst vuelva a renderizar.
 - `editor-page-template-selector.js`
   - Detecta clics sobre páginas renderizadas.
   - Resalta la página elegida.
-  - Abre el modal de plantillas.
+  - Abre el modal de plantillas y pinta las opciones desde
+    `window.almadenPageTemplateRegistry`.
   - Crea, reemplaza o elimina la plantilla asignada a una página.
   - Funciones clave:
     - `bind(root)`
@@ -61,6 +62,9 @@ Cada slot puede tener:
 - `url`
 - `preview_url`
 - `original_url`
+
+El modal de plantillas muestra cada preset como una miniatura con su nombre
+debajo, para que el listado siga siendo legible cuando haya muchas plantillas.
 
 ## Flujo de usuario
 

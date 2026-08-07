@@ -25,23 +25,16 @@
             <div data-page-template-panel="template" class="space-y-5">
                 <div class="rounded-2xl border border-slate-200 bg-amber-50 p-4">
                     <p class="text-xs font-bold uppercase tracking-[0.18em] text-amber-700">Plantilla activa</p>
-                    <p class="mt-2 text-sm leading-6 text-slate-700">La plantilla cambia la estructura de columnas y los slots de imagen de la página seleccionada.</p>
+                    <p class="mt-2 text-sm leading-6 text-slate-700">La plantilla cambia la estructura de la página seleccionada y define qué imagen o imágenes se reservan para ese bloque.</p>
                 </div>
 
-                <button type="button" data-page-template-option="one-column-one-image" class="group w-full rounded-2xl border-2 border-amber-500 bg-amber-50 p-4 text-left transition hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500">
-                    <div class="flex items-center justify-between gap-4">
-                        <div>
-                            <span class="text-sm font-extrabold text-slate-900">1 col 1 image</span>
-                            <p class="mt-1 text-xs leading-5 text-slate-600">Texto a la izquierda y placeholder de imagen a la derecha.</p>
-                        </div>
-                        <div class="grid h-14 w-20 grid-cols-[0.4fr_0.6fr] gap-1 rounded-lg border border-slate-400 bg-white p-1">
-                            <span class="rounded-sm bg-slate-300"></span>
-                            <span class="rounded-sm bg-amber-500"></span>
-                        </div>
+                <div id="page-template-options" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
+                        Cargando plantillas...
                     </div>
-                </button>
+                </div>
 
-                <p class="text-xs leading-5 text-slate-500">La imagen se agregará en una fase posterior. El texto se recompondrá con Typst al aplicar la plantilla.</p>
+                <p class="text-xs leading-5 text-slate-500">La vista previa muestra la estructura general de cada plantilla. La imagen se podrá asignar después desde el panel de imágenes y el texto se recompone con Typst al aplicar el cambio.</p>
             </div>
 
             <div data-page-template-panel="style" class="hidden space-y-5">

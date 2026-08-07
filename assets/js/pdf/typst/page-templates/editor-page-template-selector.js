@@ -2,6 +2,7 @@
 (function () {
     let selectedPageNumber = null;
     let activeTab = 'template';
+    let selectedTemplateId = '';
     let modalBound = false;
 
     function getSelectablePage(element) {
@@ -30,6 +31,106 @@
 
     function getTemplateDefinition(templateId) {
         return getTemplateRegistry()[normalizeId(templateId)] || null;
+    }
+
+    function getTemplateOptions() {
+        return Object.values(getTemplateRegistry());
+    }
+
+    function getDefaultTemplateId() {
+        const currentTemplate = getTemplateForSelectedPage();
+        const currentId = normalizeId(currentTemplate?.template_id || '');
+        if (currentId && getTemplateDefinition(currentId)) {
+            return currentId;
+        }
+        const firstTemplate = getTemplateOptions()[0];
+        return normalizeId(firstTemplate?.id || '');
+    }
+
+    function setSelectedTemplateId(templateId, shouldRender = true) {
+        const nextId = normalizeId(templateId);
+        if (!nextId || !getTemplateDefinition(nextId)) {
+            return;
+        }
+        selectedTemplateId = nextId;
+        if (shouldRender) {
+            renderTemplateOptions();
+            updateModalActions();
+        }
+    }
+
+    function isSelectedTemplate(templateId) {
+        return normalizeId(templateId) === normalizeId(selectedTemplateId);
+    }
+
+    function escapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function renderTemplatePreview(definition) {
+        const preview = definition?.preview || {};
+        const type = String(preview.type || 'split');
+        const canvas = escapeHtml(preview.canvas || '#ffffff');
+        const frame = escapeHtml(preview.frame || '#cbd5e1');
+
+        if ('full' === type) {
+            const margin = escapeHtml(preview.margin || '#f3f4f6');
+            const fill = escapeHtml(preview.fill || '#f59e0b');
+            return `
+                <div class="flex h-full w-full items-center justify-center rounded-xl border border-slate-200 p-2" style="background:${canvas};">
+                    <div class="flex h-full w-full items-center justify-center rounded-lg border-2" style="border-color:${frame}; background:${margin};">
+                        <div class="h-[84%] w-[84%] rounded-md border" style="border-color:${frame}; background:${fill};"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        const left = escapeHtml(preview.left || '#cbd5e1');
+        const right = escapeHtml(preview.right || '#f59e0b');
+        return `
+            <div class="flex h-full w-full items-center justify-center rounded-xl border border-slate-200 p-2" style="background:${canvas};">
+                <div class="grid h-full w-full grid-cols-[0.44fr_0.56fr] gap-1 rounded-lg border p-1" style="border-color:${frame}; background:${canvas};">
+                    <span class="rounded-sm" style="background:${left};"></span>
+                    <span class="rounded-sm" style="background:${right};"></span>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderTemplateOptions() {
+        const container = document.getElementById('page-template-options');
+        if (!container) return;
+
+        const options = getTemplateOptions();
+        if (!options.length) {
+            container.innerHTML = `
+                <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
+                    No hay plantillas registradas.
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = options.map(definition => {
+            const templateId = normalizeId(definition?.id || '');
+            const label = definition?.label || templateId || 'Plantilla';
+            const selected = isSelectedTemplate(templateId);
+            return `
+                <button type="button" data-page-template-option="${escapeHtml(templateId)}" class="group flex min-h-[170px] flex-col rounded-2xl border-2 p-3 text-left transition focus:outline-none focus:ring-2 focus:ring-amber-500 ${selected ? 'border-amber-500 bg-amber-50' : 'border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50/70'}" aria-pressed="${selected ? 'true' : 'false'}">
+                    <div class="flex-1">
+                        ${renderTemplatePreview(definition)}
+                    </div>
+                    <div class="mt-3 text-[11px] font-semibold leading-tight text-slate-700">
+                        ${escapeHtml(label)}
+                    </div>
+                </button>
+            `;
+        }).join('');
     }
 
     function buildTemplateSlots(templateId, existingSlots = []) {
@@ -132,6 +233,16 @@
         if (confirmButton) {
             confirmButton.textContent = hasTemplate ? 'Reemplazar plantilla' : 'Aplicar plantilla';
         }
+        const templateOptions = document.querySelectorAll('[data-page-template-option]');
+        templateOptions.forEach(option => {
+            const optionTemplateId = normalizeId(option.dataset.pageTemplateOption || '');
+            const selected = optionTemplateId && optionTemplateId === normalizeId(selectedTemplateId);
+            option.setAttribute('aria-pressed', selected ? 'true' : 'false');
+            option.classList.toggle('border-amber-500', selected);
+            option.classList.toggle('bg-amber-50', selected);
+            option.classList.toggle('border-slate-200', !selected);
+            option.classList.toggle('bg-white', !selected);
+        });
 
         if (templateFooter) {
             templateFooter.classList.toggle('hidden', activeTab !== 'template');
@@ -200,6 +311,8 @@
 
     async function applyTemplate() {
         if (!Number.isFinite(selectedPageNumber) || selectedPageNumber < 1 || !window.bookState) return;
+        const templateId = getTemplateDefinition(selectedTemplateId) ? normalizeId(selectedTemplateId) : getDefaultTemplateId();
+        if (!templateId) return;
 
         window.bookState.settings = window.bookState.settings || {};
         const existingTemplate = getTemplateForSelectedPage();
@@ -215,9 +328,9 @@
             anchor: existingTemplate?.anchor?.flow_id
                 ? existingTemplate.anchor
                 : window.almadenPageTemplateState.getAnchorForPage(selectedPageNumber),
-            template_id: 'one-column-one-image',
+            template_id: templateId,
             placeholder: { enabled: true },
-            slots: buildTemplateSlots('one-column-one-image', existingTemplate?.slots || [])
+            slots: buildTemplateSlots(templateId, existingTemplate?.slots || [])
         };
         const existingTemplates = getTemplates();
         window.bookState.settings.page_templates = [
@@ -297,6 +410,8 @@
         if (!modal || !dialog) return;
 
         if (target) target.textContent = String(selectedPageNumber);
+        selectedTemplateId = getDefaultTemplateId();
+        renderTemplateOptions();
         updateModalActions();
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -326,6 +441,10 @@
 
         modal.addEventListener('click', event => {
             if (event.target === modal || event.target.closest('[data-page-template-close]')) closeModal();
+            const templateOption = event.target.closest('[data-page-template-option]');
+            if (templateOption) {
+                setSelectedTemplateId(templateOption.dataset.pageTemplateOption || '', true);
+            }
         });
         if (templateTab) {
             templateTab.addEventListener('click', () => setActiveTab('template'));

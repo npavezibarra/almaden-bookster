@@ -90,14 +90,13 @@ function almaden_bookster_typst_page_template_probe_page( $context, $template, $
 	$gap = round( (float) $context['columns_gap'], 4 ) . $context['unit'];
 	$assets = array();
 	$placeholder = almaden_bookster_typst_page_template_placeholder( $template, $context, $assets );
-	return "#page(columns: 1)[\n#box(width: 100%, height: 100%)[\n#grid(columns: (1fr, 1fr), rows: (1fr,), gutter: $gap, [\n#block(width: 100%, height: 100%)[\n$body\n]\n], [\n#block(width: 100%, height: 100%)[\n#place(bottom + left)[#metadata(\"almaden-template-probe-bottom\") <almaden-template-probe-bottom>]\n$placeholder\n]\n])\n]\n]\n";
+	return "#page(columns: 1)[\n#box(width: 100%, height: 100%)[\n#grid(columns: (1fr, 1fr), rows: (1fr,), gutter: $gap)[\n#block(width: 100%, height: 100%)[\n$body\n]\n][\n#block(width: 100%, height: 100%)[\n#place(bottom + left)[#metadata(\"almaden-template-probe-bottom\") <almaden-template-probe-bottom>]\n$placeholder\n]\n]\n]\n]\n";
 }
 
 function almaden_bookster_typst_page_template_prepare_word_probe( $source, $context, $flow_map, $template ) {
-	$target_page = (int) ( $template['page_number'] ?? 0 );
 	$target_ids = array();
-	foreach ( (array) $flow_map as $row ) {
-		if ( is_array( $row ) && $target_page === (int) ( $row['page'] ?? 0 ) && ! empty( $row['id'] ) ) {
+	foreach ( almaden_bookster_typst_page_template_target_rows( $flow_map, $template ) as $row ) {
+		if ( ! empty( $row['id'] ) ) {
 			$target_ids[] = (string) $row['id'];
 		}
 	}

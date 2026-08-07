@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) && ! defined( 'ALMADEN_TYPST_TESTING' ) ) {
 
 function almaden_bookster_typst_page_template_placeholder( $template, $context = array(), &$assets = array() ) {
 	$template_id = is_array( $template ) ? ( $template['template_id'] ?? '' ) : '';
-	if ( 'one-column-one-image' !== $template_id ) {
+	if ( '' === $template_id ) {
 		return '';
 	}
 
@@ -37,5 +37,10 @@ function almaden_bookster_typst_page_template_placeholder( $template, $context =
 		$rows[] = "[\n" . almaden_bookster_typst_page_template_render_slot( $template, $slot, $assets ) . "\n]";
 	}
 
-	return '#grid(columns: (1fr,), rows: (' . implode( ', ', $row_sizes ) . '), gutter: ' . $gap . ', ' . implode( ', ', $rows ) . ')';
+	$output = '#grid(columns: (1fr,), rows: (' . implode( ', ', $row_sizes ) . '), gutter: ' . $gap . ')';
+	foreach ( $rows as $row ) {
+		$output .= "\n" . $row;
+	}
+
+	return $output . "\n";
 }
