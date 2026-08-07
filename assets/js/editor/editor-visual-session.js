@@ -10,7 +10,7 @@ window.visualEditorMutationObserver = null;
 window.visualEditorRevision = 0;
 
 function syncVisualEditorOverlayScroll() {
-    // The real Paged.js pages are edited directly; no overlay needs scroll correction.
+    // The rendered PDF pages are edited directly; no overlay needs scroll correction.
 }
 
 function bindVisualEditorScrollSync(scroller) {

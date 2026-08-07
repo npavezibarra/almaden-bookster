@@ -36,9 +36,20 @@ $flow_map = array(
 	array( 'id' => 'almaden-flow-5', 'page' => 3, 'x' => 10 ),
 );
 $template = array(
+	'id'          => 'tpl-primary',
+	'instance_id' => 'tpl-primary',
 	'page_number' => 2,
 	'template_id' => 'one-column-one-image',
 );
+
+$anchored = almaden_bookster_typst_resolve_page_template(
+	array_merge( $template, array( 'anchor' => array( 'flow_id' => 'almaden-flow-3' ) ) ),
+	$flow_map
+);
+if ( empty( $anchored['applied'] ) || 2 !== ( $anchored['template']['resolved_page'] ?? 0 ) ) {
+	fwrite( STDERR, "La identidad estable no resolvió su página desde el ancla.\n" );
+	exit( 1 );
+}
 
 $probe = almaden_bookster_typst_page_template_prepare_word_probe( $source, $context, $flow_map, $template );
 if ( empty( $probe['source'] ) || empty( $probe['word_map'] ) ) {
@@ -53,6 +64,8 @@ if ( 1 !== count( $default_slots ) || 'image-1' !== ( $default_slots[0]['id'] ??
 $slot_assets = array();
 $multi_slot_placeholder = almaden_bookster_typst_page_template_placeholder(
 	array(
+		'id'          => 'tpl-multi',
+		'instance_id' => 'tpl-multi',
 		'page_number' => 7,
 		'template_id' => 'one-column-one-image',
 		'slots'       => array(
@@ -64,7 +77,7 @@ $multi_slot_placeholder = almaden_bookster_typst_page_template_placeholder(
 	$context,
 	$slot_assets
 );
-if ( 3 !== substr_count( $multi_slot_placeholder, 'almaden-template-slot-p7-one-column-one-image-image-' ) ) {
+if ( 3 !== substr_count( $multi_slot_placeholder, 'almaden-template-slot-tpl-multi-image-' ) ) {
 	fwrite( STDERR, "La plantilla no renderizó los tres slots esperados.\n" );
 	exit( 1 );
 }
@@ -108,7 +121,7 @@ if ( false === strpos( $result, '#page(columns: 1)[' ) ) {
 	fwrite( STDERR, "La plantilla no se emitió como una página física de Typst.\n" );
 	exit( 1 );
 }
-if ( false === strpos( $result, 'almaden-template-slot-p2-one-column-one-image-image-1' ) ) {
+if ( false === strpos( $result, 'almaden-template-slot-tpl-primary-image-1' ) ) {
 	fwrite( STDERR, "La plantilla física no etiquetó el slot de imagen.\n" );
 	exit( 1 );
 }
@@ -133,6 +146,8 @@ $second_flow_map = array(
 	array( 'id' => 'almaden-flow-5', 'page' => 4, 'x' => 10 ),
 );
 $second_template = array(
+	'id'          => 'tpl-secondary',
+	'instance_id' => 'tpl-secondary',
 	'page_number' => 3,
 	'template_id' => 'one-column-one-image',
 );

@@ -68,8 +68,102 @@ function almaden_bookster_typst_page_template_attachment_source_path( $attachmen
 	return $file_path;
 }
 
-function almaden_bookster_typst_page_template_attachment_asset_path( $attachment_id, &$assets ) {
-	$source_path = almaden_bookster_typst_page_template_attachment_source_path( $attachment_id );
+function almaden_bookster_typst_page_template_attachment_id_from_url( $url ) {
+	$url = trim( (string) $url );
+	if ( '' === $url ) {
+		return 0;
+	}
+
+	$attachment_id = 0;
+	if ( function_exists( 'attachment_url_to_postid' ) ) {
+		$attachment_id = attachment_url_to_postid( esc_url_raw( $url ) );
+		if ( $attachment_id <= 0 && preg_match( '/-scaled(?=\.[a-zA-Z0-9]+$)/', $url ) ) {
+			$attachment_id = attachment_url_to_postid( preg_replace( '/-scaled(?=\.[a-zA-Z0-9]+$)/', '', $url ) );
+		}
+	}
+
+	return almaden_bookster_typst_page_template_absint( $attachment_id );
+}
+
+function almaden_bookster_typst_page_template_attachment_id_from_slot( $slot ) {
+	if ( ! is_array( $slot ) ) {
+		return 0;
+	}
+
+	$attachment_id = almaden_bookster_typst_page_template_absint( $slot['attachment_id'] ?? 0 );
+	if ( $attachment_id > 0 ) {
+		return $attachment_id;
+	}
+
+	foreach ( array( 'original_url', 'url', 'preview_url' ) as $key ) {
+		$attachment_id = almaden_bookster_typst_page_template_attachment_id_from_url( $slot[ $key ] ?? '' );
+		if ( $attachment_id > 0 ) {
+			return $attachment_id;
+		}
+	}
+
+	return 0;
+}
+
+/**
+ * Resolve a persisted WordPress media URL to its local uploads path.
+ *
+ * This is intentionally independent of attachment_url_to_postid(). The latter
+ * can return zero for resized, scaled, or legacy media URLs even though the
+ * file still exists locally and is valid for the Typst compilation root.
+ */
+function almaden_bookster_typst_page_template_source_path_from_url( $url ) {
+	$url = trim( (string) $url );
+	if ( '' === $url || ! function_exists( 'wp_upload_dir' ) ) {
+		return '';
+	}
+
+	$uploads = wp_upload_dir();
+	$base_url = rtrim( (string) ( $uploads['baseurl'] ?? '' ), '/' );
+	$base_dir = rtrim( (string) ( $uploads['basedir'] ?? '' ), DIRECTORY_SEPARATOR );
+	if ( '' === $base_url || '' === $base_dir ) {
+		return '';
+	}
+
+	$clean_url = strtok( $url, '?' );
+	$base_path = parse_url( $base_url, PHP_URL_PATH );
+	$url_path  = parse_url( $clean_url, PHP_URL_PATH );
+	if ( ! is_string( $base_path ) || ! is_string( $url_path ) || 0 !== strpos( $url_path, $base_path . '/' ) ) {
+		return '';
+	}
+
+	$relative = ltrim( rawurldecode( substr( $url_path, strlen( $base_path ) ) ), '/' );
+	$relative = str_replace( array( '/', '\\' ), DIRECTORY_SEPARATOR, $relative );
+	if ( '' === $relative || false !== strpos( $relative, '..' ) ) {
+		return '';
+	}
+
+	$source_path = $base_dir . DIRECTORY_SEPARATOR . $relative;
+	return is_file( $source_path ) ? $source_path : '';
+}
+
+function almaden_bookster_typst_page_template_slot_source_path( $slot ) {
+	$attachment_id = almaden_bookster_typst_page_template_attachment_id_from_slot( $slot );
+	if ( $attachment_id > 0 ) {
+		$source_path = almaden_bookster_typst_page_template_attachment_source_path( $attachment_id );
+		if ( '' !== $source_path ) {
+			return $source_path;
+		}
+	}
+
+	if ( is_array( $slot ) ) {
+		foreach ( array( 'original_url', 'url', 'preview_url' ) as $key ) {
+			$source_path = almaden_bookster_typst_page_template_source_path_from_url( $slot[ $key ] ?? '' );
+			if ( '' !== $source_path ) {
+				return $source_path;
+			}
+		}
+	}
+
+	return '';
+}
+
+function almaden_bookster_typst_page_template_asset_path_from_source( $source_path, &$assets ) {
 	if ( '' === $source_path ) {
 		return '';
 	}
@@ -77,11 +171,11 @@ function almaden_bookster_typst_page_template_attachment_asset_path( $attachment
 	$filetype = almaden_bookster_typst_page_template_filetype( $source_path );
 	$extension = '';
 	if ( ! empty( $filetype['ext'] ) ) {
-		$extension = '.' . ltrim( (string) $filetype['ext'], '.' );
+		$extension = '.' . strtolower( ltrim( (string) $filetype['ext'], '.' ) );
 	} else {
 		$path_info = pathinfo( $source_path );
 		if ( ! empty( $path_info['extension'] ) ) {
-			$extension = '.' . ltrim( (string) $path_info['extension'], '.' );
+			$extension = '.' . strtolower( ltrim( (string) $path_info['extension'], '.' ) );
 		}
 	}
 	if ( '' === $extension ) {
@@ -93,6 +187,13 @@ function almaden_bookster_typst_page_template_attachment_asset_path( $attachment
 	$assets[ $cache_key ] = $source_path;
 
 	return 'assets/' . $cache_key;
+}
+
+function almaden_bookster_typst_page_template_attachment_asset_path( $attachment_id, &$assets ) {
+	return almaden_bookster_typst_page_template_asset_path_from_source(
+		almaden_bookster_typst_page_template_attachment_source_path( $attachment_id ),
+		$assets
+	);
 }
 
 function almaden_bookster_typst_page_template_definition_slots( $template_id ) {
@@ -163,6 +264,9 @@ function almaden_bookster_typst_page_template_normalize_slots( $template_id, $sl
 		$merged['label'] = trim( (string) ( $merged['label'] ?? $definition_slot['label'] ?? ( 'Slot ' . ( $index + 1 ) ) ) );
 		$merged['kind'] = strtolower( trim( (string) ( $merged['kind'] ?? 'image' ) ) ) ?: 'image';
 		$merged['attachment_id'] = almaden_bookster_typst_page_template_absint( $merged['attachment_id'] ?? 0 );
+		if ( $merged['attachment_id'] <= 0 ) {
+			$merged['attachment_id'] = almaden_bookster_typst_page_template_attachment_id_from_slot( $merged );
+		}
 		$merged['url'] = almaden_bookster_typst_page_template_sanitize_url( $merged['url'] ?? '' );
 		$merged['preview_url'] = almaden_bookster_typst_page_template_sanitize_url( $merged['preview_url'] ?? '' );
 		$merged['original_url'] = almaden_bookster_typst_page_template_sanitize_url( $merged['original_url'] ?? $merged['url'] ?? '' );
@@ -183,16 +287,19 @@ function almaden_bookster_typst_page_template_normalize_slots( $template_id, $sl
 			'preview_url'   => almaden_bookster_typst_page_template_sanitize_url( $slot['preview_url'] ?? '' ),
 			'original_url'  => almaden_bookster_typst_page_template_sanitize_url( $slot['original_url'] ?? $slot['url'] ?? '' ),
 		);
+		$last_index = count( $normalized ) - 1;
+		if ( $normalized[ $last_index ]['attachment_id'] <= 0 ) {
+			$normalized[ $last_index ]['attachment_id'] = almaden_bookster_typst_page_template_attachment_id_from_slot( $normalized[ $last_index ] );
+		}
 	}
 
 	return array_values( $normalized );
 }
 
 function almaden_bookster_typst_page_template_slot_anchor_id( $template, $slot ) {
-	$page_number = (int) ( $template['page_number'] ?? 0 );
-	$template_id = almaden_bookster_typst_page_template_normalize_slot_id( $template['template_id'] ?? 'template' );
+	$instance_id = almaden_bookster_typst_page_template_normalize_slot_id( $template['instance_id'] ?? $template['id'] ?? 'template' );
 	$slot_id = almaden_bookster_typst_page_template_normalize_slot_id( $slot['id'] ?? 'slot' );
-	return 'almaden-template-slot-p' . $page_number . '-' . $template_id . '-' . $slot_id;
+	return 'almaden-template-slot-' . $instance_id . '-' . $slot_id;
 }
 
 function almaden_bookster_typst_page_template_attachment_data_uri( $attachment_id ) {
@@ -221,12 +328,12 @@ function almaden_bookster_typst_page_template_slot_visual( $template, $slot ) {
 }
 
 function almaden_bookster_typst_page_template_slot_visual_with_assets( $template, $slot, &$assets ) {
-	$attachment_id = almaden_bookster_typst_page_template_absint( $slot['attachment_id'] ?? 0 );
-	if ( $attachment_id > 0 ) {
-		$asset_path = almaden_bookster_typst_page_template_attachment_asset_path( $attachment_id, $assets );
-		if ( '' !== $asset_path ) {
-			return '#image("' . almaden_bookster_typst_page_template_escape_string( $asset_path ) . '", width: 100%, height: 100%, fit: "cover")';
-		}
+	$asset_path = almaden_bookster_typst_page_template_asset_path_from_source(
+		almaden_bookster_typst_page_template_slot_source_path( $slot ),
+		$assets
+	);
+	if ( '' !== $asset_path ) {
+		return '#image("' . almaden_bookster_typst_page_template_escape_string( $asset_path ) . '", width: 100%, height: 100%, fit: "cover")';
 	}
 
 	return '#rect(width: 100%, height: 100%, fill: rgb("ff9d00"), stroke: 0.5pt + rgb("a85c00"))';
@@ -236,12 +343,14 @@ function almaden_bookster_typst_page_template_render_slot( $template, $slot, &$a
 	$template_id = almaden_bookster_typst_page_template_normalize_slot_id( $template['template_id'] ?? '' );
 	$slot_id = almaden_bookster_typst_page_template_normalize_slot_id( $slot['id'] ?? '' );
 	$anchor_id = almaden_bookster_typst_page_template_slot_anchor_id( $template, $slot );
+	$attachment_id = almaden_bookster_typst_page_template_attachment_id_from_slot( $slot );
 	$meta = array(
+		'instance_id'  => (string) ( $template['instance_id'] ?? $template['id'] ?? '' ),
 		'page_number'   => (int) ( $template['page_number'] ?? 0 ),
 		'template_id'   => $template_id,
 		'slot_id'       => $slot_id,
 		'slot_kind'     => strtolower( trim( (string) ( $slot['kind'] ?? 'image' ) ) ) ?: 'image',
-		'attachment_id' => almaden_bookster_typst_page_template_absint( $slot['attachment_id'] ?? 0 ),
+		'attachment_id' => $attachment_id,
 		'label'         => trim( (string) ( $slot['label'] ?? $slot_id ) ),
 	);
 

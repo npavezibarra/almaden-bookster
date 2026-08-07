@@ -14,6 +14,11 @@ Este directorio contiene los manejadores de peticiones AJAX y endpoints del lado
     Lógica de obtención y definición del gran arreglo asociativo con los valores por defecto de maquetación (márgenes, tipografías de cabecera, pies de página, notas, etc.).
 *   **[ajax-settings-templates.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/ajax-settings-templates.php)**: 
     Endpoints para la gestión de plantillas de maquetación. Permite listar presets guardados, guardarlos como archivos JSON en la carpeta de configuraciones o eliminarlos.
+*   **[ajax-typst-pdf.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/ajax-typst-pdf.php)**:
+    Endpoint autenticado que recompone el libro con Typst. Reinyecta las
+    plantillas persistidas desde `_almaden_page_templates`, adjunta la
+    configuración de portada, compila el PDF y expone headers de diagnóstico
+    para geometría, flujo, apertura y resultados de plantillas.
 *   **[ajax-cover.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/ajax-cover.php)**: 
     Guarda y recupera la configuración de capas, fondos y solapas del editor de portadas de libros.
 *   **[ajax-publish.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/ajax-publish.php)**: 

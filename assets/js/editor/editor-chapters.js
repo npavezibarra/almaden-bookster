@@ -439,7 +439,7 @@ function saveStateToLocalStorage(immediate = false) {
         }, 10000);
 
         try {
-            // RAW is canonical. Never serialize Paged.js fragments back into a chapter.
+            // RAW is canonical. Never serialize rendered PDF fragments back into a chapter.
             if (typeof syncRawEditorToState === 'function') {
                 syncRawEditorToState();
             }

@@ -34,7 +34,7 @@ graph TD
     Core --> Chapters[editor-chapters.js]
     
     %% Gestión de Capítulos y Ajustes
-    Chapters --> ChapterSettings[editor-chapter-settings.js]
+    Chapters --> ChapterSettings[editor-chapter-settings-*]
     Chapters --> SettingsAPI[editor-settings-api.js]
     
     %% Barra de Herramientas e Inputs
@@ -89,11 +89,14 @@ graph TD
         *   [saveStateToLocalStorage](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapters.js#L312): Mecanismo de autoguardado (debounced a 15 segundos o ejecución inmediata). Realiza peticiones AJAX a WordPress y actualiza IDs temporales locales con los asignados por la base de datos tras persistirse.
         *   `window.calculateAllPagesBackground`: Ejecuta una compilación en segundo plano instanciando un contenedor fantasma `#dummy-pdf-scroller` invisible para paginar la totalidad del libro y actualizar las posiciones y recuentos de página reales sin interrumpir la edición del usuario.
 
-*   **[editor-chapter-settings.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapter-settings.js)**
-    *   **Responsabilidad**: Lógica y renderizado del modal de ajustes a nivel de capítulo individual (paridad de inicio, subtítulos, letra capitular, desactivación de guionado e imágenes de paridad).
+*   **[editor-chapter-settings-guide.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapter-settings-guide.js)**, **[editor-chapter-settings-labels.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapter-settings-labels.js)**, **[editor-chapter-settings-controls.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapter-settings-controls.js)** y **[editor-chapter-settings-modal.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapter-settings-modal.js)**:
+    *   **Responsabilidad**: El subsistema de ajustes por capítulo quedó dividido para respetar el límite de 500 líneas y aislar responsabilidades.
     *   **Funciones Clave**:
-        *   [openChapterSettingsModal](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapter-settings.js#L6): Prepara el modal, poblando los selectores de tipografía y visibilidades según el tipo de capítulo (Normal, Índice o Créditos).
-        *   [saveChapterSettings](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapter-settings.js#L189): Extrae los valores del formulario (normalizando decimales ingresados con comas a puntos con `.replace(',', '.')`) y aplica las configuraciones al objeto del capítulo activo en `bookState.chapters`.
+        *   `editor-chapter-settings-guide.js`: guía de nomenclatura y modal de ayuda copiable.
+        *   `editor-chapter-settings-labels.js`: texto dinámico del modal según capítulo normal, índice o créditos.
+        *   `editor-chapter-settings-controls.js`: toggles de UI, tabs internas y uploader de imágenes del capítulo.
+        *   `editor-chapter-settings-modal.js`: apertura, cierre y guardado del modal del capítulo activo.
+        *   `editor-chapter-settings.js`: stub de compatibilidad histórica, ya sin lógica activa.
 
 ---
 

@@ -9,7 +9,7 @@ function isVisualEditorSurface(node) {
 }
 
 function getVisualEditorSurface() {
-    return document.querySelector('#pdf-scroller .pagedjs_pages[data-visual-editor-surface="1"]');
+    return document.querySelector('#pdf-scroller [data-visual-editor-surface="1"]');
 }
 
 function getActiveEditableSurface() {
@@ -45,7 +45,7 @@ function clearVisualEditorOverlay() {
     }
     if (scroller) {
         scroller.classList.remove('visual-editor-mode', 'visual-editor-readonly');
-        const surface = scroller.querySelector('.pagedjs_pages[data-visual-editor-surface="1"]');
+        const surface = scroller.querySelector('[data-visual-editor-surface="1"]');
         if (surface) {
             surface.removeAttribute('data-visual-editor-surface');
             surface.removeAttribute('id');
@@ -105,9 +105,9 @@ function normalizeSerializedTextValue(node, value) {
     let text = escapeTextValue(value);
     if (!text) return text;
 
-    // Paged.js inserts its own hyphen glyph at layout breaks. Strip only that
-    // generated marker so we keep real author hyphens untouched.
-    if (node && node.parentElement && node.parentElement.closest('.pagedjs_hyphen')) {
+    // Generated layout markers can add an artificial hyphen at wrap points.
+    // Remove only the synthetic marker so real author hyphens stay intact.
+    if (node && node.parentElement && node.parentElement.closest('[data-layout-hyphen="1"], .layout-hyphen')) {
         text = text.replace(/[\u00AD\u2010\u2011]+$/g, '');
     }
 
@@ -328,7 +328,7 @@ function syncVisualEditorToState() {
         }
     }
 
-    // Paged.js fragments are a render artifact and must never replace RAW.
+    // Rendered fragments are a render artifact and must never replace RAW.
     syncRawEditorToState();
     return chapter.content;
 }

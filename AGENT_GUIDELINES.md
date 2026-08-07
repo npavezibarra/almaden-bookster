@@ -88,13 +88,10 @@ The frontend JavaScript logic is organized into subfolders by domain to maintain
 - **`editor-markdown.js`**: Conversion of raw markdown into HTML.
 
 ### 2. PDF Rendering (`assets/js/pdf/`)
-- **`editor-pdf-compiler.js`**: Core pagination orchestration loop.
-- **`editor-pdf-compiler-dimensions.js`**: Document physical dimensions calculations.
-- **`editor-pdf-compiler-parity.js`**: Layout rules and parity assignment.
-- **`editor-pdf-dom.js`**: HTML elements factory (headers, footers, footnote containers).
-- **`editor-pdf-pagination.js`**: Pixel measuring and block-level paragraph split routines.
-- **`editor-pdf-styles.js`** / **`editor-pdf-styles-base.js`** / **`editor-pdf-styles-typography.js`**: Dynamic CSS stylesheet builders.
-- **`editor-pdf-export.js`**: Prep for browser print layouts and execution.
+- **`typst/editor-typst-pdf.js`**: Typst-based PDF preview engine and export bridge.
+- **`typst/page-templates/editor-page-template-selector.js`**: Page template picker and application flow.
+- **`typst/page-templates/editor-page-template-images.js`**: Image binding for template placeholders.
+- **`typst/README.md`**: Entry documentation for the Typst preview pipeline.
 
 ### 3. Reader & Admin (`assets/js/reader/` & `assets/js/admin/`)
 - **`reader/reader-app.js`**, **`reader-navigation.js`**, **`reader-prefs.js`**, **`reader-styles.js`**: Visor engine for reading web-based EPUB/Ebooks.

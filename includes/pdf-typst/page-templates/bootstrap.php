@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) && ! defined( 'ALMADEN_TYPST_TESTING' ) ) {
 
 require_once __DIR__ . '/page-template-registry.php';
 require_once __DIR__ . '/page-template-slots.php';
+require_once __DIR__ . '/page-template-identity.php';
 require_once __DIR__ . '/page-template-normalizer.php';
 require_once __DIR__ . '/page-template-persistence.php';
 require_once __DIR__ . '/page-template-placeholder.php';

@@ -4,8 +4,7 @@
     let mediaFrame = null;
 
     function getTemplates() {
-        const settings = window.bookState?.settings || {};
-        return Array.isArray(settings.page_templates) ? settings.page_templates : [];
+        return window.almadenPageTemplateState?.getTemplates?.() || [];
     }
 
     function normalizeId(value) {
@@ -31,24 +30,26 @@
         return definition?.label || templateId || 'Plantilla';
     }
 
-    function makeSlotAnchor(pageNumber, templateId, slotId) {
-        return `almaden-template-slot-p${Number(pageNumber) || 0}-${normalizeId(templateId)}-${normalizeId(slotId)}`;
+    function makeSlotAnchor(instanceId, slotId) {
+        return `almaden-template-slot-${normalizeId(instanceId)}-${normalizeId(slotId)}`;
     }
 
     function getAllSlots() {
-        return getTemplates().flatMap(template => {
+        const templates = window.almadenPageTemplateState?.getAppliedTemplates?.() || getTemplates();
+        return templates.flatMap(template => {
             const slots = Array.isArray(template?.slots) ? template.slots : [];
+            const instanceId = window.almadenPageTemplateState.getInstanceId(template);
             return slots.map(slot => ({
-                page_number: Number(template?.page_number) || 0,
+                page_number: window.almadenPageTemplateState.getResolvedPage(template),
                 template_id: template?.template_id || '',
                 template_label: getTemplateLabel(template?.template_id || ''),
-                template_id_unique: template?.id || `page-${Number(template?.page_number) || 0}-${normalizeId(template?.template_id || '')}`,
+                instance_id: instanceId,
                 slot_id: slot?.id || '',
                 slot_label: slot?.label || slot?.id || 'Slot',
                 slot_kind: slot?.kind || 'image',
                 attachment_id: Number(slot?.attachment_id) || 0,
                 url: slot?.preview_url || slot?.url || slot?.original_url || '',
-                anchor_id: makeSlotAnchor(template?.page_number, template?.template_id, slot?.id || '')
+                anchor_id: makeSlotAnchor(instanceId, slot?.id || '')
             }));
         });
     }
@@ -92,10 +93,10 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button type="button" class="rounded-lg bg-black px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-neutral-800" data-page-template-slot-upload data-page-number="${slot.page_number}" data-template-id="${slot.template_id}" data-slot-id="${slot.slot_id}">
+                            <button type="button" class="rounded-lg bg-black px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-neutral-800" data-page-template-slot-upload data-instance-id="${slot.instance_id}" data-slot-id="${slot.slot_id}">
                                 Upload Image
                             </button>
-                            <button type="button" class="rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50" data-page-template-slot-clear data-page-number="${slot.page_number}" data-template-id="${slot.template_id}" data-slot-id="${slot.slot_id}">
+                            <button type="button" class="rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50" data-page-template-slot-clear data-instance-id="${slot.instance_id}" data-slot-id="${slot.slot_id}">
                                 Quitar
                             </button>
                         </div>
@@ -177,7 +178,9 @@
             const originalUrl = attachment.originalImageURL || attachment.url || '';
             const previewUrl = attachment.sizes?.medium?.url || attachment.sizes?.thumbnail?.url || attachment.url || originalUrl;
             const templates = getTemplates();
-            const templateIndex = templates.findIndex(template => Number(template?.page_number) === Number(rowData.page_number));
+            const templateIndex = templates.findIndex(template => (
+                window.almadenPageTemplateState.getInstanceId(template) === normalizeId(rowData.instance_id)
+            ));
             if (templateIndex < 0) return;
 
             const slot = (templates[templateIndex].slots || []).find(entry => normalizeId(entry?.id) === normalizeId(rowData.slot_id));
@@ -199,7 +202,9 @@
         window.bookState = window.bookState || {};
         window.bookState.settings = window.bookState.settings || {};
         const templates = getTemplates();
-        const templateIndex = templates.findIndex(template => Number(template?.page_number) === Number(rowData.page_number));
+        const templateIndex = templates.findIndex(template => (
+            window.almadenPageTemplateState.getInstanceId(template) === normalizeId(rowData.instance_id)
+        ));
         if (templateIndex < 0) return;
 
         const slot = (templates[templateIndex].slots || []).find(entry => normalizeId(entry?.id) === normalizeId(rowData.slot_id));
@@ -262,9 +267,8 @@
 
             const uploadBtn = event.target.closest('[data-page-template-slot-upload]');
             if (uploadBtn) {
-                    openMediaUploader({
-                    page_number: uploadBtn.dataset.pageNumber,
-                    template_id: uploadBtn.dataset.templateId,
+                openMediaUploader({
+                    instance_id: uploadBtn.dataset.instanceId,
                     slot_id: uploadBtn.dataset.slotId,
                     slot_label: uploadBtn.closest('div')?.querySelector('.text-base')?.textContent || uploadBtn.dataset.slotId
                 });
@@ -274,8 +278,7 @@
             const clearBtn = event.target.closest('[data-page-template-slot-clear]');
             if (clearBtn) {
                 clearSlotImage({
-                    page_number: clearBtn.dataset.pageNumber,
-                    template_id: clearBtn.dataset.templateId,
+                    instance_id: clearBtn.dataset.instanceId,
                     slot_id: clearBtn.dataset.slotId
                 });
             }

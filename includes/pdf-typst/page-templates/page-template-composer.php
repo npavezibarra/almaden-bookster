@@ -49,16 +49,6 @@ function almaden_bookster_typst_compose_page_templates( $source, $context, &$ass
 	return $source . "\n#context [#metadata((" . implode( ', ', $report_entries ) . ")) <almaden-flow-report>]\n";
 }
 
-function almaden_bookster_typst_page_template_has_page( $templates, $page ) {
-	$page = (int) $page;
-	foreach ( (array) $templates as $template ) {
-		if ( is_array( $template ) && $page === (int) ( $template['page_number'] ?? 0 ) ) {
-			return true;
-		}
-	}
-	return false;
-}
-
 function almaden_bookster_typst_page_template_source_blocks( $source ) {
 	$source = (string) $source;
 	$lines = explode( "\n", $source );

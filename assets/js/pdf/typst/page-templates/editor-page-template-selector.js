@@ -20,8 +20,7 @@
     }
 
     function getTemplates() {
-        const settings = window.bookState?.settings || {};
-        return Array.isArray(settings.page_templates) ? settings.page_templates : [];
+        return window.almadenPageTemplateState?.getTemplates?.() || [];
     }
 
     function getTemplateRegistry() {
@@ -73,7 +72,25 @@
 
     function getTemplateForSelectedPage() {
         if (!Number.isFinite(selectedPageNumber) || selectedPageNumber < 1) return null;
-        return getTemplates().find(template => Number(template?.page_number) === selectedPageNumber) || null;
+        return window.almadenPageTemplateState?.getTemplateAtPage?.(selectedPageNumber) || null;
+    }
+
+    function cloneTemplates(templates) {
+        return JSON.parse(JSON.stringify(Array.isArray(templates) ? templates : []));
+    }
+
+    async function persistTemplates() {
+        return typeof window.savePDFSettings === 'function'
+            ? window.savePDFSettings(true, true)
+            : true;
+    }
+
+    async function rollbackTemplates(previousTemplates) {
+        window.bookState.settings.page_templates = previousTemplates;
+        await persistTemplates();
+        if (typeof window.compilePDFPreview === 'function') {
+            await window.compilePDFPreview(true);
+        }
     }
 
     function updateAction() {
@@ -149,24 +166,32 @@
 
         window.bookState.settings = window.bookState.settings || {};
         const existingTemplate = getTemplateForSelectedPage();
+        const previousTemplates = cloneTemplates(getTemplates());
+        const instanceId = existingTemplate
+            ? window.almadenPageTemplateState.getInstanceId(existingTemplate)
+            : window.almadenPageTemplateState.createInstanceId();
         const nextTemplate = {
-            id: existingTemplate?.id || `page-${selectedPageNumber}-one-column-one-image`,
-            page_number: selectedPageNumber,
+            id: instanceId,
+            instance_id: instanceId,
+            page_number: Number(existingTemplate?.page_number) || selectedPageNumber,
+            resolved_page: selectedPageNumber,
+            anchor: existingTemplate?.anchor?.flow_id
+                ? existingTemplate.anchor
+                : window.almadenPageTemplateState.getAnchorForPage(selectedPageNumber),
             template_id: 'one-column-one-image',
             placeholder: { enabled: true },
             slots: buildTemplateSlots('one-column-one-image', existingTemplate?.slots || [])
         };
         const existingTemplates = getTemplates();
         window.bookState.settings.page_templates = [
-            ...existingTemplates.filter(template => Number(template?.page_number) !== selectedPageNumber),
+            ...existingTemplates.filter(template => window.almadenPageTemplateState.getInstanceId(template) !== instanceId),
             nextTemplate
-        ].sort((left, right) => Number(left.page_number) - Number(right.page_number));
+        ].sort((left, right) => Number(left.resolved_page || left.page_number) - Number(right.resolved_page || right.page_number));
 
         closeModal();
-        const saved = typeof window.savePDFSettings === 'function'
-            ? await window.savePDFSettings(true, true)
-            : true;
+        const saved = await persistTemplates();
         if (!saved) {
+            window.bookState.settings.page_templates = previousTemplates;
             if (typeof window.showToast === 'function') {
                 window.showToast('No se pudo guardar la plantilla.', 'fa-solid fa-circle-exclamation');
             }
@@ -176,8 +201,17 @@
         if (typeof window.compilePDFPreview === 'function') {
             await window.compilePDFPreview(true);
         }
+        const result = window.almadenPageTemplateState.getResult(instanceId);
+        if (!result?.applied) {
+            await rollbackTemplates(previousTemplates);
+            if (typeof window.showToast === 'function') {
+                const reason = result?.debug?.reason ? ` (${result.debug.reason})` : '';
+                window.showToast(`La plantilla no pudo anclarse y el cambio fue revertido${reason}.`, 'fa-solid fa-circle-exclamation');
+            }
+            return;
+        }
         if (typeof window.showToast === 'function') {
-            window.showToast(`Plantilla asignada a la página ${selectedPageNumber}.`, 'fa-solid fa-table-cells-large');
+            window.showToast(`Plantilla asignada a la página ${result.resolved_page || selectedPageNumber}.`, 'fa-solid fa-table-cells-large');
         }
     }
 
@@ -186,18 +220,22 @@
 
         window.bookState.settings = window.bookState.settings || {};
         const existingTemplates = getTemplates();
-        const nextTemplates = existingTemplates.filter(template => Number(template?.page_number) !== selectedPageNumber);
+        const selectedTemplate = getTemplateForSelectedPage();
+        const instanceId = window.almadenPageTemplateState?.getInstanceId?.(selectedTemplate);
+        const nextTemplates = existingTemplates.filter(template => (
+            window.almadenPageTemplateState.getInstanceId(template) !== instanceId
+        ));
         if (nextTemplates.length === existingTemplates.length) {
             closeModal();
             return;
         }
 
-        window.bookState.settings.page_templates = nextTemplates.sort((left, right) => Number(left.page_number) - Number(right.page_number));
+        window.bookState.settings.page_templates = nextTemplates.sort((left, right) => (
+            Number(left.resolved_page || left.page_number) - Number(right.resolved_page || right.page_number)
+        ));
 
         closeModal();
-        const saved = typeof window.savePDFSettings === 'function'
-            ? await window.savePDFSettings(true, true)
-            : true;
+        const saved = await persistTemplates();
         if (!saved) {
             if (typeof window.showToast === 'function') {
                 window.showToast('No se pudo quitar la plantilla.', 'fa-solid fa-circle-exclamation');

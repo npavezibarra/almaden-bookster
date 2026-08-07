@@ -4,7 +4,7 @@
             <i class="fa-solid fa-bookmark text-[10px]"></i> Configuración de Notas al Pie
         </h4>
         <p class="text-[10px] text-[var(--text-muted)]">
-            Estos controles estilizan el área de footnotes nativa de Paged.js, que vive entre el contenido y el pie de página.
+            Estos controles estilizan el área de notas al pie del layout Typst, que se reserva bajo el flujo principal del contenido.
         </p>
 
         <div class="grid grid-cols-1 gap-3">

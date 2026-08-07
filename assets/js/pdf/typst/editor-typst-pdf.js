@@ -300,6 +300,7 @@
         root.className = layout === 'spread'
             ? 'flex flex-col items-center gap-8 py-8'
             : 'flex flex-col items-center gap-8 py-8';
+        root.dataset.visualEditorSurface = '1';
         scroller.appendChild(root);
 
         if (layout === 'single') {
@@ -488,10 +489,13 @@
 			if (pageTemplateResultsHeader) {
 				try {
 					window.almadenPageTemplateResults = JSON.parse(decodeURIComponent(pageTemplateResultsHeader));
+					window.almadenPageTemplateState?.reconcileResults?.();
 					console.info(
 						'Typst page-template results:',
 						window.almadenPageTemplateResults.map(result => ({
-							page: result?.page,
+							instance_id: result?.instance_id,
+							page: result?.resolved_page || result?.page,
+							anchor: result?.anchor?.flow_id || '',
 							flow_rows: result?.flow_rows,
 							applied: result?.applied,
 							reason: result?.debug?.reason || '',

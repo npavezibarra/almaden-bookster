@@ -75,6 +75,12 @@ function almaden_bookster_ajax_compile_typst_pdf() {
 			500
 		);
 	}
+	if ( function_exists( 'almaden_bookster_typst_reconcile_page_template_results' ) ) {
+		almaden_bookster_typst_reconcile_page_template_results(
+			$book_id,
+			$GLOBALS['almaden_bookster_typst_page_template_results'] ?? array()
+		);
+	}
 
 	nocache_headers();
 	header( 'Content-Type: application/pdf' );

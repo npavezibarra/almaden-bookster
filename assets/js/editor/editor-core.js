@@ -69,8 +69,14 @@ window.onload = function() {
     // Aplicar Vista
     setViewMode(bookState.viewMode);
     
-    // Aplicar maquetación dinámica del PDF
-    applyDynamicPDFStyles();
+    // Aplicar maquetación dinámica del PDF.
+    // En Typst ya no existe el pipeline legacy de estilos, así que usamos
+    // un fallback seguro hacia la recompilación del preview.
+    if (typeof applyDynamicPDFStyles === 'function') {
+        applyDynamicPDFStyles();
+    } else if (typeof window.compilePDFPreview === 'function') {
+        window.compilePDFPreview(true, 'pdf-scroller', true);
+    }
     
     // Inicializar el conteo de páginas oculto para tener todos los capítulos medidos
     if (window.currentPreviewMode === 'active' && typeof window.calculateAllPagesBackground === 'function') {

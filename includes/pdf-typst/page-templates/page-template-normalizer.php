@@ -20,7 +20,7 @@ function almaden_bookster_typst_normalize_page_templates( $value ) {
 	}
 
 	$normalized = array();
-	$seen_pages = array();
+	$seen_instances = array();
 	foreach ( $value as $entry ) {
 		if ( ! is_array( $entry ) ) {
 			continue;
@@ -32,18 +32,24 @@ function almaden_bookster_typst_normalize_page_templates( $value ) {
 			: 0;
 		$definition = almaden_bookster_typst_get_page_template_definition( $template_id );
 
-		if ( ! $definition || $page_number < 1 || isset( $seen_pages[ $page_number ] ) ) {
+		if ( ! $definition || $page_number < 1 ) {
 			continue;
 		}
 
-		$seen_pages[ $page_number ] = true;
-		$template_entry_id = preg_replace( '/[^A-Za-z0-9_-]/', '', (string) ( $entry['id'] ?? '' ) );
-		if ( '' === $template_entry_id ) {
-			$template_entry_id = 'page-' . $page_number . '-' . $template_id;
+		$instance_id = almaden_bookster_typst_page_template_instance_id( $entry, $template_id, $page_number );
+		if ( isset( $seen_instances[ $instance_id ] ) ) {
+			continue;
 		}
+		$seen_instances[ $instance_id ] = true;
+		$resolved_page = isset( $entry['resolved_page'] ) && is_numeric( $entry['resolved_page'] )
+			? max( 1, (int) $entry['resolved_page'] )
+			: $page_number;
 		$normalized[] = array(
-			'id'          => $template_entry_id,
+			'id'          => $instance_id,
+			'instance_id' => $instance_id,
 			'page_number' => $page_number,
+			'resolved_page' => $resolved_page,
+			'anchor'      => almaden_bookster_typst_page_template_normalize_anchor( $entry['anchor'] ?? array() ),
 			'template_id' => $template_id,
 			'placeholder' => array(
 				'enabled' => ! isset( $entry['placeholder']['enabled'] ) || ! empty( $entry['placeholder']['enabled'] ),
@@ -55,7 +61,11 @@ function almaden_bookster_typst_normalize_page_templates( $value ) {
 	usort(
 		$normalized,
 		static function ( $left, $right ) {
-			return $left['page_number'] <=> $right['page_number'];
+			$left_order = almaden_bookster_typst_page_template_flow_order( $left['anchor']['flow_id'] ?? '' );
+			$right_order = almaden_bookster_typst_page_template_flow_order( $right['anchor']['flow_id'] ?? '' );
+			return $left_order === $right_order
+				? $left['resolved_page'] <=> $right['resolved_page']
+				: $left_order <=> $right_order;
 		}
 	);
 

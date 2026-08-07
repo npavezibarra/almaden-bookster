@@ -4,6 +4,12 @@ Este directorio alberga la arquitectura del motor de maquetación, paginación y
 
 En cumplimiento estricto de las directrices del proyecto (**límite de 500 líneas por archivo**), las hojas de estilo y el compilador están divididos en módulos independientes y altamente cohesivos.
 
+> Nota de estado: la superficie activa de previsualización para Typst vive en
+> [assets/js/pdf/typst/](./typst/README.md) y conversa con
+> [includes/pdf-typst/](../../../includes/pdf-typst/README.md). El motor
+> heredado de esta carpeta sigue documentado aquí porque aún existe en el
+> repositorio, pero el flujo Typst actual no depende de él.
+
 ---
 
 ## Módulos y Responsabilidades

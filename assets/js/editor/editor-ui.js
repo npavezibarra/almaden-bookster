@@ -310,7 +310,6 @@ window.renderRuler = function() {
     if (!wrapper || !ruler || !scroller || wrapper.classList.contains('hidden')) return;
 
     const zoom = getPdfPreviewZoomFactor();
-    const isSpreadView = scroller.classList.contains('spread-view');
 
     // 1cm ≈ 37.7952755906px
     const unitPixels = 37.7952755906 * zoom;
@@ -323,19 +322,14 @@ window.renderRuler = function() {
     ruler.style.left = -(scroller.scrollLeft * zoom) + 'px';
     
     let origin = totalWidth / 2;
-    const pagesContainer = scroller.querySelector('.pagedjs_pages');
-    
+    const pagesContainer = scroller.querySelector('[data-visual-editor-surface="1"]');
+
     if (pagesContainer) {
-        if (isSpreadView) {
-            // En spread, el 0 coincide con el lomo / borde interior entre ambas páginas.
-            origin = (pagesContainer.offsetLeft + (pagesContainer.offsetWidth / 2)) * zoom;
-        } else {
-            // En vista de página única, el 0 debe alinearse con el borde izquierdo de la hoja visible.
-            const firstPage = pagesContainer.querySelector('.pagedjs_page:not(.book-start-dummy-page), .pagedjs_page');
-            origin = firstPage
-                ? firstPage.offsetLeft * zoom
-                : pagesContainer.offsetLeft * zoom;
-        }
+        const firstPage = pagesContainer.querySelector('[data-page-number]:not([data-blank="1"])')
+            || pagesContainer.querySelector('[data-page-number]');
+        origin = firstPage
+            ? firstPage.offsetLeft * zoom
+            : pagesContainer.offsetLeft * zoom;
     }
 
     const maxUnitsRight = Math.ceil((totalWidth - origin) / unitPixels) + 2;
