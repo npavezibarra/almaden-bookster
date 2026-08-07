@@ -101,6 +101,7 @@ $reader_cover_url = ! empty( $snapshot_cover_url ) ? $snapshot_cover_url : $fall
 $has_reader_access = function_exists( 'almaden_bookster_user_can_access_book' ) ? almaden_bookster_user_can_access_book( $book_id ) : is_user_logged_in();
 $book_product_id = function_exists( 'almaden_bookster_get_book_product_id' ) ? almaden_bookster_get_book_product_id( $book_id ) : 0;
 $purchase_url = function_exists( 'almaden_bookster_get_book_purchase_url' ) ? almaden_bookster_get_book_purchase_url( $book_id ) : home_url( '/' );
+$return_url = function_exists( 'almaden_bookster_get_book_return_url' ) ? almaden_bookster_get_book_return_url( $book_id ) : ( function_exists( 'almaden_bookster_get_store_page_url' ) ? almaden_bookster_get_store_page_url() : home_url( '/' ) );
 $book_highlights = array();
 if ( $has_reader_access && is_user_logged_in() && function_exists( 'almaden_bookster_get_user_book_highlights' ) ) {
 	$book_highlights = almaden_bookster_get_user_book_highlights( $book_id, get_current_user_id() );
@@ -134,6 +135,7 @@ $book_data_json = wp_json_encode( array(
 	'userCanAccess' => $has_reader_access,
 	'productId' => $book_product_id,
 	'purchaseUrl' => $purchase_url,
+	'returnUrl' => $return_url,
 	'highlights' => $book_highlights,
 	'quizProgress' => function_exists( 'almaden_bookster_get_book_quiz_progress_payload' ) ? almaden_bookster_get_book_quiz_progress_payload( $book_id ) : array(),
 	'quizFlowSettings' => function_exists( 'almaden_bookster_learni_get_quiz_flow_settings' ) ? almaden_bookster_learni_get_quiz_flow_settings( $book_id ) : array(),
@@ -236,7 +238,7 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
         <div id="reader-index-panel" class="w-full md:w-1/2 h-1/2 md:h-full overflow-y-auto p-8 md:p-16 lg:p-24 relative">
             <div id="reader-index-header" class="flex justify-between items-center mb-12">
                 <h2 id="reader-book-title" class="text-2xl md:text-3xl font-bold text-gray-900"><?php echo esc_html( $book_title ); ?></h2>
-                <a id="reader-btn-back" href="<?php echo esc_url( almaden_bookster_get_store_page_url() ); ?>" class="px-5 py-2 bg-transparent border border-gray-200 hover:bg-black/5 rounded-full text-sm font-semibold text-gray-700 shadow-sm transition-colors">Volver</a>
+                <a id="reader-btn-back" href="<?php echo esc_url( $return_url ); ?>" class="px-5 py-2 bg-transparent border border-gray-200 hover:bg-black/5 rounded-full text-sm font-semibold text-gray-700 shadow-sm transition-colors">Volver</a>
             </div>
 
             <div class="space-y-1" id="chapters-list">
@@ -464,8 +466,8 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
                                     <a id="almaden-buy-ebook-btn" href="<?php echo esc_url( $purchase_url ); ?>" aria-disabled="true" class="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 font-semibold text-black opacity-40 pointer-events-none transition-colors hover:bg-gray-100">
                                         Comprar Ebook
                                     </a>
-                                    <a href="<?php echo esc_url( almaden_bookster_get_store_page_url() ); ?>" class="inline-flex items-center justify-center rounded-full border border-white/20 px-5 py-3 font-semibold text-white/90 hover:bg-white/10 transition-colors">
-                                        Volver al catálogo
+                                    <a href="<?php echo esc_url( $return_url ); ?>" class="inline-flex items-center justify-center rounded-full border border-white/20 px-5 py-3 font-semibold text-white/90 hover:bg-white/10 transition-colors">
+                                        Volver
                                     </a>
                                 </div>
                             </div>

@@ -484,7 +484,12 @@ if (!headers_sent()) {
             settingsNonce: <?php echo json_encode( wp_create_nonce( 'almaden_save_settings_nonce_' . $book_id ) ); ?>,
             documentImportNonce: <?php echo json_encode( wp_create_nonce( 'almaden_document_import_nonce_' . $book_id ) ); ?>,
             installedFonts: <?php echo json_encode( $installed_fonts ); ?>,
-            coverSettings: <?php echo json_encode( get_post_meta( $book_id, '_almaden_cover_settings', true ) ?: get_post_meta( $source_book_id, '_almaden_cover_settings', true ) ); ?>
+            coverSettings: <?php echo json_encode( get_post_meta( $book_id, '_almaden_cover_settings', true ) ?: get_post_meta( $source_book_id, '_almaden_cover_settings', true ) ); ?>,
+            commerce: <?php echo json_encode( array(
+                'woocommerceActive' => ! empty( $woocommerce_status['active'] ),
+                'woocommerceInstalled' => ! empty( $woocommerce_status['installed'] ),
+                'relation' => $commerce_relation,
+            ) ); ?>
         };
         window.bookState = bookState;
         window.PagedConfig = {

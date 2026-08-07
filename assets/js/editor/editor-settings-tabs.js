@@ -446,6 +446,7 @@ window.populateSettingsForm = function() {
     if (typeof toggleChapterImageSettings === 'function') toggleChapterImageSettings();
     if (typeof toggleEbookBgType === 'function') toggleEbookBgType();
     if (typeof toggleCoverPanelBgType === 'function') toggleCoverPanelBgType();
+    if (typeof populateCommerceForm === 'function') populateCommerceForm();
 };
 
 function toggleSettingsModal(show) {

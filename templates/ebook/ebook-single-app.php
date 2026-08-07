@@ -60,6 +60,7 @@ if ( $chapters_query->have_posts() ) {
 $has_reader_access = function_exists( 'almaden_bookster_user_can_access_book' ) ? almaden_bookster_user_can_access_book( $book_id ) : is_user_logged_in();
 $purchase_url = function_exists( 'almaden_bookster_get_book_purchase_url' ) ? almaden_bookster_get_book_purchase_url( $book_id ) : home_url( '/' );
 $book_product_id = function_exists( 'almaden_bookster_get_book_product_id' ) ? almaden_bookster_get_book_product_id( $book_id ) : 0;
+$return_url = function_exists( 'almaden_bookster_get_book_return_url' ) ? almaden_bookster_get_book_return_url( $book_id ) : ( function_exists( 'almaden_bookster_get_store_page_url' ) ? almaden_bookster_get_store_page_url() : home_url( '/' ) );
 $wide_size = '1300px';
 if ( function_exists( 'wp_get_global_settings' ) ) {
 	$wide_size_val = wp_get_global_settings( array( 'layout', 'wideSize' ) );
@@ -122,7 +123,7 @@ if ( $has_reader_access ) {
 				<p class="text-xs uppercase tracking-[0.3em] text-neutral-500">Ebook Store</p>
 				<h1 class="mt-2 text-3xl md:text-5xl font-semibold text-neutral-900"><?php echo esc_html( $book_title ); ?></h1>
 			</div>
-			<a href="<?php echo esc_url( almaden_bookster_get_store_page_url() ); ?>" class="rounded-full border border-neutral-200 bg-white px-5 py-2 text-sm font-semibold text-neutral-700 shadow-sm transition hover:bg-neutral-50">Volver al catálogo</a>
+			<a href="<?php echo esc_url( $return_url ); ?>" class="rounded-full border border-neutral-200 bg-white px-5 py-2 text-sm font-semibold text-neutral-700 shadow-sm transition hover:bg-neutral-50">Volver</a>
 		</div>
 
 		<div class="grid gap-8 lg:grid-cols-[minmax(0,380px)_1fr]">

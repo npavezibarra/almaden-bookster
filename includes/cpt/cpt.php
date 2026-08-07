@@ -113,42 +113,91 @@ add_action( 'add_meta_boxes_almaden-books', 'almaden_bookster_register_book_acce
 
 function almaden_bookster_render_book_access_metabox( $post ) {
 	wp_nonce_field( 'almaden_book_access_meta_' . $post->ID, 'almaden_book_access_meta_nonce' );
-	$product_id = (int) get_post_meta( $post->ID, '_almaden_wc_product_id', true );
+	$relation = function_exists( 'almaden_bookster_get_book_wc_relation' ) ? almaden_bookster_get_book_wc_relation( $post->ID ) : array();
+	$product_id = absint( $relation['product_id'] ?? get_post_meta( $post->ID, '_almaden_wc_product_id', true ) );
+	$parent_product_id = absint( $relation['parent_product_id'] ?? get_post_meta( $post->ID, '_almaden_wc_parent_product_id', true ) );
+	$product_mode = function_exists( 'almaden_bookster_get_book_wc_product_mode' ) ? almaden_bookster_get_book_wc_product_mode( $post->ID ) : 'simple';
 	$product_link = $product_id > 0 ? get_edit_post_link( $product_id ) : '';
+	$parent_link = $parent_product_id > 0 ? get_edit_post_link( $parent_product_id ) : '';
 	$create_new_product = false;
 	?>
-	<p>
-		<label for="almaden_wc_product_id" style="display:block; font-weight:600; margin-bottom:6px;">
-			<?php esc_html_e( 'WooCommerce Product ID existente', 'almaden-bookster' ); ?>
-		</label>
-		<input
-			type="number"
-			min="0"
-			step="1"
-			id="almaden_wc_product_id"
-			name="almaden_wc_product_id"
-			value="<?php echo esc_attr( $product_id ); ?>"
-			style="width:100%;"
-			placeholder="123"
-		/>
-	</p>
-	<p style="margin:0 0 12px; color:#6b7280;">
-		<?php esc_html_e( 'Si se configura, solo podrán abrir el libro los usuarios que hayan comprado este producto.', 'almaden-bookster' ); ?>
-	</p>
-	<p style="margin:0 0 12px;">
-		<label style="display:flex; gap:8px; align-items:flex-start; font-weight:600;">
-			<input type="checkbox" name="almaden_create_wc_product" value="1" <?php checked( $create_new_product ); ?> />
-			<span><?php esc_html_e( 'Crear un producto WooCommerce nuevo para este ebook si no existe uno vinculado.', 'almaden-bookster' ); ?></span>
-		</label>
-	</p>
-	<p style="margin:0; color:#6b7280;">
-		<?php esc_html_e( 'El producto se creará como borrador para que puedas revisar precio, descripción y publicación antes de venderlo.', 'almaden-bookster' ); ?>
-	</p>
-	<?php if ( $product_link ) : ?>
-		<p style="margin-bottom:0;">
-			<a href="<?php echo esc_url( $product_link ); ?>" target="_blank" rel="noopener noreferrer">
-				<?php esc_html_e( 'Editar producto vinculado', 'almaden-bookster' ); ?>
-			</a>
+	<?php if ( function_exists( 'almaden_bookster_woocommerce_is_available' ) && ! almaden_bookster_woocommerce_is_available() ) : ?>
+		<p style="margin:0; color:#b45309;">
+			<?php esc_html_e( 'WooCommerce no está disponible en este sitio. La integración comercial permanecerá desactivada hasta que se instale y active.', 'almaden-bookster' ); ?>
+		</p>
+	<?php else : ?>
+		<p style="margin:0 0 12px;">
+			<strong><?php esc_html_e( 'Estado actual', 'almaden-bookster' ); ?></strong><br />
+			<?php echo esc_html( sprintf( 'Modo: %s', $product_mode ) ); ?><br />
+			<?php echo esc_html( sprintf( 'Producto: %d', $product_id ) ); ?><br />
+			<?php echo esc_html( sprintf( 'Padre: %d', $parent_product_id ) ); ?>
+		</p>
+		<?php if ( $product_link ) : ?>
+			<p style="margin:0 0 12px;">
+				<a href="<?php echo esc_url( $product_link ); ?>" target="_blank" rel="noopener noreferrer">
+					<?php esc_html_e( 'Editar producto vinculado', 'almaden-bookster' ); ?>
+				</a>
+			</p>
+		<?php endif; ?>
+		<?php if ( $parent_link ) : ?>
+			<p style="margin:0 0 12px;">
+				<a href="<?php echo esc_url( $parent_link ); ?>" target="_blank" rel="noopener noreferrer">
+					<?php esc_html_e( 'Editar producto padre', 'almaden-bookster' ); ?>
+				</a>
+			</p>
+		<?php endif; ?>
+		<hr style="margin:14px 0; border-color:#e5e7eb;" />
+		<p>
+			<label for="almaden_wc_relation_mode" style="display:block; font-weight:600; margin-bottom:6px;">
+				<?php esc_html_e( 'Tipo de vínculo comercial', 'almaden-bookster' ); ?>
+			</label>
+			<select id="almaden_wc_relation_mode" name="almaden_wc_relation_mode" style="width:100%;">
+				<option value="simple" <?php selected( $product_mode, 'simple' ); ?>><?php esc_html_e( 'Producto simple', 'almaden-bookster' ); ?></option>
+				<option value="variable_parent" <?php selected( $product_mode, 'variable_parent' ); ?>><?php esc_html_e( 'Producto variable padre', 'almaden-bookster' ); ?></option>
+				<option value="variation" <?php selected( $product_mode, 'variation' ); ?>><?php esc_html_e( 'Variación ebook', 'almaden-bookster' ); ?></option>
+			</select>
+		</p>
+		<p>
+			<label for="almaden_wc_product_id" style="display:block; font-weight:600; margin-bottom:6px;">
+				<?php esc_html_e( 'ID principal a vincular', 'almaden-bookster' ); ?>
+			</label>
+			<input
+				type="number"
+				min="0"
+				step="1"
+				id="almaden_wc_product_id"
+				name="almaden_wc_product_id"
+				value="<?php echo esc_attr( $product_id ); ?>"
+				style="width:100%;"
+				placeholder="123"
+			/>
+		</p>
+		<p>
+			<label for="almaden_wc_parent_product_id" style="display:block; font-weight:600; margin-bottom:6px;">
+				<?php esc_html_e( 'ID del producto padre', 'almaden-bookster' ); ?>
+			</label>
+			<input
+				type="number"
+				min="0"
+				step="1"
+				id="almaden_wc_parent_product_id"
+				name="almaden_wc_parent_product_id"
+				value="<?php echo esc_attr( $parent_product_id ); ?>"
+				style="width:100%;"
+				placeholder="456"
+			/>
+		</p>
+		<p style="margin:0 0 12px; color:#6b7280;">
+			<?php esc_html_e( 'Si no existe un vínculo, puedes crear uno nuevo desde aquí. El sistema guardará tanto el enlace del libro como el metadato inverso en WooCommerce.', 'almaden-bookster' ); ?>
+		</p>
+		<p style="margin:0 0 12px;">
+			<label style="display:flex; gap:8px; align-items:flex-start; font-weight:600;">
+				<input type="checkbox" name="almaden_create_wc_product" value="1" <?php checked( $create_new_product ); ?> />
+				<span><?php esc_html_e( 'Crear el elemento WooCommerce faltante usando el modo seleccionado si no existe uno vinculado.', 'almaden-bookster' ); ?></span>
+			</label>
+		</p>
+		<p style="margin:0; color:#6b7280;">
+			<?php esc_html_e( 'La relación se sincroniza en ambos sentidos: libro → producto y producto/variación → libro.', 'almaden-bookster' ); ?>
 		</p>
 	<?php endif; ?>
 	<?php
@@ -171,18 +220,8 @@ function almaden_bookster_save_book_access_metabox( $post_id ) {
 		return;
 	}
 
-	$product_id = isset( $_POST['almaden_wc_product_id'] ) ? absint( $_POST['almaden_wc_product_id'] ) : 0;
-	$create_wc_product = ! empty( $_POST['almaden_create_wc_product'] );
-	if ( $product_id <= 0 && $create_wc_product && function_exists( 'almaden_bookster_get_or_create_book_product_id' ) ) {
-		$product_id = almaden_bookster_get_or_create_book_product_id( $post_id, true, 'draft' );
-	}
-	if ( $product_id > 0 ) {
-		if ( function_exists( 'almaden_bookster_sync_book_product_link' ) ) {
-			almaden_bookster_sync_book_product_link( $post_id, $product_id );
-		}
-		update_post_meta( $post_id, '_almaden_wc_product_id', $product_id );
-	} else {
-		delete_post_meta( $post_id, '_almaden_wc_product_id' );
+	if ( function_exists( 'almaden_bookster_save_book_commerce_relation_from_request' ) ) {
+		almaden_bookster_save_book_commerce_relation_from_request( $post_id, $_POST );
 	}
 }
 add_action( 'save_post', 'almaden_bookster_save_book_access_metabox' );

@@ -4,6 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once dirname( __DIR__ ) . '/pdf-typst/page-templates/bootstrap.php';
+require_once dirname( __DIR__ ) . '/pdf-typst/page-styles/bootstrap.php';
 
 function almaden_bookster_normalize_footnote_leading_pt( $value, $font_size = 8.5, $fallback = 11.5 ) {
 	$value = is_numeric( $value ) ? (float) $value : $fallback;
@@ -295,6 +296,13 @@ function almaden_bookster_save_settings_ajax() {
 			almaden_bookster_typst_save_page_templates(
 				$book_id,
 				wp_unslash( $_POST['page_templates'] )
+			);
+		}
+
+		if ( isset( $_POST['page_styles'] ) ) {
+			almaden_bookster_typst_save_page_styles(
+				$book_id,
+				wp_unslash( $_POST['page_styles'] )
 			);
 		}
 

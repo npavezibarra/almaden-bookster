@@ -72,6 +72,8 @@ function almaden_bookster_save_book_ajax() {
 			$hide_footer = '1';
 		}
 		$exclude_from_numbering= isset( $chapter['exclude_from_numbering'] ) ? sanitize_text_field( $chapter['exclude_from_numbering'] ) : '0';
+		$chapter_blank_before  = isset( $chapter['chapter_blank_before'] ) ? max( 0, min( 999, intval( $chapter['chapter_blank_before'] ) ) ) : 0;
+		$chapter_blank_after   = isset( $chapter['chapter_blank_after'] ) ? max( 0, min( 999, intval( $chapter['chapter_blank_after'] ) ) ) : 0;
 		$custom_running_header = isset( $chapter['custom_running_header'] ) ? sanitize_text_field( $chapter['custom_running_header'] ) : '';
 		
 		// Valores del subtítulo
@@ -192,6 +194,8 @@ function almaden_bookster_save_book_ajax() {
 			update_post_meta( $post_id, '_hide_footer', $hide_footer );
 			update_post_meta( $post_id, '_hide_all_headers_footers', $hide_all_headers_footers );
 			update_post_meta( $post_id, '_exclude_from_numbering', $exclude_from_numbering );
+			update_post_meta( $post_id, '_chapter_blank_before', $chapter_blank_before );
+			update_post_meta( $post_id, '_chapter_blank_after', $chapter_blank_after );
 			update_post_meta( $post_id, '_custom_running_header', $custom_running_header );
 			
 			// Guardar meta-datos del subtítulo
@@ -282,6 +286,8 @@ function almaden_bookster_save_book_ajax() {
 				'hide_footer'           => $hide_footer,
 				'hide_all_headers_footers' => $hide_all_headers_footers,
 				'exclude_from_numbering'=> $exclude_from_numbering,
+				'chapter_blank_before'  => (string) $chapter_blank_before,
+				'chapter_blank_after'   => (string) $chapter_blank_after,
 				'custom_running_header' => $custom_running_header,
 				
 				'subtitle_text'          => $subtitle_text,
@@ -390,6 +396,10 @@ function almaden_bookster_save_book_ajax() {
 	// El boton principal del editor tambien debe persistir el constructor de creditos.
 	if ( isset( $_POST['credits_config'] ) && function_exists( 'almaden_bookster_save_credits_from_request' ) ) {
 		almaden_bookster_save_credits_from_request( $book_id, $_POST );
+	}
+
+	if ( function_exists( 'almaden_bookster_save_book_commerce_relation_from_request' ) ) {
+		almaden_bookster_save_book_commerce_relation_from_request( $book_id, $_POST );
 	}
 
 	wp_send_json_success( array( 

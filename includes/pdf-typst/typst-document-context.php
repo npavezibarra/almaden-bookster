@@ -15,6 +15,9 @@ function almaden_bookster_typst_build_document_context( $payload ) {
 	$settings = isset( $payload['settings'] ) && is_array( $payload['settings'] ) ? $payload['settings'] : array();
 	$chapters = isset( $payload['chapters'] ) && is_array( $payload['chapters'] ) ? $payload['chapters'] : array();
 	$page_template_context = almaden_bookster_typst_page_template_context( $settings );
+	$page_styles = function_exists( 'almaden_bookster_typst_page_styles_from_settings' )
+		? almaden_bookster_typst_page_styles_from_settings( $settings )
+		: array();
 	$unit     = isset( $settings['unit'] ) && in_array( $settings['unit'], array( 'mm', 'cm', 'in', 'pt' ), true )
 		? $settings['unit'] : 'cm';
 

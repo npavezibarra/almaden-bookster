@@ -327,6 +327,11 @@
                 <button type="button" onclick="switchEbookSettingTab('tab-ebook-chapters')" class="ebook-setting-tab-btn py-2 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-ebook-chapters">
                     Capítulos
                 </button>
+                <?php if ( ! empty( $woocommerce_status['active'] ) ) : ?>
+                    <button type="button" onclick="switchEbookSettingTab('tab-ebook-commerce')" class="ebook-setting-tab-btn py-2 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-ebook-commerce">
+                        Comercio
+                    </button>
+                <?php endif; ?>
             </div>
             
             <div class="space-y-4 max-h-[48vh] overflow-y-auto pr-1">
@@ -463,6 +468,11 @@
 
                 <!-- Ebook Chapters Tab Content -->
                 <?php include plugin_dir_path( __FILE__ ) . 'settings-tabs/tab-ebook-chapters.php'; ?>
+
+                <!-- Ebook Commerce Tab Content -->
+                <?php if ( ! empty( $woocommerce_status['active'] ) ) : ?>
+                    <?php include plugin_dir_path( __FILE__ ) . 'settings-tabs/tab-commerce.php'; ?>
+                <?php endif; ?>
             </div>
         </div>
 

@@ -194,6 +194,7 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 	$output    = array();
 	$paragraph = array();
 	$list_type = '';
+	$align_type = '';
 
 	$exceptions = (array) ( $options['hyphenation_exceptions'] ?? array() );
 	$heading_styles = (array) ( $options['heading_styles'] ?? array() );
@@ -229,13 +230,24 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 			$flush_paragraph();
 			$close_list();
 			$value    = strtolower( $align[1] );
-			$output[] = 'justify' === $value ? '#[#set par(justify: true)' : '#align(' . $value . ')[';
+			if ( 'justify' === $value ) {
+				$align_type = 'justify';
+				$output[] = '#set par(justify: true)';
+			} else {
+				$align_type = $value;
+				$output[] = '#align(' . $value . ')[';
+			}
 			continue;
 		}
 		if ( preg_match( '/^\[\/align\]$/i', $trimmed ) ) {
 			$flush_paragraph();
 			$close_list();
-			$output[] = ']';
+			if ( 'justify' === $align_type ) {
+				$output[] = '#set par(justify: false)';
+			} elseif ( '' !== $align_type ) {
+				$output[] = ']';
+			}
+			$align_type = '';
 			continue;
 		}
 

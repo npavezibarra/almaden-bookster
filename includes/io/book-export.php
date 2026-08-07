@@ -80,6 +80,9 @@ function almaden_bookster_handle_download_book() {
 		'size'    => get_post_meta( $book_id, '_almaden_book_size', true ),
 		'is_published' => get_post_meta( $book_id, '_almaden_is_published', true ),
 		'wc_product_id' => (int) get_post_meta( $book_id, '_almaden_wc_product_id', true ),
+		'wc_parent_product_id' => (int) get_post_meta( $book_id, '_almaden_wc_parent_product_id', true ),
+		'wc_product_mode' => get_post_meta( $book_id, '_almaden_wc_product_mode', true ),
+		'wc_relation' => get_post_meta( $book_id, '_almaden_wc_relation', true ),
 		'cover_settings' => get_post_meta( $book_id, '_almaden_cover_settings', true ),
 		'credits_config' => function_exists( 'almaden_bookster_normalize_credits_config' )
 			? almaden_bookster_normalize_credits_config(
@@ -137,7 +140,7 @@ function almaden_bookster_handle_download_book() {
 		// Legacy compatibility keys. They may exist in older exports but are no longer part of the active editor flow.
 		'_page_one_vertical',
 		'_start_parity', '_first_page_header_type',
-			'_first_page_header_custom', '_first_page_footer_type', '_first_page_footer_custom', '_opening_separate_content', '_chapter_image_mode', '_chapter_image_url', '_chapter_image_inner_width', '_chapter_image_inner_header', '_chapter_image_inner_footer', '_parity_image_mode',
+			'_first_page_header_custom', '_first_page_footer_type', '_first_page_footer_custom', '_opening_separate_content', '_chapter_blank_before', '_chapter_blank_after', '_chapter_image_mode', '_chapter_image_url', '_chapter_image_inner_width', '_chapter_image_inner_header', '_chapter_image_inner_footer', '_parity_image_mode',
 			'_chapter_image_enabled',
 			'_parity_image_width', '_parity_image_height', '_is_toc', '_is_credits', '_credits_font_family', '_credits_align',
 			'_credits_font_size', '_credits_letter_spacing', '_credits_font_weight', '_credits_hide_header', '_credits_hide_page_number', '_credits_margin_top', '_credits_margin_bottom', '_toc_font_family', '_toc_font_size',

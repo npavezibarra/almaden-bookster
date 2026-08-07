@@ -291,9 +291,17 @@ function almaden_bookster_get_store_page_id() {
 	return isset( $settings['store_page_id'] ) ? absint( $settings['store_page_id'] ) : 0;
 }
 
+function almaden_bookster_get_bookshelf_page_id() {
+	return almaden_bookster_get_store_page_id();
+}
+
 function almaden_bookster_get_store_slug() {
 	$settings = almaden_bookster_get_pages_settings();
 	return isset( $settings['store_slug'] ) && '' !== $settings['store_slug'] ? $settings['store_slug'] : 'bookshelf';
+}
+
+function almaden_bookster_get_bookshelf_slug() {
+	return almaden_bookster_get_store_slug();
 }
 
 function almaden_bookster_get_store_title() {
@@ -301,9 +309,17 @@ function almaden_bookster_get_store_title() {
 	return isset( $settings['store_title'] ) && '' !== $settings['store_title'] ? $settings['store_title'] : 'Ebook Store';
 }
 
+function almaden_bookster_get_bookshelf_title() {
+	return almaden_bookster_get_store_title();
+}
+
 function almaden_bookster_get_store_menu_label() {
 	$settings = almaden_bookster_get_pages_settings();
 	return isset( $settings['store_menu_label'] ) && '' !== $settings['store_menu_label'] ? $settings['store_menu_label'] : 'Ebook Store';
+}
+
+function almaden_bookster_get_bookshelf_page_url( $query_args = array() ) {
+	return almaden_bookster_get_store_page_url( $query_args );
 }
 
 function almaden_bookster_is_store_menu_enabled() {

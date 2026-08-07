@@ -64,15 +64,19 @@ function almaden_bookster_build_typst_document( $payload ) {
 		$credits_config = isset( $settings['credits_config'] ) && is_array( $settings['credits_config'] )
 			? $settings['credits_config']
 			: ( isset( $chapter['credits_config'] ) && is_array( $chapter['credits_config'] ) ? $chapter['credits_config'] : array() );
-		$blank_before = $is_credits ? almaden_bookster_typst_credits_blank_count( $settings, 'before' ) : 0;
-		$blank_after  = $is_credits ? almaden_bookster_typst_credits_blank_count( $settings, 'after' ) : 0;
+		$blank_before = $is_credits
+			? almaden_bookster_typst_credits_blank_count( $settings, 'before' )
+			: ( ! $is_toc ? almaden_bookster_typst_chapter_blank_count( $chapter, 'before' ) : 0 );
+		$blank_after  = $is_credits
+			? almaden_bookster_typst_credits_blank_count( $settings, 'after' )
+			: ( ! $is_toc ? almaden_bookster_typst_chapter_blank_count( $chapter, 'after' ) : 0 );
 		$chapter_hide_header = almaden_bookster_typst_bool( $chapter['hide_header'] ?? false ) || almaden_bookster_typst_bool( $chapter['hide_all_headers_footers'] ?? false );
 		$chapter_hide_footer = almaden_bookster_typst_bool( $chapter['hide_footer'] ?? false ) || almaden_bookster_typst_bool( $chapter['hide_all_headers_footers'] ?? false );
 		if ( $rendered > 0 ) {
 			$source .= "\n#pagebreak()\n\n";
 		}
 		for ( $blank_index = 0; $blank_index < $blank_before; ++$blank_index ) {
-			$source .= '#metadata("credits-before") <almaden-intentional-blank>' . "\n";
+			$source .= '#metadata("' . ( $is_credits ? 'credits-before' : 'chapter-before' ) . '") <almaden-intentional-blank>' . "\n";
 			$source .= "#pagebreak()\n\n";
 		}
 		++$rendered;
@@ -211,12 +215,14 @@ function almaden_bookster_build_typst_document( $payload ) {
 
 		if ( ! empty( $opening_lines ) ) {
 			if ( $separate_opening ) {
+				$source .= '#almaden-page-styled("opening")[' . "\n";
 				$source .= '#box(width: 100%, height: 100%)[' . "\n";
 				$source .= '#place(' . $opening_place_alignment . ')[' . "\n";
 				$source .= '#block(breakable: false)[' . "\n";
 				$source .= implode( "\n#v(3mm)\n", $opening_lines ) . "\n";
-				$source .= "]\n]\n]\n#pagebreak()\n\n";
+				$source .= "]\n]\n]\n]\n#pagebreak()\n\n";
 			} else {
+				$source .= '#almaden-page-styled("opening")[' . "\n";
 				$source .= ( $show_title ? '#v(10mm)' : '#v(4mm)' ) . "\n";
 				$source .= implode( "\n#v(3mm)\n", $opening_lines ) . "\n";
 				if ( $show_title ) {
@@ -224,6 +230,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 				} else {
 					$source .= "\n";
 				}
+				$source .= "]\n";
 			}
 		}
 
@@ -379,7 +386,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 		$plain_extras = array_merge( $plain_extras, almaden_bookster_typst_plain_footnotes( $content ) );
 		for ( $blank_index = 0; $blank_index < $blank_after; ++$blank_index ) {
 			$source .= "\n#pagebreak()\n";
-			$source .= '#metadata("credits-after") <almaden-intentional-blank>' . "\n";
+			$source .= '#metadata("' . ( $is_credits ? 'credits-after' : 'chapter-after' ) . '") <almaden-intentional-blank>' . "\n";
 		}
 		if ( $is_credits ) {
 			$source .= '#set page(margin: (top: ' . ( $margin_top + $chapter_header_reserve ) . $unit . ', bottom: ' . ( $margin_bot + $chapter_footer_reserve ) . $unit . ', inside: ' . $margin_inside . $unit . ', outside: ' . $margin_outside . $unit . '))' . "\n";

@@ -33,8 +33,84 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 	$footer_reserve = $footer_has_content
 		? round( $footer_margin_top + almaden_bookster_typst_pt_to_unit( $footer_font_size, $unit ) + $footer_margin_bottom, 4 )
 		: 0;
+	$page_styles = isset( $page_styles ) && is_array( $page_styles ) ? $page_styles : array();
+	$page_style_resolvers = array(
+		'fill' => array(),
+		'content' => array(),
+		'header' => array(),
+		'footer' => array(),
+		'opening' => array(),
+	);
+	foreach ( $page_styles as $page_style ) {
+		$page_style = is_array( $page_style ) ? $page_style : array();
+		$page_number = isset( $page_style['resolved_page'] ) && is_numeric( $page_style['resolved_page'] )
+			? max( 1, (int) $page_style['resolved_page'] )
+			: ( isset( $page_style['page_number'] ) && is_numeric( $page_style['page_number'] ) ? max( 1, (int) $page_style['page_number'] ) : 0 );
+		if ( $page_number < 1 ) {
+			continue;
+		}
 
-	$source  = '#let almaden-current-chapter-title() = context {' . "\n";
+		$style = isset( $page_style['style'] ) && is_array( $page_style['style'] ) ? $page_style['style'] : array();
+		$background = isset( $style['background'] ) && is_array( $style['background'] ) ? $style['background'] : array();
+		$text_colors = isset( $style['text_colors'] ) && is_array( $style['text_colors'] ) ? $style['text_colors'] : array();
+		$background_type = strtolower( trim( (string) ( $background['type'] ?? 'color' ) ) );
+		$background_fill = '#ffffff';
+		if ( 'gradient' === $background_type && ! empty( $background['gradient']['stops'] ) && is_array( $background['gradient']['stops'] ) ) {
+			$first_stop = $background['gradient']['stops'][0] ?? array();
+			$background_fill = (string) ( $first_stop['color'] ?? $background['color'] ?? '#ffffff' );
+		} elseif ( 'image' === $background_type ) {
+			$background_fill = (string) ( $background['overlay']['color'] ?? $background['color'] ?? '#ffffff' );
+		} else {
+			$background_fill = (string) ( $background['color'] ?? '#ffffff' );
+		}
+		$background_fill = strtolower( trim( ltrim( $background_fill, '#' ) ) );
+		if ( ! preg_match( '/^(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/', $background_fill ) ) {
+			$background_fill = 'ffffff';
+		}
+		$page_style_resolvers['fill'][] = array(
+			'page' => $page_number,
+			'color' => $background_fill,
+		);
+		foreach ( array( 'content', 'header', 'footer', 'opening' ) as $kind ) {
+			$color = isset( $text_colors[ $kind ] ) ? (string) $text_colors[ $kind ] : '#111111';
+			$color = strtolower( trim( ltrim( $color, '#' ) ) );
+			if ( ! preg_match( '/^(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/', $color ) ) {
+				$color = '111111';
+			}
+			$page_style_resolvers[ $kind ][] = array(
+				'page' => $page_number,
+				'color' => $color,
+			);
+		}
+	}
+	$page_style_build_expression = static function ( $entries, $fallback_color ) {
+		$parts = array();
+		foreach ( (array) $entries as $entry ) {
+			$parts[] = 'if current == ' . (int) ( $entry['page'] ?? 0 ) . ' { rgb("' . (string) ( $entry['color'] ?? 'ffffff' ) . '") }';
+		}
+		$parts[] = '{ rgb("' . strtolower( trim( ltrim( (string) $fallback_color, '#' ) ) ) . '") }';
+		return implode( ' else ', $parts );
+	};
+	$page_style_fill_expr = $page_style_build_expression( $page_style_resolvers['fill'], '#ffffff' );
+	$page_style_content_expr = $page_style_build_expression( $page_style_resolvers['content'], '#111111' );
+	$page_style_header_expr = $page_style_build_expression( $page_style_resolvers['header'], '#111111' );
+	$page_style_footer_expr = $page_style_build_expression( $page_style_resolvers['footer'], '#111111' );
+	$page_style_opening_expr = $page_style_build_expression( $page_style_resolvers['opening'], '#111111' );
+
+	$source  = '#let almaden-page-style-color(kind) = {' . "\n";
+	$source .= '  let current = here().page()' . "\n";
+	$source .= '  if kind == "fill" { ' . $page_style_fill_expr . ' }' . "\n";
+	$source .= '  else if kind == "header" { ' . $page_style_header_expr . ' }' . "\n";
+	$source .= '  else if kind == "footer" { ' . $page_style_footer_expr . ' }' . "\n";
+	$source .= '  else if kind == "opening" { ' . $page_style_opening_expr . ' }' . "\n";
+	$source .= '  else { ' . $page_style_content_expr . ' }' . "\n";
+	$source .= '}' . "\n\n";
+	$source .= '#let almaden-page-styled(kind, body) = context {' . "\n";
+	$source .= '  set text(fill: almaden-page-style-color(kind))' . "\n";
+	$source .= '  body' . "\n";
+	$source .= '}' . "\n\n";
+
+	$source .= '#let almaden-current-chapter-title() = context {' . "\n";
 	$source .= '  let current = here().page()' . "\n";
 	$source .= '  let marks = query(<almaden-chapter-start>).filter(mark => mark.location().page() <= current)' . "\n";
 	$source .= '  if marks.len() > 0 { marks.last().value } else { "" }' . "\n";
@@ -76,7 +152,7 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 	$source .= '  if value != "" { value } else { "" }' . "\n";
 	$source .= '}' . "\n\n";
 
-	$source .= '#let almaden-running-area(content, box_align, font_family, font_size, font_weight, font_style, letter_spacing, margin_top, margin_bottom, hyphenate) = context {' . "\n";
+	$source .= '#let almaden-running-area(content, running_area, box_align, font_family, font_size, font_weight, font_style, letter_spacing, margin_top, margin_bottom, hyphenate) = context {' . "\n";
 	$source .= '  if content != "" {' . "\n";
 	$source .= '    let current = here().page()' . "\n";
 	$source .= '    let is_even = calc.even(current)' . "\n";
@@ -87,8 +163,9 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 	$source .= '    } else {' . "\n";
 	$source .= '      box_align' . "\n";
 	$source .= '    }' . "\n";
+	$source .= '    let running_fill = almaden-page-style-color(running_area)' . "\n";
 	$source .= '    box(width: 100%, inset: (top: margin_top, bottom: margin_bottom))[' . "\n";
-	$source .= '      #set text(font: font_family, size: font_size, weight: font_weight, style: font_style, tracking: letter_spacing, hyphenate: hyphenate)' . "\n";
+	$source .= '      #set text(fill: running_fill, font: font_family, size: font_size, weight: font_weight, style: font_style, tracking: letter_spacing, hyphenate: hyphenate)' . "\n";
 	$source .= '      #set par(justify: false, leading: 1em, spacing: 0pt)' . "\n";
 	$source .= '      #if resolved_align == "left" {' . "\n";
 	$source .= '        align(left)[#content]' . "\n";
@@ -105,16 +182,18 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 	$source .= '#set page(width: ' . $width . $unit . ', height: ' . $height . $unit .
 		', margin: (top: ' . ( $margin_top + $header_reserve ) . $unit . ', bottom: ' . ( $margin_bot + $footer_reserve ) . $unit .
 		', inside: ' . $margin_inside . $unit . ', outside: ' . $margin_outside . $unit . '),' .
+		' fill: rgb("ffffff"),' .
+		' background: context { rect(width: 100%, height: 100%, fill: almaden-page-style-color("fill")) },' .
 		' binding: left, bleed: ' . $bleed . $unit . ',' .
 		' header: context {' . "\n" .
 		'  let running = almaden-resolve-running-element("' . almaden_bookster_typst_escape_string( $book_title ) . '", ' . ( $first_page_header_show ? 'true' : 'false' ) . ', "' . almaden_bookster_typst_escape_string( $first_page_header_type ) . '", "' . almaden_bookster_typst_escape_string( $first_page_header_custom ) . '", "' . almaden_bookster_typst_escape_string( $header_even_type ) . '", "' . almaden_bookster_typst_escape_string( $header_even_custom ) . '", "' . almaden_bookster_typst_escape_string( $header_odd_type ) . '", "' . almaden_bookster_typst_escape_string( $header_odd_custom ) . '", "' . almaden_bookster_typst_escape_string( $header_text_transform ) . '", "header")' . "\n" .
-		'  almaden-running-area(running, "' . almaden_bookster_typst_escape_string( $header_align ) . '", "' . $header_font_family . '", ' . $header_font_size . 'pt, ' . $header_font_weight . ', "' . almaden_bookster_typst_escape_string( $header_font_style ) . '", ' . $header_letter_spacing . 'pt, ' . $header_margin_top . $unit . ', ' . $header_margin_bottom . $unit . ', ' . ( $header_hyphenate ? 'true' : 'false' ) . ')' . "\n" .
+		'  almaden-running-area(running, "header", "' . almaden_bookster_typst_escape_string( $header_align ) . '", "' . $header_font_family . '", ' . $header_font_size . 'pt, ' . $header_font_weight . ', "' . almaden_bookster_typst_escape_string( $header_font_style ) . '", ' . $header_letter_spacing . 'pt, ' . $header_margin_top . $unit . ', ' . $header_margin_bottom . $unit . ', ' . ( $header_hyphenate ? 'true' : 'false' ) . ')' . "\n" .
 		'},' . "\n" .
 		' footer: context {' . "\n" .
 		'  let running = almaden-resolve-running-element("' . almaden_bookster_typst_escape_string( $book_title ) . '", ' . ( $first_page_footer_show ? 'true' : 'false' ) . ', "' . almaden_bookster_typst_escape_string( $first_page_footer_type ) . '", "' . almaden_bookster_typst_escape_string( $first_page_footer_custom ) . '", "' . almaden_bookster_typst_escape_string( $footer_even_type ) . '", "' . almaden_bookster_typst_escape_string( $footer_even_custom ) . '", "' . almaden_bookster_typst_escape_string( $footer_odd_type ) . '", "' . almaden_bookster_typst_escape_string( $footer_odd_custom ) . '", "' . almaden_bookster_typst_escape_string( $footer_text_transform ) . '", "footer")' . "\n" .
-		'  almaden-running-area(running, "' . almaden_bookster_typst_escape_string( $footer_align ) . '", "' . $footer_font_family . '", ' . $footer_font_size . 'pt, ' . $footer_font_weight . ', "' . almaden_bookster_typst_escape_string( $footer_font_style ) . '", ' . $footer_letter_spacing . 'pt, ' . $footer_margin_top . $unit . ', ' . $footer_margin_bottom . $unit . ', false)' . "\n" .
+		'  almaden-running-area(running, "footer", "' . almaden_bookster_typst_escape_string( $footer_align ) . '", "' . $footer_font_family . '", ' . $footer_font_size . 'pt, ' . $footer_font_weight . ', "' . almaden_bookster_typst_escape_string( $footer_font_style ) . '", ' . $footer_letter_spacing . 'pt, ' . $footer_margin_top . $unit . ', ' . $footer_margin_bottom . $unit . ', false)' . "\n" .
 		'})' . "\n";
-	$source .= '#set text(font: "' . almaden_bookster_typst_escape_string( $font_family ) . '", size: ' .
+	$source .= '#set text(fill: rgb("111111"), font: "' . almaden_bookster_typst_escape_string( $font_family ) . '", size: ' .
 		$font_size . 'pt, weight: ' . $font_weight . ', lang: "' .
 		almaden_bookster_typst_escape_string( $lang ?: 'es' ) . '", hyphenate: ' . ( $hyphenate ? 'true' : 'false' ) .
 		', top-edge: 0.8em, bottom-edge: -0.2em)' . "\n";

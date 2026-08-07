@@ -275,6 +275,8 @@ function createNewChapter(isToc = false, isCredits = false) {
         is_credits: isCredits ? '1' : '0',
         start_parity: isToc ? 'even' : 'any',
         opening_separate_content: '',
+        chapter_blank_before: '0',
+        chapter_blank_after: '0',
         hide_header: '0',
         hide_footer: '0',
         hide_all_headers_footers: '0',
@@ -488,6 +490,8 @@ function saveStateToLocalStorage(immediate = false) {
                         hide_footer: chapter.hide_footer ?? (chapter.hide_all_headers_footers === '1' ? '1' : '0'),
                         hide_all_headers_footers: chapter.hide_all_headers_footers,
                         exclude_from_numbering: chapter.exclude_from_numbering,
+                        chapter_blank_before: chapter.chapter_blank_before,
+                        chapter_blank_after: chapter.chapter_blank_after,
                         custom_running_header: chapter.custom_running_header,
                         subtitle_text: chapter.subtitle_text,
                         subtitle_font_family: chapter.subtitle_font_family,
@@ -581,6 +585,18 @@ function saveStateToLocalStorage(immediate = false) {
                 }
             }
 
+            const commerceState = typeof window.getCommerceStateFromForm === 'function'
+                ? window.getCommerceStateFromForm()
+                : (bookState.commerce || null);
+            if (commerceState && commerceState.relation) {
+                data.append('almaden_wc_relation_mode', commerceState.relation.product_mode || 'none');
+                data.append('almaden_wc_product_id', commerceState.relation.product_id || 0);
+                data.append('almaden_wc_parent_product_id', commerceState.relation.parent_product_id || 0);
+                if (commerceState.create_wc_product) {
+                    data.append('almaden_create_wc_product', '1');
+                }
+            }
+
             const saveAbortController = typeof AbortController !== 'undefined' ? new AbortController() : null;
             const saveTimeoutId = saveAbortController
                 ? setTimeout(() => {
@@ -649,12 +665,14 @@ function saveStateToLocalStorage(immediate = false) {
                 }
             }
             saveCompleted = true;
+            return !!res.success;
         } catch (err) {
             console.error(err);
             if (statusIndicator) {
                 statusIndicator.innerHTML = '<i class="fa-solid fa-wifi text-xs mr-1"></i> Error red';
                 statusIndicator.className = 'flex items-center gap-1 font-semibold text-rose-600';
             }
+            return false;
         } finally {
             saveCompleted = true;
             clearTimeout(saveWatchdog);
@@ -665,9 +683,13 @@ function saveStateToLocalStorage(immediate = false) {
     };
 
     if (immediate) {
-        executeSave();
-    } else {
-        const autosaveDelay = (bookState && bookState.viewMode === 'split') ? 1200 : 15000;
-        saveTimeout = setTimeout(executeSave, autosaveDelay);
+        return executeSave();
     }
+
+    const autosaveDelay = (bookState && bookState.viewMode === 'split') ? 1200 : 15000;
+    return new Promise((resolve) => {
+        saveTimeout = setTimeout(() => {
+            executeSave().then(resolve).catch(() => resolve(false));
+        }, autosaveDelay);
+    });
 }

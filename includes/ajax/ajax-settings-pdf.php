@@ -4,6 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once dirname( __DIR__ ) . '/pdf-typst/page-templates/bootstrap.php';
+require_once dirname( __DIR__ ) . '/pdf-typst/page-styles/bootstrap.php';
 
 function almaden_get_book_pdf_settings( $book_id ) {
 	global $wpdb;
@@ -204,6 +205,9 @@ function almaden_get_book_pdf_settings( $book_id ) {
 	}
 
 	$pdf_settings['page_templates'] = almaden_bookster_typst_get_page_templates( $book_id );
+	$pdf_settings['page_styles'] = function_exists( 'almaden_bookster_typst_get_page_styles' )
+		? almaden_bookster_typst_get_page_styles( $book_id )
+		: array();
 
 	$pdf_settings['book_language'] = function_exists( 'almaden_bookster_get_book_language_from_settings' )
 		? almaden_bookster_get_book_language_from_settings( $pdf_settings, 'es' )

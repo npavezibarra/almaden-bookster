@@ -206,6 +206,8 @@ function openChapterSettingsModal() {
         document.getElementById('chapter_hide_opening').checked = activeChapter.hide_opening === '1';
         document.getElementById('chapter_hide_title').checked = activeChapter.hide_title === '1';
         document.getElementById('chapter_exclude_from_numbering').checked = activeChapter.exclude_from_numbering === '1';
+        document.getElementById('chapter_blank_before').value = activeChapter.chapter_blank_before ?? '0';
+        document.getElementById('chapter_blank_after').value = activeChapter.chapter_blank_after ?? '0';
         const derivedHideAllHeadersFooters = activeChapter.hide_all_headers_footers === '1';
         const derivedHideHeader = activeChapter.hide_header === '1' || derivedHideAllHeadersFooters;
         const derivedHideFooter = activeChapter.hide_footer === '1' || derivedHideAllHeadersFooters;
@@ -277,7 +279,7 @@ function closeChapterSettingsModal() {
     }, 300);
 }
 
-function saveChapterSettings() {
+async function saveChapterSettings() {
     const activeChapter = getChapterSettingsActiveChapter();
     if (!activeChapter) {
         closeChapterSettingsModal();
@@ -366,6 +368,8 @@ function saveChapterSettings() {
         activeChapter.hide_opening = document.getElementById('chapter_hide_opening').checked ? '1' : '0';
         activeChapter.hide_title = document.getElementById('chapter_hide_title').checked ? '1' : '0';
         activeChapter.exclude_from_numbering = document.getElementById('chapter_exclude_from_numbering').checked ? '1' : '0';
+        activeChapter.chapter_blank_before = Math.min(999, Math.max(0, parseInt(document.getElementById('chapter_blank_before').value, 10) || 0));
+        activeChapter.chapter_blank_after = Math.min(999, Math.max(0, parseInt(document.getElementById('chapter_blank_after').value, 10) || 0));
         activeChapter.hide_header = document.getElementById('chapter_hide_header').checked ? '1' : '0';
         activeChapter.hide_footer = document.getElementById('chapter_hide_footer').checked ? '1' : '0';
         activeChapter.hide_all_headers_footers = (activeChapter.hide_header === '1' && activeChapter.hide_footer === '1') ? '1' : '0';
@@ -410,37 +414,42 @@ function saveChapterSettings() {
         btn.classList.add('opacity-75', 'cursor-not-allowed');
     }
 
-    setTimeout(() => {
+    const saveSucceeded = typeof saveStateToLocalStorage === 'function'
+        ? await saveStateToLocalStorage(true)
+        : true;
+
+    if (!saveSucceeded) {
         if (btn) {
-            btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Guardado';
-            btn.classList.replace('bg-black', 'bg-emerald-600');
-            btn.classList.replace('hover:bg-neutral-800', 'hover:bg-emerald-700');
+            btn.innerHTML = originalBtnText;
+            btn.disabled = false;
+            btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            btn.classList.replace('bg-emerald-600', 'bg-black');
+            btn.classList.replace('hover:bg-emerald-700', 'hover:bg-neutral-800');
         }
 
-        setTimeout(() => {
-            closeChapterSettingsModal();
+        if (typeof showToast === 'function') {
+            showToast("No se pudieron guardar los cambios del capítulo.", "fa-solid fa-triangle-exclamation");
+        }
+        return;
+    }
 
-            if (btn) {
-                btn.innerHTML = originalBtnText;
-                btn.disabled = false;
-                btn.classList.remove('opacity-75', 'cursor-not-allowed');
-                btn.classList.replace('bg-emerald-600', 'bg-black');
-                btn.classList.replace('hover:bg-emerald-700', 'hover:bg-neutral-800');
-            }
+    closeChapterSettingsModal();
 
-            if (typeof applyDynamicPDFStyles === 'function') {
-                applyDynamicPDFStyles();
-            } else if (typeof refreshEditorDisplay === 'function') {
-                refreshEditorDisplay(false);
-            }
+    if (btn) {
+        btn.innerHTML = originalBtnText;
+        btn.disabled = false;
+        btn.classList.remove('opacity-75', 'cursor-not-allowed');
+        btn.classList.replace('bg-emerald-600', 'bg-black');
+        btn.classList.replace('hover:bg-emerald-700', 'hover:bg-neutral-800');
+    }
 
-            if (typeof saveStateToLocalStorage === 'function') {
-                saveStateToLocalStorage(true);
-            }
+    if (typeof applyDynamicPDFStyles === 'function') {
+        applyDynamicPDFStyles();
+    } else if (typeof refreshEditorDisplay === 'function') {
+        refreshEditorDisplay(false);
+    }
 
-            if (typeof showToast === 'function') {
-                showToast("Configuración del capítulo actualizada.", "fa-solid fa-check");
-            }
-        }, 500);
-    }, 300);
+    if (typeof showToast === 'function') {
+        showToast("Configuración del capítulo actualizada.", "fa-solid fa-check");
+    }
 }

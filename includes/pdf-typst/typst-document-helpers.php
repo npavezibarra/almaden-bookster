@@ -13,6 +13,7 @@ require_once __DIR__ . '/typst-markup.php';
 require_once __DIR__ . '/typst-fonts.php';
 require_once __DIR__ . '/typst-footnotes.php';
 require_once __DIR__ . '/page-templates/bootstrap.php';
+require_once __DIR__ . '/page-styles/bootstrap.php';
 
 function almaden_bookster_typst_number( $settings, $key, $fallback, $min, $max ) {
 	$value = isset( $settings[ $key ] ) && is_numeric( $settings[ $key ] ) ? (float) $settings[ $key ] : $fallback;
@@ -56,6 +57,13 @@ function almaden_bookster_typst_credits_blank_count( $settings, $position ) {
 		? $config['editorial']
 		: array();
 	$value = $editorial[ 'blank_' . $position ] ?? ( $settings[ $key ] ?? 0 );
+
+	return is_numeric( $value ) ? max( 0, min( 999, (int) $value ) ) : 0;
+}
+
+function almaden_bookster_typst_chapter_blank_count( $chapter, $position ) {
+	$key = 'chapter_blank_' . $position;
+	$value = is_array( $chapter ) && isset( $chapter[ $key ] ) ? $chapter[ $key ] : 0;
 
 	return is_numeric( $value ) ? max( 0, min( 999, (int) $value ) ) : 0;
 }

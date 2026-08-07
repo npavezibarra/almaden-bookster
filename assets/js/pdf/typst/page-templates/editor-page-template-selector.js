@@ -1,6 +1,7 @@
 // Page selection and preset assignment for the Typst/PDF.js preview.
 (function () {
     let selectedPageNumber = null;
+    let activeTab = 'template';
     let modalBound = false;
 
     function getSelectablePage(element) {
@@ -75,6 +76,10 @@
         return window.almadenPageTemplateState?.getTemplateAtPage?.(selectedPageNumber) || null;
     }
 
+    function getSelectedPageNumber() {
+        return selectedPageNumber;
+    }
+
     function cloneTemplates(templates) {
         return JSON.parse(JSON.stringify(Array.isArray(templates) ? templates : []));
     }
@@ -101,13 +106,19 @@
         const selected = Number.isFinite(selectedPageNumber) && selectedPageNumber > 0;
         button.classList.toggle('hidden', !selected);
         button.classList.toggle('inline-flex', selected);
-        if (label) label.textContent = selected ? `Plantilla: página ${selectedPageNumber}` : 'Aplicar plantilla';
+        if (label) label.textContent = selected ? `Configurar página ${selectedPageNumber}` : 'Aplicar plantilla';
     }
 
     function updateModalActions() {
         const removeButton = document.getElementById('page-template-remove');
         const confirmButton = document.getElementById('page-template-confirm');
         const hasTemplate = !!getTemplateForSelectedPage();
+        const templateFooter = document.querySelector('[data-page-template-footer="template"]');
+        const styleFooter = document.querySelector('[data-page-template-footer="style"]');
+        const templatePanel = document.querySelector('[data-page-template-panel="template"]');
+        const stylePanel = document.querySelector('[data-page-template-panel="style"]');
+        const templateTabButton = document.querySelector('[data-page-template-tab-button="template"]');
+        const styleTabButton = document.querySelector('[data-page-template-tab-button="style"]');
 
         if (removeButton) {
             removeButton.classList.toggle('hidden', !hasTemplate);
@@ -121,6 +132,32 @@
         if (confirmButton) {
             confirmButton.textContent = hasTemplate ? 'Reemplazar plantilla' : 'Aplicar plantilla';
         }
+
+        if (templateFooter) {
+            templateFooter.classList.toggle('hidden', activeTab !== 'template');
+        }
+        if (styleFooter) {
+            styleFooter.classList.toggle('hidden', activeTab !== 'style');
+        }
+        if (templatePanel) {
+            templatePanel.classList.toggle('hidden', activeTab !== 'template');
+        }
+        if (stylePanel) {
+            stylePanel.classList.toggle('hidden', activeTab !== 'style');
+        }
+        if (templateTabButton) {
+            templateTabButton.classList.toggle('bg-black', activeTab === 'template');
+            templateTabButton.classList.toggle('text-white', activeTab === 'template');
+            templateTabButton.classList.toggle('bg-white', activeTab !== 'template');
+            templateTabButton.classList.toggle('text-slate-600', activeTab !== 'template');
+        }
+        if (styleTabButton) {
+            styleTabButton.classList.toggle('bg-black', activeTab === 'style');
+            styleTabButton.classList.toggle('text-white', activeTab === 'style');
+            styleTabButton.classList.toggle('bg-white', activeTab !== 'style');
+            styleTabButton.classList.toggle('text-slate-600', activeTab !== 'style');
+        }
+        window.almadenPageStyleUI?.refresh?.();
     }
 
     function updateSelection(root) {
@@ -253,6 +290,7 @@
 
     function openModal() {
         if (!Number.isFinite(selectedPageNumber) || selectedPageNumber < 1) return;
+        activeTab = 'template';
         const modal = document.getElementById('page-template-modal');
         const dialog = modal?.querySelector('[data-page-template-dialog]');
         const target = document.getElementById('page-template-target-page');
@@ -263,11 +301,17 @@
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         modal.setAttribute('aria-hidden', 'false');
+        updateModalActions();
         requestAnimationFrame(() => {
             modal.classList.remove('opacity-0');
             dialog.classList.remove('scale-95');
             dialog.classList.add('scale-100');
         });
+    }
+
+    function setActiveTab(tab) {
+        activeTab = tab === 'style' ? 'style' : 'template';
+        updateModalActions();
     }
 
     function bindModal() {
@@ -276,11 +320,19 @@
         const modal = document.getElementById('page-template-modal');
         const confirm = document.getElementById('page-template-confirm');
         const remove = document.getElementById('page-template-remove');
+        const templateTab = document.querySelector('[data-page-template-tab-button="template"]');
+        const styleTab = document.querySelector('[data-page-template-tab-button="style"]');
         if (!modal || !confirm) return;
 
         modal.addEventListener('click', event => {
             if (event.target === modal || event.target.closest('[data-page-template-close]')) closeModal();
         });
+        if (templateTab) {
+            templateTab.addEventListener('click', () => setActiveTab('template'));
+        }
+        if (styleTab) {
+            styleTab.addEventListener('click', () => setActiveTab('style'));
+        }
         confirm.addEventListener('click', applyTemplate);
         if (remove) remove.addEventListener('click', removeTemplate);
         document.addEventListener('keydown', event => {
@@ -310,5 +362,5 @@
         updateModalActions();
     }
 
-    window.almadenPageTemplateUI = { bind, openModal, closeModal };
+    window.almadenPageTemplateUI = { bind, openModal, closeModal, setActiveTab, getSelectedPageNumber };
 })();

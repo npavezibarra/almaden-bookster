@@ -13,7 +13,11 @@ function almaden_bookster_create_page() {
 	almaden_bookster_sync_course_creator_page();
 	almaden_bookster_sync_course_archive_page();
 	almaden_bookster_sync_blog_creator_page();
-	almaden_bookster_sync_store_page();
+	if ( function_exists( 'almaden_bookster_sync_bookshelf_page' ) ) {
+		almaden_bookster_sync_bookshelf_page();
+	} else {
+		almaden_bookster_sync_store_page();
+	}
 	almaden_bookster_sync_authors_page();
 	almaden_bookster_sync_author_page();
 	almaden_bookster_sync_publisher_page();
@@ -216,21 +220,21 @@ function almaden_bookster_load_blog_creator() {
 add_action( 'template_redirect', 'almaden_bookster_load_blog_creator', 5 );
 
 // 3. Interceptar la página del catálogo público para cargar nuestra app independiente
-function almaden_bookster_load_bookshelf() {
+function almaden_bookster_load_bookshelf( $template ) {
 	if ( is_page( almaden_bookster_get_store_slug() ) && is_main_query() ) {
-		// Ocultar barra de administración de WordPress
 		show_admin_bar( false );
-		
+
 		$template_path = dirname( __FILE__ ) . '/../templates/bookshelf/bookshelf-app.php';
 		if ( file_exists( $template_path ) ) {
-			require_once $template_path;
-			exit;
-		} else {
-			wp_die( 'Plantilla del bookshelf no encontrada.' );
+			return $template_path;
 		}
+
+		wp_die( 'Plantilla del bookshelf no encontrada.' );
 	}
+
+	return $template;
 }
-add_action( 'template_redirect', 'almaden_bookster_load_bookshelf', 5 );
+add_filter( 'template_include', 'almaden_bookster_load_bookshelf', 20 );
 
 // 4. Interceptar la vista individual de un libro publicado para cargar el Reader App
 function almaden_bookster_load_reader( $template ) {
@@ -405,7 +409,6 @@ function almaden_bookster_handle_duplicate_book() {
 			'book_author' => get_post_meta( $book_id, 'book_author', true ),
 			'_almaden_book_author' => get_post_meta( $book_id, '_almaden_book_author', true ),
 			'_almaden_source_book_id' => $source_book_id,
-			'_almaden_wc_product_id' => get_post_meta( $book_id, '_almaden_wc_product_id', true ),
 		),
 	);
 
@@ -439,6 +442,10 @@ function almaden_bookster_handle_duplicate_book() {
 			$db_settings['book_id'] = $new_book_id;
 			unset( $db_settings['id'] ); // Remueve primary key para insertar nuevo
 			$wpdb->insert( $settings_table, $db_settings );
+		}
+
+		if ( function_exists( 'almaden_bookster_clear_book_wc_relation' ) ) {
+			almaden_bookster_clear_book_wc_relation( $new_book_id );
 		}
 
 		$redirect_url = almaden_bookster_get_creator_page_url( array( 'book_duplicated' => '1' ) );

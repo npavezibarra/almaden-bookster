@@ -414,7 +414,13 @@ function almaden_bookster_sync_store_page() {
 	$slug     = almaden_bookster_get_store_slug();
 	$title    = almaden_bookster_get_store_title();
 	$page_id  = isset( $settings['store_page_id'] ) ? absint( $settings['store_page_id'] ) : 0;
+	$page_policy = function_exists( 'almaden_bookster_get_bookshelf_page_policy' ) ? almaden_bookster_get_bookshelf_page_policy() : 'auto_create';
+	$auto_create_enabled = function_exists( 'almaden_bookster_should_auto_create_bookshelf_page' ) ? almaden_bookster_should_auto_create_bookshelf_page() : true;
 	$page     = $page_id > 0 ? get_post( $page_id ) : null;
+
+	if ( 'disabled' === $page_policy ) {
+		return;
+	}
 
 	if ( $page && 'page' !== $page->post_type ) {
 		$page = null;
@@ -425,6 +431,10 @@ function almaden_bookster_sync_store_page() {
 	}
 
 	if ( ! $page ) {
+		if ( ! $auto_create_enabled ) {
+			return;
+		}
+
 		$new_page_id = wp_insert_post(
 			array(
 				'post_title'   => $title,
@@ -440,6 +450,7 @@ function almaden_bookster_sync_store_page() {
 			$settings['store_slug']    = $slug;
 			$settings['store_title']   = $title;
 			update_option( 'almaden_bookster_pages_settings', $settings );
+			update_post_meta( (int) $new_page_id, '_almaden_bookster_render_template', 'templates/bookshelf/bookshelf-app.php' );
 		}
 
 		return;
@@ -459,12 +470,18 @@ function almaden_bookster_sync_store_page() {
 		wp_update_post( $updates );
 	}
 
+	update_post_meta( (int) $page->ID, '_almaden_bookster_render_template', 'templates/bookshelf/bookshelf-app.php' );
+
 	if ( $page_id !== (int) $page->ID ) {
 		$settings['store_page_id'] = (int) $page->ID;
 		$settings['store_slug']    = $slug;
 		$settings['store_title']   = $title;
 		update_option( 'almaden_bookster_pages_settings', $settings );
 	}
+}
+
+function almaden_bookster_sync_bookshelf_page() {
+	almaden_bookster_sync_store_page();
 }
 
 function almaden_bookster_sync_quiz_page() {

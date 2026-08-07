@@ -3,6 +3,7 @@ define( 'ALMADEN_TYPST_TESTING', true );
 require_once dirname( __DIR__ ) . '/includes/pdf-typst/page-templates/bootstrap.php';
 
 $source = <<<'TYPST'
+#let almaden-page-styled(kind, body) = body
 #set page(width: 20cm, height: 12cm, margin: 1cm, columns: 2)
 #set align(left)
 #metadata("almaden-flow-1") <almaden-flow-1>

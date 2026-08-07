@@ -347,8 +347,8 @@ function almaden_bookster_get_pages_admin_sections() {
 		),
 		array(
 			'key'         => 'store',
-			'heading'     => 'Ebook Store',
-			'description' => 'Catálogo público de ebooks.',
+			'heading'     => 'Bookshelf',
+			'description' => 'Página pública del catálogo de ebooks administrada por Bookster. Puede sincronizarse como una página real de WordPress y exponerse en el menú principal.',
 			'page_id_name'=> 'store_page_id',
 			'title_name'  => 'store_title',
 			'slug_name'   => 'store_slug',

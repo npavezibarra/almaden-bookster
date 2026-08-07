@@ -123,6 +123,15 @@ function almaden_bookster_handle_upload_book() {
 	if ( ! empty( $book_info['wc_product_id'] ) ) {
 		update_post_meta( $book_post_id, '_almaden_wc_product_id', intval( $book_info['wc_product_id'] ) );
 	}
+	if ( ! empty( $book_info['wc_parent_product_id'] ) ) {
+		update_post_meta( $book_post_id, '_almaden_wc_parent_product_id', intval( $book_info['wc_parent_product_id'] ) );
+	}
+	if ( ! empty( $book_info['wc_product_mode'] ) ) {
+		update_post_meta( $book_post_id, '_almaden_wc_product_mode', sanitize_key( $book_info['wc_product_mode'] ) );
+	}
+	if ( ! empty( $book_info['wc_relation'] ) && is_array( $book_info['wc_relation'] ) ) {
+		update_post_meta( $book_post_id, '_almaden_wc_relation', $book_info['wc_relation'] );
+	}
 	update_post_meta( $book_post_id, '_almaden_is_published', $book_info['is_published'] );
 	if ( function_exists( 'almaden_bookster_bump_bookshelf_cache_version' ) ) {
 		almaden_bookster_bump_bookshelf_cache_version();

@@ -155,7 +155,7 @@ function almaden_bookster_typst_page_template_apply_blocks( $source, $context, $
 	 * Typst paginates them on following regular pages instead of overlaying
 	 * them under the image placeholder.
 	 */
-	$replacement = "#page(columns: 1)[\n#box(width: 100%, height: 100%)[\n#grid(columns: (1fr, 1fr), rows: (1fr,), gutter: $gap, [\n#block(width: 100%)[\n$left_body\n]\n], [\n#block(width: 100%, height: 100%)[\n$placeholder\n]\n])\n]\n]\n";
+	$replacement = "#page(columns: 1)[\n#box(width: 100%, height: 100%)[\n#grid(columns: (1fr, 1fr), rows: (1fr,), gutter: $gap, [\n#block(width: 100%)[\n#almaden-page-styled(\"content\")[\n$left_body\n]\n]\n], [\n#block(width: 100%, height: 100%)[\n$placeholder\n]\n])\n]\n]\n";
 	if ( '' !== $deferred_body ) {
 		$replacement .= "\n$deferred_body";
 	}

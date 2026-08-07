@@ -6,7 +6,7 @@ function getChapterSettingsModalLabels(chapter) {
             title: 'Ajustes del Capítulo de Contenido',
             subtitle: 'Estas configuraciones sobrescriben las reglas globales solo para el capítulo de contenido actual.',
             startLabel: '¿Dónde debe iniciar el contenido de este capítulo?',
-            startSubtitle: 'Define el lado donde empieza el contenido. La apertura se configura aparte en la pestaña "Apertura".',
+            startSubtitle: 'Define el lado donde empieza el contenido. La apertura del capítulo y la cabecera superior se configuran aparte.',
             saveLabel: 'Aplicar al Capítulo de Contenido'
         };
     }
@@ -16,7 +16,7 @@ function getChapterSettingsModalLabels(chapter) {
             title: 'Ajustes del Índice',
             subtitle: 'Estas configuraciones sobrescriben las reglas globales solo para el índice actual.',
             startLabel: '¿Dónde debe iniciar el contenido del Índice?',
-            startSubtitle: 'Define el lado donde empieza el Índice. La apertura se configura aparte en la pestaña "Apertura".',
+            startSubtitle: 'Define el lado donde empieza el Índice. La apertura del capítulo y la cabecera superior se configuran aparte.',
             saveLabel: 'Aplicar al Índice'
         };
     }
@@ -26,7 +26,7 @@ function getChapterSettingsModalLabels(chapter) {
             title: 'Ajustes de la Página de Créditos',
             subtitle: 'Estas configuraciones sobrescriben las reglas globales solo para la página de créditos actual.',
             startLabel: '¿Dónde debe iniciar el contenido de la Página de Créditos?',
-            startSubtitle: 'Define el lado donde empieza la Página de Créditos. La apertura se configura aparte en la pestaña "Apertura".',
+            startSubtitle: 'Define el lado donde empieza la Página de Créditos. La apertura del capítulo y la cabecera superior se configuran aparte.',
             saveLabel: 'Aplicar a Créditos'
         };
     }
@@ -35,7 +35,7 @@ function getChapterSettingsModalLabels(chapter) {
         title: 'Ajustes del Capítulo de Contenido',
         subtitle: 'Estas configuraciones sobrescriben las reglas globales solo para el capítulo de contenido actual.',
         startLabel: '¿Dónde debe iniciar el contenido de este capítulo?',
-        startSubtitle: 'Define el lado donde empieza el contenido. La apertura se configura aparte en la pestaña "Apertura".',
+        startSubtitle: 'Define el lado donde empieza el contenido. La apertura del capítulo y la cabecera superior se configuran aparte.',
         saveLabel: 'Aplicar al Capítulo de Contenido'
     };
 }

@@ -16,6 +16,17 @@ if ( '' === trim( (string) $book_authors_input_value ) && function_exists( 'alma
 	$book_authors_input_value = almaden_bookster_get_book_author_edit_tokens( $book_id );
 }
 
+$commerce_relation = function_exists( 'almaden_bookster_get_book_wc_relation' ) ? almaden_bookster_get_book_wc_relation( $book_id ) : array(
+	'book_id' => $book_id,
+	'product_id' => (int) get_post_meta( $book_id, '_almaden_wc_product_id', true ),
+	'parent_product_id' => (int) get_post_meta( $book_id, '_almaden_wc_parent_product_id', true ),
+	'product_mode' => get_post_meta( $book_id, '_almaden_wc_product_mode', true ) ?: 'none',
+);
+$woocommerce_status = function_exists( 'almaden_bookster_get_woocommerce_status' ) ? almaden_bookster_get_woocommerce_status() : array(
+	'active' => false,
+	'installed' => false,
+);
+
 $source_book_id = get_post_meta( $book_id, '_almaden_source_book_id', true );
 if ( empty( $source_book_id ) ) {
 	$source_book_id = $book_id;
@@ -96,6 +107,8 @@ if ( $chapter_posts ) {
 			'first_page_footer_type'   => get_post_meta( $cp->ID, '_first_page_footer_type', true ),
 			'first_page_footer_custom' => get_post_meta( $cp->ID, '_first_page_footer_custom', true ),
 			'opening_separate_content' => get_post_meta( $cp->ID, '_opening_separate_content', true ),
+			'chapter_blank_before'     => get_post_meta( $cp->ID, '_chapter_blank_before', true ),
+			'chapter_blank_after'      => get_post_meta( $cp->ID, '_chapter_blank_after', true ),
 			'chapter_image_enabled'    => get_post_meta( $cp->ID, '_chapter_image_enabled', true ),
 			'chapter_image_mode'       => get_post_meta( $cp->ID, '_chapter_image_mode', true ),
 			'chapter_image_url'        => get_post_meta( $cp->ID, '_chapter_image_url', true ),
@@ -184,6 +197,8 @@ if ( empty( $saved_chapters ) ) {
 		'first_page_footer_type'     => '',
 		'first_page_footer_custom'   => '',
 		'opening_separate_content'   => '',
+		'chapter_blank_before'       => '0',
+		'chapter_blank_after'        => '0',
 		'chapter_image_enabled'      => '',
 		'chapter_image_mode'         => '',
 		'chapter_image_url'          => '',

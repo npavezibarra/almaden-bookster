@@ -99,8 +99,22 @@ if ( ! function_exists( 'almaden_bookster_get_shell_navigation_exclusion_rules' 
 			function_exists( 'almaden_bookster_get_store_title' ) ? almaden_bookster_get_store_title() : 'Ebook Store',
 			function_exists( 'almaden_bookster_get_store_page_id' ) ? almaden_bookster_get_store_page_id() : 0
 		);
+		if ( function_exists( 'almaden_bookster_should_show_bookshelf_in_regular_menu' ) && almaden_bookster_should_show_bookshelf_in_regular_menu() ) {
+			array_pop( $rules );
+		}
 
 		return $rules;
+	}
+}
+
+if ( ! function_exists( 'almaden_bookster_should_show_bookshelf_in_regular_menu' ) ) {
+	function almaden_bookster_should_show_bookshelf_in_regular_menu() {
+		$menu_enabled = function_exists( 'almaden_bookster_is_store_menu_enabled' ) && almaden_bookster_is_store_menu_enabled();
+		$distribution_settings = function_exists( 'almaden_bookster_get_distribution_settings' ) ? almaden_bookster_get_distribution_settings() : array();
+		$distribution_enabled = ! empty( $distribution_settings['menu_injection_enabled'] );
+		$page_id = function_exists( 'almaden_bookster_get_store_page_id' ) ? almaden_bookster_get_store_page_id() : 0;
+
+		return $menu_enabled && $distribution_enabled && $page_id > 0;
 	}
 }
 
@@ -120,6 +134,31 @@ if ( ! function_exists( 'almaden_bookster_build_shell_home_menu_item_html' ) ) {
 		$label = function_exists( 'almaden_bookster_get_shell_home_title' ) ? almaden_bookster_get_shell_home_title() : 'Almaden App';
 		$page_id = function_exists( 'almaden_bookster_get_shell_home_page_id' ) ? almaden_bookster_get_shell_home_page_id() : 0;
 		$classes = array( 'menu-item', 'menu-item-type-post_type', 'menu-item-object-page', 'menu-item-shell-home' );
+
+		if ( $page_id > 0 && is_page( $page_id ) ) {
+			$classes[] = 'current-menu-item';
+			$classes[] = 'current_page_item';
+		}
+
+		return sprintf(
+			'<li class="%1$s"><a href="%2$s">%3$s</a></li>',
+			esc_attr( implode( ' ', $classes ) ),
+			esc_url( $url ),
+			esc_html( $label )
+		);
+	}
+}
+
+if ( ! function_exists( 'almaden_bookster_build_bookshelf_menu_item_html' ) ) {
+	function almaden_bookster_build_bookshelf_menu_item_html() {
+		if ( ! almaden_bookster_should_show_bookshelf_in_regular_menu() ) {
+			return '';
+		}
+
+		$url     = function_exists( 'almaden_bookster_get_store_page_url' ) ? almaden_bookster_get_store_page_url() : home_url( '/' );
+		$label   = function_exists( 'almaden_bookster_get_store_menu_label' ) ? almaden_bookster_get_store_menu_label() : ( function_exists( 'almaden_bookster_get_store_title' ) ? almaden_bookster_get_store_title() : 'Ebook Store' );
+		$page_id = function_exists( 'almaden_bookster_get_store_page_id' ) ? almaden_bookster_get_store_page_id() : 0;
+		$classes = array( 'menu-item', 'menu-item-type-post_type', 'menu-item-object-page', 'menu-item-bookshelf' );
 
 		if ( $page_id > 0 && is_page( $page_id ) ) {
 			$classes[] = 'current-menu-item';
@@ -204,6 +243,26 @@ function almaden_bookster_prepend_shell_home_to_nav_menu_items_html( $items ) {
 	}
 }
 
+if ( ! function_exists( 'almaden_bookster_prepend_bookshelf_to_nav_menu_items_html' ) ) {
+	function almaden_bookster_prepend_bookshelf_to_nav_menu_items_html( $items ) {
+		if ( is_admin() || '' === trim( (string) $items ) || ! almaden_bookster_should_show_bookshelf_in_regular_menu() ) {
+			return $items;
+		}
+
+		$bookshelf_url = function_exists( 'almaden_bookster_get_store_page_url' ) ? esc_url( almaden_bookster_get_store_page_url() ) : '';
+		if ( '' !== $bookshelf_url && false !== stripos( $items, $bookshelf_url ) ) {
+			return $items;
+		}
+
+		$bookshelf_item = almaden_bookster_build_bookshelf_menu_item_html();
+		if ( '' === $bookshelf_item ) {
+			return $items;
+		}
+
+		return $bookshelf_item . $items;
+	}
+}
+
 if ( ! function_exists( 'almaden_bookster_inject_shell_home_into_navigation_block_html' ) ) {
 	function almaden_bookster_inject_shell_home_into_navigation_block_html( $block_content, $block = array() ) {
 		if ( is_admin() || '' === trim( (string) $block_content ) || ! almaden_bookster_should_show_shell_home_in_regular_menu() ) {
@@ -248,6 +307,58 @@ if ( ! function_exists( 'almaden_bookster_inject_shell_home_into_navigation_bloc
 		$updated_block_content = preg_replace(
 			'/<\/ul>/i',
 			$shell_home_item . '</ul>',
+			$block_content,
+			1
+		);
+
+		return null === $updated_block_content ? $block_content : $updated_block_content;
+	}
+}
+
+if ( ! function_exists( 'almaden_bookster_inject_bookshelf_into_navigation_block_html' ) ) {
+	function almaden_bookster_inject_bookshelf_into_navigation_block_html( $block_content, $block = array() ) {
+		if ( is_admin() || '' === trim( (string) $block_content ) || ! almaden_bookster_should_show_bookshelf_in_regular_menu() ) {
+			return $block_content;
+		}
+
+		if ( ! isset( $block['blockName'] ) || 0 !== strpos( (string) $block['blockName'], 'core/navigation' ) ) {
+			return $block_content;
+		}
+
+		$bookshelf_url = function_exists( 'almaden_bookster_get_store_page_url' ) ? esc_url( almaden_bookster_get_store_page_url() ) : '';
+		$bookshelf_label = function_exists( 'almaden_bookster_get_store_menu_label' ) ? almaden_bookster_get_store_menu_label() : ( function_exists( 'almaden_bookster_get_store_title' ) ? almaden_bookster_get_store_title() : 'Ebook Store' );
+
+		if ( '' !== $bookshelf_url && false !== stripos( $block_content, $bookshelf_url ) ) {
+			return $block_content;
+		}
+
+		if ( '' !== $bookshelf_label && false !== stripos( wp_strip_all_tags( $block_content ), $bookshelf_label ) ) {
+			return $block_content;
+		}
+
+		$bookshelf_item = almaden_bookster_build_bookshelf_menu_item_html();
+		if ( '' === $bookshelf_item ) {
+			return $block_content;
+		}
+
+		$updated_block_content = preg_replace(
+			'/<ul([^>]*)>/i',
+			'<ul$1>' . $bookshelf_item,
+			$block_content,
+			1
+		);
+
+		if ( null === $updated_block_content ) {
+			return $block_content;
+		}
+
+		if ( $updated_block_content !== $block_content ) {
+			return $updated_block_content;
+		}
+
+		$updated_block_content = preg_replace(
+			'/<\/ul>/i',
+			$bookshelf_item . '</ul>',
 			$block_content,
 			1
 		);
@@ -565,3 +676,129 @@ if ( ! function_exists( 'almaden_bookster_cleanup_navigation_entries_on_activati
 		almaden_bookster_cleanup_navigation_posts();
 	}
 }
+
+if ( ! function_exists( 'almaden_bookster_get_store_navigation_menu_id' ) ) {
+	function almaden_bookster_get_store_navigation_menu_id() {
+		$settings = function_exists( 'almaden_bookster_get_distribution_settings' ) ? almaden_bookster_get_distribution_settings() : array();
+		$menu_location = isset( $settings['menu_location'] ) ? sanitize_key( (string) $settings['menu_location'] ) : 'default';
+		$locations = function_exists( 'get_nav_menu_locations' ) ? (array) get_nav_menu_locations() : array();
+
+		if ( 'default' === $menu_location || '' === $menu_location ) {
+			foreach ( $locations as $location => $menu_id ) {
+				if ( absint( $menu_id ) > 0 ) {
+					return absint( $menu_id );
+				}
+			}
+
+			$menus = wp_get_nav_menus();
+			if ( ! empty( $menus ) && $menus[0] instanceof WP_Term ) {
+				return absint( $menus[0]->term_id );
+			}
+
+			return 0;
+		}
+
+		if ( isset( $locations[ $menu_location ] ) && absint( $locations[ $menu_location ] ) > 0 ) {
+			return absint( $locations[ $menu_location ] );
+		}
+
+		return 0;
+	}
+}
+
+if ( ! function_exists( 'almaden_bookster_sync_store_navigation_menu_item' ) ) {
+	function almaden_bookster_sync_store_navigation_menu_item() {
+		if ( ! function_exists( 'almaden_bookster_get_store_page_id' ) || ! function_exists( 'wp_update_nav_menu_item' ) ) {
+			return;
+		}
+
+		$page_id = almaden_bookster_get_store_page_id();
+		$menu_id  = almaden_bookster_get_store_navigation_menu_id();
+		$marker_key = '_almaden_bookster_store_menu_item';
+
+		if ( $page_id <= 0 || $menu_id <= 0 || ! almaden_bookster_should_show_bookshelf_in_regular_menu() ) {
+			$menus = wp_get_nav_menus();
+			foreach ( $menus as $menu ) {
+				$items = wp_get_nav_menu_items( $menu->term_id, array( 'update_post_term_cache' => false ) );
+				if ( empty( $items ) || ! is_array( $items ) ) {
+					continue;
+				}
+
+				foreach ( $items as $item ) {
+					if ( ! $item instanceof WP_Post ) {
+						continue;
+					}
+
+					if ( 'nav_menu_item' !== $item->post_type ) {
+						continue;
+					}
+
+					$is_managed = get_post_meta( $item->ID, $marker_key, true );
+					$is_store_item = absint( $item->object_id ) === $page_id && 'page' === $item->object;
+					if ( $is_managed || $is_store_item ) {
+						wp_delete_post( (int) $item->ID, true );
+					}
+				}
+			}
+
+			return;
+		}
+
+		$menu_items = wp_get_nav_menu_items( $menu_id, array( 'update_post_term_cache' => false ) );
+		$menu_items = is_array( $menu_items ) ? $menu_items : array();
+		$existing_item = null;
+
+		foreach ( $menu_items as $item ) {
+			if ( ! $item instanceof WP_Post ) {
+				continue;
+			}
+
+			if ( 'nav_menu_item' !== $item->post_type ) {
+				continue;
+			}
+
+			$is_managed = get_post_meta( $item->ID, $marker_key, true );
+			$is_store_item = absint( $item->object_id ) === $page_id && 'page' === $item->object;
+
+			if ( $is_managed || $is_store_item ) {
+				if ( null === $existing_item ) {
+					$existing_item = $item;
+				} else {
+					wp_delete_post( (int) $item->ID, true );
+				}
+			}
+		}
+
+		$menu_title = function_exists( 'almaden_bookster_get_store_menu_label' ) ? almaden_bookster_get_store_menu_label() : ( function_exists( 'almaden_bookster_get_store_title' ) ? almaden_bookster_get_store_title() : 'Ebook Store' );
+		$menu_url   = function_exists( 'almaden_bookster_get_store_page_url' ) ? almaden_bookster_get_store_page_url() : home_url( '/' );
+		$menu_args  = array(
+			'menu-item-title'     => $menu_title,
+			'menu-item-url'       => $menu_url,
+			'menu-item-object-id' => $page_id,
+			'menu-item-object'    => 'page',
+			'menu-item-type'      => 'post_type',
+			'menu-item-status'    => 'publish',
+		);
+
+		if ( $existing_item instanceof WP_Post ) {
+			$menu_args['menu-item-db-id'] = (int) $existing_item->ID;
+		}
+
+		$menu_item_id = wp_update_nav_menu_item( $menu_id, $existing_item instanceof WP_Post ? (int) $existing_item->ID : 0, $menu_args );
+		if ( is_wp_error( $menu_item_id ) || ! $menu_item_id ) {
+			return;
+		}
+
+		update_post_meta( (int) $menu_item_id, $marker_key, 1 );
+	}
+}
+
+if ( ! function_exists( 'almaden_bookster_sync_bookshelf_navigation' ) ) {
+	function almaden_bookster_sync_bookshelf_navigation() {
+		almaden_bookster_sync_store_navigation_menu_item();
+	}
+}
+
+add_action( 'init', 'almaden_bookster_sync_bookshelf_navigation', 40 );
+add_filter( 'wp_nav_menu_items', 'almaden_bookster_prepend_bookshelf_to_nav_menu_items_html', 10, 2 );
+add_filter( 'render_block', 'almaden_bookster_inject_bookshelf_into_navigation_block_html', 20, 2 );

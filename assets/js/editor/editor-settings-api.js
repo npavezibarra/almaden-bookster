@@ -112,6 +112,7 @@ window.savePDFSettings = function(silent = false, skipPreview = false) {
     data.append('page_columns_count', getCleanVal('setting-page-columns-count'));
     data.append('page_columns_gap', getCleanVal('setting-page-columns-gap'));
     data.append('page_templates', JSON.stringify(bookState.settings?.page_templates || []));
+    data.append('page_styles', JSON.stringify(bookState.settings?.page_styles || []));
     data.append('ebook_bg_type', getVal('setting-ebook-bg-type'));
     data.append('ebook_bg_color', getVal('setting-ebook-bg-color-text'));
     data.append('ebook_bg_image', getVal('setting-ebook-bg-image'));
@@ -347,6 +348,9 @@ window.savePDFSettings = function(silent = false, skipPreview = false) {
             const pageTemplates = Array.isArray(bookState.settings?.page_templates)
                 ? bookState.settings.page_templates
                 : [];
+            const pageStyles = Array.isArray(bookState.settings?.page_styles)
+                ? bookState.settings.page_styles
+                : [];
             bookState.settings = typeof almadenBuildPDFSettingsState === 'function'
                 ? almadenBuildPDFSettingsState({
                     getVal,
@@ -361,6 +365,7 @@ window.savePDFSettings = function(silent = false, skipPreview = false) {
                 })
                 : bookState.settings;
             bookState.settings.page_templates = pageTemplates;
+            bookState.settings.page_styles = pageStyles;
 
             if (!skipPreview && typeof applyDynamicPDFStyles === 'function') {
                 try {

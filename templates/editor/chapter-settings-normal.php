@@ -154,7 +154,7 @@
 		<div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
 			<div>
 				<label class="font-semibold block mb-1">Ocultar apertura del capítulo</label>
-				<span class="text-xs text-[var(--text-muted)]">Oculta título, prefijo y subtítulo de este capítulo. El contenido comienza directamente y no afecta Créditos ni Índice.</span>
+				<span class="text-xs text-[var(--text-muted)]">Oculta el bloque de apertura del capítulo: título, prefijo, subtítulo y metadata asociada. El contenido comienza directamente y no afecta Créditos ni Índice.</span>
 			</div>
 			<label class="relative inline-flex items-center cursor-pointer">
 				<input type="checkbox" id="chapter_hide_opening" name="hide_chapter_opening" class="sr-only peer">
@@ -165,7 +165,7 @@
         <div id="chapter_opening_layout_hint" class="p-4 rounded-xl border border-dashed border-[var(--border-color)] bg-[var(--bg-sidebar)]">
             <label class="block font-semibold mb-1">Apertura condicionada</label>
             <p class="text-xs text-[var(--text-muted)]">
-                Esta sección se activa cuando el capítulo usa una página previa en blanco. Ahí podrás decidir si el bloque de apertura se mueve a esa página y cómo se alinea.
+                Esta sección se activa cuando el capítulo usa una página previa en blanco. Ahí podrás decidir si el bloque de apertura se mueve a esa página y cómo se alinea. Esto no modifica la cabecera superior corrida.
             </p>
         </div>
 
@@ -173,7 +173,7 @@
             <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
                 <div>
                     <label class="font-semibold block mb-1">Marcar blanco intencional</label>
-                    <span class="text-xs text-[var(--text-muted)]">Reserva este flag para indicar que la página previa vacía es una decisión editorial deliberada.</span>
+                    <span class="text-xs text-[var(--text-muted)]">Reserva este flag para indicar que la página previa vacía es una decisión editorial deliberada antes de la apertura.</span>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" id="chapter_opening_blank_intentional" name="opening_blank_intentional" class="sr-only peer">
@@ -184,7 +184,7 @@
             <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
                 <div>
                     <label class="font-semibold block mb-1">Mostrar bloque de apertura</label>
-                    <span class="text-xs text-[var(--text-muted)]">Controla el bloque estructural que contiene título, prefijo y subtítulo en la página previa en blanco.</span>
+                    <span class="text-xs text-[var(--text-muted)]">Controla el bloque estructural que contiene título, prefijo, subtítulo y metadata en la página previa en blanco.</span>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" id="chapter_opening_block_enabled" name="opening_block_enabled" class="sr-only peer">
@@ -300,8 +300,8 @@
     <div id="chapter-tab-header-footer" class="chapter-tab-content space-y-6 hidden">
         <div class="grid grid-cols-1 gap-4">
             <div>
-                <label class="block font-semibold mb-1">Cabecera superior personalizada</label>
-                <p class="text-xs text-[var(--text-muted)] mb-2">Sobrescribe el texto de la cabecera corrida, útil si el título completo es demasiado largo.</p>
+                <label class="block font-semibold mb-1">Cabecera corrida personalizada</label>
+                <p class="text-xs text-[var(--text-muted)] mb-2">Sobrescribe el texto de la cabecera superior corrida, útil si el título completo es demasiado largo.</p>
                 <input type="text" id="chapter_custom_running_header" name="custom_running_header" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-[var(--text-main)] focus:outline-none focus:border-black dark:border-white" placeholder="Ej: El misterio de la montaña...">
             </div>
         </div>
@@ -309,7 +309,7 @@
         <div class="p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
             <div class="mb-3">
                 <label class="font-semibold block mb-1">Contenido en la primera página</label>
-                <span class="text-xs text-[var(--text-muted)]">Configura qué se muestra en la cabecera y pie de la primera página de este capítulo.</span>
+                <span class="text-xs text-[var(--text-muted)]">Configura qué se muestra en la cabecera y pie de la primera página de este capítulo. Esto es independiente de la apertura del capítulo.</span>
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
@@ -345,7 +345,7 @@
             <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
                 <div>
                     <label class="font-semibold block mb-1">Ocultar cabecera</label>
-                    <span class="text-xs text-[var(--text-muted)]">Elimina por completo la cabecera en todas las páginas de este capítulo.</span>
+                    <span class="text-xs text-[var(--text-muted)]">Elimina por completo la cabecera corrida superior en todas las páginas de este capítulo.</span>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" id="chapter_hide_header" name="hide_header" class="sr-only peer">
@@ -397,6 +397,21 @@
                 <input type="checkbox" id="chapter_disable_hyphenation" name="disable_hyphenation" class="sr-only peer">
                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
             </label>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4">
+            <h4 class="font-bold border-b border-[var(--border-color)] pb-2">Páginas en blanco</h4>
+            <p class="text-xs text-[var(--text-muted)] -mt-2">Agrega páginas completamente vacías inmediatamente antes o después de este capítulo.</p>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Antes del capítulo</label>
+                <input type="number" min="0" max="999" step="1" id="chapter_blank_before" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" value="0">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Después del capítulo</label>
+                <input type="number" min="0" max="999" step="1" id="chapter_blank_after" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" value="0">
+            </div>
         </div>
 
         <div class="p-4 rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)]">

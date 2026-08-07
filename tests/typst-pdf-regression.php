@@ -1,5 +1,18 @@
 <?php
 define( 'ALMADEN_TYPST_TESTING', true );
+
+if ( ! function_exists( 'sanitize_text_field' ) ) {
+	function sanitize_text_field( $value ) {
+		return trim( preg_replace( '/[\r\n\t]+/', ' ', strip_tags( (string) $value ) ) );
+	}
+}
+
+if ( ! function_exists( 'esc_url_raw' ) ) {
+	function esc_url_raw( $value ) {
+		return trim( (string) $value );
+	}
+}
+
 require_once dirname( __DIR__ ) . '/includes/pdf-typst/typst-document.php';
 
 $problem_paragraph = 'En los próximos años, la ventaja competitiva no dependerá únicamente del acceso a la tecnología, sino de la habilidad para integrarla de manera inteligente en procesos, organizaciones y proyectos personales. Quienes aprendan a combinar pensamiento crítico, conocimiento especializado y herramientas de inteligencia artificial estarán mejor preparados para adaptarse a un entorno en constante cambio y para convertir los avances tecnológicos en oportunidades reales de crecimiento. La inteligencia artificial está transformando la forma en que las personas crean, aprenden y trabajan. Lo que antes requería equipos completos o largos procesos técnicos ahora puede realizarse en cuestión de minutos, permitiendo que individuos y pequeñas organizaciones desarrollen proyectos con una velocidad sin precedentes. Sin embargo, esta aceleración no elimina la importancia del criterio humano; por el contrario, hace aún más valiosa la capacidad de formular buenas preguntas, evaluar resultados y tomar decisiones fundamentadas.';
@@ -33,6 +46,23 @@ $payload = array(
 		'content_paragraph_spacing' => 4,
 		'book_language'          => 'es',
 		'chapter_title_font_size' => 22,
+		'page_styles'             => array(
+			array(
+				'page_number' => 1,
+				'style'       => array(
+					'background'  => array(
+						'type'  => 'color',
+						'color' => '#f6efe2',
+					),
+					'text_colors' => array(
+						'content' => '#2d2926',
+						'header'  => '#315c47',
+						'footer'  => '#315c47',
+						'opening' => '#7a3028',
+					),
+				),
+			),
+		),
 	),
 	'chapters' => array(
 		array(
@@ -57,16 +87,18 @@ $payload = array(
 			'toc_title_padding_bottom' => 1.2,
 			'toc_title_line_height' => 1.1,
 		),
-		array(
-			'title'   => 'Introducción',
-			'content' => "La **inteligencia artificial** está transformando el trabajo.\n\n" .
-				"A medida que estas herramientas se vuelven más accesibles, surge un nuevo desafío.\n\n" .
-				$problem_paragraph . "\n\n" . $problem_paragraph .
-				"\n\nTexto con nota[^1] y <foreign lang=\"en\">a complete foreign sentence</foreign>.\n\n" .
-				"> Una cita que debe conservarse.\n\n[align=center]\nTexto centrado.\n[/align]\n\n" .
-				"- Primer elemento\n- Segundo elemento\n\n[gap:3mm]\n\n" .
-				"[^1]: Esta nota debe aparecer completa.",
-		),
+			array(
+				'title'   => 'Introducción',
+				'content' => "La **inteligencia artificial** está transformando el trabajo.\n\n" .
+					"A medida que estas herramientas se vuelven más accesibles, surge un nuevo desafío.\n\n" .
+					$problem_paragraph . "\n\n" . $problem_paragraph .
+					"\n\nTexto con nota[^1] y <foreign lang=\"en\">a complete foreign sentence</foreign>.\n\n" .
+					"> Una cita que debe conservarse.\n\n[align=center]\nTexto centrado.\n[/align]\n\n" .
+					"- Primer elemento\n- Segundo elemento\n\n[gap:3mm]\n\n" .
+					"[^1]: Esta nota debe aparecer completa.",
+				'chapter_blank_before' => '2',
+				'chapter_blank_after'  => '1',
+			),
 	),
 );
 
@@ -128,18 +160,25 @@ if ( false !== strpos( $document['source'], "#context {\n#set text" ) ) {
 	fwrite( STDERR, 'El índice quedó envuelto en modo código y Typst rechazará sus llamadas de contenido.' . PHP_EOL );
 	exit( 1 );
 }
+if ( false !== strpos( $document['source'], 'fill: context' ) ) {
+	fwrite( STDERR, 'Un parámetro fill recibió contenido contextual en vez de un color Typst.' . PHP_EOL );
+	exit( 1 );
+}
 $required_typography = array(
-	'#set text(font: "Libertinus Serif", size: 12pt, weight: 500, lang: "es", hyphenate: true',
-	'#set par(justify: true, leading: 0.2em, spacing: 4pt, first-line-indent: 0pt)',
-	'#align(left)[',
-	'#text(hyphenate: false)[tecnología]',
-	'#let almaden-current-chapter-title() = context {',
-	'#metadata("Índice") <almaden-chapter-start>',
-	'#metadata("Introducción") <almaden-chapter-start-2>',
+		'background: context { rect(width: 100%, height: 100%, fill: almaden-page-style-color("fill")) }',
+		'#set text(fill: rgb("111111"), font: "Libertinus Serif", size: 12pt, weight: 500, lang: "es", hyphenate: true',
+		'#set par(justify: true, leading: 0.2em, spacing: 4pt, first-line-indent: 0pt)',
+		'#align(left)[',
+		'#text(hyphenate: false)[tecnología]',
+		'#let almaden-current-chapter-title() = context {',
+		'#metadata("Índice") <almaden-chapter-start>',
+		'#metadata("Introducción") <almaden-chapter-start-2>',
+		'#metadata("chapter-before") <almaden-intentional-blank>',
+		'#metadata("chapter-after") <almaden-intentional-blank>',
 	'#set text(font: "Outfit", size: 19.5pt, weight: 800, style: "normal", tracking: 0pt)',
 	'#set text(font: "Inter Tight", size: 10.5pt, weight: 700, style: "italic", tracking: 0.3pt)',
 	'#set page(width: 14cm, height: 20cm, margin: (top: ',
-	'#align(center)[ ÍNDICE ]',
+		'#align(center)[ ÍNDICE ]',
 	'header: context {',
 	'footer: context {',
 );
