@@ -33,6 +33,28 @@ function almaden_bookster_typst_page_template_registry() {
 				),
 			),
 		),
+		'upper-image-bottom-text-split' => array(
+			'id'          => 'upper-image-bottom-text-split',
+			'label'       => 'Upper Image, Bottom Text Split',
+			'placement'   => 'physical-page',
+			'layout'      => 'upper-bottom-split',
+			'placeholder' => true,
+			'future_image' => true,
+			'preview'     => array(
+				'type'   => 'upper-bottom-split',
+				'canvas' => '#ffffff',
+				'frame'  => '#94a3b8',
+				'fill'   => '#f59e0b',
+				'text'   => '#cbd5e1',
+			),
+			'slots'       => array(
+				array(
+					'id'    => 'image-1',
+					'label' => 'Imagen 1',
+					'kind'  => 'image',
+				),
+			),
+		),
 		'inner-full-page' => array(
 			'id'          => 'inner-full-page',
 			'label'       => 'Inner Full Page',

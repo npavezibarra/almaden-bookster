@@ -159,6 +159,9 @@
                 <button id="page-template-remove" type="button" class="hidden rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 hover:text-rose-700">
                     Quitar plantilla
                 </button>
+                <button data-page-template-reset type="button" class="hidden rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 hover:text-rose-700">
+                    Reset
+                </button>
                 <button type="button" data-page-template-close class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100">Cancelar</button>
                 <button id="page-template-confirm" type="button" class="rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-neutral-800">Aplicar plantilla</button>
             </div>
@@ -166,6 +169,9 @@
             <div data-page-template-footer="style" class="hidden flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
                 <button id="page-style-remove" type="button" class="hidden rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 hover:text-rose-700">
                     Quitar estilo
+                </button>
+                <button data-page-template-reset type="button" class="hidden rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 hover:text-rose-700">
+                    Reset
                 </button>
                 <button type="button" data-page-template-close class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100">Cancelar</button>
                 <button id="page-style-confirm" type="button" class="rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-neutral-800">Guardar estilo</button>

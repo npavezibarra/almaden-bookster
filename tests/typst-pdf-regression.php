@@ -46,6 +46,16 @@ $payload = array(
 		'content_paragraph_spacing' => 4,
 		'book_language'          => 'es',
 		'chapter_title_font_size' => 22,
+		'chapter_prefix_show'     => 1,
+		'chapter_prefix_font_family' => 'Inter Tight',
+		'chapter_prefix_font_size' => 16,
+		'chapter_prefix_font_weight' => '700',
+		'chapter_prefix_font_style' => 'italic',
+		'chapter_prefix_letter_spacing' => 5,
+		'chapter_prefix_ornament' => 'line_below',
+		'book_chapter_flow_mode' => 'left',
+		'chapter_transition_blank_mode' => 'intentional_text',
+		'chapter_transition_blank_text' => 'Página intencional',
 		'page_styles'             => array(
 			array(
 				'page_number' => 1,
@@ -165,8 +175,10 @@ if ( false !== strpos( $document['source'], 'fill: context' ) ) {
 	exit( 1 );
 }
 $required_typography = array(
-		'background: context { rect(width: 100%, height: 100%, fill: almaden-page-style-color("fill")) }',
+		'background: context {',
+		'rect(width: 100%, height: 100%, fill: almaden-page-style-color("fill"))',
 		'#set text(fill: rgb("111111"), font: "Libertinus Serif", size: 12pt, weight: 500, lang: "es", hyphenate: true',
+		'#line(length: 100%, stroke: 0.35pt)',
 		'#set par(justify: true, leading: 0.2em, spacing: 4pt, first-line-indent: 0pt)',
 		'#align(left)[',
 		'#text(hyphenate: false)[tecnología]',
@@ -175,8 +187,15 @@ $required_typography = array(
 		'#metadata("Introducción") <almaden-chapter-start-2>',
 		'#metadata("chapter-before") <almaden-intentional-blank>',
 		'#metadata("chapter-after") <almaden-intentional-blank>',
-	'#set text(font: "Outfit", size: 19.5pt, weight: 800, style: "normal", tracking: 0pt)',
-	'#set text(font: "Inter Tight", size: 10.5pt, weight: 700, style: "italic", tracking: 0.3pt)',
+		'#metadata("intentional_text") <almaden-chapter-parity-break>',
+		'#pagebreak(to: "even")',
+		'place(center + horizon)[#text(fill: rgb("111111"))[Página intencional]]',
+		'#let almaden-is-chapter-transition-page() = {',
+		'#set text(font: "Outfit", size: 19.5pt, weight: 800, style: "normal", tracking: 0pt)',
+		'#set text(font: "Inter Tight", size: 10.5pt, weight: 700, style: "italic", tracking: 0.3pt)',
+		'#text(font: "Inter Tight", size: 12pt, weight: 700, style: "italic", tracking: 3.75pt)',
+		'Capítulo 1',
+		'#line(length: 100%, stroke: 0.35pt)',
 	'#set page(width: 14cm, height: 20cm, margin: (top: ',
 		'#align(center)[ ÍNDICE ]',
 	'header: context {',
@@ -187,6 +206,38 @@ foreach ( $required_typography as $required ) {
 		fwrite( STDERR, 'Falta configuración Typst: ' . $required . PHP_EOL );
 		exit( 1 );
 	}
+}
+
+$full_blank_source = almaden_bookster_typst_chapter_parity_break(
+	array(
+		'book_chapter_flow_mode'         => 'left',
+		'chapter_transition_blank_mode' => 'full_blank',
+	)
+);
+if ( false === strpos( $full_blank_source, '#metadata("full_blank") <almaden-chapter-parity-break>' ) || false === strpos( $full_blank_source, '#pagebreak(to: "even")' ) ) {
+	fwrite( STDERR, 'El modo Full Blanco no generó una transición limpia.' . PHP_EOL );
+	exit( 1 );
+}
+
+$header_footer_source = almaden_bookster_typst_chapter_parity_break(
+	array(
+		'book_chapter_flow_mode'         => 'left',
+		'chapter_transition_blank_mode' => 'blank_with_header_footer',
+	)
+);
+if ( false === strpos( $header_footer_source, '#metadata("blank_with_header_footer") <almaden-chapter-parity-break>' ) ) {
+	fwrite( STDERR, 'El blanco con cabecera y pie perdió su marcador de transición.' . PHP_EOL );
+	exit( 1 );
+}
+
+$continuous_source = almaden_bookster_typst_chapter_parity_break(
+	array(
+		'book_chapter_flow_mode' => 'continuous',
+	)
+);
+if ( '' !== $continuous_source ) {
+	fwrite( STDERR, 'El flujo continuo generó una transición de paridad.' . PHP_EOL );
+	exit( 1 );
 }
 
 $toc_title_override_payload = $payload;
@@ -238,6 +289,7 @@ if ( false === strpos( $hidden_title_document['source'], 'Texto de prueba.' ) ) 
 }
 
 $output   = isset( $argv[1] ) ? $argv[1] : sys_get_temp_dir() . '/almaden-typst-regression.typ';
+$document['source'] .= "\n#context { [#metadata(query(<almaden-chapter-start>).map(mark => (title: mark.value, page: mark.location().page()))) <almaden-parity-test-report>] }\n";
 file_put_contents( $output, $document['source'] );
 file_put_contents( $output . '.expected.txt', $document['semantic_text'] );
 echo $output . PHP_EOL;

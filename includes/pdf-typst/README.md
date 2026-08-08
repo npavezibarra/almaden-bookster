@@ -30,6 +30,87 @@ graph TD
    y valida el texto extraído del PDF.
 5. El endpoint devuelve el PDF más headers de geometría, flujo y diagnóstico.
 
+## Plantillas y estilos por página
+
+En este módulo conviven dos capas distintas que el editor expone como pestañas
+separadas:
+
+- `Plantilla` define la estructura física de una página.
+- `Estilo` define la apariencia visual de esa misma página.
+
+Las dos capas pueden coexistir. Una misma página puede tener plantilla y estilo
+al mismo tiempo, porque una controla el layout y la otra controla el look.
+
+### Qué hace cada capa
+
+#### Plantillas
+
+Las plantillas viven en `includes/pdf-typst/page-templates/` y describen cómo
+se divide la página seleccionada:
+
+- cuántos bloques visuales reserva;
+- dónde queda el contenido principal;
+- qué zonas quedan como slots de imagen;
+- si el preset ocupa una página completa o solo una parte del área de
+  contenido.
+
+Los presets visibles hoy se registran en `page-template-registry.php`. Cada
+uno se muestra en la UI como una miniatura con su nombre pequeño debajo, para
+que el selector siga siendo legible cuando haya muchas opciones.
+
+Los datos persistidos viven en `_almaden_page_templates` y se normalizan antes
+de llegar al compilador Typst. La identidad importante no es la posición
+visual momentánea, sino `instance_id` + `anchor.flow_id`. `resolved_page` solo
+es el resultado de la maquetación actual.
+
+#### Estilos
+
+Los estilos viven en `includes/pdf-typst/page-styles/` y trabajan sobre la
+apariencia de una página ya resuelta:
+
+- fondo sólido, degradado o imagen;
+- overlay del fondo cuando se usa imagen;
+- color de texto por zona: `content`, `header`, `footer` y `opening`.
+
+Los datos persistidos viven en `_almaden_page_styles` y se guardan en
+`settings.page_styles` durante la compilación.
+
+### Cómo entra al PDF
+
+1. La UI escribe `page_templates` y `page_styles` en `bookState.settings`.
+2. Los endpoints AJAX reinyectan la versión persistida antes de compilar.
+3. `typst-document-context.php` construye el contexto final para Typst.
+4. `typst-document-prefix.php` genera las funciones Typst que resuelven el
+   color de cada página y la envoltura visual del contenido.
+5. `page-template-composer.php` inserta la estructura física de la plantilla
+   sobre el flujo de texto ya medido por Typst.
+
+### En Typst
+
+El prefijo Typst define dos helpers que usan los estilos:
+
+- `almaden-page-style-color(kind)`: resuelve el paint de página para `fill`
+  y el color de texto para `content`, `header`, `footer` u `opening`.
+- `almaden-page-styled(kind, body)`: aplica ese color al bloque recibido.
+
+Luego el compositor de plantillas usa esos helpers para envolver el contenido
+de la página correcta sin romper el reflujo del libro.
+
+### Relación entre ambas capas
+
+- Una plantilla decide cuántos slots existen y dónde viven.
+- Un estilo decide cómo se ve la página final.
+- Si una plantilla deja un slot de imagen vacío, ese slot aparece como
+  placeholder hasta que el usuario asigne un asset.
+- Si una página tiene estilo pero no plantilla, el estilo igual se aplica.
+- Si una página tiene plantilla pero no estilo, Typst cae en los colores por
+  defecto.
+
+### Archivos de referencia
+
+- `includes/pdf-typst/page-templates/README.md`
+- `includes/pdf-typst/page-styles/README.md`
+
 ## Archivos y funciones clave
 
 ### `typst-document.php`

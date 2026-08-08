@@ -92,6 +92,27 @@ function almaden_bookster_typst_build_document_context( $payload ) {
 	if ( ! $title_font_error ) {
 		$title_font_family = $title_font['family'];
 	}
+	$prefix_size = almaden_bookster_typst_number( $settings, 'chapter_prefix_font_size', 16, 6, 100 );
+	$prefix_font_family = almaden_bookster_typst_font_family( $settings['chapter_prefix_font_family'] ?? $font_family );
+	$prefix_font_weight = almaden_bookster_typst_font_weight( $settings['chapter_prefix_font_weight'] ?? 'normal' );
+	$prefix_font_style = isset( $settings['chapter_prefix_font_style'] ) ? strtolower( trim( (string) $settings['chapter_prefix_font_style'] ) ) : 'normal';
+	if ( ! in_array( $prefix_font_style, array( 'normal', 'italic', 'oblique' ), true ) ) {
+		$prefix_font_style = 'normal';
+	}
+	$prefix_letter_spacing = almaden_bookster_typst_number( $settings, 'chapter_prefix_letter_spacing', 0, -20, 20 );
+	$prefix_ornament = almaden_bookster_typst_chapter_prefix_ornament( $settings['chapter_prefix_ornament'] ?? 'none' );
+	$prefix_font = almaden_bookster_typst_resolve_font( $prefix_font_family, $prefix_font_weight );
+	$prefix_font_error = function_exists( 'is_wp_error' ) && is_wp_error( $prefix_font ) ? $prefix_font : null;
+	if ( ! $prefix_font_error ) {
+		$prefix_font_family = $prefix_font['family'];
+	}
+	$prefix_style = array(
+		'font_family'    => $prefix_font_family,
+		'font_size'      => $prefix_size,
+		'font_weight'    => $prefix_font_weight,
+		'font_style'     => $prefix_font_style,
+		'letter_spacing' => $prefix_letter_spacing,
+	);
 	$heading1_font_family = almaden_bookster_typst_font_family( $settings['font_family_h1'] ?? $font_family );
 	$heading2_font_family = almaden_bookster_typst_font_family( $settings['font_family_h2'] ?? $font_family );
 	$heading3_font_family = almaden_bookster_typst_font_family( $settings['font_family_h3'] ?? $font_family );

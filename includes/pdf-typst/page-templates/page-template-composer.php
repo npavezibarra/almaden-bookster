@@ -124,7 +124,7 @@ function almaden_bookster_typst_page_template_apply_blocks( $source, $context, $
 		return in_array( $id, $left_ids, true );
 	} ) );
 	$layout_mode = strtolower( (string) ( $layout['mode'] ?? 'split' ) );
-	if ( empty( $page_ids ) || ( 'split' === $layout_mode && empty( $left_ids ) ) ) {
+	if ( empty( $page_ids ) || ( in_array( $layout_mode, array( 'split', 'upper-bottom-split' ), true ) && empty( $left_ids ) ) ) {
 		$debug = array(
 			'reason' => 'page_blocks_not_found_in_source',
 			'mode'   => $layout_mode,
@@ -165,6 +165,12 @@ function almaden_bookster_typst_page_template_apply_blocks( $source, $context, $
 		 * every block that belonged to the selected physical page.
 		 */
 		$replacement = almaden_bookster_typst_page_template_render_full_replacement( $placeholder );
+	} elseif ( 'upper-bottom-split' === $layout_mode ) {
+		/*
+		 * Upper image templates keep the image fixed on the upper-left area and
+		 * let the remaining page text flow beneath it and in the right column.
+		 */
+		$replacement = almaden_bookster_typst_page_template_render_upper_bottom_replacement( $gap, $left_body, $placeholder, $deferred_body );
 	} else {
 		/*
 		 * The local #page override gives the template the complete content width.
@@ -211,6 +217,10 @@ function almaden_bookster_typst_page_template_render_split_replacement( $gap, $l
 
 function almaden_bookster_typst_page_template_render_full_replacement( $placeholder ) {
 	return "#page(columns: 1)[\n#box(width: 100%, height: 100%)[\n#almaden-page-styled(\"content\")[\n$placeholder\n]\n]\n]\n";
+}
+
+function almaden_bookster_typst_page_template_render_upper_bottom_replacement( $gap, $left_body, $placeholder, $deferred_body ) {
+	return "#page(columns: 1)[\n#box(width: 100%, height: 100%)[\n#grid(columns: (2.15fr, 0.95fr), rows: (1fr,), gutter: $gap)[\n#block(width: 100%, height: 100%)[\n#stack(spacing: $gap)[\n#block(width: 100%, height: 42%)[\n$placeholder\n]\n#block(width: 100%, height: 58%)[\n#columns(2, gutter: $gap)[\n#almaden-page-styled(\"content\")[\n$left_body\n]\n]\n]\n]\n]\n][\n#block(width: 100%, height: 100%)[\n#almaden-page-styled(\"content\")[\n$deferred_body\n]\n]\n]\n]\n]\n";
 }
 
 function almaden_bookster_typst_apply_page_template_flow( $source, $context, $flow_map, $template = null, $word_probe = array(), &$assets = array() ) {
@@ -270,7 +280,7 @@ function almaden_bookster_typst_apply_page_template_flow( $source, $context, $fl
 		return (string) $source;
 	}
 	$layout = array( 'mode' => $layout_mode );
-	if ( 'split' === $layout_mode ) {
+	if ( in_array( $layout_mode, array( 'split', 'upper-bottom-split' ), true ) ) {
 		$left_x = min( array_map( static function ( $row ) { return (float) ( $row['x'] ?? 0 ); }, $target_rows ) );
 		$left_ids = array_values( array_filter( $left_ids, static function ( $id ) use ( $target_rows, $left_x ) {
 			foreach ( $target_rows as $row ) {

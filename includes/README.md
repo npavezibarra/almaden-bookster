@@ -37,7 +37,12 @@ Este directorio concentra la lógica de negocio de WordPress del plugin, organiz
 *   **[book-authors-hooks.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/books/book-authors-hooks.php)**: Migracion inicial y sincronizacion automatica cuando se guarda un libro.
 
 ### 4d. 📂 [payments/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/payments/) (WooCommerce)
-*   **[woocommerce-integration.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/payments/woocommerce-integration.php)**: Vínculo libro-producto, creación opcional de productos, validación de términos antes del carrito y confirmación de compra.
+*   **[woocommerce-integration.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/payments/woocommerce-integration.php)**: Bootstrap compatible de la integración.
+*   **`woocommerce-relation.php`**: Persistencia de relaciones libro-producto.
+*   **`woocommerce-products.php`**: Productos, variaciones y enlaces de compra.
+*   **`woocommerce-access.php`**: Navegación y autorización de lectura.
+*   **`woocommerce-hooks.php`**: Hooks de producto, carrito, checkout y confirmación.
+*   **`woocommerce-provider.php`**: Registro del adaptador WooCommerce.
 
 ### 4e. 📂 [progress/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/progress/) (Quizzes y avance)
 *   **[quiz-progress.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/progress/quiz-progress.php)**: Persistencia de intentos, cálculo del avance del libro por sesión y reset habilitado solo cuando todos los quizzes están completos.

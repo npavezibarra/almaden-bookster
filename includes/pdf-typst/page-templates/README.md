@@ -4,6 +4,10 @@ Este submódulo concentra toda la lógica de plantillas físicas aplicadas sobre
 páginas reales del PDF Typst. Se mantiene fuera de `typst-document.php` para
 que la composición principal no crezca con la lógica de plantillas.
 
+Los estilos visuales por página viven en `../page-styles/README.md`. Esa capa
+se puede usar al mismo tiempo que una plantilla, pero no reemplaza su
+estructura ni sus slots.
+
 ## Qué modela
 
 - Plantillas por página física, no por bloque HTML.
@@ -19,7 +23,8 @@ que la composición principal no crezca con la lógica de plantillas.
 
 - `page-template-registry.php`
   - Declara los presets disponibles.
-  - Hoy los presets activos incluyen `one-column-one-image` e `inner-full-page`.
+  - Hoy los presets activos incluyen `one-column-one-image`,
+    `upper-image-bottom-text-split` e `inner-full-page`.
   - Aquí se registran también el label visible y los slots esperados.
 
 - `page-template-normalizer.php`

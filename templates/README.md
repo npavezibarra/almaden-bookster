@@ -13,6 +13,10 @@ Archivos y subdirectorios contenidos aquí:
 *   `publisher-page.php`: directorio y perfil público de editoriales.
 *   `publisher-onboarding-app.php`: onboarding público `/crear-editorial` con wizard de alta.
 *   `publisher-settings-app.php`: panel `/editorial/{slug}/ajustes` para administración avanzada.
+* payments
+*   `reader-cta.php`: acceso al lector desde un producto vinculado.
+*   `terms-checkbox.php`: aceptación de términos para ebooks.
+*   `purchase-confirmation.php`: enlaces a ebooks en la confirmación del pedido.
 * quiz-builder
 * reader
 

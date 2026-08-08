@@ -11,6 +11,50 @@ if ( ! defined( 'ABSPATH' ) && ! defined( 'ALMADEN_TYPST_TESTING' ) ) {
 
 require_once __DIR__ . '/typst-document-helpers.php';
 
+function almaden_bookster_typst_page_style_color_literal( $value, $fallback = '#ffffff' ) {
+	$value = strtolower( trim( (string) $value ) );
+	if ( ! preg_match( '/^#(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/', $value ) ) {
+		$value = strtolower( trim( (string) $fallback ) );
+	}
+	if ( '' === $value ) {
+		$value = '#ffffff';
+	}
+	if ( '#' !== $value[0] ) {
+		$value = '#' . $value;
+	}
+
+	return 'rgb("' . $value . '")';
+}
+
+function almaden_bookster_typst_page_style_background_paint( $background ) {
+	$background = is_array( $background ) ? $background : array();
+	$background_type = strtolower( trim( (string) ( $background['type'] ?? 'color' ) ) );
+
+	if ( 'gradient' === $background_type ) {
+		$gradient = is_array( $background['gradient'] ?? null ) ? $background['gradient'] : array();
+		$stops = array();
+		foreach ( (array) ( $gradient['stops'] ?? array() ) as $stop ) {
+			$stop = is_array( $stop ) ? $stop : array();
+			$stops[] = almaden_bookster_typst_page_style_color_literal( $stop['color'] ?? '#ffffff', '#ffffff' );
+		}
+		if ( empty( $stops ) ) {
+			$stops[] = almaden_bookster_typst_page_style_color_literal( $background['color'] ?? '#ffffff', '#ffffff' );
+		}
+		$angle = isset( $gradient['angle'] ) && is_numeric( $gradient['angle'] )
+			? max( 0, min( 360, (float) $gradient['angle'] ) )
+			: 135;
+
+		return 'gradient.linear(' . implode( ', ', $stops ) . ', angle: ' . rtrim( rtrim( number_format( $angle, 4, '.', '' ), '0' ), '.' ) . 'deg)';
+	}
+
+	if ( 'image' === $background_type ) {
+		$overlay = is_array( $background['overlay'] ?? null ) ? $background['overlay'] : array();
+		return almaden_bookster_typst_page_style_color_literal( $overlay['color'] ?? ( $background['color'] ?? '#ffffff' ), '#ffffff' );
+	}
+
+	return almaden_bookster_typst_page_style_color_literal( $background['color'] ?? '#ffffff', '#ffffff' );
+}
+
 function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 	extract( $context, EXTR_SKIP );
 	$footer_even_custom = isset( $settings['footer_even_custom'] ) ? (string) $settings['footer_even_custom'] : '';
@@ -54,22 +98,9 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 		$background = isset( $style['background'] ) && is_array( $style['background'] ) ? $style['background'] : array();
 		$text_colors = isset( $style['text_colors'] ) && is_array( $style['text_colors'] ) ? $style['text_colors'] : array();
 		$background_type = strtolower( trim( (string) ( $background['type'] ?? 'color' ) ) );
-		$background_fill = '#ffffff';
-		if ( 'gradient' === $background_type && ! empty( $background['gradient']['stops'] ) && is_array( $background['gradient']['stops'] ) ) {
-			$first_stop = $background['gradient']['stops'][0] ?? array();
-			$background_fill = (string) ( $first_stop['color'] ?? $background['color'] ?? '#ffffff' );
-		} elseif ( 'image' === $background_type ) {
-			$background_fill = (string) ( $background['overlay']['color'] ?? $background['color'] ?? '#ffffff' );
-		} else {
-			$background_fill = (string) ( $background['color'] ?? '#ffffff' );
-		}
-		$background_fill = strtolower( trim( ltrim( $background_fill, '#' ) ) );
-		if ( ! preg_match( '/^(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/', $background_fill ) ) {
-			$background_fill = 'ffffff';
-		}
 		$page_style_resolvers['fill'][] = array(
 			'page' => $page_number,
-			'color' => $background_fill,
+			'expr' => almaden_bookster_typst_page_style_background_paint( $background ),
 		);
 		foreach ( array( 'content', 'header', 'footer', 'opening' ) as $kind ) {
 			$color = isset( $text_colors[ $kind ] ) ? (string) $text_colors[ $kind ] : '#111111';
@@ -79,27 +110,40 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 			}
 			$page_style_resolvers[ $kind ][] = array(
 				'page' => $page_number,
-				'color' => $color,
+				'expr' => almaden_bookster_typst_page_style_color_literal( '#' . $color, '#111111' ),
 			);
 		}
 	}
 	$page_style_build_expression = static function ( $entries, $fallback_color ) {
 		$parts = array();
 		foreach ( (array) $entries as $entry ) {
-			$parts[] = 'if current == ' . (int) ( $entry['page'] ?? 0 ) . ' { rgb("' . (string) ( $entry['color'] ?? 'ffffff' ) . '") }';
+			$parts[] = 'if current == ' . (int) ( $entry['page'] ?? 0 ) . ' { ' . (string) ( $entry['expr'] ?? $fallback_color ) . ' }';
 		}
-		$parts[] = '{ rgb("' . strtolower( trim( ltrim( (string) $fallback_color, '#' ) ) ) . '") }';
+		$parts[] = '{ ' . $fallback_color . ' }';
 		return implode( ' else ', $parts );
 	};
-	$page_style_fill_expr = $page_style_build_expression( $page_style_resolvers['fill'], '#ffffff' );
-	$page_style_content_expr = $page_style_build_expression( $page_style_resolvers['content'], '#111111' );
-	$page_style_header_expr = $page_style_build_expression( $page_style_resolvers['header'], '#111111' );
-	$page_style_footer_expr = $page_style_build_expression( $page_style_resolvers['footer'], '#111111' );
-	$page_style_opening_expr = $page_style_build_expression( $page_style_resolvers['opening'], '#111111' );
+	$page_style_fill_expr = $page_style_build_expression( $page_style_resolvers['fill'], almaden_bookster_typst_page_style_color_literal( '#ffffff', '#ffffff' ) );
+	$page_style_content_expr = $page_style_build_expression( $page_style_resolvers['content'], almaden_bookster_typst_page_style_color_literal( '#111111', '#111111' ) );
+	$page_style_header_expr = $page_style_build_expression( $page_style_resolvers['header'], almaden_bookster_typst_page_style_color_literal( '#111111', '#111111' ) );
+	$page_style_footer_expr = $page_style_build_expression( $page_style_resolvers['footer'], almaden_bookster_typst_page_style_color_literal( '#111111', '#111111' ) );
+	$page_style_opening_expr = $page_style_build_expression( $page_style_resolvers['opening'], almaden_bookster_typst_page_style_color_literal( '#111111', '#111111' ) );
+	$transition_blank_mode = almaden_bookster_typst_chapter_transition_mode( $settings );
+	$transition_blank_text = trim( (string) ( $settings['chapter_transition_blank_text'] ?? '...' ) );
 
-	$source  = '#let almaden-page-style-color(kind) = {' . "\n";
+	$source  = '#let almaden-chapter-transition-mode = "' . almaden_bookster_typst_escape_string( $transition_blank_mode ) . '"' . "\n";
+	$source .= '#let almaden-is-chapter-transition-page() = {' . "\n";
 	$source .= '  let current = here().page()' . "\n";
-	$source .= '  if kind == "fill" { ' . $page_style_fill_expr . ' }' . "\n";
+	$source .= '  let starts_next = query(<almaden-chapter-start>).any(mark => mark.location().page() == current + 1)' . "\n";
+	$source .= '  let breaks = query(<almaden-chapter-parity-break>)' . "\n";
+	$source .= '  let break_here = breaks.any(mark => mark.location().page() == current)' . "\n";
+	$source .= '  let break_before = current > 1 and breaks.any(mark => mark.location().page() == current - 1)' . "\n";
+	$source .= '  starts_next and (break_before or (current == 1 and break_here))' . "\n";
+	$source .= '}' . "\n\n";
+	$source .= '#let almaden-page-style-color(kind) = {' . "\n";
+	$source .= '  let current = here().page()' . "\n";
+	$source .= '  let force_white = almaden-is-chapter-transition-page() and almaden-chapter-transition-mode != "blank_with_header_footer"' . "\n";
+	$source .= '  if kind == "fill" and force_white { rgb("ffffff") }' . "\n";
+	$source .= '  else if kind == "fill" { ' . $page_style_fill_expr . ' }' . "\n";
 	$source .= '  else if kind == "header" { ' . $page_style_header_expr . ' }' . "\n";
 	$source .= '  else if kind == "footer" { ' . $page_style_footer_expr . ' }' . "\n";
 	$source .= '  else if kind == "opening" { ' . $page_style_opening_expr . ' }' . "\n";
@@ -122,10 +166,11 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 	$source .= '  let chapter_start = if chapter_marks.len() > 0 { chapter_marks.last().location().page() } else { 0 }' . "\n";
 	$source .= '  let is_first_chapter_page = chapter_marks.filter(mark => mark.location().page() == current).len() > 0' . "\n";
 	$source .= '  let is_intentional_blank = query(<almaden-intentional-blank>).filter(mark => mark.location().page() == current).len() > 0' . "\n";
+	$source .= '  let hides_transition_running = almaden-is-chapter-transition-page() and almaden-chapter-transition-mode != "blank_with_header_footer"' . "\n";
 	$source .= '  let suppress_marker = if running_area == "header" { <almaden-hide-header> } else { <almaden-hide-footer> }' . "\n";
 	$source .= '  let chapter_suppresses = query(suppress_marker).filter(mark => mark.location().page() >= chapter_start and mark.location().page() <= current).len() > 0' . "\n";
 	$source .= '  let is_even = calc.even(current)' . "\n";
-	$source .= '  let kind = if is_intentional_blank or chapter_suppresses {' . "\n";
+	$source .= '  let kind = if is_intentional_blank or hides_transition_running or chapter_suppresses {' . "\n";
 	$source .= '    "blank"' . "\n";
 	$source .= '  } else if is_first_chapter_page {' . "\n";
 	$source .= '    if first_page_show { first_page_type } else { "blank" }' . "\n";
@@ -183,7 +228,12 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 		', margin: (top: ' . ( $margin_top + $header_reserve ) . $unit . ', bottom: ' . ( $margin_bot + $footer_reserve ) . $unit .
 		', inside: ' . $margin_inside . $unit . ', outside: ' . $margin_outside . $unit . '),' .
 		' fill: rgb("ffffff"),' .
-		' background: context { rect(width: 100%, height: 100%, fill: almaden-page-style-color("fill")) },' .
+		' background: context {' . "\n" .
+		'  rect(width: 100%, height: 100%, fill: almaden-page-style-color("fill"))' . "\n" .
+		( 'intentional_text' === $transition_blank_mode && '' !== $transition_blank_text
+			? '  if almaden-is-chapter-transition-page() { place(center + horizon)[#text(fill: rgb("111111"))[' . almaden_bookster_typst_escape_markup( $transition_blank_text ) . ']] }' . "\n"
+			: '' ) .
+		'},' .
 		' binding: left, bleed: ' . $bleed . $unit . ',' .
 		' header: context {' . "\n" .
 		'  let running = almaden-resolve-running-element("' . almaden_bookster_typst_escape_string( $book_title ) . '", ' . ( $first_page_header_show ? 'true' : 'false' ) . ', "' . almaden_bookster_typst_escape_string( $first_page_header_type ) . '", "' . almaden_bookster_typst_escape_string( $first_page_header_custom ) . '", "' . almaden_bookster_typst_escape_string( $header_even_type ) . '", "' . almaden_bookster_typst_escape_string( $header_even_custom ) . '", "' . almaden_bookster_typst_escape_string( $header_odd_type ) . '", "' . almaden_bookster_typst_escape_string( $header_odd_custom ) . '", "' . almaden_bookster_typst_escape_string( $header_text_transform ) . '", "header")' . "\n" .

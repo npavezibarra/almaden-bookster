@@ -224,3 +224,41 @@ function almaden_bookster_typst_chapter_opening_visibility( $chapter, $settings 
 		'has_visible_content' => $show_title || $show_prefix || $show_subtitle,
 	);
 }
+
+function almaden_bookster_typst_chapter_prefix_ornament( $ornament ) {
+	$ornament = strtolower( trim( (string) $ornament ) );
+
+	return in_array( $ornament, array( 'none', 'line_below', 'line_above_below', 'asterisks' ), true ) ? $ornament : 'none';
+}
+
+function almaden_bookster_typst_render_chapter_prefix( $prefix_text, $style, $alignment, $ornament = 'none' ) {
+	$style = is_array( $style ) ? $style : array();
+	$alignment = in_array( $alignment, array( 'left', 'center', 'right' ), true ) ? $alignment : 'center';
+	$ornament = almaden_bookster_typst_chapter_prefix_ornament( $ornament );
+	$font_family = almaden_bookster_typst_font_family( $style['font_family'] ?? 'Playfair Display', 'Playfair Display' );
+	$font_size = isset( $style['font_size'] ) && is_numeric( $style['font_size'] ) ? max( 6, min( 100, (float) $style['font_size'] ) ) : 16;
+	$font_weight = almaden_bookster_typst_font_weight( $style['font_weight'] ?? 'normal' );
+	$font_style = isset( $style['font_style'] ) ? strtolower( trim( (string) $style['font_style'] ) ) : 'normal';
+	if ( ! in_array( $font_style, array( 'normal', 'italic', 'oblique' ), true ) ) {
+		$font_style = 'normal';
+	}
+	$tracking = isset( $style['letter_spacing'] ) && is_numeric( $style['letter_spacing'] ) ? round( max( -20, min( 20, (float) $style['letter_spacing'] ) ) * 0.75, 3 ) : 0;
+	$body = '#text(font: "' . almaden_bookster_typst_escape_string( $font_family ) . '", size: ' . round( $font_size * 0.75, 3 ) . 'pt, weight: ' . $font_weight . ', style: "' . almaden_bookster_typst_escape_string( $font_style ) . '", tracking: ' . $tracking . 'pt)[' . almaden_bookster_typst_escape_markup( $prefix_text ) . ']';
+	$parts = array();
+
+	if ( 'line_above_below' === $ornament ) {
+		$parts[] = '#align(center)[#line(length: 100%, stroke: 0.35pt)]';
+	}
+
+	$parts[] = '#align(' . $alignment . ')[' . $body . ']';
+
+	if ( 'line_below' === $ornament || 'line_above_below' === $ornament ) {
+		$parts[] = '#align(center)[#line(length: 100%, stroke: 0.35pt)]';
+	}
+
+	if ( 'asterisks' === $ornament ) {
+		$parts[] = '#align(center)[***]';
+	}
+
+	return '#block(breakable: false)[' . "\n" . implode( "\n#v(2mm)\n", $parts ) . "\n]";
+}

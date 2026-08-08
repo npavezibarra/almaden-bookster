@@ -13,7 +13,7 @@ require_once __DIR__ . '/typst-document-helpers.php';
 require_once __DIR__ . '/typst-document-render-helpers.php';
 require_once __DIR__ . '/typst-document-context.php';
 require_once __DIR__ . '/typst-document-prefix.php';
-
+require_once __DIR__ . '/typst-chapter-flow.php';
 function almaden_bookster_build_typst_document( $payload ) {
 	$context = almaden_bookster_typst_build_document_context( $payload );
 	extract( $context, EXTR_SKIP );
@@ -80,13 +80,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 		if ( $is_credits && is_numeric( $chapter['credits_margin_bottom'] ?? null ) ) {
 			$credit_margin_bottom = max( 0, min( 30, (float) $chapter['credits_margin_bottom'] ) );
 		}
-		if ( $rendered > 0 ) {
-			$source .= "\n#pagebreak()\n\n";
-		}
-		for ( $blank_index = 0; $blank_index < $blank_before; ++$blank_index ) {
-			$source .= '#metadata("' . ( $is_credits ? 'credits-before' : 'chapter-before' ) . '") <almaden-intentional-blank>' . "\n";
-			$source .= "#pagebreak()\n\n";
-		}
+		$source .= almaden_bookster_typst_chapter_start_breaks( $settings, $rendered, $blank_before, $is_credits );
 		++$rendered;
 
 		$chapter_top_margin = $is_credits ? $credit_margin_top : $margin_top;
@@ -177,7 +171,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 				),
 				$prefix_template
 			);
-			$opening_lines[] = '#align(' . $opening_line_alignment . ')[#text(font: "' . almaden_bookster_typst_escape_string( $title_font_family ) . '", size: ' . $title_size . 'pt, weight: ' . $title_font_weight . ', style: "' . almaden_bookster_typst_escape_string( $title_font_style ) . '", tracking: ' . $title_letter_spacing . 'pt)[' . almaden_bookster_typst_escape_markup( $prefix_text ) . ']]';
+			$opening_lines[] = almaden_bookster_typst_render_chapter_prefix( $prefix_text, $prefix_style, $opening_line_alignment, $prefix_ornament ?? 'none' );
 		}
 
 		if ( $show_title ) {
@@ -195,7 +189,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 				),
 				$prefix_template
 			);
-			$opening_lines[] = '#align(' . $opening_line_alignment . ')[#text(font: "' . almaden_bookster_typst_escape_string( $title_font_family ) . '", size: ' . $title_size . 'pt, weight: ' . $title_font_weight . ', style: "' . almaden_bookster_typst_escape_string( $title_font_style ) . '", tracking: ' . $title_letter_spacing . 'pt)[' . almaden_bookster_typst_escape_markup( $prefix_text ) . ']]';
+			$opening_lines[] = almaden_bookster_typst_render_chapter_prefix( $prefix_text, $prefix_style, $opening_line_alignment, $prefix_ornament ?? 'none' );
 		}
 
 		if ( $show_subtitle ) {

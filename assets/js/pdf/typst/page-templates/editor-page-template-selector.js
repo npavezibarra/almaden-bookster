@@ -90,6 +90,21 @@
             `;
         }
 
+        if ('upper-bottom-split' === type) {
+            const fill = escapeHtml(preview.fill || '#f59e0b');
+            const text = escapeHtml(preview.text || '#cbd5e1');
+            return `
+                <div class="flex h-full w-full items-center justify-center rounded-xl border border-slate-200 p-2" style="background:${canvas};">
+                    <div class="grid h-full w-full grid-cols-[1fr_1fr_0.85fr] grid-rows-[1.1fr_0.9fr] gap-1 rounded-lg border p-1" style="border-color:${frame}; background:${canvas};">
+                        <span class="col-span-2 row-span-1 rounded-sm" style="background:${fill};"></span>
+                        <span class="col-start-3 row-span-2 rounded-sm" style="background:${text};"></span>
+                        <span class="col-start-1 row-start-2 rounded-sm" style="background:${text};"></span>
+                        <span class="col-start-2 row-start-2 rounded-sm" style="background:${text};"></span>
+                    </div>
+                </div>
+            `;
+        }
+
         const left = escapeHtml(preview.left || '#cbd5e1');
         const right = escapeHtml(preview.right || '#f59e0b');
         return `
@@ -185,6 +200,10 @@
         return JSON.parse(JSON.stringify(Array.isArray(templates) ? templates : []));
     }
 
+    function clonePageStyles(styles) {
+        return JSON.parse(JSON.stringify(Array.isArray(styles) ? styles : []));
+    }
+
     async function persistTemplates() {
         return typeof window.savePDFSettings === 'function'
             ? window.savePDFSettings(true, true)
@@ -214,12 +233,15 @@
         const removeButton = document.getElementById('page-template-remove');
         const confirmButton = document.getElementById('page-template-confirm');
         const hasTemplate = !!getTemplateForSelectedPage();
+        const hasStyle = !!window.almadenPageStyleState?.getStyleAtSelectedPage?.();
+        const hasAnyConfiguration = hasTemplate || hasStyle;
         const templateFooter = document.querySelector('[data-page-template-footer="template"]');
         const styleFooter = document.querySelector('[data-page-template-footer="style"]');
         const templatePanel = document.querySelector('[data-page-template-panel="template"]');
         const stylePanel = document.querySelector('[data-page-template-panel="style"]');
         const templateTabButton = document.querySelector('[data-page-template-tab-button="template"]');
         const styleTabButton = document.querySelector('[data-page-template-tab-button="style"]');
+        const resetButtons = document.querySelectorAll('[data-page-template-reset]');
 
         if (removeButton) {
             removeButton.classList.toggle('hidden', !hasTemplate);
@@ -233,6 +255,10 @@
         if (confirmButton) {
             confirmButton.textContent = hasTemplate ? 'Reemplazar plantilla' : 'Aplicar plantilla';
         }
+        resetButtons.forEach(button => {
+            button.classList.toggle('hidden', !hasAnyConfiguration);
+            button.setAttribute('aria-hidden', hasAnyConfiguration ? 'false' : 'true');
+        });
         const templateOptions = document.querySelectorAll('[data-page-template-option]');
         templateOptions.forEach(option => {
             const optionTemplateId = normalizeId(option.dataset.pageTemplateOption || '');
@@ -401,6 +427,57 @@
         }
     }
 
+    async function resetPage() {
+        if (!Number.isFinite(selectedPageNumber) || selectedPageNumber < 1 || !window.bookState) return;
+
+        const existingTemplates = getTemplates();
+        const existingStyles = window.almadenPageStyleState?.getStyles?.() || [];
+        const selectedTemplate = getTemplateForSelectedPage();
+        const selectedStyle = window.almadenPageStyleState?.getStyleAtSelectedPage?.();
+        const templateInstanceId = window.almadenPageTemplateState?.getInstanceId?.(selectedTemplate);
+        const styleInstanceId = window.almadenPageStyleState?.getStyleInstanceId?.(selectedStyle);
+        const previousTemplates = cloneTemplates(existingTemplates);
+        const previousStyles = clonePageStyles(existingStyles);
+
+        const nextTemplates = existingTemplates.filter(template => (
+            window.almadenPageTemplateState.getInstanceId(template) !== templateInstanceId
+        ));
+        const nextStyles = existingStyles.filter(style => (
+            window.almadenPageStyleState.getStyleInstanceId(style) !== styleInstanceId
+        ));
+
+        if (nextTemplates.length === existingTemplates.length && nextStyles.length === existingStyles.length) {
+            closeModal();
+            return;
+        }
+
+        window.bookState.settings = window.bookState.settings || {};
+        window.bookState.settings.page_templates = nextTemplates.sort((left, right) => (
+            Number(left.resolved_page || left.page_number) - Number(right.resolved_page || right.page_number)
+        ));
+        window.bookState.settings.page_styles = nextStyles.sort((left, right) => (
+            Number(left.resolved_page || left.page_number) - Number(right.resolved_page || right.page_number)
+        ));
+
+        closeModal();
+        const saved = await persistTemplates();
+        if (!saved) {
+            window.bookState.settings.page_templates = previousTemplates;
+            window.bookState.settings.page_styles = previousStyles;
+            if (typeof window.showToast === 'function') {
+                window.showToast('No se pudo reiniciar la página.', 'fa-solid fa-circle-exclamation');
+            }
+            return;
+        }
+
+        if (typeof window.compilePDFPreview === 'function') {
+            await window.compilePDFPreview(true);
+        }
+        if (typeof window.showToast === 'function') {
+            window.showToast(`Página ${selectedPageNumber} reiniciada.`, 'fa-solid fa-rotate-left');
+        }
+    }
+
     function openModal() {
         if (!Number.isFinite(selectedPageNumber) || selectedPageNumber < 1) return;
         activeTab = 'template';
@@ -435,6 +512,7 @@
         const modal = document.getElementById('page-template-modal');
         const confirm = document.getElementById('page-template-confirm');
         const remove = document.getElementById('page-template-remove');
+        const resetButtons = document.querySelectorAll('[data-page-template-reset]');
         const templateTab = document.querySelector('[data-page-template-tab-button="template"]');
         const styleTab = document.querySelector('[data-page-template-tab-button="style"]');
         if (!modal || !confirm) return;
@@ -454,6 +532,9 @@
         }
         confirm.addEventListener('click', applyTemplate);
         if (remove) remove.addEventListener('click', removeTemplate);
+        resetButtons.forEach(button => {
+            button.addEventListener('click', resetPage);
+        });
         document.addEventListener('keydown', event => {
             if (event.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
         });
