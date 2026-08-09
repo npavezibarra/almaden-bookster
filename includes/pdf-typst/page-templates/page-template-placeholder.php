@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) && ! defined( 'ALMADEN_TYPST_TESTING' ) ) {
 	exit;
 }
 
-function almaden_bookster_typst_page_template_placeholder( $template, $context = array(), &$assets = array() ) {
+function almaden_bookster_typst_page_template_placeholder( $template, $context = array(), &$assets = array(), $asset_mode = 'original' ) {
 	$template_id = is_array( $template ) ? ( $template['template_id'] ?? '' ) : '';
 	if ( '' === $template_id ) {
 		return '';
@@ -27,14 +27,14 @@ function almaden_bookster_typst_page_template_placeholder( $template, $context =
 	}
 
 	if ( 1 === count( $slots ) ) {
-		return almaden_bookster_typst_page_template_render_slot( $template, $slots[0], $assets );
+		return almaden_bookster_typst_page_template_render_slot( $template, $slots[0], $assets, $asset_mode );
 	}
 
 	$gap = round( (float) ( $context['columns_gap'] ?? 0.8 ), 4 ) . ( $context['unit'] ?? 'cm' );
 	$row_sizes = array_fill( 0, count( $slots ), '1fr' );
 	$rows = array();
 	foreach ( $slots as $slot ) {
-		$rows[] = "[\n" . almaden_bookster_typst_page_template_render_slot( $template, $slot, $assets ) . "\n]";
+		$rows[] = "[\n" . almaden_bookster_typst_page_template_render_slot( $template, $slot, $assets, $asset_mode ) . "\n]";
 	}
 
 	$output = '#grid(columns: (1fr,), rows: (' . implode( ', ', $row_sizes ) . '), gutter: ' . $gap . ')';

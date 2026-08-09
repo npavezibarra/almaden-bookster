@@ -61,6 +61,32 @@ function almaden_bookster_typst_normalize_page_templates( $value ) {
 	usort(
 		$normalized,
 		static function ( $left, $right ) {
+			$left_page = (int) ( $left['page_number'] ?? $left['resolved_page'] ?? 0 );
+			$right_page = (int) ( $right['page_number'] ?? $right['resolved_page'] ?? 0 );
+			return $left_page === $right_page
+				? strcmp( (string) ( $left['instance_id'] ?? '' ), (string) ( $right['instance_id'] ?? '' ) )
+				: $left_page <=> $right_page;
+		}
+	);
+
+	$seen_flow_ids = array();
+	foreach ( $normalized as &$template ) {
+		$flow_id = (string) ( $template['anchor']['flow_id'] ?? '' );
+		if ( '' === $flow_id ) {
+			continue;
+		}
+		if ( isset( $seen_flow_ids[ $flow_id ] ) ) {
+			$template['anchor'] = array( 'flow_id' => '' );
+			$template['resolved_page'] = (int) ( $template['page_number'] ?? $template['resolved_page'] ?? 0 );
+			continue;
+		}
+		$seen_flow_ids[ $flow_id ] = true;
+	}
+	unset( $template );
+
+	usort(
+		$normalized,
+		static function ( $left, $right ) {
 			$left_order = almaden_bookster_typst_page_template_flow_order( $left['anchor']['flow_id'] ?? '' );
 			$right_order = almaden_bookster_typst_page_template_flow_order( $right['anchor']['flow_id'] ?? '' );
 			return $left_order === $right_order

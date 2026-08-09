@@ -66,16 +66,18 @@ window.onload = function() {
     // Aplicar Tema Guardado
     changeTheme(bookState.theme);
 
+    // Restaurar el modo de preview preferido antes del primer render.
+    if (typeof initPdfPreviewMode === 'function') {
+        initPdfPreviewMode();
+    }
+
     // Aplicar Vista
     setViewMode(bookState.viewMode);
-    
-    // Aplicar maquetación dinámica del PDF.
-    // En Typst ya no existe el pipeline legacy de estilos, así que usamos
-    // un fallback seguro hacia la recompilación del preview.
+
+    // El cambio de vista anterior inicia el preview cuando corresponde.
+    // Evitamos una segunda compilación inmediata durante el arranque.
     if (typeof applyDynamicPDFStyles === 'function') {
         applyDynamicPDFStyles();
-    } else if (typeof window.compilePDFPreview === 'function') {
-        window.compilePDFPreview(true, 'pdf-scroller', true);
     }
     
     // Inicializar el conteo de páginas oculto para tener todos los capítulos medidos

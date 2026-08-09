@@ -320,7 +320,7 @@ function syncVisualEditorToState() {
     // If the visual surface is available, serialize the editable DOM back to RAW
     // before falling back to the textarea. This keeps the compiler aligned with
     // the actual content the user sees in split/visual mode.
-    if (surface && typeof serializeVisualEditorSurface === 'function') {
+    if (surface && window.visualEditorIsDirty && window.visualEditorIsEditing && typeof serializeVisualEditorSurface === 'function') {
         const serialized = serializeVisualEditorSurface(surface);
         if (serialized !== null) {
             setRawChapterContent(serialized || '');

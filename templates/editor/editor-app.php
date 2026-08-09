@@ -339,6 +339,19 @@ if (!headers_sent()) {
                             </select>
                         </div>
                         <div class="flex items-center rounded-md border border-[var(--border-color)] bg-[var(--bg-app)] p-0.5 text-[10px] font-semibold">
+                            <button id="btn-preview-mode-chapter" type="button" onclick="setPdfPreviewMode('chapter')" class="px-2.5 py-1 rounded-sm text-[var(--text-muted)] hover:text-[var(--text-main)] transition" aria-pressed="true" title="Vista por capítulo" aria-label="Vista por capítulo">
+                                Capítulo
+                            </button>
+                            <button id="btn-preview-mode-full" type="button" onclick="setPdfPreviewMode('full')" class="px-2.5 py-1 rounded-sm text-[var(--text-muted)] hover:text-[var(--text-main)] transition" aria-pressed="false" title="Vista PDF completo" aria-label="Vista PDF completo">
+                                Completo
+                            </button>
+                        </div>
+                        <div id="pdf-preview-mode-chip" class="hidden lg:flex flex-col justify-center rounded-md border border-[var(--border-color)] bg-[var(--bg-app)] px-3 py-1.5 leading-tight shadow-sm">
+                            <span class="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">Modo activo</span>
+                            <span id="pdf-preview-mode-label" class="text-[11px] font-semibold text-[var(--text-main)]">Capítulo actual</span>
+                            <span id="pdf-preview-mode-detail" class="text-[10px] text-[var(--text-muted)]">Vista optimizada para revisar el texto</span>
+                        </div>
+                        <div class="flex items-center rounded-md border border-[var(--border-color)] bg-[var(--bg-app)] p-0.5 text-[10px] font-semibold">
                             <button id="btn-preview-layout-single" type="button" onclick="setPdfPreviewLayout('single')" class="px-2.5 py-1 rounded-sm text-[var(--text-muted)] hover:text-[var(--text-main)] transition" aria-pressed="true" title="Vista de una página" aria-label="Vista de una página">
                                 <i class="fa-solid fa-file-lines"></i>
                             </button>
@@ -485,12 +498,36 @@ if (!headers_sent()) {
             documentImportNonce: <?php echo json_encode( wp_create_nonce( 'almaden_document_import_nonce_' . $book_id ) ); ?>,
             installedFonts: <?php echo json_encode( $installed_fonts ); ?>,
             coverSettings: <?php echo json_encode( get_post_meta( $book_id, '_almaden_cover_settings', true ) ?: get_post_meta( $source_book_id, '_almaden_cover_settings', true ) ); ?>,
+            /*
+             * Preview contract for the next PDF phases. This is intentionally
+             * lightweight and serializable so autosave/localStorage keep it
+             * alongside the rest of the book state.
+             */
+            pdfPreview: {
+                mode: <?php echo json_encode( $pdf_settings['pdf_preview_mode'] ?? 'chapter' ); ?>,
+                assetMode: <?php echo json_encode( $pdf_settings['pdf_preview_asset_mode'] ?? 'optimized' ); ?>,
+                counterMode: <?php echo json_encode( $pdf_settings['pdf_preview_counter_mode'] ?? 'global' ); ?>,
+                universalCounter: {
+                    version: 1,
+                    ready: false,
+                    source: 'full-book',
+                    totals: {
+                        pages: null,
+                        blankPages: null,
+                        chapters: null
+                    },
+                    chapters: []
+                }
+            },
             commerce: <?php echo json_encode( array(
                 'woocommerceActive' => ! empty( $woocommerce_status['active'] ),
                 'woocommerceInstalled' => ! empty( $woocommerce_status['installed'] ),
                 'relation' => $commerce_relation,
             ) ); ?>
         };
+        bookState.chapters.forEach((chapter) => {
+            chapter._lastSavedContent = String(chapter.content || '');
+        });
         window.bookState = bookState;
         window.PagedConfig = {
             auto: false,

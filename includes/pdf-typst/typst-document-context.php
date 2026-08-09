@@ -14,6 +14,7 @@ require_once __DIR__ . '/typst-document-helpers.php';
 function almaden_bookster_typst_build_document_context( $payload ) {
 	$settings = isset( $payload['settings'] ) && is_array( $payload['settings'] ) ? $payload['settings'] : array();
 	$chapters = isset( $payload['chapters'] ) && is_array( $payload['chapters'] ) ? $payload['chapters'] : array();
+	$preview = isset( $payload['preview'] ) && is_array( $payload['preview'] ) ? $payload['preview'] : array();
 	$page_template_context = almaden_bookster_typst_page_template_context( $settings );
 	$page_styles = function_exists( 'almaden_bookster_typst_page_styles_from_settings' )
 		? almaden_bookster_typst_page_styles_from_settings( $settings )
@@ -243,6 +244,9 @@ function almaden_bookster_typst_build_document_context( $payload ) {
 		almaden_bookster_typst_running_element_has_content( $footer_even_type, $footer_even_custom ) ||
 		almaden_bookster_typst_running_element_has_content( $footer_odd_type, $footer_odd_custom )
 	);
+	$asset_mode = function_exists( 'almaden_bookster_typst_normalize_asset_mode' )
+		? almaden_bookster_typst_normalize_asset_mode( $preview['assetMode'] ?? ( $settings['pdf_preview_asset_mode'] ?? 'original' ) )
+		: ( 'original' === (string) ( $preview['assetMode'] ?? '' ) ? 'original' : 'optimized' );
 
 	$header_reserve = $header_has_content
 		? round( $header_margin_top + almaden_bookster_typst_pt_to_unit( $header_font_size, $unit ) + $header_margin_bottom, 4 )
@@ -250,5 +254,7 @@ function almaden_bookster_typst_build_document_context( $payload ) {
 	$footer_reserve = $footer_has_content
 		? round( $footer_margin_top + almaden_bookster_typst_pt_to_unit( $footer_font_size, $unit ) + $footer_margin_bottom, 4 )
 		: 0;
+	$page_template_context['asset_mode'] = $asset_mode;
+	$page_template_context['preview_asset_mode'] = $asset_mode;
 	return get_defined_vars();
 }

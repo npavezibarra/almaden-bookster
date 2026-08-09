@@ -28,14 +28,17 @@ function almaden_bookster_typst_chapter_transition_mode( $settings ) {
 		: 'full_blank';
 }
 
-function almaden_bookster_typst_chapter_parity_break( $settings ) {
+function almaden_bookster_typst_chapter_parity_break( $settings, $transition_index = 0 ) {
 	if ( ! almaden_bookster_typst_uses_left_chapter_flow( $settings ) ) {
 		return '';
 	}
 
 	$mode = almaden_bookster_typst_chapter_transition_mode( $settings );
+	$transition_index = max( 1, (int) $transition_index );
 
-	return '#metadata("' . $mode . '") <almaden-chapter-parity-break>' . "\n#pagebreak(to: \"even\")\n\n";
+	return '#metadata("' . $mode . '") <almaden-chapter-parity-break>' . "\n" .
+		'#metadata("' . $mode . '") <almaden-transition-' . $transition_index . '>' .
+		"\n#pagebreak(to: \"even\")\n\n";
 }
 
 function almaden_bookster_typst_chapter_start_breaks( $settings, $rendered, $blank_before, $is_credits ) {
@@ -53,5 +56,5 @@ function almaden_bookster_typst_chapter_start_breaks( $settings, $rendered, $bla
 		}
 	}
 
-	return $source . almaden_bookster_typst_chapter_parity_break( $settings );
+	return $source . almaden_bookster_typst_chapter_parity_break( $settings, (int) $rendered + 1 );
 }

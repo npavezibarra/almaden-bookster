@@ -45,6 +45,8 @@ estructura ni sus slots.
   - Renderiza el placeholder temporal de cada slot.
   - En ausencia de imagen, devuelve un rectángulo naranjo.
   - Si existen varios slots, arma una grilla vertical para todos.
+  - Consume `asset_mode` para decidir si el slot pinta la versión optimizada o
+    la original del archivo.
 
 - `page-template-slots.php`
   - Normaliza los slots de acuerdo al registry.
@@ -72,6 +74,12 @@ estructura ni sus slots.
   - Detecta el último punto visible real de la caja de texto.
   - Usa ese corte para dividir el bloque entre lo visible en la página actual y
     lo que debe continuar en páginas posteriores.
+
+- `page-template-transition.php`
+  - Expone como destinos las páginas blancas creadas por `Iniciar izquierda`.
+  - Las identifica con un ancla estable `almaden-transition-N`.
+  - Inserta la plantilla sin consumir texto del capítulo anterior o siguiente.
+  - Conserva el salto `pagebreak(to: "even")`, por lo que no cambia la paridad.
 
 ## Contrato de datos
 
@@ -114,6 +122,8 @@ El arreglo persistido en `_almaden_page_templates` termina en algo así:
 
 - `instance_id` es la fuente de verdad para editar, reemplazar o eliminar.
 - `anchor.flow_id` une la instancia al contenido del manuscrito.
+- En una página blanca de paridad, `anchor.flow_id` usa
+  `almaden-transition-N` en lugar de un bloque `almaden-flow-N`.
 - `resolved_page` es un resultado de compilación y puede cambiar libremente.
 - `page_number` queda como compatibilidad y punto inicial para migrar registros
   antiguos sin ancla.

@@ -14,6 +14,144 @@ require_once dirname( __DIR__ ) . '/pdf-typst/typst-compiler.php';
 
 add_action( 'wp_ajax_almaden_compile_typst_pdf', 'almaden_bookster_ajax_compile_typst_pdf' );
 
+/**
+ * Cache compiled previews by their complete Typst input and asset freshness.
+ * The system temp directory keeps these private binary accelerators outside the
+ * public uploads tree; a cache miss always falls back to normal compilation.
+ */
+function almaden_bookster_typst_preview_cache_key( $document ) {
+	$parts = array(
+		'almaden-typst-preview-v2',
+		(string) ( $document['source'] ?? '' ),
+		wp_json_encode( $document['page_templates'] ?? array() ),
+	);
+	$paths = array_merge(
+		array_values( (array) ( $document['assets'] ?? array() ) ),
+		array_values( (array) ( $document['font_assets'] ?? array() ) )
+	);
+	sort( $paths, SORT_STRING );
+	foreach ( $paths as $path ) {
+		$parts[] = is_file( $path )
+			? $path . ':' . (string) filesize( $path ) . ':' . (string) filemtime( $path )
+			: $path . ':missing';
+	}
+
+	return hash( 'sha256', implode( "\n", $parts ) );
+}
+
+function almaden_bookster_typst_preview_cache_dir( $book_id ) {
+	return trailingslashit( get_temp_dir() ) . 'almaden-bookster-typst-preview/' . absint( $book_id );
+}
+
+function almaden_bookster_typst_preview_cache_read( $book_id, $cache_key ) {
+	$dir       = almaden_bookster_typst_preview_cache_dir( $book_id );
+	$pdf_path  = $dir . '/' . $cache_key . '.pdf';
+	$meta_path = $dir . '/' . $cache_key . '.json';
+	if ( ! is_file( $pdf_path ) || ! is_file( $meta_path ) ) {
+		return null;
+	}
+	if ( filemtime( $pdf_path ) < time() - 7 * DAY_IN_SECONDS ) {
+		@unlink( $pdf_path );
+		@unlink( $meta_path );
+		return null;
+	}
+	$pdf  = file_get_contents( $pdf_path );
+	$meta = json_decode( (string) file_get_contents( $meta_path ), true );
+	if ( false === $pdf || 0 !== strpos( $pdf, '%PDF-' ) || ! is_array( $meta ) ) {
+		@unlink( $pdf_path );
+		@unlink( $meta_path );
+		return null;
+	}
+	@touch( $pdf_path );
+	@touch( $meta_path );
+
+	return array( 'pdf' => $pdf, 'meta' => $meta );
+}
+
+function almaden_bookster_typst_preview_cache_write( $book_id, $cache_key, $pdf, $meta ) {
+	$dir = almaden_bookster_typst_preview_cache_dir( $book_id );
+	if ( ! wp_mkdir_p( $dir ) ) {
+		return false;
+	}
+	$pdf_path  = $dir . '/' . $cache_key . '.pdf';
+	$meta_path = $dir . '/' . $cache_key . '.json';
+	$tmp_pdf   = $pdf_path . '.' . wp_generate_uuid4() . '.tmp';
+	$tmp_meta  = $meta_path . '.' . wp_generate_uuid4() . '.tmp';
+	$pdf_written = false;
+	$meta_written = false;
+	if ( false !== file_put_contents( $tmp_pdf, $pdf, LOCK_EX ) ) {
+		$pdf_written = @rename( $tmp_pdf, $pdf_path );
+	}
+	if ( false !== file_put_contents( $tmp_meta, wp_json_encode( $meta ), LOCK_EX ) ) {
+		$meta_written = @rename( $tmp_meta, $meta_path );
+	}
+	@unlink( $tmp_pdf );
+	@unlink( $tmp_meta );
+
+	$entries = glob( $dir . '/*.pdf' );
+	if ( ! is_array( $entries ) || count( $entries ) <= 12 ) {
+		return $pdf_written && $meta_written;
+	}
+	usort( $entries, static function ( $left, $right ) {
+		return filemtime( $right ) <=> filemtime( $left );
+	} );
+	foreach ( array_slice( $entries, 12 ) as $stale_pdf ) {
+		@unlink( $stale_pdf );
+		@unlink( substr( $stale_pdf, 0, -4 ) . '.json' );
+	}
+
+	return $pdf_written && $meta_written;
+}
+
+function almaden_bookster_typst_preview_metadata() {
+	return array(
+		'page_flow'             => $GLOBALS['almaden_bookster_typst_page_flow_map'] ?? array(),
+		'page_template_results' => $GLOBALS['almaden_bookster_typst_page_template_results'] ?? array(),
+		'universal_counter'     => $GLOBALS['almaden_bookster_typst_universal_counter'] ?? null,
+		'opening_debug'         => $GLOBALS['almaden_bookster_typst_opening_debug'] ?? null,
+		'integrity_warning'     => (string) ( $GLOBALS['almaden_bookster_typst_integrity_warning'] ?? '' ),
+	);
+}
+
+function almaden_bookster_typst_restore_preview_metadata( $meta ) {
+	$GLOBALS['almaden_bookster_typst_page_flow_map']         = $meta['page_flow'] ?? array();
+	$GLOBALS['almaden_bookster_typst_page_template_results'] = $meta['page_template_results'] ?? array();
+	$GLOBALS['almaden_bookster_typst_universal_counter']     = $meta['universal_counter'] ?? null;
+	$GLOBALS['almaden_bookster_typst_opening_debug']         = $meta['opening_debug'] ?? null;
+	$GLOBALS['almaden_bookster_typst_integrity_warning']     = (string) ( $meta['integrity_warning'] ?? '' );
+}
+
+function almaden_bookster_send_typst_preview_pdf( $book_id, $document, $pdf, $cache_status ) {
+	nocache_headers();
+	header( 'Content-Type: application/pdf' );
+	header( 'Content-Disposition: inline; filename="almaden-book-' . absint( $book_id ) . '.pdf"' );
+	header( 'Content-Length: ' . strlen( $pdf ) );
+	header( 'X-Almaden-Typst-Cache: ' . $cache_status );
+	header( 'X-Almaden-Source-Hash: ' . $document['source_hash'] );
+	header( 'X-Almaden-PDF-Geometry: ' . rawurlencode( wp_json_encode( $document['geometry'] ) ) );
+	header( 'X-Almaden-PDF-Typography: ' . rawurlencode( wp_json_encode( $document['typography'] ) ) );
+	if ( ! empty( $GLOBALS['almaden_bookster_typst_page_flow_map'] ) ) {
+		header( 'X-Almaden-Page-Flow: ' . rawurlencode( wp_json_encode( $GLOBALS['almaden_bookster_typst_page_flow_map'] ) ) );
+	}
+	if ( isset( $GLOBALS['almaden_bookster_typst_page_template_results'] ) ) {
+		header( 'X-Almaden-Page-Template-Results: ' . rawurlencode( wp_json_encode( $GLOBALS['almaden_bookster_typst_page_template_results'] ) ) );
+	}
+	if ( isset( $GLOBALS['almaden_bookster_typst_universal_counter'] ) ) {
+		header( 'X-Almaden-Universal-Counter: ' . rawurlencode( wp_json_encode( $GLOBALS['almaden_bookster_typst_universal_counter'] ) ) );
+	}
+	if ( isset( $GLOBALS['almaden_bookster_typst_opening_debug'] ) ) {
+		header( 'X-Almaden-Typst-Opening-Debug: ' . rawurlencode( wp_json_encode( $GLOBALS['almaden_bookster_typst_opening_debug'] ) ) );
+	}
+	if ( ! empty( $GLOBALS['almaden_bookster_typst_integrity_warning'] ) ) {
+		header( 'X-Almaden-PDF-Integrity: ' . rawurlencode( wp_json_encode( array(
+			'status'  => 'warning',
+			'message' => (string) $GLOBALS['almaden_bookster_typst_integrity_warning'],
+		) ) ) );
+	}
+	echo $pdf;
+	exit;
+}
+
 function almaden_bookster_ajax_compile_typst_pdf() {
 	$book_id = isset( $_POST['book_id'] ) ? absint( $_POST['book_id'] ) : 0;
 	if ( ! $book_id || ! check_ajax_referer( 'almaden_save_book_nonce_' . $book_id, 'nonce', false ) ) {
@@ -64,7 +202,19 @@ function almaden_bookster_ajax_compile_typst_pdf() {
 	}
 	unset( $chapter );
 
-	$document = almaden_bookster_build_typst_document( $payload );
+	$document  = almaden_bookster_build_typst_document( $payload );
+	$cache_key = almaden_bookster_typst_preview_cache_key( $document );
+	$cached    = almaden_bookster_typst_preview_cache_read( $book_id, $cache_key );
+	if ( is_array( $cached ) ) {
+		almaden_bookster_typst_restore_preview_metadata( $cached['meta'] );
+		if ( function_exists( 'almaden_bookster_typst_reconcile_page_template_results' ) ) {
+			almaden_bookster_typst_reconcile_page_template_results(
+				$book_id,
+				$GLOBALS['almaden_bookster_typst_page_template_results'] ?? array()
+			);
+		}
+		almaden_bookster_send_typst_preview_pdf( $book_id, $document, $cached['pdf'], 'HIT' );
+	}
 	$pdf      = almaden_bookster_compile_typst_pdf( $document );
 	if ( is_wp_error( $pdf ) ) {
 		wp_send_json_error(
@@ -82,28 +232,11 @@ function almaden_bookster_ajax_compile_typst_pdf() {
 		);
 	}
 
-	nocache_headers();
-	header( 'Content-Type: application/pdf' );
-	header( 'Content-Disposition: inline; filename="almaden-book-' . $book_id . '.pdf"' );
-	header( 'Content-Length: ' . strlen( $pdf ) );
-	header( 'X-Almaden-Source-Hash: ' . $document['source_hash'] );
-	header( 'X-Almaden-PDF-Geometry: ' . rawurlencode( wp_json_encode( $document['geometry'] ) ) );
-	header( 'X-Almaden-PDF-Typography: ' . rawurlencode( wp_json_encode( $document['typography'] ) ) );
-	if ( ! empty( $GLOBALS['almaden_bookster_typst_page_flow_map'] ) ) {
-		header( 'X-Almaden-Page-Flow: ' . rawurlencode( wp_json_encode( $GLOBALS['almaden_bookster_typst_page_flow_map'] ) ) );
-	}
-	if ( isset( $GLOBALS['almaden_bookster_typst_page_template_results'] ) ) {
-		header( 'X-Almaden-Page-Template-Results: ' . rawurlencode( wp_json_encode( $GLOBALS['almaden_bookster_typst_page_template_results'] ) ) );
-	}
-	if ( isset( $GLOBALS['almaden_bookster_typst_opening_debug'] ) ) {
-		header( 'X-Almaden-Typst-Opening-Debug: ' . rawurlencode( wp_json_encode( $GLOBALS['almaden_bookster_typst_opening_debug'] ) ) );
-	}
-	if ( ! empty( $GLOBALS['almaden_bookster_typst_integrity_warning'] ) ) {
-		header( 'X-Almaden-PDF-Integrity: ' . rawurlencode( wp_json_encode( array(
-			'status'  => 'warning',
-			'message' => (string) $GLOBALS['almaden_bookster_typst_integrity_warning'],
-		) ) ) );
-	}
-	echo $pdf;
-	exit;
+	$cache_written = almaden_bookster_typst_preview_cache_write(
+		$book_id,
+		$cache_key,
+		$pdf,
+		almaden_bookster_typst_preview_metadata()
+	);
+	almaden_bookster_send_typst_preview_pdf( $book_id, $document, $pdf, $cache_written ? 'MISS-STORED' : 'MISS-NOSTORE' );
 }

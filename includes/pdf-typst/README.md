@@ -229,6 +229,16 @@ Responsabilidad: endpoint autenticado para el preview Typst.
 - `_almaden_page_templates` es el origen persistente de las plantillas físicas.
 - `settings.page_templates` es la copia que consume el compilador durante la
   sesión actual.
+- `settings.pdf_preview_mode`, `settings.pdf_preview_asset_mode` y
+  `settings.pdf_preview_counter_mode` definen el contrato base para las fases
+  del preview por capítulo. `pdf_preview_asset_mode = optimized` se usa para
+  el preview del editor y `original` se fuerza en la descarga final para que
+  nunca se exporten assets livianos.
+- `bookState.pdfPreview` es el contenedor serializable del estado de preview
+  que usará la próxima fase para decidir modo, assets y contador universal.
+  El backend ahora devuelve `X-Almaden-Universal-Counter` con los inicios de
+  capítulo; el navegador lo combina con `pdfDocument.numPages` para obtener
+  rangos globales reales.
 - Cada plantilla tiene un `instance_id` estable y un `anchor.flow_id`; la
   página física se recalcula y se devuelve como `resolved_page`.
 - Cada slot debe conservar un `id` estable para que el panel de imágenes pueda

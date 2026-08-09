@@ -36,7 +36,10 @@ function almaden_bookster_typst_compose_page_templates( $source, $context, &$ass
 		$source
 	);
 
-	if ( $marker_index < 1 ) {
+	$transition_entries = function_exists( 'almaden_bookster_typst_page_template_transition_report_entries' )
+		? almaden_bookster_typst_page_template_transition_report_entries( $source )
+		: array();
+	if ( $marker_index < 1 && empty( $transition_entries ) ) {
 		return $source;
 	}
 
@@ -45,6 +48,7 @@ function almaden_bookster_typst_compose_page_templates( $source, $context, &$ass
 		$marker = 'almaden-flow-' . $index;
 		$report_entries[] = '(id: "' . $marker . '", page: if query(<' . $marker . '>).len() > 0 { query(<' . $marker . '>).first().location().page() } else { none }, x: if query(<' . $marker . '>).len() > 0 { query(<' . $marker . '>).first().location().position().x } else { none }, y: if query(<' . $marker . '>).len() > 0 { query(<' . $marker . '>).first().location().position().y } else { none })';
 	}
+	$report_entries = array_merge( $report_entries, $transition_entries );
 
 	return $source . "\n#context [#metadata((" . implode( ', ', $report_entries ) . ")) <almaden-flow-report>]\n";
 }
@@ -157,7 +161,7 @@ function almaden_bookster_typst_page_template_apply_blocks( $source, $context, $
 		}, $deferred_ids ) );
 	}
 	$gap = round( (float) $context['columns_gap'], 4 ) . $context['unit'];
-	$placeholder = almaden_bookster_typst_page_template_placeholder( $template, $context, $assets );
+	$placeholder = almaden_bookster_typst_page_template_placeholder( $template, $context, $assets, $context['asset_mode'] ?? 'original' );
 
 	if ( 'full' === $layout_mode ) {
 		/*
@@ -240,6 +244,22 @@ function almaden_bookster_typst_apply_page_template_flow( $source, $context, $fl
 			'page'   => $target_page,
 		);
 		return (string) $source;
+	}
+	$anchor_id = (string) ( $template['anchor']['flow_id'] ?? '' );
+	if ( function_exists( 'almaden_bookster_typst_page_template_is_transition_anchor' ) && almaden_bookster_typst_page_template_is_transition_anchor( $anchor_id ) ) {
+		foreach ( $target_rows as $target_row ) {
+			if ( $anchor_id === (string) ( $target_row['id'] ?? '' ) ) {
+				$template['_transition_marker_page'] = (int) ( $target_row['marker_page'] ?? $target_page );
+				break;
+			}
+		}
+		$debug = array();
+		$updated_source = almaden_bookster_typst_apply_transition_page_template( $source, $context, $template, $assets, $debug );
+		$GLOBALS['almaden_bookster_typst_page_template_debug'] = array_merge(
+			array( 'page' => $target_page ),
+			$debug
+		);
+		return $updated_source;
 	}
 
 	$page_ids = array();

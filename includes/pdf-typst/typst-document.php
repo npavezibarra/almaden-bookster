@@ -19,6 +19,9 @@ function almaden_bookster_build_typst_document( $payload ) {
 	extract( $context, EXTR_SKIP );
 	$prefix = almaden_bookster_typst_build_document_prefix( $context, $payload );
 	extract( $prefix, EXTR_SKIP );
+	$asset_mode = function_exists( 'almaden_bookster_typst_normalize_asset_mode' )
+		? almaden_bookster_typst_normalize_asset_mode( $asset_mode ?? 'original' )
+		: ( 'original' === (string) ( $asset_mode ?? '' ) ? 'original' : 'optimized' );
 	$inline_font_cache  = array();
 	$resolve_inline_font = static function ( $family ) use ( &$inline_font_assets, &$inline_font_error, &$inline_font_cache ) {
 		$family = almaden_bookster_typst_font_family( $family, '' );
@@ -113,7 +116,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 		} elseif ( ! empty( $chapter['chapter_image_enabled'] ) && '1' === (string) $chapter['chapter_image_enabled'] ) {
 			$image_url = $chapter['chapter_image_url'] ?? '';
 		}
-		$image_asset = almaden_bookster_typst_register_upload( $image_url, $assets );
+		$image_asset = almaden_bookster_typst_register_upload( $image_url, $assets, $asset_mode );
 		if ( '' !== $image_asset ) {
 			$source .= '#align(center + horizon)[#image("' . almaden_bookster_typst_escape_string( $image_asset ) .
 				'", width: 100%, height: 100%, fit: "contain")]' . "\n#pagebreak()\n\n";
@@ -270,7 +273,8 @@ function almaden_bookster_build_typst_document( $payload ) {
 				),
 				$assets,
 				$resolve_credits_font,
-				$payload['coverSettings'] ?? ( $payload['cover_settings'] ?? array() )
+				$payload['coverSettings'] ?? ( $payload['cover_settings'] ?? array() ),
+				$asset_mode
 			);
 		} else {
 			if ( $page_columns_enabled && ! $is_credits ) {
@@ -432,6 +436,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 		)
 	);
 	$source = almaden_bookster_typst_compose_page_templates( $source, $page_template_context, $assets );
+	$source = almaden_bookster_typst_append_chapter_counter_report( $source, $chapters );
 
 	return array(
 		'source'        => $source,

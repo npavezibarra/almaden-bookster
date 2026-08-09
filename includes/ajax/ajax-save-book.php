@@ -41,6 +41,41 @@ function almaden_bookster_save_book_ajax() {
 		$source_book_id = $book_id;
 	}
 
+	$allowed_empty_raw = isset( $_POST['allow_empty_chapter_ids'] ) ? wp_unslash( $_POST['allow_empty_chapter_ids'] ) : '[]';
+	$allowed_empty_ids = json_decode( $allowed_empty_raw, true );
+	$allowed_empty_ids = is_array( $allowed_empty_ids )
+		? array_map( 'strval', array_map( 'absint', $allowed_empty_ids ) )
+		: array();
+
+	// Reject silent destructive transitions before updating any chapter. An
+	// intentional clear must be confirmed by the editor and explicitly listed.
+	foreach ( $chapters as $incoming_chapter ) {
+		$incoming_id = isset( $incoming_chapter['id'] ) ? absint( $incoming_chapter['id'] ) : 0;
+		if ( ! $incoming_id || in_array( (string) $incoming_id, $allowed_empty_ids, true ) ) {
+			continue;
+		}
+		$incoming_content = isset( $incoming_chapter['content'] ) ? (string) $incoming_chapter['content'] : '';
+		if ( '' !== trim( $incoming_content ) ) {
+			continue;
+		}
+		$stored_chapter = get_post( $incoming_id );
+		if (
+			$stored_chapter instanceof WP_Post
+			&& 'book_chapter' === $stored_chapter->post_type
+			&& (int) $stored_chapter->post_parent === (int) $source_book_id
+			&& '' !== trim( (string) $stored_chapter->post_content )
+		) {
+			wp_send_json_error(
+				array(
+					'code'       => 'chapter_content_empty_guard',
+					'message'    => 'Se bloqueó el guardado porque el capítulo “' . sanitize_text_field( $incoming_chapter['title'] ?? $stored_chapter->post_title ) . '” quedaría vacío sin confirmación.',
+					'chapter_id' => $incoming_id,
+				),
+				409
+			);
+		}
+	}
+
 	// Sanitizar y Guardar Capítulos en CPT
 	$updated_chapters = array();
 	$menu_order = 1;

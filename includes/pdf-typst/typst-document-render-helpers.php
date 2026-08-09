@@ -49,6 +49,44 @@ function almaden_bookster_typst_toc_title_text( $chapter ) {
 	return '' !== $title ? $title : 'Índice';
 }
 
+function almaden_bookster_typst_chapter_counter_label( $chapter_id ) {
+	$chapter_id = preg_replace( '/[^0-9A-Za-z_-]/', '', (string) $chapter_id );
+	return '' !== $chapter_id ? 'almaden-chapter-start-' . $chapter_id : '';
+}
+
+function almaden_bookster_typst_append_chapter_counter_report( $source, $chapters ) {
+	$source = (string) $source;
+	$chapters = is_array( $chapters ) ? $chapters : array();
+	$report_entries = array();
+
+	foreach ( $chapters as $chapter_index => $chapter ) {
+		if ( ! is_array( $chapter ) ) {
+			continue;
+		}
+
+		$chapter_id = trim( (string) ( $chapter['id'] ?? (string) ( $chapter_index + 1 ) ) );
+		$label = almaden_bookster_typst_chapter_counter_label( $chapter_id );
+		if ( '' === $label ) {
+			continue;
+		}
+
+		$kind = 'chapter';
+		if ( '1' === (string) ( $chapter['is_toc'] ?? '' ) ) {
+			$kind = 'toc';
+		} elseif ( almaden_bookster_typst_bool( $chapter['is_credits'] ?? false ) ) {
+			$kind = 'credits';
+		}
+
+		$report_entries[] = '(sequence: ' . ( $chapter_index + 1 ) . ', id: "' . almaden_bookster_typst_escape_string( $chapter_id ) . '", kind: "' . $kind . '", page: if query(<' . $label . '>).len() > 0 { query(<' . $label . '>).first().location().page() } else { none })';
+	}
+
+	if ( empty( $report_entries ) ) {
+		return $source;
+	}
+
+	return $source . "\n#context [#metadata((" . implode( ', ', $report_entries ) . ")) <almaden-chapter-counter-report>]\n";
+}
+
 function almaden_bookster_typst_render_toc( $chapter, $chapters, $settings, $fallbacks, &$assets, $resolve_font, $show_title = true ) {
 	$chapter = is_array( $chapter ) ? $chapter : array();
 	$chapters = is_array( $chapters ) ? $chapters : array();
@@ -165,7 +203,7 @@ function almaden_bookster_typst_render_toc( $chapter, $chapters, $settings, $fal
 	return $output;
 }
 
-function almaden_bookster_typst_render_credits( $config, $author_label, $fallbacks, &$assets, $resolve_font, $cover_settings = array() ) {
+function almaden_bookster_typst_render_credits( $config, $author_label, $fallbacks, &$assets, $resolve_font, $cover_settings = array(), $asset_mode = 'original' ) {
 	$config = is_array( $config ) ? $config : array();
 	$styles = isset( $config['section_styles'] ) && is_array( $config['section_styles'] ) ? $config['section_styles'] : array();
 	$order  = isset( $config['section_order'] ) && is_array( $config['section_order'] )
@@ -271,7 +309,7 @@ function almaden_bookster_typst_render_credits( $config, $author_label, $fallbac
 		foreach ( (array) ( $config['collaborators'] ?? array() ) as $collaborator ) {
 			$parts = array();
 			$text_parts = array();
-			$image = almaden_bookster_typst_register_upload( $collaborator['logo_url'] ?? '', $assets );
+			$image = almaden_bookster_typst_register_upload( $collaborator['logo_url'] ?? '', $assets, $asset_mode );
 			if ( '' !== $image ) {
 				$parts[] = almaden_bookster_typst_credits_line_block( '#box(width: ' . round( $collaborator_image_width, 2 ) . 'pt)[#image("' . almaden_bookster_typst_escape_string( $image ) . '", width: 100%, fit: "contain")]', $collaborator_section_style['align'] );
 			}
@@ -304,7 +342,7 @@ function almaden_bookster_typst_render_credits( $config, $author_label, $fallbac
 	foreach ( (array) ( $config['logos'] ?? array() ) as $logo ) {
 		$parts = array();
 		$image_url = almaden_bookster_typst_resolve_credits_logo_url( $logo, $cover_settings );
-		$image = almaden_bookster_typst_register_upload( $image_url, $assets );
+		$image = almaden_bookster_typst_register_upload( $image_url, $assets, $asset_mode );
 		$logo_align = almaden_bookster_typst_credits_alignment( $logo['position'] ?? 'center' );
 		if ( '' !== $image ) {
 			$size = max( 24, min( 400, (int) ( $logo['size_px'] ?? 120 ) ) ) * 0.75;
@@ -399,26 +437,3 @@ function almaden_bookster_typst_running_element_has_content( $type, $custom = ''
 /**
  * Register an image only when it resolves inside the WordPress uploads directory.
  */
-function almaden_bookster_typst_register_upload( $url, &$assets ) {
-	if ( ! function_exists( 'wp_upload_dir' ) || '' === trim( (string) $url ) ) {
-		return '';
-	}
-	$uploads = wp_upload_dir();
-	$baseurl = rtrim( (string) $uploads['baseurl'], '/' );
-	$basedir = realpath( (string) $uploads['basedir'] );
-	if ( ! $basedir || 0 !== strpos( (string) $url, $baseurl . '/' ) ) {
-		return '';
-	}
-	$relative = rawurldecode( substr( (string) $url, strlen( $baseurl ) + 1 ) );
-	$path     = realpath( $basedir . DIRECTORY_SEPARATOR . $relative );
-	if ( ! $path || 0 !== strpos( $path, $basedir . DIRECTORY_SEPARATOR ) || ! is_file( $path ) ) {
-		return '';
-	}
-	$extension = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) );
-	if ( ! in_array( $extension, array( 'png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'pdf' ), true ) ) {
-		return '';
-	}
-	$name            = hash( 'sha256', $path . '|' . filemtime( $path ) ) . '.' . $extension;
-	$assets[ $name ] = $path;
-	return 'assets/' . $name;
-}

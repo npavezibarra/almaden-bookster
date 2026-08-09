@@ -3,6 +3,7 @@
 const PDF_PREVIEW_ZOOM_STORAGE_KEY = 'almaden_pdf_preview_zoom';
 const PDF_PREVIEW_ZOOM_LEVELS = new Set(['0.25', '0.5', '0.75', '1', '2']);
 const PDF_PREVIEW_LAYOUT_STORAGE_KEY = 'almaden_pdf_preview_layout';
+const PDF_PREVIEW_MODE_STORAGE_KEY = 'almaden_pdf_preview_mode';
 
 function normalizePdfPreviewLayout(value) {
     return String(value ?? 'single') === 'spread' ? 'spread' : 'single';
@@ -108,6 +109,77 @@ function setPdfPreviewLayout(layout) {
     applyPdfPreviewLayout(layout, true);
 }
 
+function normalizePdfPreviewMode(value) {
+    return String(value ?? 'chapter') === 'full' ? 'full' : 'chapter';
+}
+
+function getPdfPreviewModeCopy(mode = null) {
+    const normalized = normalizePdfPreviewMode(mode || bookState?.pdfPreview?.mode || bookState?.settings?.pdf_preview_mode);
+    if (normalized === 'full') {
+        return {
+            label: 'PDF completo',
+            detail: 'Vista total del libro'
+        };
+    }
+
+    return {
+        label: 'Capítulo actual',
+        detail: 'Vista optimizada para revisar el capítulo activo'
+    };
+}
+
+function updatePdfPreviewModeStatus(mode = null) {
+    const chip = document.getElementById('pdf-preview-mode-chip');
+    const label = document.getElementById('pdf-preview-mode-label');
+    const detail = document.getElementById('pdf-preview-mode-detail');
+    if (!chip || !label || !detail) return;
+
+    const copy = getPdfPreviewModeCopy(mode);
+    label.textContent = copy.label;
+    detail.textContent = copy.detail;
+    chip.dataset.previewMode = normalizePdfPreviewMode(mode || bookState?.pdfPreview?.mode || bookState?.settings?.pdf_preview_mode);
+    chip.title = `${copy.label}. ${copy.detail}`;
+}
+
+function applyPdfPreviewMode(mode, persist = true) {
+    const normalized = normalizePdfPreviewMode(mode);
+    if (!bookState.pdfPreview || typeof bookState.pdfPreview !== 'object') {
+        bookState.pdfPreview = {};
+    }
+    bookState.pdfPreview.mode = normalized;
+    updatePdfPreviewModeStatus(normalized);
+
+    const chapterBtn = document.getElementById('btn-preview-mode-chapter');
+    const fullBtn = document.getElementById('btn-preview-mode-full');
+    if (chapterBtn) {
+        chapterBtn.className = normalized === 'chapter'
+            ? 'px-2.5 py-1 rounded-sm bg-black text-white shadow-sm transition'
+            : 'px-2.5 py-1 rounded-sm text-[var(--text-muted)] hover:text-[var(--text-main)] transition';
+        chapterBtn.setAttribute('aria-pressed', normalized === 'chapter' ? 'true' : 'false');
+    }
+    if (fullBtn) {
+        fullBtn.className = normalized === 'full'
+            ? 'px-2.5 py-1 rounded-sm bg-black text-white shadow-sm transition'
+            : 'px-2.5 py-1 rounded-sm text-[var(--text-muted)] hover:text-[var(--text-main)] transition';
+        fullBtn.setAttribute('aria-pressed', normalized === 'full' ? 'true' : 'false');
+    }
+
+    if (persist) {
+        localStorage.setItem(PDF_PREVIEW_MODE_STORAGE_KEY, normalized);
+    }
+
+    if (!persist && window.almadenTypstPdf && typeof window.almadenTypstPdf.refresh === 'function') {
+        window.almadenTypstPdf.refresh();
+    } else if (typeof compilePDFPreview === 'function') {
+        compilePDFPreview(true, 'pdf-scroller', true);
+    }
+}
+
+function initPdfPreviewMode() {
+    const savedMode = normalizePdfPreviewMode(localStorage.getItem(PDF_PREVIEW_MODE_STORAGE_KEY));
+    applyPdfPreviewMode(savedMode, false);
+}
+
 // Modos de vista del espacio de trabajo (Dividido, Editor Raw, Solo PDF)
 function setViewMode(mode) {
     const editorPane = document.getElementById('editor-pane');
@@ -125,15 +197,17 @@ function setViewMode(mode) {
 
     bookState.viewMode = mode;
 
+    const refreshVisiblePdf = () => {
+        if (typeof compilePDFPreview === 'function') {
+            compilePDFPreview(true);
+        }
+    };
+
     if (mode === 'split') {
         if (editorPane) editorPane.classList.remove('hidden');
         if (previewPane) previewPane.classList.remove('hidden');
         if (splitBtn) splitBtn.className = "px-3 py-1.5 rounded-md bg-black text-white shadow-sm transition";
-        if (typeof refreshSplitPreview === 'function') {
-            refreshSplitPreview(true);
-        } else if (typeof compilePDFPreview === 'function') {
-            compilePDFPreview(true);
-        }
+        refreshVisiblePdf();
     } else if (mode === 'edit') {
         if (editorPane) editorPane.classList.remove('hidden');
         if (previewPane) previewPane.classList.add('hidden');
@@ -142,14 +216,9 @@ function setViewMode(mode) {
         if (editorPane) editorPane.classList.add('hidden');
         if (previewPane) previewPane.classList.remove('hidden');
         if (previewBtn) previewBtn.className = "px-3 py-1.5 rounded-md bg-black text-white shadow-sm transition";
-        if (typeof compilePDFPreview === 'function') {
-            compilePDFPreview(true);
-        }
+        refreshVisiblePdf();
     }
 
-    if (typeof saveStateToLocalStorage === 'function') {
-        saveStateToLocalStorage();
-    }
 }
 
 // Cambia el tema visual del editor (Claro, Sepia, Oscuro)
@@ -204,6 +273,11 @@ function applySidebarCollapsedState(isCollapsed) {
         toggleButton.title = isCollapsed ? 'Mostrar capítulos' : 'Ocultar capítulos';
         toggleButton.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
     }
+}
+
+window.setPdfPreviewMode = setPdfPreviewMode;
+function setPdfPreviewMode(mode) {
+    applyPdfPreviewMode(mode, true);
 }
 
 // Mostrar / Ocultar la barra lateral de capítulos

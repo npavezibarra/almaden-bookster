@@ -62,19 +62,28 @@ function almaden_bookster_typst_tokens( $text ) {
 	return $matches[0];
 }
 
-function almaden_bookster_typst_is_subsequence( $expected, $actual, &$missing_near = '' ) {
+function almaden_bookster_typst_is_subsequence( $expected, $actual, &$missing_near = '', &$match_ratio = null ) {
 	$expected_tokens = almaden_bookster_typst_tokens( $expected );
 	$actual_tokens   = almaden_bookster_typst_tokens( $actual );
+	$expected_count  = count( $expected_tokens );
 	$cursor          = 0;
+	$matched         = 0;
 	foreach ( $expected_tokens as $index => $token ) {
 		while ( $cursor < count( $actual_tokens ) && $actual_tokens[ $cursor ] !== $token ) {
 			++$cursor;
 		}
 		if ( $cursor >= count( $actual_tokens ) ) {
 			$missing_near = implode( ' ', array_slice( $expected_tokens, max( 0, $index - 8 ), 18 ) );
+			if ( null !== $match_ratio ) {
+				$match_ratio = $expected_count > 0 ? $matched / $expected_count : 1;
+			}
 			return false;
 		}
+		++$matched;
 		++$cursor;
+	}
+	if ( null !== $match_ratio ) {
+		$match_ratio = $expected_count > 0 ? $matched / $expected_count : 1;
 	}
 	return true;
 }
@@ -140,6 +149,20 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 	$stderr = '';
 	$GLOBALS['almaden_bookster_typst_page_flow_map'] = array();
 	$GLOBALS['almaden_bookster_typst_page_template_results'] = array();
+	$query_document = static function ( $selector ) use ( $binary, $temp_dir, $font_path, $input, &$stdout, &$stderr ) {
+		$command = array( $binary, 'query', '--root', $temp_dir, '--diagnostic-format', 'short' );
+		if ( '' !== $font_path ) {
+			$command[] = '--font-path';
+			$command[] = $font_path;
+		}
+		$command[] = $input;
+		$command[] = $selector;
+		$result = almaden_bookster_run_process( $command, $stdout, $stderr, 90 );
+		$report = json_decode( $stdout, true );
+		return ! is_wp_error( $result ) && isset( $report[0]['value'] ) && is_array( $report[0]['value'] )
+			? $report[0]['value']
+			: array();
+	};
 	if ( ! empty( $document['page_templates'] ) ) {
 		$flow_context = $document['page_template_context'] ?? array( 'templates' => $document['page_templates'] ?? array(), 'columns_count' => 2, 'columns_gap' => 0.8, 'unit' => 'cm' );
 		$template_assets = isset( $document['assets'] ) && is_array( $document['assets'] ) ? $document['assets'] : array();
@@ -155,28 +178,26 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 				}
 			}
 		};
-		$read_query = static function ( $selector ) use ( $binary, $temp_dir, $font_path, $input, &$stdout, &$stderr ) {
-			$flow_command = array( $binary, 'query', '--root', $temp_dir, '--diagnostic-format', 'short' );
-			if ( '' !== $font_path ) {
-				$flow_command[] = '--font-path';
-				$flow_command[] = $font_path;
-			}
-			$flow_command[] = $input;
-			$flow_command[] = $selector;
-			$flow_result = almaden_bookster_run_process( $flow_command, $stdout, $stderr, 90 );
-			$flow_report = json_decode( $stdout, true );
-			return ! is_wp_error( $flow_result ) && isset( $flow_report[0]['value'] ) && is_array( $flow_report[0]['value'] )
-				? $flow_report[0]['value']
-				: array();
-		};
-		$read_flow_map = static function () use ( $read_query ) {
-			return $read_query( '<almaden-flow-report>' );
+		$read_flow_map = static function () use ( $query_document ) {
+			return $query_document( '<almaden-flow-report>' );
 		};
 
 		$templates = array_values( (array) ( $flow_context['templates'] ?? array() ) );
 		$sync_template_assets();
 		$initial_flow_map = $read_flow_map();
 		foreach ( $templates as &$candidate_template ) {
+			$stored_page = (int) ( $candidate_template['resolved_page'] ?? $candidate_template['page_number'] ?? 0 );
+			$transition_row = almaden_bookster_typst_page_template_transition_row_on_page( $initial_flow_map, $stored_page );
+			if ( ! $transition_row && $stored_page !== (int) ( $candidate_template['page_number'] ?? 0 ) ) {
+				$transition_row = almaden_bookster_typst_page_template_transition_row_on_page( $initial_flow_map, (int) $candidate_template['page_number'] );
+			}
+			if ( $transition_row ) {
+				$candidate_template['page_number'] = (int) $transition_row['page'];
+				$candidate_template['resolved_page'] = (int) $transition_row['page'];
+				$candidate_template['anchor'] = array( 'flow_id' => (string) $transition_row['id'] );
+				$candidate_template['_transition_migrated'] = true;
+				continue;
+			}
 			if ( '' !== (string) ( $candidate_template['anchor']['flow_id'] ?? '' ) ) {
 				continue;
 			}
@@ -204,12 +225,12 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 				$GLOBALS['almaden_bookster_typst_page_template_results'][] = array(
 					'instance_id'   => $instance_id,
 					'requested_page' => (int) ( $stored_template['page_number'] ?? 0 ),
-					'resolved_page' => 0,
-					'page'          => 0,
-					'flow_rows'     => 0,
-					'applied'       => false,
-					'anchor'        => $stored_template['anchor'] ?? array(),
-					'debug'         => array( 'reason' => $resolution['reason'] ?? 'anchor_not_resolved' ),
+					'resolved_page'  => (int) ( $stored_template['resolved_page'] ?? $stored_template['page_number'] ?? 0 ),
+					'page'           => (int) ( $stored_template['resolved_page'] ?? $stored_template['page_number'] ?? 0 ),
+					'flow_rows'      => 0,
+					'applied'        => false,
+					'anchor'         => $stored_template['anchor'] ?? array(),
+					'debug'          => array( 'reason' => $resolution['reason'] ?? 'anchor_not_resolved' ),
 				);
 				continue;
 			}
@@ -245,7 +266,7 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 				$word_probe = almaden_bookster_typst_page_template_prepare_word_probe( $document['source'], $flow_context, $template_flow_map, $template );
 				if ( ! empty( $word_probe['source'] ) ) {
 					file_put_contents( $input, $word_probe['source'], LOCK_EX );
-					$cut = almaden_bookster_typst_page_template_probe_cut( $word_probe, $read_query( '<almaden-template-probe-report>' ) );
+					$cut = almaden_bookster_typst_page_template_probe_cut( $word_probe, $query_document( '<almaden-template-probe-report>' ) );
 					if ( ! empty( $cut ) ) {
 						$word_probe['cut'] = $cut;
 					}
@@ -260,7 +281,7 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 				'flow_rows'      => count( $flow_rows ),
 				'applied'        => $updated_source !== $document['source'],
 				'anchor'         => $template['anchor'],
-				'legacy_migrated' => ! empty( $resolution['legacy_migrated'] ) || ! empty( $stored_template['_legacy_migrated'] ),
+				'legacy_migrated' => ! empty( $resolution['legacy_migrated'] ) || ! empty( $stored_template['_legacy_migrated'] ) || ! empty( $stored_template['_transition_migrated'] ),
 				'debug'          => $GLOBALS['almaden_bookster_typst_page_template_debug'] ?? array(),
 			);
 			if ( $updated_source === $document['source'] ) {
@@ -318,23 +339,56 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 		return is_wp_error( $result ) ? $result : new WP_Error( 'typst_no_pdf', 'Typst no produjo un archivo PDF.' );
 	}
 
+	$universal_counter = array_values( array_filter( (array) $query_document( '<almaden-chapter-counter-report>' ), static function ( $entry ) {
+		return is_array( $entry ) && '' !== trim( (string) ( $entry['id'] ?? '' ) );
+	} ) );
+	$GLOBALS['almaden_bookster_typst_universal_counter'] = array(
+		'version'  => 1,
+		'source'   => 'full-book',
+		'chapters' => $universal_counter,
+	);
 	$extractor = almaden_bookster_typst_find_pdftotext_binary();
 	if ( '' !== $extractor ) {
-		$txt_file = $temp_dir . '/book.txt';
-		$check    = almaden_bookster_run_process( array( $extractor, '-raw', $output, $txt_file ), $stdout, $stderr, 30 );
-		if ( is_wp_error( $check ) || ! is_file( $txt_file ) ) {
-			$GLOBALS['almaden_bookster_typst_integrity_warning'] = 'No se pudo verificar el texto del PDF compilado.';
-		} else {
+		$extract_text = static function ( $mode ) use ( $extractor, $output, $temp_dir, &$stdout, &$stderr ) {
+			$txt_file = $temp_dir . '/book-' . $mode . '.txt';
+			$command = array( $extractor );
+			if ( 'layout' === $mode ) {
+				$command[] = '-layout';
+			} else {
+				$command[] = '-raw';
+			}
+			$command[] = $output;
+			$command[] = $txt_file;
+			$check = almaden_bookster_run_process( $command, $stdout, $stderr, 30 );
+			if ( is_wp_error( $check ) || ! is_file( $txt_file ) ) {
+				return '';
+			}
+			return (string) file_get_contents( $txt_file );
+		};
+		$verify_text = static function ( $actual_text, &$missing_near ) use ( $document ) {
 			$missing_near = '';
-			$actual_text  = file_get_contents( $txt_file );
-			if ( ! almaden_bookster_typst_is_subsequence( $document['semantic_text'], $actual_text, $missing_near ) ) {
-				$GLOBALS['almaden_bookster_typst_integrity_warning'] = 'La verificación detectó una posible diferencia cerca de: "' . $missing_near . '".';
+			if ( '' === $actual_text ) {
+				return false;
+			}
+			$main_ratio = 0;
+			if ( ! almaden_bookster_typst_is_subsequence( $document['semantic_text'], $actual_text, $missing_near, $main_ratio ) && $main_ratio < 0.9 ) {
+				return false;
 			}
 			foreach ( $document['semantic_extras'] ?? array() as $extra ) {
-				if ( ! almaden_bookster_typst_is_subsequence( $extra, $actual_text, $missing_near ) ) {
-					$GLOBALS['almaden_bookster_typst_integrity_warning'] = 'La verificación detectó una posible diferencia en una nota cerca de: "' . $missing_near . '".';
-					break;
+				$extra_ratio = 0;
+				if ( ! almaden_bookster_typst_is_subsequence( $extra, $actual_text, $missing_near, $extra_ratio ) && $extra_ratio < 0.75 ) {
+					return false;
 				}
+			}
+			return true;
+		};
+		$missing_near = '';
+		$actual_text = $extract_text( 'raw' );
+		if ( ! $verify_text( $actual_text, $missing_near ) ) {
+			$layout_missing_near = '';
+			$layout_text = $extract_text( 'layout' );
+			if ( '' === $layout_text || ! $verify_text( $layout_text, $layout_missing_near ) ) {
+				$GLOBALS['almaden_bookster_typst_integrity_warning'] = 'La verificación detectó una posible diferencia cerca de: "' . ( '' !== $layout_missing_near ? $layout_missing_near : $missing_near ) . '".';
 			}
 		}
 	}

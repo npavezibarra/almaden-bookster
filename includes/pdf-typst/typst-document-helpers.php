@@ -48,6 +48,202 @@ function almaden_bookster_typst_bool( $value ) {
 	return ! empty( $value ) && '0' !== (string) $value && 'false' !== strtolower( (string) $value );
 }
 
+function almaden_bookster_typst_normalize_asset_mode( $value ) {
+	return 'original' === (string) $value ? 'original' : 'optimized';
+}
+
+function almaden_bookster_typst_resolve_upload_path_from_url( $url ) {
+	$url = trim( (string) $url );
+	if ( '' === $url || ! function_exists( 'wp_upload_dir' ) ) {
+		return '';
+	}
+
+	$uploads = wp_upload_dir();
+	$base_url = rtrim( (string) ( $uploads['baseurl'] ?? '' ), '/' );
+	$base_dir = rtrim( (string) ( $uploads['basedir'] ?? '' ), DIRECTORY_SEPARATOR );
+	if ( '' === $base_url || '' === $base_dir ) {
+		return '';
+	}
+
+	$clean_url = strtok( $url, '?' );
+	$base_path = parse_url( $base_url, PHP_URL_PATH );
+	$url_path  = parse_url( $clean_url, PHP_URL_PATH );
+	if ( ! is_string( $base_path ) || ! is_string( $url_path ) || 0 !== strpos( $url_path, $base_path . '/' ) ) {
+		return '';
+	}
+
+	$relative = ltrim( rawurldecode( substr( $url_path, strlen( $base_path ) ) ), '/' );
+	$relative = str_replace( array( '/', '\\' ), DIRECTORY_SEPARATOR, $relative );
+	if ( '' === $relative || false !== strpos( $relative, '..' ) ) {
+		return '';
+	}
+
+	$source_path = $base_dir . DIRECTORY_SEPARATOR . $relative;
+	return is_file( $source_path ) ? $source_path : '';
+}
+
+function almaden_bookster_typst_resolve_attachment_original_path( $attachment_id ) {
+	$attachment_id = function_exists( 'absint' ) ? absint( $attachment_id ) : max( 0, (int) $attachment_id );
+	if ( $attachment_id <= 0 ) {
+		return '';
+	}
+
+	$file_path = '';
+	if ( function_exists( 'wp_get_original_image_path' ) ) {
+		$file_path = wp_get_original_image_path( $attachment_id );
+	}
+	if ( empty( $file_path ) && function_exists( 'get_attached_file' ) ) {
+		$file_path = get_attached_file( $attachment_id );
+	}
+
+	return ! empty( $file_path ) && file_exists( $file_path ) ? $file_path : '';
+}
+
+function almaden_bookster_typst_resolve_attachment_preview_url( $attachment_id ) {
+	$attachment_id = function_exists( 'absint' ) ? absint( $attachment_id ) : max( 0, (int) $attachment_id );
+	if ( $attachment_id <= 0 ) {
+		return '';
+	}
+
+	if ( function_exists( 'wp_get_attachment_image_src' ) ) {
+		foreach ( array( 'medium_large', 'large', 'medium', 'thumbnail' ) as $size ) {
+			$image = wp_get_attachment_image_src( $attachment_id, $size );
+			if ( ! empty( $image[0] ) ) {
+				return function_exists( 'esc_url_raw' ) ? esc_url_raw( $image[0] ) : (string) $image[0];
+			}
+		}
+	}
+
+	if ( function_exists( 'wp_get_original_image_url' ) ) {
+		$original = wp_get_original_image_url( $attachment_id );
+		if ( ! empty( $original ) ) {
+			return function_exists( 'esc_url_raw' ) ? esc_url_raw( $original ) : (string) $original;
+		}
+	}
+
+	if ( function_exists( 'wp_get_attachment_url' ) ) {
+		$attachment_url = wp_get_attachment_url( $attachment_id );
+		if ( ! empty( $attachment_url ) ) {
+			return function_exists( 'esc_url_raw' ) ? esc_url_raw( $attachment_url ) : (string) $attachment_url;
+		}
+	}
+
+	return '';
+}
+
+function almaden_bookster_typst_resolve_image_url_for_asset_mode( $source, $asset_mode = 'original' ) {
+	$asset_mode = almaden_bookster_typst_normalize_asset_mode( $asset_mode );
+
+	if ( is_array( $source ) ) {
+		$attachment_id = function_exists( 'absint' ) ? absint( $source['attachment_id'] ?? 0 ) : max( 0, (int) ( $source['attachment_id'] ?? 0 ) );
+		$original_url = function_exists( 'esc_url_raw' )
+			? esc_url_raw( (string) ( $source['original_url'] ?? $source['url'] ?? '' ) )
+			: trim( (string) ( $source['original_url'] ?? $source['url'] ?? '' ) );
+		$preview_url = function_exists( 'esc_url_raw' )
+			? esc_url_raw( (string) ( $source['preview_url'] ?? '' ) )
+			: trim( (string) ( $source['preview_url'] ?? '' ) );
+		$url = function_exists( 'esc_url_raw' )
+			? esc_url_raw( (string) ( $source['url'] ?? '' ) )
+			: trim( (string) ( $source['url'] ?? '' ) );
+
+		if ( 'optimized' === $asset_mode ) {
+			if ( '' !== $preview_url ) {
+				return $preview_url;
+			}
+			if ( $attachment_id > 0 ) {
+				$attachment_preview = almaden_bookster_typst_resolve_attachment_preview_url( $attachment_id );
+				if ( '' !== $attachment_preview ) {
+					return $attachment_preview;
+				}
+			}
+			if ( '' !== $url ) {
+				return $url;
+			}
+		}
+
+		if ( '' !== $original_url ) {
+			return $original_url;
+		}
+		if ( $attachment_id > 0 ) {
+			$attachment_original = function_exists( 'wp_get_original_image_url' ) ? wp_get_original_image_url( $attachment_id ) : '';
+			if ( empty( $attachment_original ) && function_exists( 'wp_get_attachment_url' ) ) {
+				$attachment_original = wp_get_attachment_url( $attachment_id );
+			}
+			if ( ! empty( $attachment_original ) ) {
+				return function_exists( 'esc_url_raw' ) ? esc_url_raw( $attachment_original ) : (string) $attachment_original;
+			}
+		}
+		if ( '' !== $url ) {
+			return $url;
+		}
+		if ( 'optimized' === $asset_mode && '' !== $preview_url ) {
+			return $preview_url;
+		}
+
+		return '';
+	}
+
+	$url = trim( (string) $source );
+	if ( '' === $url ) {
+		return '';
+	}
+
+	if ( 'optimized' === $asset_mode && function_exists( 'attachment_url_to_postid' ) ) {
+		$attachment_id = attachment_url_to_postid( function_exists( 'esc_url_raw' ) ? esc_url_raw( $url ) : $url );
+		if ( $attachment_id <= 0 && preg_match( '/-scaled(?=\.[a-zA-Z0-9]+$)/', $url ) ) {
+			$attachment_id = attachment_url_to_postid( preg_replace( '/-scaled(?=\.[a-zA-Z0-9]+$)/', '', $url ) );
+		}
+		if ( $attachment_id > 0 ) {
+			$preview_url = almaden_bookster_typst_resolve_attachment_preview_url( $attachment_id );
+			if ( '' !== $preview_url ) {
+				return $preview_url;
+			}
+		}
+	}
+
+	return function_exists( 'esc_url_raw' ) ? esc_url_raw( $url ) : $url;
+}
+
+function almaden_bookster_typst_resolve_image_path_for_asset_mode( $source, $asset_mode = 'original' ) {
+	$image_url = almaden_bookster_typst_resolve_image_url_for_asset_mode( $source, $asset_mode );
+	if ( '' === $image_url ) {
+		return '';
+	}
+
+	$path = almaden_bookster_typst_resolve_upload_path_from_url( $image_url );
+	if ( '' !== $path ) {
+		return $path;
+	}
+
+	if ( is_array( $source ) ) {
+		$attachment_id = function_exists( 'absint' ) ? absint( $source['attachment_id'] ?? 0 ) : max( 0, (int) ( $source['attachment_id'] ?? 0 ) );
+		if ( $attachment_id > 0 ) {
+			$attachment_path = almaden_bookster_typst_resolve_attachment_original_path( $attachment_id );
+			if ( '' !== $attachment_path ) {
+				return $attachment_path;
+			}
+		}
+	}
+
+	return '';
+}
+
+function almaden_bookster_typst_register_upload( $source, &$assets, $asset_mode = 'original' ) {
+	$path = almaden_bookster_typst_resolve_image_path_for_asset_mode( $source, $asset_mode );
+	if ( '' === $path || ! is_file( $path ) ) {
+		return '';
+	}
+
+	$extension = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) );
+	if ( ! in_array( $extension, array( 'png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'pdf' ), true ) ) {
+		return '';
+	}
+	$name = hash( 'sha256', $path . '|' . filemtime( $path ) ) . '.' . $extension;
+	$assets[ $name ] = $path;
+
+	return 'assets/' . $name;
+}
+
 function almaden_bookster_typst_credits_blank_count( $settings, $position ) {
 	$key    = 'credits_blank_' . $position;
 	$config = isset( $settings['credits_config'] ) && is_array( $settings['credits_config'] )

@@ -446,6 +446,35 @@ function saveStateToLocalStorage(immediate = false) {
                 syncRawEditorToState();
             }
             const saveRevision = window.visualEditorRevision || 0;
+            const guardedEmptyChapters = (bookState.chapters || []).filter(chapter => {
+                const current = String(chapter.content || '').trim();
+                const lastSaved = String(chapter._lastSavedContent || '').trim();
+                return current === '' && lastSaved !== '';
+            });
+            let allowedEmptyChapterIds = [];
+            if (guardedEmptyChapters.length) {
+                const chapterNames = guardedEmptyChapters.map(chapter => `“${chapter.title || 'Sin título'}”`).join(', ');
+                if (!immediate) {
+                    if (statusIndicator) {
+                        statusIndicator.innerHTML = '<i class="fa-solid fa-shield-halved text-xs mr-1"></i> Vacío sin guardar';
+                        statusIndicator.className = 'flex items-center gap-1 font-semibold text-amber-600';
+                    }
+                    if (typeof showToast === 'function') {
+                        showToast(`Se evitó vaciar accidentalmente ${chapterNames}. Usa Guardar para confirmarlo.`, 'fa-solid fa-shield-halved');
+                    }
+                    return false;
+                }
+
+                const confirmed = window.confirm(`El contenido de ${chapterNames} quedará completamente vacío. ¿Deseas guardarlo así?`);
+                if (!confirmed) {
+                    if (statusIndicator) {
+                        statusIndicator.innerHTML = '<i class="fa-solid fa-shield-halved text-xs mr-1"></i> Guardado cancelado';
+                        statusIndicator.className = 'flex items-center gap-1 font-semibold text-amber-600';
+                    }
+                    return false;
+                }
+                allowedEmptyChapterIds = guardedEmptyChapters.map(chapter => String(chapter.id));
+            }
             
             let totalPages = 0;
             
@@ -564,6 +593,7 @@ function saveStateToLocalStorage(immediate = false) {
                 })
                 : [];
             data.append('chapters', JSON.stringify(chaptersPayload));
+            data.append('allow_empty_chapter_ids', JSON.stringify(allowedEmptyChapterIds));
             data.append('total_pages', totalPages || 0);
             const creditsConfig = typeof window.getCreditsConfigFromForm === 'function'
                 ? window.getCreditsConfigFromForm()
@@ -658,10 +688,17 @@ function saveStateToLocalStorage(immediate = false) {
                         renderSidebar();
                     }
                 }
+                bookState.chapters.forEach(chapter => {
+                    chapter._lastSavedContent = String(chapter.content || '');
+                });
             } else {
                 if (statusIndicator) {
                     statusIndicator.innerHTML = '<i class="fa-solid fa-circle-exclamation text-xs mr-1"></i> Error';
                     statusIndicator.className = 'flex items-center gap-1 font-semibold text-rose-600';
+                }
+                const errorMessage = res?.data?.message || (typeof res?.data === 'string' ? res.data : 'No se pudo guardar el libro.');
+                if (typeof showToast === 'function') {
+                    showToast(errorMessage, 'fa-solid fa-circle-exclamation');
                 }
             }
             saveCompleted = true;

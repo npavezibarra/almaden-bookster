@@ -154,6 +154,14 @@ function almaden_get_book_pdf_settings( $book_id ) {
 		'chapter_image_inner_footer' => 0,
 		'chapter_page_one_align'     => 'center-top',
 		'chapter_page_one_vertical'  => 'top',
+		/*
+		 * Preview-specific defaults. These values only define the data contract
+		 * for the next phases; the current render path still composes the full
+		 * PDF until the chapter-preview pipeline is implemented.
+		 */
+		'pdf_preview_mode'           => 'chapter',
+		'pdf_preview_asset_mode'      => 'optimized',
+		'pdf_preview_counter_mode'    => 'global',
 		'chapter_title_font_family'  => 'Playfair Display',
 		'chapter_title_font_size'    => 24.0,
 		'chapter_title_font_weight'  => 'bold',

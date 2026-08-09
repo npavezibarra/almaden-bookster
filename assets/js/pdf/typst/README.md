@@ -9,6 +9,9 @@ medidas sin tocar el manuscrito RAW.
 ## Qué resuelve
 
 - Previsualización en vivo del PDF que produce Typst.
+- Render por capítulo o PDF completo según `bookState.pdfPreview.mode`.
+- Toggle explícito en la barra del visor para alternar entre `chapter` y
+  `full` sin tocar el manuscrito ni la estructura de plantillas.
 - Selección de páginas y aplicación de plantillas físicas.
 - Carga de imágenes para los slots de cada plantilla.
 - Toggle visual para ver los límites de la caja editorial.
@@ -20,19 +23,46 @@ medidas sin tocar el manuscrito RAW.
 graph TD
     State[bookState] --> Payload[payload()]
     Payload --> Request[compileTypstPreview()]
-    Request --> Ajax[almaden_compile_typst_pdf]
-    Ajax --> Typst[typst-document.php]
+    Request --> BrowserCache[IndexedDB]
+    BrowserCache -->|miss| Ajax[almaden_compile_typst_pdf]
+    Ajax --> ServerCache[Cache privado por contenido]
+    ServerCache -->|miss| Typst[typst-document.php]
     Typst --> Binary[typst-compiler.php]
     Binary --> PDF[PDF response]
     PDF --> Viewer[showPdf() + renderPdfPreview()]
 ```
 
 1. `payload()` sincroniza el editor visual o RAW con `bookState`.
-2. `compileTypstPreview()` manda el payload por `FormData` al endpoint AJAX.
-3. El servidor recompone el documento Typst y devuelve el PDF más headers de
+2. `compileTypstPreview()` reutiliza primero el blob en memoria o la entrada
+   exacta almacenada en IndexedDB.
+3. En un miss local, el servidor consulta su caché privado por contenido antes
+   de ejecutar Typst y devuelve el PDF más headers de
    diagnóstico.
 4. `showPdf()` y `renderPdfPreview()` usan PDF.js para pintar el resultado.
 5. `updateTextBounds()` puede dibujar el contorno editorial real de cada hoja.
+6. Si el modo está en `chapter`, el visor solo renderiza las páginas del
+   capítulo activo usando el contador universal y `bookState.activeChapterId`.
+7. Si el usuario cambia a `full`, el visor vuelve a pintar todo el PDF con la
+   misma numeración global y conserva el layout de lectura para revisión
+   completa.
+
+## Caché e invalidación
+
+- La firma del cliente incluye manuscrito, configuración, plantillas, modo de
+  assets y portada. El contador universal se excluye porque es resultado de la
+  compilación y no una entrada editorial.
+- IndexedDB conserva hasta seis composiciones por libro durante siete días.
+- El servidor conserva hasta doce composiciones privadas por libro durante
+  siete días. Su clave incluye el source Typst y la fecha/tamaño de imágenes y
+  fuentes locales.
+- Cambiar vista, zoom, spread o capítulo reutiliza el blob actual. Una edición
+  que altere el payload genera una firma distinta y compila normalmente.
+- La exportación usa `assetMode: original`, por lo que nunca puede coincidir
+  con una entrada de preview optimizado.
+- El header `X-Almaden-Typst-Cache` indica `HIT`, `MISS-STORED` o
+  `MISS-NOSTORE`; el log
+  `[Typst preview performance]` informa `memory`, `browser-cache`,
+  `server-cache` o `typst` junto al tiempo total percibido.
 
 ## Archivos activos
 
@@ -95,6 +125,33 @@ de plantillas físicas. Cada entrada tiene esta forma aproximada:
 }
 ```
 
+Además, la fase 1 deja preparado este contrato de preview:
+
+```json
+{
+  "pdfPreview": {
+    "mode": "chapter",
+    "assetMode": "optimized",
+    "counterMode": "global",
+    "universalCounter": {
+      "version": 1,
+      "ready": false,
+      "source": "full-book",
+      "totals": {
+        "pages": null,
+        "blankPages": null,
+        "chapters": null
+      },
+      "chapters": []
+    }
+  }
+}
+```
+
+Ese bloque controla el modo visible, la selección de assets y la paginación.
+Cuando el backend devuelve el índice de capítulos, el viewer lo combina con
+`pdfDocument.numPages` para derivar rangos globales reales por capítulo.
+
 ## Diagnóstico y logs
 
 - `compileTypstPreview()` escribe en consola el payload enviado.
@@ -103,6 +160,10 @@ de plantillas físicas. Cada entrada tiene esta forma aproximada:
 - Si el backend responde con `X-Almaden-Page-Template-Results`, el preview lo
   guarda en `window.almadenPageTemplateResults` y muestra toasts cuando una
   plantilla no pudo aplicarse.
+- Si el backend responde con `X-Almaden-Universal-Counter`, el preview lo
+  normaliza en `bookState.pdfPreview.universalCounter`.
+- El modo de preview del visor se puede persistir localmente en
+  `almaden_pdf_preview_mode`; por defecto arranca en `chapter`.
 - `window.almadenPageTemplateFlowMap` conserva el mapa físico devuelto por el
   compilador para depuración de reflujo.
 

@@ -1,5 +1,27 @@
 <?php
 define( 'ALMADEN_TYPST_TESTING', true );
+
+if ( ! function_exists( 'get_post_meta' ) ) {
+	$GLOBALS['almaden_typst_test_post_meta'] = array();
+
+	function get_post_meta( $post_id, $key = '', $single = false ) {
+		$post_id = (int) $post_id;
+		$store = $GLOBALS['almaden_typst_test_post_meta'][ $post_id ][ $key ] ?? null;
+		if ( ! $single ) {
+			return null === $store ? array() : array( $store );
+		}
+		return $store;
+	}
+}
+
+if ( ! function_exists( 'update_post_meta' ) ) {
+	function update_post_meta( $post_id, $key, $value ) {
+		$post_id = (int) $post_id;
+		$GLOBALS['almaden_typst_test_post_meta'][ $post_id ][ $key ] = $value;
+		return true;
+	}
+}
+
 require_once dirname( __DIR__ ) . '/includes/pdf-typst/page-templates/bootstrap.php';
 
 $source = <<<'TYPST'
@@ -63,6 +85,120 @@ if ( array( 'almaden-flow-3', 'almaden-flow-4' ) !== array_column( $anchored_row
 $reserved_rows = almaden_bookster_typst_page_template_rows_before_anchor( $flow_map, 'almaden-flow-3' );
 if ( array( 'almaden-flow-1', 'almaden-flow-2' ) !== array_column( $reserved_rows, 'id' ) ) {
 	fwrite( STDERR, "La plantilla anterior consumió el ancla reservada para la siguiente.\n" );
+	exit( 1 );
+}
+
+$legacy_fallback_flow_map = array(
+	array( 'id' => 'almaden-flow-1', 'page' => 4, 'x' => 10 ),
+	array( 'id' => 'almaden-flow-2', 'page' => 4, 'x' => 105 ),
+	array( 'id' => 'almaden-flow-3', 'page' => 5, 'x' => 10 ),
+);
+$legacy_fallback = almaden_bookster_typst_resolve_page_template(
+	array_merge( $template, array( 'anchor' => array( 'flow_id' => '' ), 'page_number' => 2, 'resolved_page' => 2 ) ),
+	$legacy_fallback_flow_map
+);
+if ( ! empty( $legacy_fallback['applied'] ) || 2 !== ( $legacy_fallback['template']['resolved_page'] ?? 0 ) ) {
+	fwrite( STDERR, "La plantilla legacy no debería migrar a un flujo posterior inexistente.\n" );
+	exit( 1 );
+}
+if ( 'no_rows_for_legacy_page' !== ( $legacy_fallback['reason'] ?? '' ) ) {
+	fwrite( STDERR, "La plantilla legacy no devolvió el motivo esperado de ausencia de filas.\n" );
+	exit( 1 );
+}
+
+$duplicate_templates = almaden_bookster_typst_normalize_page_templates(
+	array(
+		array(
+			'id'          => 'page-2-one-column-one-image',
+			'instance_id' => 'page-2-one-column-one-image',
+			'page_number' => 2,
+			'resolved_page' => 5,
+			'anchor'      => array( 'flow_id' => 'almaden-flow-1' ),
+			'template_id' => 'one-column-one-image',
+		),
+		array(
+			'id'          => 'page-3-one-column-one-image',
+			'instance_id' => 'page-3-one-column-one-image',
+			'page_number' => 3,
+			'resolved_page' => 5,
+			'anchor'      => array( 'flow_id' => 'almaden-flow-1' ),
+			'template_id' => 'one-column-one-image',
+		),
+	)
+);
+if ( 'almaden-flow-1' !== ( $duplicate_templates[0]['anchor']['flow_id'] ?? '' ) ) {
+	fwrite( STDERR, "La primera plantilla duplicada debería conservar su ancla original.\n" );
+	exit( 1 );
+}
+if ( '' !== ( $duplicate_templates[1]['anchor']['flow_id'] ?? 'x' ) ) {
+	fwrite( STDERR, "La plantilla duplicada siguiente debería perder el ancla repetida.\n" );
+	exit( 1 );
+}
+if ( 3 !== (int) ( $duplicate_templates[1]['resolved_page'] ?? 0 ) ) {
+	fwrite( STDERR, "La plantilla duplicada siguiente debería volver a su página base.\n" );
+	exit( 1 );
+}
+
+$encode_json = function_exists( 'wp_json_encode' ) ? 'wp_json_encode' : 'json_encode';
+$GLOBALS['almaden_typst_test_post_meta'][ 771 ] = array(
+	'_almaden_page_templates' => $encode_json(
+		array(
+			array(
+				'id'            => 'page-2-one-column-one-image',
+				'instance_id'   => 'page-2-one-column-one-image',
+				'page_number'   => 2,
+				'resolved_page' => 5,
+				'anchor'        => array( 'flow_id' => 'almaden-flow-1' ),
+				'template_id'   => 'one-column-one-image',
+			),
+			array(
+				'id'            => 'page-3-one-column-one-image',
+				'instance_id'   => 'page-3-one-column-one-image',
+				'page_number'   => 3,
+				'resolved_page' => 5,
+				'anchor'        => array( 'flow_id' => 'almaden-flow-1' ),
+				'template_id'   => 'one-column-one-image',
+			),
+			array(
+				'id'            => 'page-4-one-column-one-image',
+				'instance_id'   => 'page-4-one-column-one-image',
+				'page_number'   => 4,
+				'resolved_page' => 4,
+				'anchor'        => array( 'flow_id' => '' ),
+				'template_id'   => 'one-column-one-image',
+			),
+		)
+	),
+);
+$cleanup_results = array(
+	array(
+		'instance_id'   => 'page-2-one-column-one-image',
+		'resolved_page' => 5,
+		'page'          => 5,
+		'applied'       => true,
+		'anchor'        => array( 'flow_id' => 'almaden-flow-1' ),
+		'debug'         => array(),
+	),
+	array(
+		'instance_id'   => 'page-3-one-column-one-image',
+		'resolved_page' => 3,
+		'page'          => 3,
+		'applied'       => false,
+		'anchor'        => array( 'flow_id' => '' ),
+		'debug'         => array( 'reason' => 'no_rows_for_legacy_page' ),
+	),
+	array(
+		'instance_id'   => 'page-4-one-column-one-image',
+		'resolved_page' => 4,
+		'page'          => 4,
+		'applied'       => false,
+		'anchor'        => array( 'flow_id' => '' ),
+		'debug'         => array( 'reason' => 'no_rows_for_legacy_page' ),
+	),
+);
+$cleaned_templates = almaden_bookster_typst_reconcile_page_template_results( 771, $cleanup_results );
+if ( 1 !== count( $cleaned_templates ) || 'page-2-one-column-one-image' !== ( $cleaned_templates[0]['instance_id'] ?? '' ) ) {
+	fwrite( STDERR, "La reconciliación no limpió los registros legacy duplicados como se esperaba.\n" );
 	exit( 1 );
 }
 
@@ -196,6 +332,76 @@ if ( false !== strpos( $full_result, '#grid(columns: (1fr, 1fr)' ) ) {
 	fwrite( STDERR, "La plantilla Inner Full Page no debería usar el layout split de dos columnas.\n" );
 	exit( 1 );
 }
+
+$transition_source = <<<'TYPST'
+#let almaden-page-styled(kind, body) = body
+#set page(width: 20cm, height: 12cm, margin: 1cm, columns: 2)
+#par[Página inicial.]
+#pagebreak()
+#par[Última página del capítulo anterior.]
+#metadata("full_blank") <almaden-chapter-parity-break>
+#metadata("full_blank") <almaden-transition-2>
+#pagebreak(to: "even")
+#metadata("Capítulo siguiente") <almaden-chapter-start>
+#par[Contenido del capítulo siguiente.]
+TYPST;
+$transition_composed = almaden_bookster_typst_compose_page_templates(
+	$transition_source,
+	array( 'templates' => array( $full_template ) )
+);
+if ( false === strpos( $transition_composed, 'id: "almaden-transition-2"' ) ) {
+	fwrite( STDERR, "El mapa físico no incluyó la página blanca de transición.\n" );
+	exit( 1 );
+}
+$transition_template = array_merge(
+	$full_template,
+	array(
+		'id'            => 'tpl-transition',
+		'instance_id'   => 'tpl-transition',
+		'page_number'   => 3,
+		'resolved_page' => 3,
+		'anchor'        => array( 'flow_id' => 'almaden-transition-2' ),
+	)
+);
+$transition_flow_map = array(
+	array( 'id' => 'almaden-flow-1', 'page' => 1, 'x' => 10, 'y' => 10 ),
+	array( 'id' => 'almaden-flow-2', 'page' => 2, 'x' => 10, 'y' => 10 ),
+	array( 'id' => 'almaden-transition-2', 'page' => 3, 'marker_page' => 2, 'x' => 0, 'y' => 0, 'kind' => 'transition' ),
+	array( 'id' => 'almaden-flow-3', 'page' => 4, 'x' => 10, 'y' => 10 ),
+);
+$transition_with_stale_flow = array_merge(
+	$transition_flow_map,
+	array( array( 'id' => 'almaden-flow-99', 'page' => 3, 'x' => 10, 'y' => 10 ) )
+);
+$transition_first_row = almaden_bookster_typst_page_template_first_row_on_page( $transition_with_stale_flow, 3 );
+if ( 'almaden-transition-2' !== ( $transition_first_row['id'] ?? '' ) ) {
+	fwrite( STDERR, "Una página de paridad no priorizó su ancla de transición sobre un flow vecino.\n" );
+	exit( 1 );
+}
+$transition_resolution = almaden_bookster_typst_resolve_page_template( $transition_template, $transition_flow_map );
+if ( empty( $transition_resolution['applied'] ) || 3 !== (int) ( $transition_resolution['template']['resolved_page'] ?? 0 ) ) {
+	fwrite( STDERR, "La plantilla no resolvió la identidad estable de la transición.\n" );
+	exit( 1 );
+}
+$transition_result = almaden_bookster_typst_apply_page_template_flow(
+	$transition_composed,
+	$context,
+	$transition_flow_map,
+	$transition_template
+);
+if ( false === strpos( $transition_result, 'almaden-template-slot-tpl-transition-image-1' ) ) {
+	fwrite( STDERR, "La plantilla no se dibujó sobre la página de transición.\n" );
+	exit( 1 );
+}
+if ( 1 !== substr_count( $transition_result, 'Contenido del capítulo siguiente.' ) ) {
+	fwrite( STDERR, "La plantilla de transición alteró el contenido del capítulo siguiente.\n" );
+	exit( 1 );
+}
+if ( ! preg_match( '/<almaden-transition-2>.*?#pagebreak\(to: "odd"\).*?#box\(width: 100%, height: 100%\).*?#pagebreak\(to: "even"\)/s', $transition_result ) ) {
+	fwrite( STDERR, "La plantilla de transición no preservó el salto de paridad.\n" );
+	exit( 1 );
+}
+file_put_contents( sys_get_temp_dir() . '/almaden-typst-page-template-transition.typ', $transition_result );
 
 // A second template must target the reflowed right-column content, not erase
 // the first page template or reuse its source blocks.

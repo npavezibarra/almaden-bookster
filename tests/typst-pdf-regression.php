@@ -188,6 +188,7 @@ $required_typography = array(
 		'#metadata("chapter-before") <almaden-intentional-blank>',
 		'#metadata("chapter-after") <almaden-intentional-blank>',
 		'#metadata("intentional_text") <almaden-chapter-parity-break>',
+		'#metadata("intentional_text") <almaden-transition-2>',
 		'#pagebreak(to: "even")',
 		'place(center + horizon)[#text(fill: rgb("111111"))[Página intencional]]',
 		'#let almaden-is-chapter-transition-page() = {',

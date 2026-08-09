@@ -15,6 +15,15 @@
     let currentGeometry = null;
     let currentLayout = 'single';
     let showTextBounds = false;
+    let pendingUniversalCounter = null;
+    let pendingCompilePromise = null;
+    let pendingCompileResolve = null;
+    let pendingCompileSignature = null;
+    let currentCompileSignature = null;
+    const PREVIEW_CACHE_DB = 'almaden-bookster-pdf-preview';
+    const PREVIEW_CACHE_STORE = 'compiled-previews';
+    const PREVIEW_CACHE_VERSION = 'v2';
+    const PREVIEW_CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
     function getZoomFactor() {
         const select = document.getElementById('pdf-preview-zoom');
@@ -24,6 +33,352 @@
 
     function normalizeLayout(value) {
         return String(value ?? 'single') === 'spread' ? 'spread' : 'single';
+    }
+
+    function normalizePreviewMode(value) {
+        return String(value ?? 'chapter') === 'full' ? 'full' : 'chapter';
+    }
+
+    function normalizePreviewAssetMode(value) {
+        return String(value ?? 'optimized') === 'original' ? 'original' : 'optimized';
+    }
+
+    function getPreviewModeCopy() {
+        const mode = normalizePreviewMode(bookState?.pdfPreview?.mode || bookState?.settings?.pdf_preview_mode);
+        return mode === 'full'
+            ? {
+                mode,
+                label: 'PDF completo',
+                message: 'el PDF completo'
+            }
+            : {
+                mode,
+                label: 'capítulo actual',
+                message: 'el capítulo actual'
+            };
+    }
+
+    function getTypstPreviewDebounceMs() {
+        const previewMode = normalizePreviewMode(bookState?.pdfPreview?.mode || bookState?.settings?.pdf_preview_mode);
+        const chapterCount = Array.isArray(bookState?.chapters) ? bookState.chapters.length : 0;
+        if (previewMode === 'chapter') {
+            return chapterCount > 20 ? 260 : 220;
+        }
+        return chapterCount > 20 ? 480 : 360;
+    }
+
+    function reportPreviewPerformance(source, startedAt) {
+        const durationMs = Math.max(0, Math.round(performance.now() - startedAt));
+        if (!bookState.pdfPreview || typeof bookState.pdfPreview !== 'object') {
+            bookState.pdfPreview = {};
+        }
+        bookState.pdfPreview.lastLoad = { source, durationMs, at: Date.now() };
+        console.info('[Typst preview performance]', { source, durationMs });
+    }
+
+    function stableStringify(value) {
+        if (value === null || typeof value !== 'object') {
+            return JSON.stringify(value);
+        }
+        if (Array.isArray(value)) {
+            return `[${value.map(item => stableStringify(item)).join(',')}]`;
+        }
+
+        const entries = Object.keys(value)
+            .sort()
+            .filter(key => typeof value[key] !== 'undefined')
+            .map(key => `${JSON.stringify(key)}:${stableStringify(value[key])}`);
+        return `{${entries.join(',')}}`;
+    }
+
+    function getCompilePayloadSignature(compilePayload) {
+        try {
+            // The counter is compiler output mirrored into bookState. Excluding it
+            // prevents a successful compile from invalidating its own cache key.
+            // Viewer mode only changes which pages PDF.js paints, not the PDF.
+            const preview = compilePayload?.preview && typeof compilePayload.preview === 'object'
+                ? compilePayload.preview
+                : {};
+            const signaturePreview = { ...preview };
+            delete signaturePreview.universalCounter;
+            delete signaturePreview.mode;
+            delete signaturePreview.counterMode;
+            const signaturePayload = {
+                ...compilePayload,
+                preview: signaturePreview
+            };
+            return stableStringify(signaturePayload);
+        } catch (error) {
+            console.warn('No se pudo serializar la firma del payload Typst.', error);
+            return `${Date.now()}`;
+        }
+    }
+
+    function getPersistentCacheKey(signature) {
+        let left = 2166136261;
+        let right = 2246822519;
+        for (let index = 0; index < signature.length; index += 1) {
+            const code = signature.charCodeAt(index);
+            left = Math.imul(left ^ code, 16777619);
+            right = Math.imul(right ^ code, 3266489917);
+        }
+        const digest = `${(left >>> 0).toString(16)}${(right >>> 0).toString(16)}`;
+        return `${PREVIEW_CACHE_VERSION}:${bookState.bookId}:${digest}:${signature.length}`;
+    }
+
+    function openPreviewCache() {
+        if (typeof indexedDB === 'undefined') return Promise.resolve(null);
+        return new Promise(resolve => {
+            let request;
+            try {
+                request = indexedDB.open(PREVIEW_CACHE_DB, 1);
+            } catch (error) {
+                resolve(null);
+                return;
+            }
+            request.onupgradeneeded = () => {
+                const database = request.result;
+                if (!database.objectStoreNames.contains(PREVIEW_CACHE_STORE)) {
+                    const store = database.createObjectStore(PREVIEW_CACHE_STORE, { keyPath: 'key' });
+                    store.createIndex('bookId', 'bookId', { unique: false });
+                }
+            };
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => resolve(null);
+            request.onblocked = () => resolve(null);
+        });
+    }
+
+    async function readPersistentPreview(signature) {
+        const database = await openPreviewCache();
+        if (!database) return null;
+        const key = getPersistentCacheKey(signature);
+        return new Promise(resolve => {
+            const transaction = database.transaction(PREVIEW_CACHE_STORE, 'readonly');
+            const request = transaction.objectStore(PREVIEW_CACHE_STORE).get(key);
+            request.onsuccess = () => {
+                const record = request.result;
+                const fresh = record
+                    && record.signatureLength === signature.length
+                    && record.createdAt > Date.now() - PREVIEW_CACHE_MAX_AGE
+                    && record.blob instanceof Blob
+                    && record.blob.size > 0;
+                resolve(fresh ? record : null);
+            };
+            request.onerror = () => resolve(null);
+            transaction.oncomplete = () => database.close();
+            transaction.onerror = () => database.close();
+        });
+    }
+
+    async function writePersistentPreview(signature, blob, metadata) {
+        if (!(blob instanceof Blob) || !blob.size) return;
+        const database = await openPreviewCache();
+        if (!database) return;
+        const record = {
+            key: getPersistentCacheKey(signature),
+            bookId: String(bookState.bookId),
+            signatureLength: signature.length,
+            blob,
+            metadata,
+            createdAt: Date.now()
+        };
+        await new Promise(resolve => {
+            const transaction = database.transaction(PREVIEW_CACHE_STORE, 'readwrite');
+            transaction.objectStore(PREVIEW_CACHE_STORE).put(record);
+            transaction.oncomplete = resolve;
+            transaction.onerror = resolve;
+            transaction.onabort = resolve;
+        });
+
+        // Keep a small rolling cache per book so chapter and full modes coexist.
+        await new Promise(resolve => {
+            const transaction = database.transaction(PREVIEW_CACHE_STORE, 'readwrite');
+            const store = transaction.objectStore(PREVIEW_CACHE_STORE);
+            const index = store.index('bookId');
+            const request = index.getAll(String(bookState.bookId));
+            request.onsuccess = () => {
+                request.result
+                    .sort((left, right) => Number(right.createdAt || 0) - Number(left.createdAt || 0))
+                    .slice(6)
+                    .forEach(stale => store.delete(stale.key));
+            };
+            transaction.oncomplete = resolve;
+            transaction.onerror = resolve;
+            transaction.onabort = resolve;
+        });
+        database.close();
+    }
+
+    function buildTypstCompilePayload(options = {}) {
+        const compilePayload = options.compilePayload && typeof options.compilePayload === 'object'
+            ? options.compilePayload
+            : payload();
+
+        if (options.assetMode) {
+            compilePayload.preview = compilePayload.preview && typeof compilePayload.preview === 'object'
+                ? { ...compilePayload.preview, assetMode: normalizePreviewAssetMode(options.assetMode) }
+                : { assetMode: normalizePreviewAssetMode(options.assetMode) };
+        }
+
+        return compilePayload;
+    }
+
+    function buildPreviewContract() {
+        const preview = bookState?.pdfPreview && typeof bookState.pdfPreview === 'object'
+            ? bookState.pdfPreview
+            : {};
+        const settings = bookState?.settings || {};
+
+        return {
+            mode: normalizePreviewMode(preview.mode || settings.pdf_preview_mode),
+            assetMode: normalizePreviewAssetMode(preview.assetMode || settings.pdf_preview_asset_mode),
+            counterMode: String(preview.counterMode || settings.pdf_preview_counter_mode || 'global') === 'local' ? 'local' : 'global',
+            universalCounter: {
+                version: Number(preview.universalCounter?.version || 1),
+                ready: !!preview.universalCounter?.ready,
+                source: String(preview.universalCounter?.source || 'full-book'),
+                totals: {
+                    pages: preview.universalCounter?.totals?.pages ?? null,
+                    blankPages: preview.universalCounter?.totals?.blankPages ?? null,
+                    chapters: preview.universalCounter?.totals?.chapters ?? null
+                },
+                chapters: Array.isArray(preview.universalCounter?.chapters)
+                    ? preview.universalCounter.chapters.slice()
+                    : []
+            }
+        };
+    }
+
+    function normalizeUniversalCounterEntry(entry, fallback = {}) {
+        const chapterId = String(entry?.id || fallback.id || '').trim();
+        const startPage = Number.parseInt(entry?.page ?? fallback.page ?? 0, 10) || 0;
+        const sequence = Number.parseInt(entry?.sequence ?? fallback.sequence ?? 0, 10) || 0;
+        const kind = String(entry?.kind || fallback.kind || 'chapter');
+        const sourceChapter = Array.isArray(bookState?.chapters)
+            ? bookState.chapters.find(chapter => String(chapter?.id || '') === chapterId)
+            : null;
+
+        return {
+            sequence: sequence > 0 ? sequence : null,
+            id: chapterId,
+            title: String(sourceChapter?.title || fallback.title || entry?.title || '').trim(),
+            kind,
+            startPage: startPage > 0 ? startPage : null
+        };
+    }
+
+    function rebuildUniversalCounter(totalPages = null) {
+        const preview = bookState?.pdfPreview?.universalCounter && typeof bookState.pdfPreview.universalCounter === 'object'
+            ? bookState.pdfPreview.universalCounter
+            : {};
+        const rawChapters = Array.isArray(pendingUniversalCounter?.chapters)
+            ? pendingUniversalCounter.chapters
+            : Array.isArray(preview.chapters)
+                ? preview.chapters
+                : [];
+        const normalizedChapters = rawChapters
+            .map((entry, index) => normalizeUniversalCounterEntry(entry, { sequence: index + 1 }))
+            .filter(entry => entry.id || entry.startPage);
+
+        const sortedChapters = normalizedChapters
+            .slice()
+            .sort((left, right) => {
+                const leftPage = Number(left.startPage || Number.MAX_SAFE_INTEGER);
+                const rightPage = Number(right.startPage || Number.MAX_SAFE_INTEGER);
+                if (leftPage !== rightPage) return leftPage - rightPage;
+                return Number(left.sequence || 0) - Number(right.sequence || 0);
+            });
+
+        const resolvedChapters = sortedChapters
+            .filter(chapter => Number(chapter.startPage || 0) > 0)
+            .map((chapter, index, filtered) => {
+                const nextStart = filtered[index + 1] ? Number(filtered[index + 1].startPage || 0) : 0;
+                const startPage = Number(chapter.startPage || 0);
+                const endPage = nextStart > startPage ? nextStart - 1 : (Number.isFinite(totalPages) && totalPages > 0 ? totalPages : null);
+                const pageCount = startPage > 0 && Number.isFinite(endPage) ? Math.max(0, endPage - startPage + 1) : null;
+
+                return {
+                    ...chapter,
+                    startPage: startPage > 0 ? startPage : null,
+                    endPage: Number.isFinite(endPage) && endPage > 0 ? endPage : null,
+                    pageCount,
+                    localStartPage: startPage > 0 ? 1 : null,
+                    globalOffset: startPage > 0 ? startPage - 1 : null
+                };
+            });
+
+        const pages = Number.isFinite(totalPages) && totalPages > 0
+            ? totalPages
+            : Number(preview.totals?.pages || 0) || null;
+
+        const universalCounter = {
+            version: Number(preview.version || pendingUniversalCounter?.version || 1),
+            ready: !!pages && resolvedChapters.length > 0,
+            source: String(preview.source || pendingUniversalCounter?.source || 'full-book'),
+            totals: {
+                pages,
+                blankPages: preview.totals?.blankPages ?? null,
+                chapters: resolvedChapters.length
+            },
+            chapters: resolvedChapters
+        };
+
+        if (!bookState.pdfPreview || typeof bookState.pdfPreview !== 'object') {
+            bookState.pdfPreview = {};
+        }
+        bookState.pdfPreview.universalCounter = universalCounter;
+        if (window.almadenTypstPdf && typeof window.almadenTypstPdf === 'object') {
+            window.almadenTypstPdf.state = buildPreviewContract();
+            window.almadenTypstPdf.state.universalCounter = universalCounter;
+        }
+
+        return universalCounter;
+    }
+
+    function getUniversalCounter() {
+        return bookState?.pdfPreview?.universalCounter && typeof bookState.pdfPreview.universalCounter === 'object'
+            ? bookState.pdfPreview.universalCounter
+            : null;
+    }
+
+    function getActiveChapterCounterEntry() {
+        const counter = getUniversalCounter();
+        if (!counter || !counter.ready || !Array.isArray(counter.chapters)) {
+            return null;
+        }
+        const activeChapterId = String(bookState?.activeChapterId || '').trim();
+        if (!activeChapterId) {
+            return null;
+        }
+        return counter.chapters.find(entry => String(entry?.id || '') === activeChapterId) || null;
+    }
+
+    function getVisiblePreviewPages(pageCount) {
+        const mode = normalizePreviewMode(bookState?.pdfPreview?.mode || bookState?.settings?.pdf_preview_mode);
+        if ('chapter' !== mode) {
+            return Array.from({ length: pageCount }, (_, index) => index + 1);
+        }
+
+        const counter = getUniversalCounter();
+        const chapter = getActiveChapterCounterEntry();
+        if (!counter || !chapter) {
+            return Array.from({ length: pageCount }, (_, index) => index + 1);
+        }
+
+        const startPage = Math.max(1, Number(chapter.startPage || 0));
+        const endPage = Math.max(startPage, Number(chapter.endPage || startPage || 0));
+        if (!startPage || !endPage) {
+            return Array.from({ length: pageCount }, (_, index) => index + 1);
+        }
+
+        const safeStart = Math.max(1, Math.min(pageCount, startPage));
+        const safeEnd = Math.max(safeStart, Math.min(pageCount, endPage));
+        const pages = [];
+        for (let pageNumber = safeStart; pageNumber <= safeEnd; pageNumber += 1) {
+            pages.push(pageNumber);
+        }
+        return pages.length ? pages : Array.from({ length: pageCount }, (_, index) => index + 1);
     }
 
     function updateGeometryIndicator() {
@@ -128,14 +483,15 @@
     }
 
     function payload() {
-        if (typeof syncVisualEditorToState === 'function') {
-            syncVisualEditorToState();
-        } else if (typeof syncRawEditorToState === 'function') {
-            syncRawEditorToState();
-        }
-
+        // RAW is the canonical manuscript. A rendered PDF/visual surface is an
+        // output artifact and must never overwrite chapter content while a
+        // preview is being prepared.
         const rawChapters = Array.isArray(bookState.chapters) ? bookState.chapters : [];
-        let chapters = rawChapters.map(chapter => ({ ...chapter }));
+        let chapters = rawChapters.map(chapter => {
+            const copy = { ...chapter };
+            delete copy._lastSavedContent;
+            return copy;
+        });
 
         if (!chapters.length) {
             const activeChapterId = String(bookState.activeChapterId || 'cap-1');
@@ -157,6 +513,7 @@
             title: bookState.title || '',
             settings: bookState.settings || {},
             coverSettings: bookState.coverSettings || bookState.cover_settings || (bookState.settings && (bookState.settings.coverSettings || bookState.settings.cover_settings)) || {},
+            preview: buildPreviewContract(),
             chapters
         };
     }
@@ -272,6 +629,8 @@
             setStatus('El PDF no contiene páginas.', true);
             return;
         }
+        rebuildUniversalCounter(pageCount);
+        const visiblePages = getVisiblePreviewPages(pageCount);
 
         const samplePage = await pdfDocument.getPage(1);
         const sampleViewport = samplePage.getViewport({ scale: 1 });
@@ -304,7 +663,7 @@
         scroller.appendChild(root);
 
         if (layout === 'single') {
-            for (let pageNumber = 1; pageNumber <= pageCount; pageNumber += 1) {
+            for (const pageNumber of visiblePages) {
                 if (sequence !== renderSequence) return;
                 const shell = makePageShell(pageNumber, pageCount, false);
                 const canvas = document.createElement('canvas');
@@ -314,10 +673,33 @@
                 await renderPdfPageToCanvas(pdfDocument, pageNumber, canvas, renderScale, sequence);
             }
         } else {
-            const totalPhysicalPages = pageCount % 2 === 0 ? pageCount : pageCount + 1;
-            const totalRows = Math.ceil((totalPhysicalPages + 1) / 2);
+            const spreadPages = visiblePages.slice();
+            const rows = [];
+            let cursor = 0;
+            if (spreadPages.length > 0 && spreadPages[0] % 2 === 1) {
+                rows.push({
+                    left: { pageNumber: Math.max(0, spreadPages[0] - 1), blank: true },
+                    right: { pageNumber: spreadPages[0], blank: false }
+                });
+                cursor = 1;
+            }
+            while (cursor < spreadPages.length) {
+                const leftPageNumber = spreadPages[cursor];
+                const rightPageNumber = spreadPages[cursor + 1] || 0;
+                rows.push({
+                    left: {
+                        pageNumber: leftPageNumber,
+                        blank: false
+                    },
+                    right: {
+                        pageNumber: rightPageNumber || (leftPageNumber + 1),
+                        blank: cursor + 1 >= spreadPages.length
+                    }
+                });
+                cursor += 2;
+            }
 
-            for (let rowIndex = 0; rowIndex < totalRows; rowIndex += 1) {
+            for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
                 if (sequence !== renderSequence) return;
 
                 const row = document.createElement('div');
@@ -325,27 +707,24 @@
                 row.style.gridTemplateColumns = `${pageWidthPx}px ${pageWidthPx}px`;
                 row.style.columnGap = `${pageGap}px`;
 
-                const leftPageNumber = rowIndex === 0 ? 0 : rowIndex * 2;
-                const rightPageNumber = rowIndex === 0 ? 1 : (rowIndex * 2) + 1;
+                const leftPage = rows[rowIndex].left;
+                const rightPage = rows[rowIndex].right;
 
-                const leftBlank = rowIndex === 0 || leftPageNumber > pageCount;
-                const rightBlank = rightPageNumber > pageCount;
+                const leftShell = makePageShell(leftPage.pageNumber, pageCount, !!leftPage.blank);
+                const rightShell = makePageShell(rightPage.pageNumber, pageCount, !!rightPage.blank);
 
-                const leftShell = makePageShell(leftPageNumber || 0, pageCount, leftBlank);
-                const rightShell = makePageShell(rightPageNumber, pageCount, rightBlank);
-
-                if (!leftBlank && leftPageNumber > 0) {
+                if (!leftPage.blank && leftPage.pageNumber > 0) {
                     const canvas = document.createElement('canvas');
                     canvas.className = 'block';
                     leftShell.appendChild(canvas);
-                    await renderPdfPageToCanvas(pdfDocument, leftPageNumber, canvas, renderScale, sequence);
+                    await renderPdfPageToCanvas(pdfDocument, leftPage.pageNumber, canvas, renderScale, sequence);
                 }
 
-                if (!rightBlank) {
+                if (!rightPage.blank && rightPage.pageNumber > 0) {
                     const canvas = document.createElement('canvas');
                     canvas.className = 'block';
                     rightShell.appendChild(canvas);
-                    await renderPdfPageToCanvas(pdfDocument, rightPageNumber, canvas, renderScale, sequence);
+                    await renderPdfPageToCanvas(pdfDocument, rightPage.pageNumber, canvas, renderScale, sequence);
                 }
 
                 row.appendChild(leftShell);
@@ -386,7 +765,28 @@
         }
     }
 
-    async function showPdf(blob, geometry, integrity = null) {
+    function applyPreviewMetadata(metadata = {}) {
+        currentGeometry = metadata.geometry || currentGeometry;
+        window.almadenTypstOpeningDebug = metadata.openingDebug || [];
+        window.almadenPageTemplateFlowMap = metadata.pageFlowMap || [];
+        window.almadenPageTemplateResults = metadata.pageTemplateResults || [];
+        pendingUniversalCounter = metadata.universalCounter || null;
+        rebuildUniversalCounter();
+        window.almadenPageTemplateState?.reconcileResults?.();
+    }
+
+    function snapshotPreviewMetadata(geometry, integrity) {
+        return {
+            geometry: geometry || null,
+            integrity: integrity || null,
+            openingDebug: window.almadenTypstOpeningDebug || [],
+            pageFlowMap: window.almadenPageTemplateFlowMap || [],
+            pageTemplateResults: window.almadenPageTemplateResults || [],
+            universalCounter: pendingUniversalCounter || getUniversalCounter() || null
+        };
+    }
+
+    async function showPdf(blob, geometry, integrity = null, cacheSource = '') {
         const scroller = document.getElementById('pdf-scroller');
         if (!scroller) return;
 
@@ -413,9 +813,13 @@
             await renderPdfPreview();
             const indicator = document.getElementById('pdf-page-indicator');
             if (indicator) {
-                indicator.textContent = integrity && integrity.status === 'warning'
-                    ? 'PDF generado con advertencia'
-                    : 'PDF verificado';
+                if (integrity && integrity.status === 'warning') {
+                    indicator.textContent = 'PDF generado con advertencia';
+                } else if (cacheSource === 'browser' || cacheSource === 'server') {
+                    indicator.textContent = 'PDF recuperado del caché';
+                } else {
+                    indicator.textContent = 'PDF verificado';
+                }
             }
         } catch (error) {
             setStatus(`Error al renderizar el PDF Typst: ${error.message}`, true);
@@ -423,13 +827,45 @@
         }
     }
 
-    async function compileTypstPreview() {
+    async function compileTypstPreview(options = {}) {
+        const startedAt = performance.now();
+        const compilePayload = buildTypstCompilePayload(options);
+        const compileSignature = getCompilePayloadSignature(compilePayload);
+
+        if (!options.forceRecompile && currentPdfBlob && currentCompileSignature === compileSignature) {
+            await renderPdfPreview();
+            reportPreviewPerformance('memory', startedAt);
+            return 1;
+        }
+
         const sequence = ++compileSequence;
         if (activeController) activeController.abort();
         activeController = new AbortController();
-        setStatus('Componiendo el libro con Typst y renderizando el PDF...');
+        pendingUniversalCounter = null;
+        const previewModeCopy = getPreviewModeCopy();
+        if (!bookState.pdfPreview || typeof bookState.pdfPreview !== 'object') {
+            bookState.pdfPreview = {};
+        }
+        bookState.pdfPreview.lastCompileSignature = compileSignature;
 
-        const compilePayload = payload();
+        if (!options.bypassPersistentCache) {
+            setStatus('Cargando la última versión disponible del PDF...');
+            const cachedPreview = await readPersistentPreview(compileSignature);
+            if (sequence !== compileSequence) return 0;
+            if (cachedPreview) {
+                const cachedMetadata = cachedPreview.metadata || {};
+                applyPreviewMetadata(cachedMetadata);
+                await showPdf(cachedPreview.blob, cachedMetadata.geometry, cachedMetadata.integrity, 'browser');
+                currentCompileSignature = compileSignature;
+                window.pdfContentIntegrity = cachedMetadata.integrity?.status === 'warning'
+                    ? { valid: true, engine: 'typst', warning: cachedMetadata.integrity.message, cache: 'browser' }
+                    : { valid: true, engine: 'typst', cache: 'browser' };
+                reportPreviewPerformance('browser-cache', startedAt);
+                return 1;
+            }
+        }
+
+        setStatus(`Componiendo ${previewModeCopy.message} con Typst y renderizando el PDF...`);
         console.info('[Typst opening layout: request]', {
             alignment: compilePayload?.settings?.chapter_page_one_align || '',
             separateOpening: compilePayload?.settings?.book_separate_opening_content,
@@ -457,6 +893,9 @@
             if (!response.ok) throw new Error(await readError(response));
 
             let geometry = null;
+            const serverCacheStatus = response.headers.get('X-Almaden-Typst-Cache') || 'MISS-NOSTORE';
+            const serverCacheHit = serverCacheStatus === 'HIT';
+            console.info('[Typst preview cache]', { status: serverCacheStatus });
             const geometryHeader = response.headers.get('X-Almaden-PDF-Geometry');
             if (geometryHeader) {
                 try {
@@ -486,10 +925,10 @@
 				}
 			}
 			const pageTemplateResultsHeader = response.headers.get('X-Almaden-Page-Template-Results');
-			if (pageTemplateResultsHeader) {
-				try {
-					window.almadenPageTemplateResults = JSON.parse(decodeURIComponent(pageTemplateResultsHeader));
-					window.almadenPageTemplateState?.reconcileResults?.();
+            if (pageTemplateResultsHeader) {
+                try {
+                    window.almadenPageTemplateResults = JSON.parse(decodeURIComponent(pageTemplateResultsHeader));
+                    window.almadenPageTemplateState?.reconcileResults?.();
 					console.info(
 						'Typst page-template results:',
 						window.almadenPageTemplateResults.map(result => ({
@@ -503,16 +942,28 @@
 							selected_ids: Array.isArray(result?.debug?.selected_ids) ? result.debug.selected_ids : [],
 						}))
 					);
-					const skipped = window.almadenPageTemplateResults.find(result => result && !result.applied);
+					const skipped = window.almadenPageTemplateResults.find(result => result && !result.applied && result?.debug?.reason !== 'no_rows_for_legacy_page');
 					if (skipped && typeof window.showToast === 'function') {
 						const reason = skipped?.debug?.reason ? ` (${skipped.debug.reason})` : '';
 						window.showToast(`No se pudo aplicar la plantilla en la página ${skipped.page}${reason}.`, 'fa-solid fa-circle-exclamation');
-					}
-				} catch (error) {
-					console.warn('No se pudo leer el resultado de plantillas Typst.', error);
-				}
-			}
-			const integrityHeader = response.headers.get('X-Almaden-PDF-Integrity');
+                    }
+                } catch (error) {
+                    console.warn('No se pudo leer el resultado de plantillas Typst.', error);
+                }
+            }
+            const universalCounterHeader = response.headers.get('X-Almaden-Universal-Counter');
+            if (universalCounterHeader) {
+                try {
+                    pendingUniversalCounter = JSON.parse(decodeURIComponent(universalCounterHeader));
+                    rebuildUniversalCounter();
+                } catch (error) {
+                    console.warn('No se pudo leer el contador universal Typst.', error);
+                }
+            } else {
+                pendingUniversalCounter = null;
+                rebuildUniversalCounter();
+            }
+            const integrityHeader = response.headers.get('X-Almaden-PDF-Integrity');
             if (integrityHeader) {
                 try {
                     integrity = JSON.parse(decodeURIComponent(integrityHeader));
@@ -527,13 +978,19 @@
                 throw new Error('El servidor no devolvió un archivo PDF.');
             }
 
-            await showPdf(blob, geometry, integrity);
+            const metadata = snapshotPreviewMetadata(geometry, integrity);
+            await showPdf(blob, geometry, integrity, serverCacheHit ? 'server' : '');
+            currentCompileSignature = compileSignature;
+            writePersistentPreview(compileSignature, blob, metadata).catch(error => {
+                console.warn('No se pudo guardar el caché local del PDF.', error);
+            });
             window.pdfContentIntegrity = integrity && integrity.status === 'warning'
-                ? { valid: true, engine: 'typst', warning: integrity.message }
-                : { valid: true, engine: 'typst' };
+                ? { valid: true, engine: 'typst', warning: integrity.message, cache: serverCacheHit ? 'server' : 'miss' }
+                : { valid: true, engine: 'typst', cache: serverCacheHit ? 'server' : 'miss' };
             if (integrity && integrity.status === 'warning') {
                 console.warn('Typst PDF integrity warning:', integrity.message);
             }
+            reportPreviewPerformance(serverCacheHit ? 'server-cache' : 'typst', startedAt);
             return 1;
         } catch (error) {
             if (error.name === 'AbortError') return 0;
@@ -552,10 +1009,48 @@
 
     function scheduleTypstPreview(scrollToActive = false, targetScrollerId = 'pdf-scroller', forceFull = false) {
         if (targetScrollerId !== 'pdf-scroller') return Promise.resolve(0);
+        const compilePayload = buildTypstCompilePayload();
+        const compileSignature = getCompilePayloadSignature(compilePayload);
+        const debounceMs = forceFull ? 0 : getTypstPreviewDebounceMs();
+
+        if (forceFull) {
+            if (pendingCompileResolve) {
+                pendingCompileResolve(0);
+                pendingCompileResolve = null;
+            }
+            clearTimeout(compileTimer);
+            pendingCompilePromise = null;
+            pendingCompileSignature = null;
+            return compileTypstPreview({ compilePayload });
+        }
+
+        if (compileTimer && pendingCompileSignature === compileSignature && pendingCompilePromise) {
+            return pendingCompilePromise;
+        }
+
+        if (pendingCompileResolve) {
+            pendingCompileResolve(0);
+            pendingCompileResolve = null;
+        }
+
         clearTimeout(compileTimer);
-        return new Promise(resolve => {
-            compileTimer = setTimeout(() => compileTypstPreview().then(resolve), forceFull ? 0 : 350);
+        pendingCompileSignature = compileSignature;
+        pendingCompilePromise = new Promise(resolve => {
+            pendingCompileResolve = resolve;
+            compileTimer = setTimeout(() => {
+                const resolvePending = pendingCompileResolve;
+                pendingCompileResolve = null;
+                pendingCompilePromise = null;
+                pendingCompileSignature = null;
+                compileTypstPreview({ compilePayload }).then(result => {
+                    if (typeof resolvePending === 'function') {
+                        resolvePending(result);
+                    }
+                });
+            }, debounceMs);
         });
+
+        return pendingCompilePromise;
     }
 
     async function downloadTypstPdf() {
@@ -565,7 +1060,7 @@
             button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span class="hidden sm:inline">Compilando...</span>';
         }
         try {
-            const valid = await compileTypstPreview();
+            const valid = await compileTypstPreview({ assetMode: 'original' });
             if (!valid || !currentPdfBlob || !currentPdfUrl) return;
             const link = document.createElement('a');
             const safeTitle = String(bookState.title || 'libro').trim().replace(/[^\p{L}\p{N}._-]+/gu, '-');
@@ -574,6 +1069,11 @@
             document.body.appendChild(link);
             link.click();
             link.remove();
+            if (normalizePreviewAssetMode(bookState?.pdfPreview?.assetMode || bookState?.settings?.pdf_preview_asset_mode) !== 'original') {
+                window.setTimeout(() => {
+                    window.compilePDFPreview?.(true, 'pdf-scroller', true);
+                }, 0);
+            }
         } finally {
             if (button) {
                 button.disabled = false;
@@ -585,10 +1085,19 @@
     window.compilePDFPreview = scheduleTypstPreview;
     window.triggerPrint = downloadTypstPdf;
     window.almadenTypstPdf = {
+        state: buildPreviewContract(),
         compile: compileTypstPreview,
         download: downloadTypstPdf,
         applyZoom,
-        applyLayout
+        applyLayout,
+        hasCurrentPreview: () => !!currentPdfBlob,
+        refresh: () => {
+            if (currentPdfBlob) {
+                renderPdfPreview().catch(error => {
+                    console.warn('No se pudo refrescar el preview del PDF Typst.', error);
+                });
+            }
+        }
     };
 
     bindTextBoundsToggle();

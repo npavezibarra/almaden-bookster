@@ -42,6 +42,12 @@ function almaden_bookster_typst_page_template_filetype( $file_path ) {
 	if ( function_exists( 'wp_check_filetype' ) ) {
 		return wp_check_filetype( $file_path );
 	}
+	if ( ! is_file( $file_path ) ) {
+		return array(
+			'ext'  => strtolower( (string) pathinfo( $file_path, PATHINFO_EXTENSION ) ),
+			'type' => '',
+		);
+	}
 
 	return array(
 		'type' => function_exists( 'mime_content_type' ) ? mime_content_type( $file_path ) : '',
@@ -49,23 +55,9 @@ function almaden_bookster_typst_page_template_filetype( $file_path ) {
 }
 
 function almaden_bookster_typst_page_template_attachment_source_path( $attachment_id ) {
-	$attachment_id = almaden_bookster_typst_page_template_absint( $attachment_id );
-	if ( $attachment_id <= 0 ) {
-		return '';
-	}
-
-	$file_path = '';
-	if ( function_exists( 'wp_get_original_image_path' ) ) {
-		$file_path = wp_get_original_image_path( $attachment_id );
-	}
-	if ( empty( $file_path ) && function_exists( 'get_attached_file' ) ) {
-		$file_path = get_attached_file( $attachment_id );
-	}
-	if ( empty( $file_path ) || ! file_exists( $file_path ) ) {
-		return '';
-	}
-
-	return $file_path;
+	return function_exists( 'almaden_bookster_typst_resolve_attachment_original_path' )
+		? almaden_bookster_typst_resolve_attachment_original_path( $attachment_id )
+		: '';
 }
 
 function almaden_bookster_typst_page_template_attachment_id_from_url( $url ) {
@@ -113,36 +105,16 @@ function almaden_bookster_typst_page_template_attachment_id_from_slot( $slot ) {
  * file still exists locally and is valid for the Typst compilation root.
  */
 function almaden_bookster_typst_page_template_source_path_from_url( $url ) {
-	$url = trim( (string) $url );
-	if ( '' === $url || ! function_exists( 'wp_upload_dir' ) ) {
-		return '';
-	}
-
-	$uploads = wp_upload_dir();
-	$base_url = rtrim( (string) ( $uploads['baseurl'] ?? '' ), '/' );
-	$base_dir = rtrim( (string) ( $uploads['basedir'] ?? '' ), DIRECTORY_SEPARATOR );
-	if ( '' === $base_url || '' === $base_dir ) {
-		return '';
-	}
-
-	$clean_url = strtok( $url, '?' );
-	$base_path = parse_url( $base_url, PHP_URL_PATH );
-	$url_path  = parse_url( $clean_url, PHP_URL_PATH );
-	if ( ! is_string( $base_path ) || ! is_string( $url_path ) || 0 !== strpos( $url_path, $base_path . '/' ) ) {
-		return '';
-	}
-
-	$relative = ltrim( rawurldecode( substr( $url_path, strlen( $base_path ) ) ), '/' );
-	$relative = str_replace( array( '/', '\\' ), DIRECTORY_SEPARATOR, $relative );
-	if ( '' === $relative || false !== strpos( $relative, '..' ) ) {
-		return '';
-	}
-
-	$source_path = $base_dir . DIRECTORY_SEPARATOR . $relative;
-	return is_file( $source_path ) ? $source_path : '';
+	return function_exists( 'almaden_bookster_typst_resolve_upload_path_from_url' )
+		? almaden_bookster_typst_resolve_upload_path_from_url( $url )
+		: '';
 }
 
-function almaden_bookster_typst_page_template_slot_source_path( $slot ) {
+function almaden_bookster_typst_page_template_slot_source_path( $slot, $asset_mode = 'original' ) {
+	if ( function_exists( 'almaden_bookster_typst_resolve_image_path_for_asset_mode' ) ) {
+		return almaden_bookster_typst_resolve_image_path_for_asset_mode( $slot, $asset_mode );
+	}
+
 	$attachment_id = almaden_bookster_typst_page_template_attachment_id_from_slot( $slot );
 	if ( $attachment_id > 0 ) {
 		$source_path = almaden_bookster_typst_page_template_attachment_source_path( $attachment_id );
@@ -182,8 +154,13 @@ function almaden_bookster_typst_page_template_asset_path_from_source( $source_pa
 		$extension = '.img';
 	}
 
-	$file_mtime = file_exists( $source_path ) ? (int) filemtime( $source_path ) : time();
-	$cache_key = hash( 'sha256', $source_path . '|' . $file_mtime . '|' . filesize( $source_path ) ) . $extension;
+	// A missing legacy asset must remain deterministic. Using time() here made
+	// an unchanged manuscript produce a different Typst source on every request,
+	// which prevented both browser and server preview caches from ever hitting.
+	$file_exists = is_file( $source_path );
+	$file_mtime  = $file_exists ? (int) filemtime( $source_path ) : 0;
+	$file_size   = $file_exists ? (int) filesize( $source_path ) : 0;
+	$cache_key = hash( 'sha256', $source_path . '|' . $file_mtime . '|' . $file_size ) . $extension;
 	$assets[ $cache_key ] = $source_path;
 
 	return 'assets/' . $cache_key;
@@ -327,9 +304,9 @@ function almaden_bookster_typst_page_template_slot_visual( $template, $slot ) {
 	return almaden_bookster_typst_page_template_slot_visual_with_assets( $template, $slot, $empty_assets );
 }
 
-function almaden_bookster_typst_page_template_slot_visual_with_assets( $template, $slot, &$assets ) {
+function almaden_bookster_typst_page_template_slot_visual_with_assets( $template, $slot, &$assets, $asset_mode = 'original' ) {
 	$asset_path = almaden_bookster_typst_page_template_asset_path_from_source(
-		almaden_bookster_typst_page_template_slot_source_path( $slot ),
+		almaden_bookster_typst_page_template_slot_source_path( $slot, $asset_mode ),
 		$assets
 	);
 	if ( '' !== $asset_path ) {
@@ -339,7 +316,7 @@ function almaden_bookster_typst_page_template_slot_visual_with_assets( $template
 	return '#rect(width: 100%, height: 100%, fill: rgb("ff9d00"), stroke: 0.5pt + rgb("a85c00"))';
 }
 
-function almaden_bookster_typst_page_template_render_slot( $template, $slot, &$assets = array() ) {
+function almaden_bookster_typst_page_template_render_slot( $template, $slot, &$assets = array(), $asset_mode = 'original' ) {
 	$template_id = almaden_bookster_typst_page_template_normalize_slot_id( $template['template_id'] ?? '' );
 	$slot_id = almaden_bookster_typst_page_template_normalize_slot_id( $slot['id'] ?? '' );
 	$anchor_id = almaden_bookster_typst_page_template_slot_anchor_id( $template, $slot );
@@ -364,7 +341,7 @@ function almaden_bookster_typst_page_template_render_slot( $template, $slot, &$a
 	}
 
 	$metadata = '#metadata((' . implode( ', ', $entries ) . ')) <' . $anchor_id . '>';
-	$visual = almaden_bookster_typst_page_template_slot_visual_with_assets( $template, $slot, $assets );
+	$visual = almaden_bookster_typst_page_template_slot_visual_with_assets( $template, $slot, $assets, $asset_mode );
 
 	return "#block(width: 100%, height: 100%)[\n$metadata\n$visual\n]";
 }
