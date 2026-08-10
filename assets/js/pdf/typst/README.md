@@ -46,6 +46,30 @@ graph TD
    misma numeración global y conserva el layout de lectura para revisión
    completa.
 
+### Continuidad durante la edición
+
+`editor-typst-preview-experience.js` desacopla la escritura de la composición
+definitiva. Las ediciones RAW se agrupan durante una pausa breve, mientras que
+acciones explícitas como cambiar de capítulo se procesan con una espera menor.
+Cuando comienza Typst, el último PDF confirmado permanece visible en una capa
+de continuidad hasta que PDF.js termina de pintar la nueva revisión.
+
+- Una edición de texto espera 700 ms de inactividad y nunca más de 1800 ms.
+- Una acción explícita del toolbar arranca Typst sin debounce adicional.
+- El toolbar solicita la vista provisional antes de iniciar la composición,
+  por lo que negrita, cursiva, tamaño y otros formatos responden en el siguiente
+  frame del navegador.
+- El scheduler original se invoca sin su segundo debounce para evitar esperas
+  acumuladas.
+- Si la compilación falla, se restaura el DOM/canvas confirmado; el RAW nunca
+  se reemplaza con contenido del visor.
+- El log `[Typst preview responsiveness]` separa tiempo en cola y tiempo real
+  de compilación/render.
+- `editor-typst-provisional-text.js` proyecta inmediatamente el párrafo donde
+  está el cursor sobre una página estimada del capítulo. El recuadro se marca
+  explícitamente como provisional porque no reproduce cortes, columnas ni
+  separación silábica definitiva.
+
 ## Caché e invalidación
 
 - La firma del cliente incluye manuscrito, configuración, plantillas, modo de
@@ -80,6 +104,20 @@ graph TD
     - `applyLayout()`: alterna vista simple o spread.
     - `bindTextBoundsToggle()` / `updateTextBounds()`: activan el contorno de
       la caja editorial.
+
+- [`editor-typst-preview-experience.js`](./editor-typst-preview-experience.js)
+  - Agrupa cambios rápidos antes de invocar Typst.
+  - Conserva visible la última composición confirmada durante el procesamiento.
+  - Reemplaza la capa anterior únicamente cuando el nuevo PDF terminó de
+    compilarse y renderizarse.
+  - Restaura la composición anterior cuando una actualización falla.
+
+- [`editor-typst-provisional-text.js`](./editor-typst-provisional-text.js)
+  - Compara el RAW actual con la última revisión confirmada.
+  - Localiza el párrafo del cursor y estima su página por avance dentro del
+    capítulo.
+  - Muestra negrita, cursiva, subrayado y tamaño como respuesta optimista.
+  - Desaparece cuando llega la composición real o cuando esta falla.
 
 - [`page-templates/editor-page-template-selector.js`](./page-templates/editor-page-template-selector.js)
   - Selección de página en el visor.

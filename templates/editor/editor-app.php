@@ -318,16 +318,30 @@ if (!headers_sent()) {
             <!-- PANEL DE VISTA PREVIA PDF (DERECHO) -->
             <section id="pdf-preview-pane" class="flex-1 flex flex-col pdf-page-container overflow-hidden transition-all">
                 <!-- Barra informativa superior de página -->
-                <div class="h-12 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] px-4 flex items-center justify-between text-xs text-[var(--text-muted)] no-print">
-                    <button id="pdf-text-bounds-toggle" type="button" class="h-7 rounded-md border border-[var(--border-color)] bg-[var(--bg-app)] px-2 text-[11px] text-[var(--text-muted)] transition hover:text-[var(--text-main)]" aria-pressed="false" title="Mostrar límites del área de texto" aria-label="Mostrar límites del área de texto">
-                        <i class="fa-solid fa-vector-square"></i>
-                    </button>
-                        <div class="flex items-center gap-3">
-                            <button id="pdf-page-template-action" type="button" class="hidden h-7 items-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-2.5 text-[10px] font-bold text-amber-900 hover:bg-amber-100 transition" onclick="window.almadenPageTemplateUI?.openModal()">
-                                <i class="fa-solid fa-table-cells-large"></i>
-                                <span>Aplicar plantilla</span>
-                            </button>
-                            <span id="pdf-geometry-indicator" class="hidden xl:inline text-[10px] font-medium tabular-nums"></span>
+                <div class="h-12 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] px-4 flex items-center justify-between gap-4 text-xs text-[var(--text-muted)] no-print">
+                    <div class="flex min-w-0 items-center gap-3">
+                        <button id="pdf-page-template-action" type="button" class="hidden h-7 items-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-2.5 text-[10px] font-bold text-amber-900 hover:bg-amber-100 transition" onclick="window.almadenPageTemplateUI?.openModal()">
+                            <i class="fa-solid fa-table-cells-large"></i>
+                            <span>Aplicar plantilla</span>
+                        </button>
+                        <span id="pdf-geometry-indicator" class="hidden xl:inline text-[10px] font-medium tabular-nums"></span>
+                    </div>
+                    <div class="flex min-w-0 items-center gap-3">
+                        <div id="pdf-preview-mode-chip" class="hidden lg:flex flex-col justify-center rounded-md border border-[var(--border-color)] bg-[var(--bg-app)] px-3 py-1.5 leading-tight shadow-sm">
+                            <span class="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">Modo activo</span>
+                            <span id="pdf-preview-mode-label" class="text-[11px] font-semibold text-[var(--text-main)]">Capítulo actual</span>
+                            <span id="pdf-preview-mode-detail" class="text-[10px] text-[var(--text-muted)]">Vista optimizada para revisar el texto</span>
+                        </div>
+                        <span id="pdf-page-indicator" class="font-semibold text-[var(--text-main)]">0 Páginas</span>
+                    </div>
+                </div>
+
+                <!-- Barra inferior de controles PDF -->
+                <div class="min-h-12 h-auto py-1.5 border-t border-[var(--border-color)] bg-[var(--bg-sidebar)] px-4 flex items-center justify-between gap-3 text-xs text-[var(--text-muted)] no-print">
+                    <div class="flex min-w-0 flex-wrap items-center gap-2 md:gap-3">
+                        <button id="pdf-text-bounds-toggle" type="button" class="h-7 rounded-md border border-[var(--border-color)] bg-[var(--bg-app)] px-2 text-[11px] text-[var(--text-muted)] transition hover:text-[var(--text-main)]" aria-pressed="false" title="Mostrar límites del área de texto" aria-label="Mostrar límites del área de texto">
+                            <i class="fa-solid fa-vector-square"></i>
+                        </button>
                         <div class="flex items-center gap-2">
                             <span class="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">Zoom</span>
                             <select id="pdf-preview-zoom" class="h-7 rounded-md border border-[var(--border-color)] bg-[var(--bg-app)] px-2 text-xs font-semibold text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-black">
@@ -346,11 +360,6 @@ if (!headers_sent()) {
                                 Completo
                             </button>
                         </div>
-                        <div id="pdf-preview-mode-chip" class="hidden lg:flex flex-col justify-center rounded-md border border-[var(--border-color)] bg-[var(--bg-app)] px-3 py-1.5 leading-tight shadow-sm">
-                            <span class="text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">Modo activo</span>
-                            <span id="pdf-preview-mode-label" class="text-[11px] font-semibold text-[var(--text-main)]">Capítulo actual</span>
-                            <span id="pdf-preview-mode-detail" class="text-[10px] text-[var(--text-muted)]">Vista optimizada para revisar el texto</span>
-                        </div>
                         <div class="flex items-center rounded-md border border-[var(--border-color)] bg-[var(--bg-app)] p-0.5 text-[10px] font-semibold">
                             <button id="btn-preview-layout-single" type="button" onclick="setPdfPreviewLayout('single')" class="px-2.5 py-1 rounded-sm text-[var(--text-muted)] hover:text-[var(--text-main)] transition" aria-pressed="true" title="Vista de una página" aria-label="Vista de una página">
                                 <i class="fa-solid fa-file-lines"></i>
@@ -359,11 +368,11 @@ if (!headers_sent()) {
                                 <i class="fa-solid fa-book-open"></i>
                             </button>
                         </div>
-                        <button id="btn-toggle-ruler" class="hidden text-[var(--text-muted)] hover:text-black dark:hover:text-white transition-colors" title="Mostrar Regla" onclick="window.toggleRuler()">
+                        <button id="btn-toggle-ruler" class="hidden h-7 rounded-md border border-[var(--border-color)] bg-[var(--bg-app)] px-2 text-[11px] text-[var(--text-muted)] transition hover:text-[var(--text-main)]" title="Mostrar Regla" onclick="window.toggleRuler()">
                             <i class="fa-solid fa-ruler-horizontal"></i>
                         </button>
-                        <span id="pdf-page-indicator">0 Páginas</span>
                     </div>
+                    <span class="hidden lg:inline text-[10px] uppercase tracking-[0.18em] text-[var(--text-muted)]">Controles PDF</span>
                 </div>
 
                 <!-- Visor Scrollable de Páginas PDF -->

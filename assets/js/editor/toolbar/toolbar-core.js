@@ -22,18 +22,25 @@ function restoreToolbarSelection(surface) {
     }
 }
 
-function refreshAfterEditorMutation(source = 'raw') {
-    if (typeof updateWordCounts === 'function') updateWordCounts();
-    if (typeof saveStateToLocalStorage === 'function') saveStateToLocalStorage();
-    if (typeof bookState !== 'undefined' && bookState && bookState.viewMode === 'split') {
-        if (typeof scheduleSplitPreviewRefresh === 'function') {
-            scheduleSplitPreviewRefresh(true);
-        } else if (typeof refreshSplitPreview === 'function') {
+function refreshPreviewAfterToolbarAction() {
+    if (typeof bookState === 'undefined' || !bookState || bookState.viewMode !== 'split') return;
+
+    if (typeof window.almadenTypstPreviewExperience?.compileEditorAction === 'function') {
+        window.almadenTypstPreviewExperience.compileEditorAction(true);
+    } else {
+        window.almadenTypstProvisionalText?.showPending?.();
+        if (typeof refreshSplitPreview === 'function') {
             refreshSplitPreview(true);
         } else if (typeof compilePDFPreview === 'function') {
             compilePDFPreview(true);
         }
     }
+}
+
+function refreshAfterEditorMutation(source = 'raw') {
+    if (typeof updateWordCounts === 'function') updateWordCounts();
+    if (typeof saveStateToLocalStorage === 'function') saveStateToLocalStorage();
+    refreshPreviewAfterToolbarAction();
 }
 
 function wrapText(prefix, suffix) {
@@ -170,14 +177,6 @@ function triggerEditorUpdate(source = 'auto') {
     }
 
     if (typeof updateWordCounts === 'function') updateWordCounts();
-    if (typeof bookState !== 'undefined' && bookState && bookState.viewMode === 'split') {
-        if (typeof scheduleSplitPreviewRefresh === 'function') {
-            scheduleSplitPreviewRefresh(true);
-        } else if (typeof refreshSplitPreview === 'function') {
-            refreshSplitPreview(true);
-        } else if (typeof compilePDFPreview === 'function') {
-            compilePDFPreview(true);
-        }
-    }
+    refreshPreviewAfterToolbarAction();
     if (typeof saveStateToLocalStorage === 'function') saveStateToLocalStorage();
 }

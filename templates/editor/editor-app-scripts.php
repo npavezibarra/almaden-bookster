@@ -45,3 +45,5 @@
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/typst/page-templates/editor-page-template-selector.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/typst/page-templates/editor-page-template-style.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/typst/editor-typst-pdf.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/typst/editor-typst-preview-experience.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/typst/editor-typst-provisional-text.js?v=' . time(), __FILE__ ) ); ?>"></script>
