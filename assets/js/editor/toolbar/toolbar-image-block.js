@@ -20,6 +20,8 @@ function escapeHtmlAttribute(value) {
 function normalizeImageBlockConfig(config = {}) {
     return {
         src: String(config.src || ''),
+        originalSrc: String(config.originalSrc || config.src || ''),
+        previewSrc: String(config.previewSrc || config.src || ''),
         alt: String(config.alt || ''),
         caption: String(config.caption || ''),
         className: String(config.className || 'pdf-book-image'),
@@ -52,7 +54,7 @@ function buildImageBlockMarkup(config = {}) {
     ].filter(Boolean);
 
     const mediaHtml = image.src
-        ? `<img src="${escapeHtmlAttribute(image.src)}" alt="${escapeHtmlAttribute(image.alt)}" class="${escapeHtmlAttribute(image.className)}" />`
+        ? `<img src="${escapeHtmlAttribute(image.src)}" data-original-src="${escapeHtmlAttribute(image.originalSrc || image.src)}" data-preview-src="${escapeHtmlAttribute(image.previewSrc || image.src)}" alt="${escapeHtmlAttribute(image.alt)}" class="${escapeHtmlAttribute(image.className)}" />`
         : '<div class="pdf-book-image-placeholder">Upload or select Image</div>';
     const captionHtml = String(image.caption || '').trim()
         ? `<figcaption class="pdf-book-image-caption">${escapeHtmlAttribute(String(image.caption).trim())}</figcaption>`

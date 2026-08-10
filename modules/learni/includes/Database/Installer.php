@@ -33,8 +33,6 @@ final class Installer {
 	private static function install_or_upgrade_schema(): void {
 		global $wpdb;
 
-		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-
 		$charset_collate = $wpdb->get_charset_collate();
 		$prefix          = $wpdb->prefix;
 
@@ -91,11 +89,24 @@ final class Installer {
 		);
 
 		foreach ( $tables as $sql ) {
-			dbDelta( $sql );
+			$table_name = self::extract_table_name( $sql );
+			if ( '' === $table_name ) {
+				continue;
+			}
+
+			almaden_bookster_maybe_install_table( $table_name, $sql, self::OPTION_DB_VERSION, (string) ALMADEN_BOOKSTER_LEARNI_DB_VERSION, false );
 		}
 
 		self::migrate_post_types();
 		update_option( self::OPTION_DB_VERSION, (int) ALMADEN_BOOKSTER_LEARNI_DB_VERSION, true );
+	}
+
+	private static function extract_table_name( string $sql ): string {
+		if ( preg_match( '/CREATE TABLE\s+`?([A-Za-z0-9_]+)`?/i', $sql, $matches ) ) {
+			return $matches[1];
+		}
+
+		return '';
 	}
 
 	private static function maybe_migrate_legacy_learni_data(): void {
@@ -358,8 +369,7 @@ final class Installer {
 	}
 
 	private static function table_exists( string $table_name ): bool {
-		global $wpdb;
-		return (string) $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name;
+		return almaden_bookster_table_exists( $table_name );
 	}
 
 	private static function ensure_caps(): void {

@@ -5,9 +5,12 @@ function readImageBlockStateFromElement(block) {
 
     const img = block.querySelector('img');
     const captionNode = block.querySelector('figcaption.pdf-book-image-caption');
+    const originalSrc = img ? (img.getAttribute('data-original-src') || img.getAttribute('src') || '') : '';
+    const previewSrc = img ? (img.getAttribute('data-preview-src') || img.getAttribute('src') || '') : '';
     const rawState = createImageViewportState({
         blockId: block.getAttribute('data-image-block-id') || '',
-        src: img ? (img.getAttribute('src') || '') : '',
+        src: originalSrc,
+        previewSrc,
         alt: img ? (img.getAttribute('alt') || '') : '',
         caption: captionNode ? (captionNode.textContent || '').trim() : '',
         viewportWidth: '100%',
@@ -41,6 +44,7 @@ function createImageViewportState(overrides = {}) {
     return {
         blockId: `image-block-${Date.now()}-${imageViewportBlockCounter}`,
         src: '',
+        previewSrc: '',
         alt: '',
         caption: '',
         viewportWidth: '100%',

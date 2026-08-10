@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<?php endif; ?>
 
 	<p class="description" style="max-width: 960px;">
-		Aquí puedes revisar todas las páginas que el plugin crea o sincroniza. Cada bloque te muestra si WordPress ya encontró una página con ese slug o si todavía no existe.
+		Aquí decides qué rutas pertenecen al shell Almaden. Guardar solo conserva la configuración; cada página se crea o vincula únicamente al pulsar «Sincronizar ahora».
 	</p>
 
 	<div class="card" style="max-width: 960px; padding: 24px; margin-top: 20px;">
@@ -81,8 +81,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 										<p style="margin: 0 0 8px;"><strong>Encontrada.</strong> El plugin la detectó por <strong><?php echo esc_html( isset( $status['source'] ) ? $status['source'] : 'slug' ); ?></strong>.</p>
 										<p class="description" style="margin: 0;">ID: <code><?php echo esc_html( isset( $status['page_id'] ) ? (string) absint( $status['page_id'] ) : '0' ); ?></code> · Slug actual: <code><?php echo esc_html( isset( $status['page_slug'] ) ? $status['page_slug'] : '' ); ?></code> · Título actual: <code><?php echo esc_html( isset( $status['page_title'] ) ? $status['page_title'] : '' ); ?></code></p>
 									<?php else : ?>
-										<p style="margin: 0 0 8px;"><strong>No encontrada.</strong> Si guardas con este título y slug, el plugin intentará crearla de nuevo.</p>
-										<p class="description" style="margin: 0;">Puedes cambiar el slug o el título y volver a guardar para reintentar la creación.</p>
+										<p style="margin: 0 0 8px;"><strong>No encontrada.</strong> Guardar los ajustes no creará ninguna página.</p>
+										<p class="description" style="margin: 0;">Usa «Sincronizar ahora» si quieres crear o vincular explícitamente esta ruta del shell.</p>
 									<?php endif; ?>
 								</td>
 							</tr>
@@ -117,13 +117,52 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 					<div style="margin-top: 14px; display: flex; gap: 10px; align-items: center;">
 						<button type="submit" name="sync_section" value="<?php echo esc_attr( isset( $section['key'] ) ? $section['key'] : '' ); ?>" class="button button-secondary">Sincronizar ahora</button>
-						<span class="description">Recrea solo esta página con el título y slug actuales.</span>
+						<span class="description">Crea o actualiza solo esta ruta y la marca como parte del shell Almaden.</span>
 					</div>
 				</section>
 			<?php endforeach; ?>
 
 			<p class="submit" style="padding-left: 0;">
-				<button type="submit" class="button button-primary">Guardar cambios y sincronizar páginas</button>
+				<button type="submit" class="button button-primary">Guardar cambios</button>
+			</p>
+		</form>
+	</div>
+
+	<div class="card" style="max-width: 960px; padding: 24px; margin-top: 20px;">
+		<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 12px;">
+			<div>
+				<h2 style="margin: 0 0 8px; font-size: 20px;">Migración de media de libros</h2>
+				<p class="description" style="margin: 0; max-width: 760px;">Esta fase mueve las imágenes existentes de cada libro a su carpeta propia en Media y reescribe URLs antiguas dentro de contenido y metadatos.</p>
+			</div>
+			<?php if ( ! empty( $book_media_migration_report['last_run'] ) ) : ?>
+				<div class="notice notice-success" style="margin: 0; padding: 10px 14px; min-width: 180px;">
+					<p style="margin: 0;"><strong>Ejecutada</strong></p>
+				</div>
+			<?php endif; ?>
+		</div>
+
+		<?php if ( ! empty( $book_media_migration_status['done'] ) ) : ?>
+			<div class="notice notice-success is-dismissible" style="margin: 0 0 16px;">
+				<p>La migración de media se ejecutó correctamente.</p>
+			</div>
+		<?php endif; ?>
+
+		<?php if ( ! empty( $book_media_migration_report['last_run'] ) ) : ?>
+			<p style="margin: 0 0 12px;">Última ejecución: <strong><?php echo esc_html( $book_media_migration_report['last_run'] ); ?></strong> · <?php echo esc_html( $book_media_migration_report['message'] ?? '' ); ?></p>
+			<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px;">
+				<div><strong>Libros escaneados</strong><br /><?php echo esc_html( (string) absint( $book_media_migration_report['books_scanned'] ?? 0 ) ); ?></div>
+				<div><strong>Libros actualizados</strong><br /><?php echo esc_html( (string) absint( $book_media_migration_report['books_updated'] ?? 0 ) ); ?></div>
+				<div><strong>Archivos movidos</strong><br /><?php echo esc_html( (string) absint( $book_media_migration_report['attachment_files_moved'] ?? 0 ) ); ?></div>
+				<div><strong>URLs reescritas</strong><br /><?php echo esc_html( (string) absint( ( $book_media_migration_report['content_rewrites'] ?? 0 ) + ( $book_media_migration_report['meta_rewrites'] ?? 0 ) ) ); ?></div>
+			</div>
+		<?php endif; ?>
+
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<input type="hidden" name="action" value="almaden_bookster_run_book_media_migration" />
+			<?php wp_nonce_field( 'almaden_bookster_run_book_media_migration', 'almaden_book_media_migration_nonce' ); ?>
+			<p class="submit" style="padding-left: 0; margin-bottom: 0;">
+				<button type="submit" class="button button-secondary">Migrar media existente</button>
+				<span class="description" style="display: inline-block; margin-left: 10px;">Úsalo para libros ya creados antes de esta fase.</span>
 			</p>
 		</form>
 	</div>

@@ -3,28 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-// --- Frontend Booklist y Creación Automática de Página ---
-
-// 1. Crear la página física automáticamente si no existe
-function almaden_bookster_create_page() {
-	almaden_bookster_sync_creator_page();
-	almaden_bookster_sync_shell_home_page();
-	almaden_bookster_sync_dashboard_page();
-	almaden_bookster_sync_course_creator_page();
-	almaden_bookster_sync_course_archive_page();
-	almaden_bookster_sync_blog_creator_page();
-	if ( function_exists( 'almaden_bookster_sync_bookshelf_page' ) ) {
-		almaden_bookster_sync_bookshelf_page();
-	} else {
-		almaden_bookster_sync_store_page();
-	}
-	almaden_bookster_sync_authors_page();
-	almaden_bookster_sync_author_page();
-	almaden_bookster_sync_publisher_page();
-	almaden_bookster_sync_publisher_onboarding_page();
-	almaden_bookster_sync_quiz_page();
-}
-add_action( 'init', 'almaden_bookster_create_page' );
+// Las páginas del shell se crean solo mediante la acción explícita en Bookster > Pages.
 
 function almaden_bookster_load_shell_home() {
 	if ( is_page( almaden_bookster_get_shell_home_slug() ) && is_main_query() ) {

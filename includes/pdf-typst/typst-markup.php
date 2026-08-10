@@ -159,10 +159,76 @@ function almaden_bookster_typst_inline_font_families( $text ) {
 	return array_values( $families );
 }
 
+function almaden_bookster_typst_parse_html_attributes( $tag ) {
+	$attributes = array();
+	if ( ! preg_match_all( '/([a-zA-Z_:][-a-zA-Z0-9_:.]*)\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'=<>`]+))/i', (string) $tag, $matches, PREG_SET_ORDER ) ) {
+		return $attributes;
+	}
+
+	foreach ( $matches as $match ) {
+		$key = strtolower( trim( (string) $match[1] ) );
+		if ( '' === $key ) {
+			continue;
+		}
+
+		$value = '';
+		for ( $index = 2; $index <= 4; ++$index ) {
+			if ( isset( $match[ $index ] ) && '' !== $match[ $index ] ) {
+				$value = $match[ $index ];
+				break;
+			}
+		}
+		$attributes[ $key ] = html_entity_decode( $value, ENT_QUOTES, 'UTF-8' );
+	}
+
+	return $attributes;
+}
+
+function almaden_bookster_typst_render_content_image_block( $html, &$assets, $asset_mode = 'original' ) {
+	$html = trim( (string) $html );
+	if ( '' === $html || ! preg_match( '/<img\b[^>]*>/i', $html, $img_match ) ) {
+		return '';
+	}
+
+	if ( ! is_array( $assets ) ) {
+		$assets = array();
+	}
+
+	$figure_attrs = almaden_bookster_typst_parse_html_attributes( $html );
+	$img_attrs = almaden_bookster_typst_parse_html_attributes( $img_match[0] );
+	$source = array(
+		'url'         => trim( (string) ( $img_attrs['src'] ?? '' ) ),
+		'original_url' => trim( (string) ( $img_attrs['data-original-src'] ?? $img_attrs['src'] ?? '' ) ),
+		'preview_url' => trim( (string) ( $img_attrs['data-preview-src'] ?? '' ) ),
+	);
+	$image_url = almaden_bookster_typst_resolve_image_url_for_asset_mode( $source, $asset_mode );
+	$image_asset = almaden_bookster_typst_register_upload( array_merge( $source, array( 'url' => $image_url ) ), $assets, $asset_mode );
+	if ( '' === $image_asset ) {
+		return '';
+	}
+
+	$caption = '';
+	if ( preg_match( '/<figcaption\b[^>]*>([\s\S]*?)<\/figcaption>/i', $html, $caption_match ) ) {
+		$caption = trim( preg_replace( '/<[^>]+>/', ' ', $caption_match[1] ) );
+	}
+	$fit = strtolower( trim( (string) ( $figure_attrs['data-fit'] ?? 'contain' ) ) );
+	if ( ! in_array( $fit, array( 'contain', 'cover', 'stretch', 'fill' ), true ) ) {
+		$fit = 'contain';
+	}
+	$caption_markup = '';
+	if ( '' !== $caption ) {
+		$caption_markup = "\n#v(1.5mm)\n#align(center)[#text(size: 8.5pt)[ " . almaden_bookster_typst_escape_markup( $caption ) . ' ]]';
+	}
+
+	return '#block(breakable: false, width: 100%)[' . "\n" .
+		'#align(center)[#image("' . almaden_bookster_typst_escape_string( $image_asset ) . '", width: 100%, fit: "' . almaden_bookster_typst_escape_string( $fit ) . '")]' .
+		$caption_markup . "\n]";
+}
+
 /**
  * Render RAW block syntax.
  */
-function almaden_bookster_typst_render_blocks( $raw, $options = array() ) {
+function almaden_bookster_typst_render_blocks( $raw, $options = array(), &$assets = null ) {
 	$raw = str_replace( array( "\r\n", "\r" ), "\n", (string) $raw );
 	$footnote_data = isset( $options['footnotes'] ) && is_array( $options['footnotes'] )
 		? $options['footnotes']
@@ -182,14 +248,38 @@ function almaden_bookster_typst_render_blocks( $raw, $options = array() ) {
 				'footnote_mode'    => $footnote_mode,
 				'footnote_numbers' => $footnote_data['numbers'] ?? array(),
 			)
-		)
+		),
+		$assets
 	);
 }
 
 /**
  * Internal block renderer with an already collected footnote map.
  */
-function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, $allow_embedded_typst = false, $options = array() ) {
+function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, $allow_embedded_typst = false, $options = array(), &$assets = null ) {
+	$asset_mode = function_exists( 'almaden_bookster_typst_normalize_asset_mode' )
+		? almaden_bookster_typst_normalize_asset_mode( $options['asset_mode'] ?? 'original' )
+		: ( 'original' === (string) ( $options['asset_mode'] ?? '' ) ? 'original' : 'optimized' );
+	$image_placeholders = array();
+	$image_counter = 0;
+	$raw = preg_replace_callback( '/<figure\b[\s\S]*?<\/figure>/i', function ( $match ) use ( &$image_placeholders, &$image_counter, &$assets, $asset_mode ) {
+		$figure = (string) ( $match[0] ?? '' );
+		if (
+			false === stripos( $figure, 'pdf-book-image-block' )
+			&& false === stripos( $figure, 'data-image-block="1"' )
+			&& false === stripos( $figure, "data-image-block='1'" )
+		) {
+			return $figure;
+		}
+
+		$placeholder = '%%ALMADEN_IMAGE_BLOCK_' . $image_counter++ . '%%';
+		$rendered = almaden_bookster_typst_render_content_image_block( $figure, $assets, $asset_mode );
+		if ( '' === $rendered ) {
+			return $figure;
+		}
+		$image_placeholders[ $placeholder ] = $rendered;
+		return "\n" . $placeholder . "\n";
+	}, (string) $raw );
 	$lines     = explode( "\n", (string) $raw );
 	$output    = array();
 	$paragraph = array();
@@ -263,6 +353,12 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 			$output[] = '#pagebreak()';
 			continue;
 		}
+		if ( preg_match( '/^%%ALMADEN_IMAGE_BLOCK_\d+%%$/', $trimmed ) ) {
+			$flush_paragraph();
+			$close_list();
+			$output[] = $trimmed;
+			continue;
+		}
 		if ( preg_match( '/^(#{1,6})\s+(.+)$/', $trimmed, $heading ) ) {
 			$flush_paragraph();
 			$close_list();
@@ -316,7 +412,12 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 
 	$flush_paragraph();
 	$close_list();
-	return implode( "\n\n", $output );
+	$result = implode( "\n\n", $output );
+	if ( ! empty( $image_placeholders ) ) {
+		$result = str_replace( array_keys( $image_placeholders ), array_values( $image_placeholders ), $result );
+	}
+
+	return $result;
 }
 
 /**

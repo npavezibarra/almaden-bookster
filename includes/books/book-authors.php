@@ -395,7 +395,7 @@ function almaden_bookster_create_book_authors_table() {
 	$db_version_option = 'almaden_bookster_book_authors_db_version';
 	$db_version        = '1.0.0';
 	$table_name        = almaden_bookster_get_book_authors_table_name();
-	$table_exists      = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name;
+	$table_exists      = almaden_bookster_table_exists( $table_name );
 
 	if ( get_option( $db_version_option ) === $db_version && $table_exists ) {
 		return;
@@ -428,4 +428,3 @@ function almaden_bookster_create_book_authors_table() {
 	}
 	update_option( $db_version_option, $db_version );
 }
-add_action( 'init', 'almaden_bookster_create_book_authors_table' );

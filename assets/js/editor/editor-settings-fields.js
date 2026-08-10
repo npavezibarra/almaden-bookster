@@ -125,7 +125,7 @@ window.openChapterImageUploader = function() {
         const attachment = mediaUploaderChapterImage.state().get('selection').first().toJSON();
         const input = document.getElementById('setting-chapter-image-url');
         if (input) {
-            input.value = attachment.url;
+            input.value = attachment.originalImageURL || attachment.url;
         }
     });
 
@@ -233,7 +233,7 @@ window.openMediaUploaderEbookBg = function() {
     });
     mediaUploaderEbookBg.on('select', function() {
         let attachment = mediaUploaderEbookBg.state().get('selection').first().toJSON();
-        document.getElementById('setting-ebook-bg-image').value = attachment.url;
+        document.getElementById('setting-ebook-bg-image').value = attachment.originalImageURL || attachment.url;
     });
     mediaUploaderEbookBg.open();
 }
@@ -267,7 +267,7 @@ window.openMediaUploaderCoverPanel = function() {
     });
     mediaUploaderCoverPanel.on('select', function() {
         let attachment = mediaUploaderCoverPanel.state().get('selection').first().toJSON();
-        document.getElementById('setting-ebook-cover-panel-bg-image').value = attachment.url;
+        document.getElementById('setting-ebook-cover-panel-bg-image').value = attachment.originalImageURL || attachment.url;
     });
     mediaUploaderCoverPanel.open();
 }

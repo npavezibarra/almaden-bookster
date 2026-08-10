@@ -15,7 +15,7 @@ function almaden_bookster_get_user_book_highlight_comments( $highlight_id, $book
 	}
 
 	$table_name = almaden_bookster_get_highlight_comments_table_name();
-	$table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name;
+	$table_exists = almaden_bookster_table_exists( $table_name );
 	if ( ! $table_exists ) {
 		return array();
 	}

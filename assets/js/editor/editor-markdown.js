@@ -219,6 +219,16 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
     }
     compiledBlocks = result.split('\n');
 
+    const previewHost = document.createElement('template');
+    previewHost.innerHTML = compiledBlocks.join('\n');
+    previewHost.content.querySelectorAll('img[data-preview-src]').forEach((img) => {
+        const previewSrc = img.getAttribute('data-preview-src') || '';
+        if (previewSrc) {
+            img.setAttribute('src', previewSrc);
+        }
+    });
+    compiledBlocks = [previewHost.innerHTML];
+
     // Agregar sección de notas al pie al final si es necesario (ej. para exportación HTML)
     if (appendFootnotes && footnoteRefs.length > 0) {
         compiledBlocks.push('<div class="footnotes-section" style="margin-top: 40px; border-top: 1px solid #cbd5e1; padding-top: 20px;">');

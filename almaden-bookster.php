@@ -58,6 +58,9 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-settings.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-filesize.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/gdrive-client.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/epub-export.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/helpers/book-image-assets.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/helpers/book-media-folders.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/helpers/book-media-migration.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/helpers/cover-thumbnail.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/helpers/cover-upload.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/io/process-utils.php';
@@ -72,6 +75,7 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/payments/woocommerce-integr
 require_once plugin_dir_path( __FILE__ ) . 'includes/frontend/access-control.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/reader/highlights.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/reader/highlight-comments.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/database/schema.php';
 
 
 // --- Crear Tabla Especial de Ajustes de PDF ---
@@ -79,8 +83,7 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/reader/highlight-comments.p
 function almaden_bookster_create_settings_table() {
 	global $wpdb;
 	$table_name = $wpdb->prefix . 'almaden_book_settings';
-	
-	$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) === $table_name;
+	$table_exists = almaden_bookster_table_exists( $table_name );
 	
 		if ( get_option( 'almaden_bookster_db_version' ) !== '2.4.6' || ! $table_exists ) {
 		$charset_collate = $wpdb->get_charset_collate();
@@ -274,7 +277,6 @@ function almaden_bookster_create_settings_table() {
 		update_option( 'almaden_bookster_db_version', '2.4.6' );
 	}
 }
-add_action( 'init', 'almaden_bookster_create_settings_table' );
 
 function almaden_bookster_get_highlights_table_name() {
 	global $wpdb;
@@ -284,7 +286,7 @@ function almaden_bookster_get_highlights_table_name() {
 function almaden_bookster_create_highlights_table() {
 	global $wpdb;
 	$table_name = almaden_bookster_get_highlights_table_name();
-	$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) === $table_name;
+	$table_exists = almaden_bookster_table_exists( $table_name );
 
 	if ( get_option( 'almaden_bookster_highlights_db_version' ) !== '1.0.0' || ! $table_exists ) {
 		$charset_collate = $wpdb->get_charset_collate();
@@ -309,7 +311,6 @@ function almaden_bookster_create_highlights_table() {
 		update_option( 'almaden_bookster_highlights_db_version', '1.0.0' );
 	}
 }
-add_action( 'init', 'almaden_bookster_create_highlights_table' );
 
 function almaden_bookster_get_highlight_comments_table_name() {
 	global $wpdb;
@@ -319,7 +320,7 @@ function almaden_bookster_get_highlight_comments_table_name() {
 function almaden_bookster_create_highlight_comments_table() {
 	global $wpdb;
 	$table_name = almaden_bookster_get_highlight_comments_table_name();
-	$table_exists = $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) === $table_name;
+	$table_exists = almaden_bookster_table_exists( $table_name );
 
 	if ( get_option( 'almaden_bookster_highlight_comments_db_version' ) !== '1.0.0' || ! $table_exists ) {
 		$charset_collate = $wpdb->get_charset_collate();
@@ -344,33 +345,16 @@ function almaden_bookster_create_highlight_comments_table() {
 		update_option( 'almaden_bookster_highlight_comments_db_version', '1.0.0' );
 	}
 }
-add_action( 'init', 'almaden_bookster_create_highlight_comments_table' );
 
 function almaden_bookster_activate_plugin() {
-		almaden_bookster_sync_book_capabilities();
+	almaden_bookster_sync_book_capabilities();
 	if ( class_exists( '\AlmadenBookster\Learni\Module' ) ) {
 		\AlmadenBookster\Learni\Module::activate();
 	}
 	if ( class_exists( '\AlmadenBookster\Auth\Module' ) ) {
 		\AlmadenBookster\Auth\Module::activate();
 	}
-		almaden_bookster_sync_creator_page();
-		almaden_bookster_sync_shell_home_page();
-		almaden_bookster_sync_dashboard_page();
-		almaden_bookster_sync_course_creator_page();
-			almaden_bookster_sync_store_page();
-			almaden_bookster_sync_authors_page();
-			almaden_bookster_sync_author_page();
-			almaden_bookster_sync_publisher_page();
-			almaden_bookster_sync_publisher_onboarding_page();
-			almaden_bookster_sync_quiz_page();
-			almaden_bookster_create_book_authors_table();
-		almaden_bookster_create_settings_table();
-		almaden_bookster_create_highlights_table();
-	almaden_bookster_create_highlight_comments_table();
-	if ( function_exists( 'almaden_bookster_create_quiz_progress_tables' ) ) {
-		almaden_bookster_create_quiz_progress_tables();
-	}
+	almaden_bookster_install_database_schema();
 	if ( function_exists( 'almaden_bookster_schedule_cover_thumbnail_backfill_cron' ) ) {
 		almaden_bookster_schedule_cover_thumbnail_backfill_cron();
 	}

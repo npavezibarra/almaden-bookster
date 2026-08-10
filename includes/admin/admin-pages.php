@@ -107,8 +107,8 @@ function almaden_bookster_handle_pages_settings_save() {
 	update_option( 'almaden_bookster_quiz_page_settings', $quiz_settings );
 	if ( '' !== $sync_section ) {
 		almaden_bookster_sync_pages_for_section( $sync_section );
-	} else {
-		almaden_bookster_sync_all_pages();
+		almaden_bookster_mark_shell_page( $sync_section );
+		flush_rewrite_rules( false );
 	}
 
 	$redirect_args = array(
@@ -126,6 +126,40 @@ function almaden_bookster_handle_pages_settings_save() {
 	exit;
 }
 add_action( 'admin_post_almaden_bookster_save_pages_settings', 'almaden_bookster_handle_pages_settings_save' );
+
+function almaden_bookster_get_page_id_for_section( $section_key ) {
+	$section_key = sanitize_key( (string) $section_key );
+	$getters = array(
+		'shell_home'          => 'almaden_bookster_get_shell_home_page_id',
+		'creator'             => 'almaden_bookster_get_creator_page_id',
+		'dashboard'           => 'almaden_bookster_get_dashboard_page_id',
+		'course_creator'      => 'almaden_bookster_get_course_creator_page_id',
+		'course_archive'      => 'almaden_bookster_get_course_archive_page_id',
+		'authors'             => 'almaden_bookster_get_authors_page_id',
+		'author'              => 'almaden_bookster_get_author_page_id',
+		'publisher'           => 'almaden_bookster_get_publisher_page_id',
+		'publisher_onboarding' => 'almaden_bookster_get_publisher_onboarding_page_id',
+		'quiz'                => 'almaden_bookster_get_quiz_page_id',
+		'store'               => 'almaden_bookster_get_store_page_id',
+	);
+
+	if ( empty( $getters[ $section_key ] ) || ! is_callable( $getters[ $section_key ] ) ) {
+		return 0;
+	}
+
+	return absint( call_user_func( $getters[ $section_key ] ) );
+}
+
+function almaden_bookster_mark_shell_page( $section_key ) {
+	$section_key = sanitize_key( (string) $section_key );
+	$page_id = almaden_bookster_get_page_id_for_section( $section_key );
+
+	if ( $page_id <= 0 || 'page' !== get_post_type( $page_id ) ) {
+		return;
+	}
+
+	update_post_meta( $page_id, '_almaden_bookster_shell_page', $section_key );
+}
 
 function almaden_bookster_sync_pages_for_section( $section_key ) {
 	$section_key = sanitize_key( (string) $section_key );
@@ -162,23 +196,9 @@ function almaden_bookster_sync_pages_for_section( $section_key ) {
 			almaden_bookster_sync_quiz_page();
 			break;
 		case 'store':
-			almaden_bookster_sync_store_page();
+			almaden_bookster_sync_store_page( true );
 			break;
 	}
-}
-
-function almaden_bookster_sync_all_pages() {
-	almaden_bookster_sync_creator_page();
-	almaden_bookster_sync_shell_home_page();
-	almaden_bookster_sync_dashboard_page();
-	almaden_bookster_sync_course_creator_page();
-	almaden_bookster_sync_course_archive_page();
-	almaden_bookster_sync_authors_page();
-	almaden_bookster_sync_author_page();
-	almaden_bookster_sync_publisher_page();
-	almaden_bookster_sync_publisher_onboarding_page();
-	almaden_bookster_sync_quiz_page();
-	almaden_bookster_sync_store_page();
 }
 
 function almaden_bookster_pages_page_render() {
@@ -193,6 +213,8 @@ function almaden_bookster_pages_page_render() {
 	$success_flag = isset( $_GET['settings-updated'] ) && '1' === $_GET['settings-updated'];
 	$page_sections = function_exists( 'almaden_bookster_get_pages_admin_sections' ) ? almaden_bookster_get_pages_admin_sections() : array();
 	$sync_section  = isset( $_GET['sync_section'] ) ? sanitize_key( (string) $_GET['sync_section'] ) : '';
+	$book_media_migration_report = function_exists( 'almaden_bookster_get_book_media_migration_report' ) ? almaden_bookster_get_book_media_migration_report() : array();
+	$book_media_migration_status = function_exists( 'almaden_bookster_get_book_media_migration_action_status' ) ? almaden_bookster_get_book_media_migration_action_status() : array();
 
 	require dirname( __DIR__, 2 ) . '/templates/admin/pages-app.php';
 }
@@ -210,7 +232,7 @@ function almaden_bookster_get_pages_admin_sections() {
 		array(
 			'key'         => 'shell_home',
 			'heading'     => 'Almaden App',
-			'description' => 'Página de entrada al shell. Si activas el checkbox, esta URL entra al menú público de WordPress.',
+			'description' => 'Página de entrada al shell. No se crea ni entra al menú público hasta que lo solicites expresamente.',
 			'page_id_name'=> 'shell_home_page_id',
 			'title_name'  => 'shell_home_title',
 			'slug_name'   => 'shell_home_slug',

@@ -4,6 +4,20 @@ let currentChapterIndex = -1;
 let readingMode = 'scroll'; // 'scroll' or 'flip'
 let currentFlipPage = 0;
 
+function normalizeReaderChapterImages(html) {
+    if (!html) return html;
+
+    const template = document.createElement('template');
+    template.innerHTML = html;
+    template.content.querySelectorAll('img[data-preview-src]').forEach((img) => {
+        const previewSrc = img.getAttribute('data-preview-src') || '';
+        if (previewSrc) {
+            img.setAttribute('src', previewSrc);
+        }
+    });
+    return template.innerHTML;
+}
+
 // Reading Mode Toggle
 function toggleReadingMode(mode) {
     readingMode = mode;
@@ -190,7 +204,7 @@ function showChapterView(index) {
     // Content injection
     document.getElementById('chapter-nav-title').textContent = chapter.title;
     
-    let finalHtml = md.render(processedContent);
+    let finalHtml = normalizeReaderChapterImages(md.render(processedContent));
     
     if (chapter.hide_title !== '1' && chapter.is_credits !== '1') {
         let prefixHtml = '';

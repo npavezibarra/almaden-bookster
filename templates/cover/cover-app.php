@@ -246,6 +246,9 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-book-format.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-dimensions.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-media.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-image-diagnostics-format.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-image-diagnostics-render.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-image-diagnostics-bootstrap.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-image-diagnostics.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-layers.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-layers-canvas.js?v=' . time() ); ?>"></script>

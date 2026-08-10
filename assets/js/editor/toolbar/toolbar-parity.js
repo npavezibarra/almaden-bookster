@@ -29,7 +29,7 @@ function openParityImageUploader() {
 
     parityMediaUploader.on('select', function() {
         const attachment = parityMediaUploader.state().get('selection').first().toJSON();
-        const imgUrl = attachment.url;
+        const imgUrl = attachment.originalImageURL || attachment.url;
 
         const chapter = bookState.chapters.find(c => c.id === bookState.activeChapterId);
         if (chapter) {

@@ -17,7 +17,7 @@ function almaden_bookster_get_user_book_highlights( $book_id, $user_id = null, $
 	}
 
 	$table_name = almaden_bookster_get_highlights_table_name();
-	$table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name;
+	$table_exists = almaden_bookster_table_exists( $table_name );
 	if ( ! $table_exists ) {
 		return array();
 	}

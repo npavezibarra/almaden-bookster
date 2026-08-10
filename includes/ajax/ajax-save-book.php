@@ -15,6 +15,34 @@ function almaden_bookster_get_allowed_chapter_html() {
 		'code' => true,
 	);
 
+	$allowed['figure'] = array(
+		'class' => true,
+		'data-image-block' => true,
+		'data-image-block-id' => true,
+		'data-viewport-width' => true,
+		'data-viewport-height' => true,
+		'data-zoom' => true,
+		'data-fit' => true,
+		'data-position' => true,
+		'contenteditable' => true,
+	);
+
+	$allowed['figcaption'] = array(
+		'class' => true,
+	);
+
+	$allowed['img'] = array_merge(
+		$allowed['img'] ?? array(),
+		array(
+			'class' => true,
+			'data-original-src' => true,
+			'data-preview-src' => true,
+			'loading' => true,
+			'decoding' => true,
+			'style' => true,
+		)
+	);
+
 	return $allowed;
 }
 

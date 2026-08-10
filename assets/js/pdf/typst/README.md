@@ -91,19 +91,19 @@ de continuidad hasta que PDF.js termina de pintar la nueva revisión.
 ## Archivos activos
 
 - [`editor-typst-pdf.js`](./editor-typst-pdf.js)
-  - Orquestador del preview.
-  - Mantiene el PDF actual, el blob, el documento PDF.js, el layout y la
-    secuencia de compilación/render.
-  - Funciones clave:
-    - `payload()`: arma el JSON final desde `bookState`.
-    - `compileTypstPreview()`: dispara la compilación y consume headers de
-      diagnóstico.
-    - `showPdf()`: prepara el visor, carga el blob y actualiza el estado de
-      integridad.
-    - `renderPdfPreview()`: crea las páginas y aplica los overlays.
-    - `applyLayout()`: alterna vista simple o spread.
-    - `bindTextBoundsToggle()` / `updateTextBounds()`: activan el contorno de
-      la caja editorial.
+  - Orquestador del preview y punto de entrada público.
+  - Expone `compilePDFPreview`, `triggerPrint` y `window.almadenTypstPdf`.
+  - Coordina el estado compartido con los módulos auxiliares.
+
+- [`editor-typst-pdf-state.js`](./editor-typst-pdf-state.js)
+  - Normalización de payload, firma de caché y contador universal.
+  - Manejo de IndexedDB para el cache persistente del preview.
+  - Construcción del contrato público `bookState.pdfPreview`.
+
+- [`editor-typst-pdf-view.js`](./editor-typst-pdf-view.js)
+  - Render PDF.js, layout single/spread y overlays de diagnóstico.
+  - Gestión del blob actual, geometría, zoom y límites de texto.
+  - Actualización visual del visor sin tocar el manuscrito.
 
 - [`editor-typst-preview-experience.js`](./editor-typst-preview-experience.js)
   - Agrupa cambios rápidos antes de invocar Typst.

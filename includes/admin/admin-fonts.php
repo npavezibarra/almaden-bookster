@@ -18,28 +18,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 function almaden_bookster_create_fonts_table() {
 	global $wpdb;
 	$table_name = $wpdb->prefix . 'almaden_installed_fonts';
+	$charset_collate = $wpdb->get_charset_collate();
+	$sql             = "CREATE TABLE $table_name (
+		id bigint(20) NOT NULL AUTO_INCREMENT,
+		family varchar(100) NOT NULL,
+		category varchar(50) DEFAULT 'serif' NOT NULL,
+		variants text DEFAULT '' NOT NULL,
+		subsets text DEFAULT '' NOT NULL,
+		installed_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+		PRIMARY KEY  (id),
+		UNIQUE KEY family (family)
+	) $charset_collate;";
 
-	if ( get_option( 'almaden_bookster_fonts_db_version' ) !== '1.0.0' ) {
-		$charset_collate = $wpdb->get_charset_collate();
-
-		$sql = "CREATE TABLE $table_name (
-			id bigint(20) NOT NULL AUTO_INCREMENT,
-			family varchar(100) NOT NULL,
-			category varchar(50) DEFAULT 'serif' NOT NULL,
-			variants text DEFAULT '' NOT NULL,
-			subsets text DEFAULT '' NOT NULL,
-			installed_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
-			PRIMARY KEY  (id),
-			UNIQUE KEY family (family)
-		) $charset_collate;";
-
-		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		dbDelta( $sql );
-
-		update_option( 'almaden_bookster_fonts_db_version', '1.0.0' );
-	}
+	almaden_bookster_maybe_install_table( $table_name, $sql, 'almaden_bookster_fonts_db_version', '1.0.0' );
 }
-add_action( 'init', 'almaden_bookster_create_fonts_table' );
 
 /**
  * AJAX: Save or update the Google Fonts API key.

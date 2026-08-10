@@ -354,8 +354,8 @@ function almaden_bookster_create_publishers_tables() {
 	$publishers_table   = almaden_bookster_get_publishers_table_name();
 	$members_table      = almaden_bookster_get_publisher_members_table_name();
 
-	$publishers_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $publishers_table ) ) === $publishers_table;
-	$members_exists    = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $members_table ) ) === $members_table;
+	$publishers_exists = almaden_bookster_table_exists( $publishers_table );
+	$members_exists    = almaden_bookster_table_exists( $members_table );
 
 	if ( get_option( $db_version_option ) === $db_version && $publishers_exists && $members_exists ) {
 		return;
@@ -406,12 +406,10 @@ function almaden_bookster_create_publishers_tables() {
 	dbDelta( $sql_publishers );
 	dbDelta( $sql_members );
 
-	almaden_bookster_sync_publisher_page();
 	almaden_bookster_migrate_publisher_book_meta();
 
 	update_option( $db_version_option, $db_version );
 }
-add_action( 'init', 'almaden_bookster_create_publishers_tables' );
 
 function almaden_bookster_register_publisher_routes() {
 	$base_slug = trim( almaden_bookster_get_publisher_page_slug(), '/' );

@@ -132,10 +132,11 @@ function serializeInlineNode(node) {
     if (tag === 'em' || tag === 'i') return `*${serializeInlineChildren(node)}*`;
     if (tag === 'u') return `<u>${serializeInlineChildren(node)}</u>`;
     if (tag === 'img') {
-        const src = node.getAttribute('src') || '';
+        const originalSrc = node.getAttribute('data-original-src') || node.getAttribute('src') || '';
+        const previewSrc = node.getAttribute('data-preview-src') || node.getAttribute('src') || '';
         const alt = node.getAttribute('alt') || '';
         const cls = node.getAttribute('class') || 'pdf-book-image';
-        return `\n<img src="${src}" alt="${alt}" class="${cls}" />\n`;
+        return `\n<img src="${originalSrc}" data-original-src="${originalSrc}" data-preview-src="${previewSrc}" alt="${alt}" class="${cls}" />\n`;
     }
 
     if (tag === 'span') {
@@ -198,6 +199,12 @@ function serializeBlockNode(node) {
         if (clone.removeAttribute) {
             clone.removeAttribute('style');
         }
+        clone.querySelectorAll('img[data-original-src]').forEach((img) => {
+            const originalSrc = img.getAttribute('data-original-src') || img.getAttribute('src') || '';
+            if (originalSrc) {
+                img.setAttribute('src', originalSrc);
+            }
+        });
         clone.querySelectorAll('.pdf-book-image-edit-handle').forEach((el) => el.remove());
         clone.querySelectorAll('[style]').forEach((el) => el.removeAttribute('style'));
         return `\n${clone.outerHTML}\n`;

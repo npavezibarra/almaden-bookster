@@ -104,7 +104,7 @@ function almaden_bookster_cover_settings_table_exists() {
     }
 
     $settings_table = $wpdb->prefix . 'almaden_book_settings';
-    $table_exists = ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $settings_table ) ) === $settings_table );
+    $table_exists = almaden_bookster_table_exists( $settings_table );
 
     return $table_exists;
 }
@@ -189,4 +189,3 @@ function almaden_bookster_prime_cover_settings_cache( array $book_ids ) {
 
     return $almaden_bookster_cover_settings_cache;
 }
-

@@ -59,9 +59,11 @@ function almaden_bookster_get_book_quiz_entries( $book_id ) {
 function almaden_bookster_create_quiz_progress_tables() {
 	global $wpdb;
 	$table_name = almaden_bookster_get_quiz_attempts_table_name();
-	$table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name;
+	$table_exists = almaden_bookster_table_exists( $table_name );
+	$db_version   = '1.0.0';
+	$db_option    = 'almaden_bookster_quiz_progress_db_version';
 
-	if ( $table_exists ) {
+	if ( $table_exists && (string) get_option( $db_option, '' ) === $db_version ) {
 		return;
 	}
 
@@ -88,9 +90,8 @@ function almaden_bookster_create_quiz_progress_tables() {
 	) $charset_collate;";
 
 	dbDelta( $sql );
-	update_option( 'almaden_bookster_quiz_progress_db_version', '1.0.0' );
+	update_option( $db_option, $db_version );
 }
-add_action( 'init', 'almaden_bookster_create_quiz_progress_tables' );
 
 function almaden_bookster_get_user_book_progress_sessions( $user_id = null ) {
 	$user_id = $user_id ? absint( $user_id ) : get_current_user_id();

@@ -409,7 +409,7 @@ function almaden_bookster_sync_authors_page() {
 	}
 }
 
-function almaden_bookster_sync_store_page() {
+function almaden_bookster_sync_store_page( $force_create = false ) {
 	$settings = almaden_bookster_get_pages_settings();
 	$slug     = almaden_bookster_get_store_slug();
 	$title    = almaden_bookster_get_store_title();
@@ -418,7 +418,7 @@ function almaden_bookster_sync_store_page() {
 	$auto_create_enabled = function_exists( 'almaden_bookster_should_auto_create_bookshelf_page' ) ? almaden_bookster_should_auto_create_bookshelf_page() : true;
 	$page     = $page_id > 0 ? get_post( $page_id ) : null;
 
-	if ( 'disabled' === $page_policy ) {
+	if ( 'disabled' === $page_policy && ! $force_create ) {
 		return;
 	}
 
@@ -431,7 +431,7 @@ function almaden_bookster_sync_store_page() {
 	}
 
 	if ( ! $page ) {
-		if ( ! $auto_create_enabled ) {
+		if ( ! $force_create && ! $auto_create_enabled ) {
 			return;
 		}
 

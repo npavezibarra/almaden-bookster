@@ -80,8 +80,6 @@ function almaden_bookster_sync_publisher_onboarding_page() {
 	return absint( $page->ID );
 }
 
-add_action( 'init', 'almaden_bookster_sync_publisher_onboarding_page' );
-
 function almaden_bookster_load_publisher_onboarding_page() {
 	if ( ! is_page( almaden_bookster_get_publisher_onboarding_slug() ) || ! is_main_query() ) {
 		return;

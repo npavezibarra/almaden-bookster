@@ -18,10 +18,10 @@ function almaden_bookster_get_distribution_settings_defaults() {
 		'default_distribution_mode'   => 'store_integrated',
 		'default_commerce_provider'   => 'woocommerce',
 		'default_reader_entry_mode'   => 'product_cta',
-		'bookshelf_page_policy'       => 'auto_create',
+		'bookshelf_page_policy'       => 'manual',
 		'auto_create_store_product'   => 1,
-		'auto_create_bookshelf_page'  => 1,
-		'menu_injection_enabled'      => 1,
+		'auto_create_bookshelf_page'  => 0,
+		'menu_injection_enabled'      => 0,
 		'menu_location'               => 'default',
 		'return_url_policy'           => 'product_or_fallback',
 		'valid_order_statuses'        => array( 'processing', 'completed' ),
@@ -82,7 +82,7 @@ function almaden_bookster_get_distribution_settings() {
 
 function almaden_bookster_get_bookshelf_page_policy() {
 	$settings = almaden_bookster_get_distribution_settings();
-	return isset( $settings['bookshelf_page_policy'] ) ? sanitize_key( (string) $settings['bookshelf_page_policy'] ) : 'auto_create';
+	return isset( $settings['bookshelf_page_policy'] ) ? sanitize_key( (string) $settings['bookshelf_page_policy'] ) : 'manual';
 }
 
 function almaden_bookster_should_auto_create_bookshelf_page() {

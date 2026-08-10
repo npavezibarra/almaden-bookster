@@ -31,7 +31,7 @@ function almaden_bookster_get_pages_settings_defaults() {
 		'store_slug'      => 'bookshelf',
 		'store_title'     => 'Ebook Store',
 		'store_menu_label' => 'Ebook Store',
-		'store_menu_enabled' => 1,
+		'store_menu_enabled' => 0,
 	);
 }
 

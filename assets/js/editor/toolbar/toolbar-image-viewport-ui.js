@@ -97,6 +97,30 @@ function openImageViewportFromBlock(blockId) {
     return true;
 }
 
+function getBooksterAttachmentImageUrls(attachment) {
+    if (!attachment || typeof attachment !== 'object') {
+        return { originalUrl: '', previewUrl: '' };
+    }
+
+    const sizes = attachment.sizes || {};
+    const previewUrl = attachment.previewUrl
+        || attachment.preview_url
+        || (sizes.medium_large && sizes.medium_large.url)
+        || (sizes.large && sizes.large.url)
+        || (sizes.medium && sizes.medium.url)
+        || (sizes.thumbnail && sizes.thumbnail.url)
+        || attachment.url
+        || '';
+    const originalUrl = attachment.originalImageURL
+        || attachment.original_url
+        || attachment.fullUrl
+        || attachment.url
+        || previewUrl
+        || '';
+
+    return { originalUrl, previewUrl };
+}
+
 function replaceImageBlockMarkup(blockId, nextMarkup, options = {}) {
     const textarea = typeof getRawEditorSurface === 'function' ? getRawEditorSurface() : null;
     if (!textarea || !blockId) return false;
@@ -158,7 +182,7 @@ function updateImageViewportModalView() {
 
     if (previewImage) {
         if (state.src) {
-            previewImage.src = state.src;
+            previewImage.src = state.previewSrc || state.src;
             previewImage.alt = state.alt || 'Vista previa de la imagen';
             previewImage.classList.remove('hidden');
             previewImage.style.width = '100%';
@@ -313,6 +337,8 @@ function commitImageViewportState(options = {}) {
     const markup = buildImageBlockMarkup({
         blockId: state.blockId,
         src: state.src,
+        originalSrc: state.src,
+        previewSrc: state.previewSrc || state.src,
         alt: state.alt,
         caption: state.caption,
         viewportWidth: '100%',
@@ -356,13 +382,13 @@ function openImageMediaPicker() {
 
     mediaUploader.on('select', function() {
         const attachment = mediaUploader.state().get('selection').first().toJSON();
-        const fullSizeUrl = attachment.sizes && attachment.sizes.full && attachment.sizes.full.url
-            ? attachment.sizes.full.url
-            : '';
-    const imgUrl = attachment.originalImageURL || fullSizeUrl || attachment.url;
+        const urls = getBooksterAttachmentImageUrls(attachment);
+        const imgUrl = urls.originalUrl || urls.previewUrl || attachment.url;
+        const previewUrl = urls.previewUrl || imgUrl;
     const imgAlt = attachment.alt || attachment.title || 'Imagen del libro';
         setImageViewportState({
             src: imgUrl,
+            previewSrc: previewUrl,
             alt: imgAlt,
             isPlaceholder: false,
             committed: false,
@@ -386,6 +412,8 @@ function openMediaUploader() {
     const placeholderMarkup = buildImageBlockMarkup({
         blockId: placeholder.blockId,
         src: '',
+        originalSrc: '',
+        previewSrc: '',
         alt: '',
         viewportWidth: '100%',
         viewportHeight: placeholder.viewportHeight,

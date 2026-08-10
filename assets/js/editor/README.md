@@ -19,7 +19,10 @@ Los archivos que participan en este flujo son:
 
 - [editor-visual-editor.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-visual-editor.js)
 - [editor-visual-session.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-visual-session.js)
-- [editor-chapters.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapters.js)
+- [editor-chapters-utils.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapters-utils.js)
+- [editor-chapters-save.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapters-save.js)
+- [editor-chapters-actions.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapters-actions.js)
+- [editor-chapters-sidebar.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapters-sidebar.js)
 - [editor-pdf-html.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/core/editor-pdf-html.js)
 - [editor-style.css](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/css/editor-style.css)
 
@@ -31,7 +34,7 @@ Los archivos que participan en este flujo son:
 graph TD
     %% Núcleo y UI
     Core[editor-core.js] --> UI[editor-ui.js]
-    Core --> Chapters[editor-chapters.js]
+    Core --> Chapters[editor-chapters-*]
     
     %% Gestión de Capítulos y Ajustes
     Chapters --> ChapterSettings[editor-chapter-settings-*]
@@ -80,14 +83,13 @@ graph TD
 
 ### 2. Gestión de Capítulos y Persistencia
 
-*   **[editor-chapters.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapters.js)**
-    *   **Responsabilidad**: Operaciones CRUD sobre los capítulos, ordenación Drag and Drop en el panel lateral, cálculo optimizado de palabras y el mecanismo asíncrono de paginación de fondo.
+*   **Módulos de capítulos**
+    *   **Responsabilidad**: Operaciones CRUD sobre los capítulos, ordenación Drag and Drop en el panel lateral, cálculo optimizado de palabras y el mecanismo asíncrono de paginación de fondo. La compatibilidad histórica se mantiene mediante `editor-chapters.js`, que hoy solo actúa como stub.
     *   **Funciones Clave**:
-        *   [renderSidebar](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapters.js#L49): Dibuja dinámicamente la lista de capítulos e inicializa los controladores HTML5 `dragstart`, `dragenter`, `dragleave` y `drop` para reordenación visual.
-        *   [updateWordCounts](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapters.js#L10): Ejecuta recuentos de palabras aplicando caché inteligente sobre los capítulos inactivos para evitar Layout Thrashing.
-        *   [loadActiveChapter](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapters.js#L173): Carga el contenido en el editor. Configura el área de texto como solo lectura para el Índice (generado automáticamente) y muestra inputs condicionales si es la página de Créditos.
-        *   [saveStateToLocalStorage](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapters.js#L312): Mecanismo de autoguardado (debounced a 15 segundos o ejecución inmediata). Realiza peticiones AJAX a WordPress y actualiza IDs temporales locales con los asignados por la base de datos tras persistirse.
-        *   `window.calculateAllPagesBackground`: Ejecuta una compilación en segundo plano instanciando un contenedor fantasma `#dummy-pdf-scroller` invisible para paginar la totalidad del libro y actualizar las posiciones y recuentos de página reales sin interrumpir la edición del usuario.
+        *   [editor-chapters-utils.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapters-utils.js): Recuento de palabras, extractos breves y helpers de DOM.
+        *   [editor-chapters-sidebar.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapters-sidebar.js): Render del sidebar de capítulos y reordenación visual con drag and drop.
+        *   [editor-chapters-actions.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapters-actions.js): Carga del capítulo activo, selección, creación, borrado y movimiento.
+        *   [editor-chapters-save.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapters-save.js): Autoguardado, serialización AJAX y `window.calculateAllPagesBackground`.
 
 *   **[editor-chapter-settings-guide.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapter-settings-guide.js)**, **[editor-chapter-settings-labels.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapter-settings-labels.js)**, **[editor-chapter-settings-controls.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapter-settings-controls.js)** y **[editor-chapter-settings-modal.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-chapter-settings-modal.js)**:
     *   **Responsabilidad**: El subsistema de ajustes por capítulo quedó dividido para respetar el límite de 500 líneas y aislar responsabilidades.

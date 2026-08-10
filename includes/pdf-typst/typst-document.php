@@ -302,6 +302,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 			}
 			$content_render_options = array(
 				'hyphenation_exceptions' => $hyphenation_exceptions,
+				'asset_mode'             => $asset_mode,
 				'heading_styles'         => array(
 					1 => array(
 						'font_family'    => $heading1_font_family,

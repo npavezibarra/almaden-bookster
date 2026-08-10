@@ -129,7 +129,7 @@ function openChapterImageUploaderForChapter() {
         const attachment = mediaUploaderChapterImageForChapter.state().get('selection').first().toJSON();
         const input = document.getElementById('chapter_image_url');
         if (input) {
-            input.value = attachment.url;
+            input.value = attachment.originalImageURL || attachment.url;
         }
     });
 

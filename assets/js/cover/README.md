@@ -28,11 +28,14 @@ Este directorio alberga la arquitectura modular del **Editor de Portadas**. Ante
 *   **[cover-media.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/cover/cover-media.js)**: 
     Controla todo el flujo de trabajo con imágenes. Se encarga de la invocación de la API de medios de WordPress (`wp.media`), la subida de nuevos recursos gráficos, y la lógica para incrustar estos medios como "Background" (fondo principal) o como una "Capa" individual.
 
+*   **[cover-image-diagnostics-format.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/cover/cover-image-diagnostics-format.js)**, **[cover-image-diagnostics-render.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/cover/cover-image-diagnostics-render.js)** y **[cover-image-diagnostics-bootstrap.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/cover/cover-image-diagnostics-bootstrap.js)**:
+    Separan el preflight de imágenes, el render de paneles y la orquestación del análisis editorial para mantener cada archivo por debajo de 500 líneas.
+
 *   **[cover-save.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/cover/cover-save.js)**: 
     Empaqueta y serializa todo el `CoverEditor.state` actual para enviarlo al servidor mediante peticiones AJAX, asegurando que la última iteración de la portada persista en la base de datos de WordPress de forma segura.
 
 *   **[cover-export.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/cover/cover-export.js)**: 
     Contiene los algoritmos necesarios para rasterizar o compilar el lienzo interactivo (DOM) hacia formatos finales exportables o imprimibles (por ejemplo la generación de un raster en baja o alta resolución de la imagen de portada).
 
-* cover-image-diagnostics.js
+* cover-image-diagnostics.js (compatibilidad histórica)
 * cover-utils.js
