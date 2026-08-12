@@ -9,13 +9,14 @@
         currentGeometry: null,
         currentLayout: 'single',
         showTextBounds: false,
-        pendingUniversalCounter: null
+        pendingUniversalCounter: null,
+        imageBlocks: []
     };
 
     const PDFJS_WORKER_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     const PREVIEW_CACHE_DB = 'almaden-bookster-pdf-preview';
     const PREVIEW_CACHE_STORE = 'compiled-previews';
-    const PREVIEW_CACHE_VERSION = 'v2';
+    const PREVIEW_CACHE_VERSION = 'v3';
     const PREVIEW_CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
     function getZoomFactor() {
@@ -373,6 +374,11 @@
     }
 
     function payload() {
+        // The active textarea is the source of truth. Sync it before snapshotting
+        // chapters so Typst never receives an earlier image placeholder.
+        if (typeof syncRawEditorToState === 'function') {
+            syncRawEditorToState();
+        }
         const rawChapters = Array.isArray(bookState.chapters) ? bookState.chapters : [];
         let chapters = rawChapters.map(chapter => {
             const copy = { ...chapter };
@@ -421,7 +427,8 @@
             openingDebug: window.almadenTypstOpeningDebug || [],
             pageFlowMap: window.almadenPageTemplateFlowMap || [],
             pageTemplateResults: window.almadenPageTemplateResults || [],
-            universalCounter: shared.pendingUniversalCounter || getUniversalCounter() || null
+            universalCounter: shared.pendingUniversalCounter || getUniversalCounter() || null,
+            imageBlocks: shared.imageBlocks || []
         };
     }
 
@@ -431,6 +438,7 @@
         window.almadenPageTemplateFlowMap = metadata.pageFlowMap || [];
         window.almadenPageTemplateResults = metadata.pageTemplateResults || [];
         shared.pendingUniversalCounter = metadata.universalCounter || null;
+        shared.imageBlocks = Array.isArray(metadata.imageBlocks) ? metadata.imageBlocks : [];
         rebuildUniversalCounter();
         window.almadenPageTemplateState?.reconcileResults?.();
     }

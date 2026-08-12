@@ -1,76 +1,5 @@
-let mediaUploader;
-
 function getImageViewportEditorModal() {
     return document.getElementById('image-viewport-modal');
-}
-
-function getImageViewportDragSurface() {
-    const modal = getImageViewportEditorModal();
-    if (!modal) return null;
-    return modal.querySelector('#image-viewport-preview-viewport');
-}
-
-function startImageViewportDrag(event) {
-    const state = getImageViewportState();
-    if (!state.src) return;
-    if (event.target && typeof event.target.closest === 'function' && event.target.closest('.pdf-book-image-edit-handle')) {
-        return;
-    }
-
-    const surface = getImageViewportDragSurface();
-    if (!surface) return;
-
-    const position = parseImageViewportPosition(state.position);
-    setImageViewportState({
-        dragging: true,
-        dragStartX: event.clientX,
-        dragStartY: event.clientY,
-        dragStartPositionX: position.x,
-        dragStartPositionY: position.y,
-    });
-
-    surface.classList.add('is-dragging');
-    if (surface.setPointerCapture && event.pointerId !== undefined) {
-        try {
-            surface.setPointerCapture(event.pointerId);
-        } catch (err) {}
-    }
-
-    event.preventDefault();
-}
-
-function updateImageViewportDrag(event) {
-    const state = getImageViewportState();
-    if (!state.dragging) return;
-
-    const surface = getImageViewportDragSurface();
-    if (!surface) return;
-
-    const rect = surface.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
-
-    const deltaX = event.clientX - state.dragStartX;
-    const deltaY = event.clientY - state.dragStartY;
-    const nextX = state.dragStartPositionX + (deltaX / rect.width) * 100;
-    const nextY = state.dragStartPositionY + (deltaY / rect.height) * 100;
-
-    setImageViewportState({
-        position: formatImageViewportPosition(nextX, nextY),
-        committed: false,
-    });
-    updateImageViewportModalView();
-}
-
-function endImageViewportDrag() {
-    const state = getImageViewportState();
-    if (!state.dragging) return;
-
-    const surface = getImageViewportDragSurface();
-    if (surface) {
-        surface.classList.remove('is-dragging');
-    }
-
-    setImageViewportState({ dragging: false });
 }
 
 function openImageViewportFromBlock(blockId) {
@@ -91,34 +20,7 @@ function openImageViewportFromBlock(blockId) {
         }
     }
 
-    if (!window.imageViewportEditorState.src) {
-        openImageMediaPicker();
-    }
     return true;
-}
-
-function getBooksterAttachmentImageUrls(attachment) {
-    if (!attachment || typeof attachment !== 'object') {
-        return { originalUrl: '', previewUrl: '' };
-    }
-
-    const sizes = attachment.sizes || {};
-    const previewUrl = attachment.previewUrl
-        || attachment.preview_url
-        || (sizes.medium_large && sizes.medium_large.url)
-        || (sizes.large && sizes.large.url)
-        || (sizes.medium && sizes.medium.url)
-        || (sizes.thumbnail && sizes.thumbnail.url)
-        || attachment.url
-        || '';
-    const originalUrl = attachment.originalImageURL
-        || attachment.original_url
-        || attachment.fullUrl
-        || attachment.url
-        || previewUrl
-        || '';
-
-    return { originalUrl, previewUrl };
 }
 
 function replaceImageBlockMarkup(blockId, nextMarkup, options = {}) {
@@ -158,6 +60,7 @@ function updateImageViewportModalView() {
     const modal = getImageViewportEditorModal();
     if (!modal) return;
     const constraints = getImageViewportLayoutConstraints();
+    const safeMaxHeight = getImageViewportSafeMaxHeightPercent(state, constraints);
 
     const previewImage = modal.querySelector('#image-viewport-preview-image');
     const previewViewport = modal.querySelector('#image-viewport-preview-viewport');
@@ -171,14 +74,29 @@ function updateImageViewportModalView() {
     const controls = modal.querySelector('#image-viewport-controls');
     const zoomRange = modal.querySelector('#image-viewport-zoom');
     const heightRange = modal.querySelector('#image-viewport-height');
+    const heightMode = modal.querySelector('#image-viewport-height-mode');
+    const marginTop = modal.querySelector('#image-viewport-margin-top');
+    const marginBottom = modal.querySelector('#image-viewport-margin-bottom');
+    const captionGap = modal.querySelector('#image-viewport-caption-gap');
+    const captionAlign = modal.querySelector('#image-viewport-caption-align');
+    const positionX = modal.querySelector('#image-viewport-position-x');
+    const positionY = modal.querySelector('#image-viewport-position-y');
     const zoomValue = modal.querySelector('#image-viewport-zoom-value');
     const heightValue = modal.querySelector('#image-viewport-height-value');
+    const previewGrid = modal.querySelector('#image-viewport-preview-grid');
     const transformBtn = modal.querySelector('#image-viewport-transform-btn');
     const transformLabel = modal.querySelector('#image-viewport-transform-label');
     const changeBtn = modal.querySelector('#image-viewport-change-btn');
     const removeBtn = modal.querySelector('#image-viewport-remove-btn');
     const saveBtn = modal.querySelector('#image-viewport-save-btn');
     const saveLabel = modal.querySelector('#image-viewport-save-label');
+    const previewShell = modal.querySelector('#image-viewport-preview-viewport-shell');
+    const pageShell = modal.querySelector('#image-viewport-page-shell');
+    const fitButtons = modal.querySelectorAll('[data-image-viewport-fit]');
+    const modeButtons = modal.querySelectorAll('[data-image-viewport-mode]');
+    const presetButtons = modal.querySelectorAll('[data-image-viewport-preset]');
+    const position = parseImageViewportPosition(state.position);
+    const typstAnchor = getImageViewportTypstAnchor(state.position);
 
     if (previewImage) {
         if (state.src) {
@@ -187,10 +105,10 @@ function updateImageViewportModalView() {
             previewImage.classList.remove('hidden');
             previewImage.style.width = '100%';
             previewImage.style.height = '100%';
-            previewImage.style.objectFit = state.fit || 'cover';
-            previewImage.style.objectPosition = state.position || '50% 50%';
-            previewImage.style.transform = `scale(${Number(state.zoom || 1)})`;
-            previewImage.style.transformOrigin = state.position || '50% 50%';
+            previewImage.style.objectFit = state.heightMode === 'fixed' ? (state.fit || 'cover') : 'contain';
+            previewImage.style.objectPosition = state.heightMode === 'fixed' ? '50% 50%' : (state.position || '50% 50%');
+            previewImage.style.transform = state.heightMode === 'fixed' ? `scale(${Number(state.zoom || 1)})` : 'scale(1)';
+            previewImage.style.transformOrigin = state.heightMode === 'fixed' ? typstAnchor.css : (state.position || '50% 50%');
         } else {
             previewImage.removeAttribute('src');
             previewImage.alt = '';
@@ -204,13 +122,17 @@ function updateImageViewportModalView() {
         }
     }
 
+    if (pageShell) {
+        const pageRatio = constraints.contentWidthPx / Math.max(constraints.contentHeightPx, 1);
+        pageShell.style.aspectRatio = `${pageRatio}`;
+    }
+
     if (previewViewport) {
         previewViewport.style.width = '100%';
-        previewViewport.style.height = 'auto';
         const normalized = normalizeImageViewportStateToLayout(state, constraints);
         if (state.src && normalized.needsNormalization) {
             setImageViewportState({
-                viewportHeight: normalized.state.viewportHeight,
+                heightPercent: normalized.state.heightPercent,
                 committed: false,
                 layoutNormalized: true,
                 layoutMaxHeightPercent: normalized.maxHeightPercent,
@@ -222,8 +144,24 @@ function updateImageViewportModalView() {
             });
             state = getImageViewportState();
         }
-        previewViewport.style.aspectRatio = `${getImageViewportAspectRatio('100%', state.viewportHeight)}`;
+        const shellRect = pageShell ? pageShell.getBoundingClientRect() : { width: 0, height: 0 };
+        const naturalRatio = previewImage && previewImage.naturalWidth && previewImage.naturalHeight
+            ? previewImage.naturalWidth / previewImage.naturalHeight
+            : 1.5;
+        const scale = shellRect.width && constraints.contentWidthPx
+            ? shellRect.width / constraints.contentWidthPx
+            : 1;
+        const naturalAutoHeight = shellRect.width && naturalRatio ? Math.round(shellRect.width / naturalRatio) : 260;
+        const typstHeightPx = Math.round((constraints.contentHeightPx * Number(state.heightPercent || 45) / 100) * scale);
+        previewViewport.style.height = state.heightMode === 'fixed'
+            ? `${Math.max(80, Math.min(shellRect.height || typstHeightPx, typstHeightPx))}px`
+            : `${Math.min(Math.max(naturalAutoHeight, 180), Math.max(shellRect.height || naturalAutoHeight, 180))}px`;
+        previewViewport.style.aspectRatio = 'auto';
         previewViewport.classList.toggle('opacity-60', !state.src);
+        previewViewport.classList.toggle('cursor-grab', !!state.src && state.heightMode === 'fixed');
+        previewViewport.classList.toggle('cursor-default', state.heightMode !== 'fixed');
+        previewViewport.style.top = state.heightMode === 'fixed' ? `${(shellRect.height - Math.max(80, Math.min(shellRect.height || typstHeightPx, typstHeightPx))) / 2}px` : '0px';
+        previewViewport.style.left = '0px';
     }
 
     if (emptyState) {
@@ -234,20 +172,25 @@ function updateImageViewportModalView() {
         previewFrame.classList.toggle('opacity-60', !state.src);
     }
 
-    if (zoomRange) zoomRange.value = state.zoom || '1';
+    if (zoomRange) {
+        zoomRange.value = state.zoom || '1';
+        zoomRange.disabled = state.heightMode !== 'fixed';
+    }
+    if (heightMode) heightMode.value = state.heightMode || 'auto';
     if (heightRange) {
         heightRange.min = String(constraints.minHeightPercent);
-        heightRange.max = String(constraints.maxHeightPercent);
-        heightRange.value = state.viewportHeight ? parseImageViewportPercentValue(state.viewportHeight, 100) : 100;
+        heightRange.max = String(safeMaxHeight);
+        heightRange.value = state.heightPercent || '45';
+        heightRange.disabled = state.heightMode !== 'fixed';
     }
     if (zoomValue) zoomValue.textContent = `${Number(state.zoom || 1).toFixed(2)}x`;
-    if (heightValue) heightValue.textContent = state.viewportHeight || '100%';
+    if (heightValue) heightValue.textContent = state.heightMode === 'fixed' ? `${state.heightPercent || 45}% del área útil` : 'Automática';
     if (heightLimit) {
-        heightLimit.textContent = `Límite calculado: ${constraints.maxHeightPercent}% del ancho del content area`;
+        heightLimit.textContent = `Rango seguro: ${constraints.minHeightPercent}%–${safeMaxHeight}% del alto útil`;
     }
     if (heightWarning) {
-        const currentHeight = parseImageViewportPercentValue(state.viewportHeight, 100);
-        const tooTall = currentHeight >= constraints.maxHeightPercent;
+        const currentHeight = parseImageViewportPercentValue(state.heightPercent, 45);
+        const tooTall = currentHeight >= safeMaxHeight;
         const normalized = !!state.layoutNormalized;
         heightWarning.classList.toggle('hidden', !((tooTall || normalized) && state.src));
         heightWarning.textContent = normalized
@@ -258,14 +201,11 @@ function updateImageViewportModalView() {
     if (changeBtn) changeBtn.disabled = false;
     if (removeBtn) removeBtn.disabled = !state.inserted;
     if (saveBtn) saveBtn.disabled = !state.src;
-    if (controls && !state.src) {
-        controls.classList.add('hidden');
-    }
     if (transformLabel) {
-        transformLabel.textContent = controls && !controls.classList.contains('hidden') ? 'Ocultar Transform' : 'Transform';
+        transformLabel.textContent = 'Reiniciar encuadre';
     }
     if (saveLabel) {
-        saveLabel.textContent = state.committed ? 'Guardado' : 'Guardar';
+        saveLabel.textContent = state.committed ? 'Imagen guardada' : 'Guardar imagen';
     }
     if (saveBtn) {
         const wordCount = countImageViewportWords(state.caption);
@@ -285,11 +225,30 @@ function updateImageViewportModalView() {
     if (captionField) {
         captionField.value = state.caption || '';
     }
-
-    const modalTitle = modal.querySelector('#image-viewport-title');
-    if (modalTitle) {
-        modalTitle.textContent = state.src ? 'Editor de Viewport de Imagen' : 'Agregar Imagen';
+    if (marginTop) marginTop.value = state.marginTopMm || '0';
+    if (marginBottom) marginBottom.value = state.marginBottomMm || '0';
+    if (captionGap) captionGap.value = state.captionGapMm || '1.5';
+    if (captionAlign) captionAlign.value = state.captionAlign || 'left';
+    if (positionX) positionX.value = String(position.x);
+    if (positionY) positionY.value = String(position.y);
+    if (previewGrid) {
+        previewGrid.classList.toggle('hidden', !(state.src && state.heightMode === 'fixed'));
     }
+    fitButtons.forEach((button) => {
+        const isActive = button.dataset.imageViewportFit === (state.fit || 'cover');
+        button.className = `rounded-full border px-3 py-1 text-[11px] font-semibold transition ${isActive ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white/90 text-slate-600 hover:bg-white'}`;
+        button.disabled = state.heightMode !== 'fixed';
+    });
+    modeButtons.forEach((button) => {
+        const isActive = button.dataset.imageViewportMode === (state.heightMode || 'auto');
+        button.className = `rounded-xl border px-3 py-2 text-xs font-semibold transition ${isActive ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'}`;
+    });
+    presetButtons.forEach((button) => {
+        const isActive = button.dataset.imageViewportPreset === String(state.heightPercent || '45') && state.heightMode === 'fixed';
+        button.className = `rounded-full border px-3 py-1 text-[11px] font-semibold transition ${isActive ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-100'}`;
+        button.disabled = state.heightMode !== 'fixed';
+    });
+
 }
 
 function openImageViewportModal() {
@@ -305,6 +264,11 @@ function openImageViewportModal() {
         }
     });
     updateImageViewportModalView();
+    if (getImageViewportState().src) {
+        setImageViewportStage('adjust');
+    } else {
+        openImageMediaPicker();
+    }
 }
 
 function closeImageViewportModal() {
@@ -346,6 +310,12 @@ function commitImageViewportState(options = {}) {
         zoom: state.zoom,
         fit: state.fit,
         position: state.position,
+        heightMode: state.heightMode,
+        heightPercent: state.heightPercent,
+        marginTopMm: state.marginTopMm,
+        marginBottomMm: state.marginBottomMm,
+        captionGapMm: state.captionGapMm,
+        captionAlign: state.captionAlign,
         className: 'pdf-book-image',
     });
 
@@ -360,74 +330,13 @@ function commitImageViewportState(options = {}) {
     updateImageViewportModalView();
 }
 
-function openImageMediaPicker() {
-    if (typeof wp === 'undefined' || !wp.media) {
-        if (typeof showToast === 'function') {
-            showToast("Error: Media API no está disponible. Guarda y recarga la página.", "fa-solid fa-triangle-exclamation");
-        }
-        return;
-    }
-
-    if (mediaUploader) {
-        mediaUploader.open();
-        return;
-    }
-
-    mediaUploader = wp.media({
-        title: 'Seleccionar Imagen',
-        button: { text: 'Usar esta imagen' },
-        multiple: false,
-        library: { type: 'image' }
-    });
-
-    mediaUploader.on('select', function() {
-        const attachment = mediaUploader.state().get('selection').first().toJSON();
-        const urls = getBooksterAttachmentImageUrls(attachment);
-        const imgUrl = urls.originalUrl || urls.previewUrl || attachment.url;
-        const previewUrl = urls.previewUrl || imgUrl;
-    const imgAlt = attachment.alt || attachment.title || 'Imagen del libro';
-        setImageViewportState({
-            src: imgUrl,
-            previewSrc: previewUrl,
-            alt: imgAlt,
-            isPlaceholder: false,
-            committed: false,
-        });
-        updateImageViewportModalView();
-    });
-
-    mediaUploader.open();
-}
-
 function openMediaUploader() {
+    const selectedBlockId = window.almadenImageLayout?.getRawBlockIdAtCursor?.();
+    if (selectedBlockId && window.almadenImageLayout.openRawBlock(selectedBlockId)) return;
     const placeholder = createImageViewportState();
     setImageViewportState({
         ...placeholder,
         inserted: false,
-        committed: false,
-        isPlaceholder: true,
-        isNewBlock: true,
-    });
-
-    const placeholderMarkup = buildImageBlockMarkup({
-        blockId: placeholder.blockId,
-        src: '',
-        originalSrc: '',
-        previewSrc: '',
-        alt: '',
-        viewportWidth: '100%',
-        viewportHeight: placeholder.viewportHeight,
-        zoom: placeholder.zoom,
-        fit: placeholder.fit,
-        position: placeholder.position,
-        caption: placeholder.caption,
-        className: 'pdf-book-image',
-        isPlaceholder: true,
-    });
-    insertAtCursor(placeholderMarkup);
-    setImageViewportState({
-        blockId: placeholder.blockId,
-        inserted: true,
         committed: false,
         isPlaceholder: true,
         isNewBlock: true,
@@ -443,23 +352,53 @@ function removeCurrentImageBlock() {
     }
     setImageViewportState(createImageViewportState());
     updateImageViewportModalView();
+    openImageMediaPicker();
 }
 
 function updateImageViewportControl(property, value) {
     const nextState = {};
     if (property === 'zoom') {
         nextState.zoom = String(value);
+    } else if (property === 'fit') {
+        nextState.fit = value === 'contain' ? 'contain' : 'cover';
     } else if (property === 'viewportHeight') {
         const constraints = getImageViewportLayoutConstraints();
         const parsed = parseImageViewportPercentValue(value, 100);
         const clamped = clampImageViewportNumber(parsed, constraints.minHeightPercent, constraints.maxHeightPercent);
         nextState.viewportHeight = `${clamped}%`;
         nextState.layoutNormalized = false;
+    } else if (property === 'heightMode') {
+        nextState.heightMode = value === 'fixed' ? 'fixed' : 'auto';
+    } else if (property === 'heightPercent') {
+        const constraints = getImageViewportLayoutConstraints();
+        nextState.heightPercent = String(clampImageViewportNumber(parseImageViewportPercentValue(value, 45), constraints.minHeightPercent, getImageViewportSafeMaxHeightPercent(getImageViewportState(), constraints)));
+        nextState.layoutNormalized = false;
+    } else if (property === 'positionX' || property === 'positionY') {
+        const current = parseImageViewportPosition(getImageViewportState().position);
+        const nextX = property === 'positionX' ? Number.parseFloat(value) : current.x;
+        const nextY = property === 'positionY' ? Number.parseFloat(value) : current.y;
+        nextState.position = formatImageViewportPosition(nextX, nextY);
+    } else if (property === 'marginTopMm' || property === 'marginBottomMm') {
+        nextState[property] = String(clampImageViewportNumber(Number.parseFloat(value) || 0, 0, 30));
+    } else if (property === 'captionGapMm') {
+        nextState.captionGapMm = String(clampImageViewportNumber(Number.parseFloat(value) || 0, 0, 10));
+    } else if (property === 'captionAlign') {
+        nextState.captionAlign = ['left', 'center', 'right'].includes(value) ? value : 'left';
     } else if (property === 'caption') {
         nextState.caption = String(value || '');
     }
     nextState.committed = false;
     setImageViewportState(nextState);
+    updateImageViewportModalView();
+}
+
+function resetImageViewportTransform() {
+    setImageViewportState({
+        zoom: '1',
+        fit: 'cover',
+        position: '50% 50%',
+        committed: false,
+    });
     updateImageViewportModalView();
 }
 
@@ -472,7 +411,7 @@ function saveImageViewportState() {
     const normalized = normalizeImageViewportStateToLayout(state, constraints);
     if (normalized.needsNormalization) {
         setImageViewportState({
-            viewportHeight: normalized.state.viewportHeight,
+            heightPercent: normalized.state.heightPercent,
             committed: false,
             layoutNormalized: true,
             layoutMaxHeightPercent: normalized.maxHeightPercent,
@@ -513,20 +452,11 @@ function saveImageViewportState() {
     if (typeof showToast === 'function') {
         showToast('Viewport guardado en el PDF', 'fa-solid fa-floppy-disk');
     }
+    closeImageViewportModal();
 }
 
 function toggleImageViewportAdvancedControls(forceOpen = null) {
-    const modal = getImageViewportEditorModal();
-    if (!modal) return;
-    const controls = modal.querySelector('#image-viewport-controls');
-    if (!controls) return;
-
-    const shouldOpen = forceOpen === null ? controls.classList.contains('hidden') : !!forceOpen;
-    controls.classList.toggle('hidden', !shouldOpen);
-    const transformLabel = modal.querySelector('#image-viewport-transform-label');
-    if (transformLabel) {
-        transformLabel.textContent = shouldOpen ? 'Ocultar Transform' : 'Transform';
-    }
+    resetImageViewportTransform();
 }
 
 document.addEventListener('keydown', (event) => {
@@ -535,19 +465,6 @@ document.addEventListener('keydown', (event) => {
     if (!modal || modal.classList.contains('hidden')) return;
     closeImageViewportModal();
 });
-
-document.addEventListener('pointermove', (event) => {
-    if (typeof getImageViewportState !== 'function' || !getImageViewportState().dragging) return;
-    updateImageViewportDrag(event);
-}, true);
-
-document.addEventListener('pointerup', () => {
-    if (typeof endImageViewportDrag === 'function') endImageViewportDrag();
-}, true);
-
-document.addEventListener('pointercancel', () => {
-    if (typeof endImageViewportDrag === 'function') endImageViewportDrag();
-}, true);
 
 document.addEventListener('click', (event) => {
     const handle = event.target && event.target.closest
@@ -567,16 +484,9 @@ document.addEventListener('click', (event) => {
     }
 }, true);
 
-document.addEventListener('pointerdown', (event) => {
-    const viewport = event.target && typeof event.target.closest === 'function'
-        ? event.target.closest('#image-viewport-preview-viewport, #image-viewport-preview-image')
-        : null;
-    if (!viewport) return;
-    startImageViewportDrag(event);
-}, true);
-
 window.openMediaUploader = openMediaUploader;
 window.openImageViewportModal = openImageViewportModal;
 window.closeImageViewportModal = closeImageViewportModal;
 window.openImageViewportFromBlock = openImageViewportFromBlock;
 window.saveImageViewportState = saveImageViewportState;
+window.resetImageViewportTransform = resetImageViewportTransform;

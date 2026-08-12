@@ -508,8 +508,10 @@ function almaden_bookster_load_cover_editor() {
 		$cover_nonce = wp_create_nonce( 'almaden_save_cover_nonce_' . $book_id );
 		$cover_export_nonce = wp_create_nonce( 'almaden_export_cover_pdf_' . $book_id );
 		
-		// Load installed fonts
-		$installed_fonts = get_option( 'almaden_fonts_library', array() );
+		// Load available fonts, including bundled defaults.
+		$installed_fonts = function_exists( 'almaden_bookster_get_available_fonts_list' )
+			? almaden_bookster_get_available_fonts_list()
+			: get_option( 'almaden_fonts_library', array() );
 		
 		$page_width = get_post_meta( $book_id, '_almaden_page_width', true );
 		$page_height = get_post_meta( $book_id, '_almaden_page_height', true );

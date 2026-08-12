@@ -118,6 +118,7 @@ function addPrefix(prefix) {
     }
 
     const textarea = surface;
+    restoreToolbarSelection(textarea);
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const text = textarea.value;
@@ -146,6 +147,7 @@ function insertAtCursor(text) {
     }
 
     const textarea = surface;
+    restoreToolbarSelection(textarea);
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const value = textarea.value;

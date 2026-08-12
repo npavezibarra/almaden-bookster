@@ -8,6 +8,35 @@ function openParityImageUploader() {
         return;
     }
 
+    const applySelection = (attachment) => {
+        if (!attachment) return;
+        const imgUrl = attachment.originalUrl || attachment.originalImageURL || attachment.url || '';
+        const chapter = bookState.chapters.find(c => c.id === bookState.activeChapterId);
+        if (chapter) {
+            chapter.parity_image = imgUrl;
+            if (typeof showToast === 'function') {
+                showToast("Imagen de paridad asignada al capítulo", "fa-solid fa-image");
+            }
+
+            triggerEditorUpdate('raw');
+
+            if (typeof refreshEditorDisplay === 'function') {
+                refreshEditorDisplay(false);
+            }
+        }
+    };
+
+    if (window.AlmadenBooksterMediaPicker && bookState && bookState.bookId && bookState.mediaPickerNonce) {
+        window.AlmadenBooksterMediaPicker.open({
+            bookId: bookState.bookId,
+            ajaxUrl: bookState.ajaxUrl,
+            nonce: bookState.mediaPickerNonce,
+            title: 'Seleccionar Imagen para Página en Blanco (Paridad)',
+            buttonText: 'Establecer como imagen de paridad'
+        }).then(applySelection).catch(() => {});
+        return;
+    }
+
     if (parityMediaUploader) {
         parityMediaUploader.open();
         return;
@@ -29,21 +58,7 @@ function openParityImageUploader() {
 
     parityMediaUploader.on('select', function() {
         const attachment = parityMediaUploader.state().get('selection').first().toJSON();
-        const imgUrl = attachment.originalImageURL || attachment.url;
-
-        const chapter = bookState.chapters.find(c => c.id === bookState.activeChapterId);
-        if (chapter) {
-            chapter.parity_image = imgUrl;
-            if (typeof showToast === 'function') {
-                showToast("Imagen de paridad asignada al capítulo", "fa-solid fa-image");
-            }
-
-            triggerEditorUpdate('raw');
-
-            if (typeof refreshEditorDisplay === 'function') {
-                refreshEditorDisplay(false);
-            }
-        }
+        applySelection(attachment);
     });
 
     parityMediaUploader.open();

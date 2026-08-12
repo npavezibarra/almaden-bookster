@@ -152,6 +152,39 @@
     }
 
     function openMediaUploader(rowData) {
+        const applySelection = (attachment) => {
+            if (!attachment) return;
+            const templates = getTemplates();
+            const templateIndex = templates.findIndex(template => (
+                window.almadenPageTemplateState.getInstanceId(template) === normalizeId(rowData.instance_id)
+            ));
+            if (templateIndex < 0) return;
+
+            const slot = (templates[templateIndex].slots || []).find(entry => normalizeId(entry?.id) === normalizeId(rowData.slot_id));
+            if (!slot) return;
+
+            const originalUrl = attachment.originalUrl || attachment.originalImageURL || attachment.url || '';
+            const previewUrl = attachment.previewUrl || attachment.sizes?.medium?.url || attachment.sizes?.thumbnail?.url || originalUrl;
+            slot.attachment_id = Number(attachment.id) || 0;
+            slot.url = originalUrl || previewUrl || '';
+            slot.original_url = originalUrl || slot.url;
+            slot.preview_url = previewUrl || slot.url;
+            window.bookState.settings.page_templates = templates;
+
+            saveAndRefresh(`Imagen asignada a ${rowData.slot_id}.`);
+        };
+
+        if (window.AlmadenBooksterMediaPicker && bookState && bookState.bookId && bookState.mediaPickerNonce) {
+            window.AlmadenBooksterMediaPicker.open({
+                bookId: bookState.bookId,
+                ajaxUrl: bookState.ajaxUrl,
+                nonce: bookState.mediaPickerNonce,
+                title: `Asignar imagen a ${rowData.slot_label}`,
+                buttonText: 'Usar esta imagen'
+            }).then(applySelection).catch(() => {});
+            return;
+        }
+
         if (typeof wp === 'undefined' || !wp.media) {
             if (typeof window.showToast === 'function') {
                 window.showToast('La biblioteca multimedia no está disponible.', 'fa-solid fa-circle-exclamation');
@@ -175,24 +208,7 @@
 
         mediaFrame.on('select', function () {
             const attachment = mediaFrame.state().get('selection').first().toJSON();
-            const originalUrl = attachment.originalImageURL || attachment.url || '';
-            const previewUrl = attachment.sizes?.medium?.url || attachment.sizes?.thumbnail?.url || attachment.url || originalUrl;
-            const templates = getTemplates();
-            const templateIndex = templates.findIndex(template => (
-                window.almadenPageTemplateState.getInstanceId(template) === normalizeId(rowData.instance_id)
-            ));
-            if (templateIndex < 0) return;
-
-            const slot = (templates[templateIndex].slots || []).find(entry => normalizeId(entry?.id) === normalizeId(rowData.slot_id));
-            if (!slot) return;
-
-            slot.attachment_id = Number(attachment.id) || 0;
-            slot.url = originalUrl || previewUrl || '';
-            slot.original_url = originalUrl || slot.url;
-            slot.preview_url = previewUrl || slot.url;
-            window.bookState.settings.page_templates = templates;
-
-            saveAndRefresh(`Imagen asignada a ${rowData.slot_id}.`);
+            applySelection(attachment);
         });
 
         mediaFrame.open();

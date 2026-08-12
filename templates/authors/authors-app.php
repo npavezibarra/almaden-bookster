@@ -14,10 +14,11 @@ $authors = get_users(
 );
 
 $extra_head_html = sprintf(
-	'<link href="%1$s" rel="stylesheet"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="%2$s"><link rel="stylesheet" href="%3$s">',
+	'%4$s<link href="%1$s" rel="stylesheet"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="%2$s"><link rel="stylesheet" href="%3$s">',
 	esc_url( almaden_get_thumbnail_fonts_url() ),
 	esc_url( 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css' ),
-	esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/css/authors/authors-app.css' ) . '?v=' . esc_attr( filemtime( dirname( __FILE__ ) . '/../../assets/css/authors/authors-app.css' ) )
+	esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/css/authors/authors-app.css' ) . '?v=' . esc_attr( filemtime( dirname( __FILE__ ) . '/../../assets/css/authors/authors-app.css' ) ),
+	function_exists( 'almaden_bookster_get_bundled_fonts_stylesheet_url' ) ? '<link rel="stylesheet" href="' . esc_url( almaden_bookster_get_bundled_fonts_stylesheet_url() ) . '">' : ''
 );
 
 almaden_bookster_render_app_shell_start(

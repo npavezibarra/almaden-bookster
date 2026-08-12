@@ -9,6 +9,8 @@ if ( ! defined( 'ABSPATH' ) && ! defined( 'ALMADEN_TYPST_TESTING' ) ) {
 	exit;
 }
 
+require_once __DIR__ . '/typst-image-block.php';
+
 /**
  * Escape plain text for Typst markup mode.
  */
@@ -184,47 +186,6 @@ function almaden_bookster_typst_parse_html_attributes( $tag ) {
 	return $attributes;
 }
 
-function almaden_bookster_typst_render_content_image_block( $html, &$assets, $asset_mode = 'original' ) {
-	$html = trim( (string) $html );
-	if ( '' === $html || ! preg_match( '/<img\b[^>]*>/i', $html, $img_match ) ) {
-		return '';
-	}
-
-	if ( ! is_array( $assets ) ) {
-		$assets = array();
-	}
-
-	$figure_attrs = almaden_bookster_typst_parse_html_attributes( $html );
-	$img_attrs = almaden_bookster_typst_parse_html_attributes( $img_match[0] );
-	$source = array(
-		'url'         => trim( (string) ( $img_attrs['src'] ?? '' ) ),
-		'original_url' => trim( (string) ( $img_attrs['data-original-src'] ?? $img_attrs['src'] ?? '' ) ),
-		'preview_url' => trim( (string) ( $img_attrs['data-preview-src'] ?? '' ) ),
-	);
-	$image_url = almaden_bookster_typst_resolve_image_url_for_asset_mode( $source, $asset_mode );
-	$image_asset = almaden_bookster_typst_register_upload( array_merge( $source, array( 'url' => $image_url ) ), $assets, $asset_mode );
-	if ( '' === $image_asset ) {
-		return '';
-	}
-
-	$caption = '';
-	if ( preg_match( '/<figcaption\b[^>]*>([\s\S]*?)<\/figcaption>/i', $html, $caption_match ) ) {
-		$caption = trim( preg_replace( '/<[^>]+>/', ' ', $caption_match[1] ) );
-	}
-	$fit = strtolower( trim( (string) ( $figure_attrs['data-fit'] ?? 'contain' ) ) );
-	if ( ! in_array( $fit, array( 'contain', 'cover', 'stretch', 'fill' ), true ) ) {
-		$fit = 'contain';
-	}
-	$caption_markup = '';
-	if ( '' !== $caption ) {
-		$caption_markup = "\n#v(1.5mm)\n#align(center)[#text(size: 8.5pt)[ " . almaden_bookster_typst_escape_markup( $caption ) . ' ]]';
-	}
-
-	return '#block(breakable: false, width: 100%)[' . "\n" .
-		'#align(center)[#image("' . almaden_bookster_typst_escape_string( $image_asset ) . '", width: 100%, fit: "' . almaden_bookster_typst_escape_string( $fit ) . '")]' .
-		$caption_markup . "\n]";
-}
-
 /**
  * Render RAW block syntax.
  */
@@ -262,7 +223,7 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 		: ( 'original' === (string) ( $options['asset_mode'] ?? '' ) ? 'original' : 'optimized' );
 	$image_placeholders = array();
 	$image_counter = 0;
-	$raw = preg_replace_callback( '/<figure\b[\s\S]*?<\/figure>/i', function ( $match ) use ( &$image_placeholders, &$image_counter, &$assets, $asset_mode ) {
+	$raw = preg_replace_callback( '/<figure\b[\s\S]*?<\/figure>/i', function ( $match ) use ( &$image_placeholders, &$image_counter, &$assets, $asset_mode, $options ) {
 		$figure = (string) ( $match[0] ?? '' );
 		if (
 			false === stripos( $figure, 'pdf-book-image-block' )
@@ -273,9 +234,9 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 		}
 
 		$placeholder = '%%ALMADEN_IMAGE_BLOCK_' . $image_counter++ . '%%';
-		$rendered = almaden_bookster_typst_render_content_image_block( $figure, $assets, $asset_mode );
+		$rendered = almaden_bookster_typst_render_content_image_block( $figure, $assets, array_merge( $options, array( 'asset_mode' => $asset_mode ) ) );
 		if ( '' === $rendered ) {
-			return $figure;
+			return "\n";
 		}
 		$image_placeholders[ $placeholder ] = $rendered;
 		return "\n" . $placeholder . "\n";

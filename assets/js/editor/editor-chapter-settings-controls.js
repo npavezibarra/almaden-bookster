@@ -108,6 +108,25 @@ function toggleChapterImageSettingsForChapter() {
 
 let mediaUploaderChapterImageForChapter;
 function openChapterImageUploaderForChapter() {
+    const applySelection = (attachment) => {
+        if (!attachment) return;
+        const input = document.getElementById('chapter_image_url');
+        if (input) {
+            input.value = attachment.originalUrl || attachment.originalImageURL || attachment.url || '';
+        }
+    };
+
+    if (window.AlmadenBooksterMediaPicker && bookState && bookState.bookId && bookState.mediaPickerNonce) {
+        window.AlmadenBooksterMediaPicker.open({
+            bookId: bookState.bookId,
+            ajaxUrl: bookState.ajaxUrl,
+            nonce: bookState.mediaPickerNonce,
+            title: 'Seleccionar Imagen de Chapter Image',
+            buttonText: 'Usar esta imagen'
+        }).then(applySelection).catch(() => {});
+        return;
+    }
+
     if (typeof wp === 'undefined' || !wp.media) {
         alert('El mecanismo de Media de WordPress no está disponible en esta pantalla. Asegúrate de guardar y recargar la página.');
         return;
@@ -127,10 +146,7 @@ function openChapterImageUploaderForChapter() {
 
     mediaUploaderChapterImageForChapter.on('select', function() {
         const attachment = mediaUploaderChapterImageForChapter.state().get('selection').first().toJSON();
-        const input = document.getElementById('chapter_image_url');
-        if (input) {
-            input.value = attachment.originalImageURL || attachment.url;
-        }
+        applySelection(attachment);
     });
 
     mediaUploaderChapterImageForChapter.open();

@@ -9,7 +9,7 @@ function almaden_bookster_is_book_image_upload_request() {
 	}
 
 	$action = isset( $_REQUEST['action'] ) ? sanitize_key( (string) wp_unslash( $_REQUEST['action'] ) ) : '';
-	if ( ! in_array( $action, array( 'upload-attachment', 'async-upload' ), true ) ) {
+	if ( ! in_array( $action, array( 'upload-attachment', 'async-upload', 'almaden_bookster_book_media_upload' ), true ) ) {
 		return false;
 	}
 
@@ -189,3 +189,23 @@ function almaden_bookster_generate_book_image_preview_on_upload( $metadata, $att
 }
 
 add_filter( 'wp_generate_attachment_metadata', 'almaden_bookster_generate_book_image_preview_on_upload', 20, 2 );
+
+function almaden_bookster_store_book_media_subdir_for_attachment( $metadata, $attachment_id ) {
+	if ( ! almaden_bookster_is_book_image_upload_request() ) {
+		return $metadata;
+	}
+
+	$book_id = isset( $_REQUEST['post_id'] ) ? absint( $_REQUEST['post_id'] ) : 0;
+	if ( $book_id <= 0 ) {
+		return $metadata;
+	}
+
+	$subdir = function_exists( 'almaden_bookster_get_book_media_subdir' ) ? almaden_bookster_get_book_media_subdir( $book_id ) : '';
+	if ( '' !== $subdir ) {
+		update_post_meta( $attachment_id, '_almaden_book_media_subdir', $subdir );
+	}
+
+	return $metadata;
+}
+
+add_filter( 'wp_generate_attachment_metadata', 'almaden_bookster_store_book_media_subdir_for_attachment', 25, 2 );

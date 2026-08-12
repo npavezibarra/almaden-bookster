@@ -129,12 +129,15 @@ function almaden_bookster_build_cover_thumbnail_snapshot_html_doc( $book_id, $vi
 
     $fonts_url = function_exists( 'almaden_get_thumbnail_fonts_url' ) ? almaden_get_thumbnail_fonts_url() : '';
     ob_start();
-    ?>
+	?>
 <!doctype html>
 <html lang="es">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<?php if ( function_exists( 'almaden_bookster_get_bundled_fonts_stylesheet_url' ) ) : ?>
+		<link rel="stylesheet" href="<?php echo esc_url( almaden_bookster_get_bundled_fonts_stylesheet_url() ); ?>">
+	<?php endif; ?>
 	<?php if ( ! empty( $fonts_url ) ) : ?>
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

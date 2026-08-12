@@ -156,6 +156,17 @@ Funciones principales:
 - `almaden_bookster_typst_credits_*()`
 - `almaden_bookster_typst_chapter_opening_visibility()`
 
+### `typst-compiler-assets.php`
+
+Responsabilidad: copiar y verificar atómicamente las imágenes dentro del
+directorio temporal antes de que Typst consulte o compile el documento.
+
+### `typst-image-block.php`
+
+Responsabilidad: convertir el `<figure data-image-block>` en una imagen Typst
+con altura, márgenes y pie de foto, y emitir la geometría necesaria para que
+PDF.js seleccione la imagen sin seleccionar su página.
+
 ### `typst-document-render-helpers.php`
 
 Responsabilidad: utilidades de render específico para Typst.

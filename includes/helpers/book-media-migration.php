@@ -409,6 +409,11 @@ function almaden_bookster_move_attachment_into_book_media_folder( $attachment_id
 		);
 	}
 
+	$subdir = function_exists( 'almaden_bookster_get_book_media_subdir' ) ? almaden_bookster_get_book_media_subdir( $book_id ) : '';
+	if ( '' !== $subdir ) {
+		update_post_meta( $attachment_id, '_almaden_book_media_subdir', $subdir );
+	}
+
 	if ( $file_changed ) {
 		$stats['attachments_moved'] = isset( $stats['attachments_moved'] ) ? absint( $stats['attachments_moved'] ) + 1 : 1;
 		$stats['attachment_files_moved'] = isset( $stats['attachment_files_moved'] ) ? absint( $stats['attachment_files_moved'] ) + $files_moved : $files_moved;

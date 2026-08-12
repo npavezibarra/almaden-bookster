@@ -13,6 +13,19 @@ function almaden_bookster_is_book_media_upload_request() {
 		: false;
 }
 
+function almaden_bookster_get_requested_book_media_book_id() {
+	if ( ! function_exists( 'wp_doing_ajax' ) || ! wp_doing_ajax() ) {
+		return 0;
+	}
+
+	$action = isset( $_REQUEST['action'] ) ? sanitize_key( (string) wp_unslash( $_REQUEST['action'] ) ) : '';
+	if ( ! in_array( $action, array( 'upload-attachment', 'async-upload', 'almaden_bookster_book_media_upload', 'almaden_bookster_book_media_list' ), true ) ) {
+		return 0;
+	}
+
+	return isset( $_REQUEST['book_id'] ) ? absint( $_REQUEST['book_id'] ) : ( isset( $_REQUEST['post_id'] ) ? absint( $_REQUEST['post_id'] ) : 0 );
+}
+
 function almaden_bookster_normalize_book_media_folder_slug( $value ) {
 	$value = sanitize_title( (string) $value );
 	return '' !== $value ? $value : '';
@@ -139,18 +152,42 @@ function almaden_bookster_ensure_book_media_directory( $book_id ) {
 	return $subdir;
 }
 
+function almaden_bookster_persist_book_media_subdir( $book_id ) {
+	$subdir = almaden_bookster_get_book_media_subdir( $book_id );
+	if ( '' === $subdir ) {
+		return '';
+	}
+
+	$saved = almaden_bookster_normalize_book_media_folder_slug(
+		get_post_meta( $book_id, almaden_bookster_get_book_media_subdir_meta_key(), true )
+	);
+	if ( '' === $saved ) {
+		update_post_meta( $book_id, almaden_bookster_get_book_media_subdir_meta_key(), $subdir );
+	}
+
+	return $subdir;
+}
+
 function almaden_bookster_filter_book_upload_dir( $uploads ) {
+	static $filtering = false;
+
+	if ( $filtering ) {
+		return $uploads;
+	}
+
 	if ( ! function_exists( 'almaden_bookster_is_book_media_upload_request' ) || ! almaden_bookster_is_book_media_upload_request() ) {
 		return $uploads;
 	}
 
-	$book_id = isset( $_REQUEST['post_id'] ) ? absint( $_REQUEST['post_id'] ) : 0;
+	$book_id = almaden_bookster_get_requested_book_media_book_id();
 	if ( $book_id <= 0 || 'almaden-books' !== get_post_type( $book_id ) ) {
 		return $uploads;
 	}
 
-	$subdir = almaden_bookster_ensure_book_media_directory( $book_id );
+	$filtering = true;
+	$subdir = almaden_bookster_persist_book_media_subdir( $book_id );
 	if ( '' === $subdir ) {
+		$filtering = false;
 		return $uploads;
 	}
 
@@ -159,6 +196,7 @@ function almaden_bookster_filter_book_upload_dir( $uploads ) {
 	$uploads['url']    = trailingslashit( $uploads['baseurl'] ) . ltrim( $subdir, '/' );
 
 	wp_mkdir_p( $uploads['path'] );
+	$filtering = false;
 
 	return $uploads;
 }

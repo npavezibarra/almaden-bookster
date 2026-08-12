@@ -400,6 +400,30 @@
     }
 
     function openMediaUploader() {
+        const applySelection = (attachment) => {
+            if (!attachment) return;
+            const originalUrl = attachment.originalUrl || attachment.originalImageURL || attachment.url || '';
+            const previewUrl = attachment.previewUrl || attachment.sizes?.medium?.url || attachment.sizes?.thumbnail?.url || attachment.url || originalUrl;
+            setImageFieldValues({
+                attachment_id: Number(attachment.id) || 0,
+                original_url: originalUrl || previewUrl || '',
+                preview_url: previewUrl || originalUrl || '',
+                url: originalUrl || previewUrl || ''
+            });
+            updateActionButtons();
+        };
+
+        if (window.AlmadenBooksterMediaPicker && bookState && bookState.bookId && bookState.mediaPickerNonce) {
+            window.AlmadenBooksterMediaPicker.open({
+                bookId: bookState.bookId,
+                ajaxUrl: bookState.ajaxUrl,
+                nonce: bookState.mediaPickerNonce,
+                title: 'Seleccionar imagen de fondo',
+                buttonText: 'Usar esta imagen'
+            }).then(applySelection).catch(() => {});
+            return;
+        }
+
         if (typeof wp === 'undefined' || !wp.media) {
             if (typeof window.showToast === 'function') {
                 window.showToast('La biblioteca multimedia no está disponible.', 'fa-solid fa-circle-exclamation');
@@ -419,15 +443,7 @@
         mediaFrame.off('select');
         mediaFrame.on('select', function () {
             const attachment = mediaFrame.state().get('selection').first().toJSON();
-            const originalUrl = attachment.originalImageURL || attachment.url || '';
-            const previewUrl = attachment.sizes?.medium?.url || attachment.sizes?.thumbnail?.url || attachment.url || originalUrl;
-            setImageFieldValues({
-                attachment_id: Number(attachment.id) || 0,
-                original_url: originalUrl || previewUrl || '',
-                preview_url: previewUrl || originalUrl || '',
-                url: originalUrl || previewUrl || ''
-            });
-            updateActionButtons();
+            applySelection(attachment);
         });
 
         mediaFrame.open();

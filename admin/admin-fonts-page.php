@@ -89,6 +89,7 @@ function almaden_bookster_fonts_page_render() {
 	}
 
 	$api_key         = get_option( 'almaden_google_fonts_api_key', '' );
+	$bundled_fonts   = function_exists( 'almaden_bookster_get_bundled_fonts_list' ) ? almaden_bookster_get_bundled_fonts_list() : array();
 	$installed_fonts = almaden_bookster_get_installed_fonts_list();
 
 	$gdrive_client_email = get_option( 'bookcraft_gdrive_client_email', '' );
@@ -101,7 +102,7 @@ function almaden_bookster_fonts_page_render() {
 				<span class="dashicons dashicons-google"></span>
 				<h1>Google APIs — AlmadenBookster</h1>
 			</div>
-			<p class="almaden-fonts-subtitle">Gestiona las conexiones a los servicios de Google (Drive para exportación de PDFs y Fonts para tipografías).</p>
+			<p class="almaden-fonts-subtitle">Gestiona las conexiones a los servicios de Google (Drive para exportación de PDFs y Fonts para tipografías) y revisa qué fuentes vienen incluidas con el plugin.</p>
 		</div>
 
 		<!-- API KEY SECTION -->
@@ -187,6 +188,27 @@ function almaden_bookster_fonts_page_render() {
 			</div>
 			<div id="almaden-fonts-loading" class="almaden-fonts-loading" style="display:none;">
 				<span class="spinner is-active"></span> Cargando fuentes...
+			</div>
+		</div>
+
+		<!-- BUNDLED FONTS SECTION -->
+		<div class="almaden-fonts-card almaden-bundled-card">
+			<h2><span class="dashicons dashicons-star-filled"></span> Fuentes Incluidas en el Plugin <span class="almaden-badge"><?php echo count( $bundled_fonts ); ?></span></h2>
+			<p class="description">Estas tipografías ya están disponibles sin instalación: se cargan automáticamente cuando las usas en el editor o en la portada.</p>
+			<div id="almaden-bundled-list" class="almaden-installed-list">
+				<?php if ( empty( $bundled_fonts ) ) : ?>
+					<p class="almaden-no-fonts">No hay fuentes incluidas configuradas.</p>
+				<?php else : ?>
+					<?php foreach ( $bundled_fonts as $font ) : ?>
+						<div class="almaden-installed-item almaden-bundled-item" data-family="<?php echo esc_attr( $font['family'] ); ?>">
+							<div class="almaden-installed-info">
+								<strong><?php echo esc_html( $font['family'] ); ?></strong>
+								<span class="almaden-category-badge"><?php echo esc_html( $font['category'] ); ?></span>
+								<span class="almaden-category-badge" style="background:#ecfeff;color:#155e75;">Incluida</span>
+							</div>
+						</div>
+					<?php endforeach; ?>
+				<?php endif; ?>
 			</div>
 		</div>
 

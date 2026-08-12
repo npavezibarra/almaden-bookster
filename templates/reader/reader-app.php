@@ -180,6 +180,9 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
     <!-- Google Fonts for Cover -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <?php if ( function_exists( 'almaden_bookster_get_bundled_fonts_stylesheet_url' ) ) : ?>
+    <link rel="stylesheet" href="<?php echo esc_url( almaden_bookster_get_bundled_fonts_stylesheet_url() ); ?>">
+    <?php endif; ?>
     <link href="<?php echo esc_url($fonts_url); ?>" rel="stylesheet">
     <!-- Urbanist Font for UI -->
     <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&amp;display=swap" rel="stylesheet">

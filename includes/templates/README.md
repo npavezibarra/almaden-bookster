@@ -3,4 +3,5 @@
 Este directorio forma parte del plugin Almaden Bookster.
 Archivos y subdirectorios contenidos aquí:
 
-* settings
+* book-templates
+* settings (legacy)

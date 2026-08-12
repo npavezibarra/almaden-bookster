@@ -18,6 +18,12 @@ function readImageBlockStateFromElement(block) {
         zoom: block.getAttribute('data-zoom') || '1',
         fit: block.getAttribute('data-fit') || 'cover',
         position: block.getAttribute('data-position') || '50% 50%',
+        heightMode: block.getAttribute('data-height-mode') === 'fixed' ? 'fixed' : 'auto',
+        heightPercent: block.getAttribute('data-height-percent') || '45',
+        marginTopMm: block.getAttribute('data-margin-top-mm') || '0',
+        marginBottomMm: block.getAttribute('data-margin-bottom-mm') || '0',
+        captionGapMm: block.getAttribute('data-caption-gap-mm') || '1.5',
+        captionAlign: block.getAttribute('data-caption-align') || 'left',
         isPlaceholder: !img || !img.getAttribute('src'),
         isNewBlock: false,
         inserted: true,
@@ -52,6 +58,12 @@ function createImageViewportState(overrides = {}) {
         zoom: '1',
         fit: 'cover',
         position: '50% 50%',
+        heightMode: 'auto',
+        heightPercent: '45',
+        marginTopMm: '0',
+        marginBottomMm: '0',
+        captionGapMm: '1.5',
+        captionAlign: 'left',
         isPlaceholder: true,
         isNewBlock: false,
         inserted: false,
@@ -110,12 +122,15 @@ function getImageViewportLayoutConstraints() {
     const settings = typeof bookState !== 'undefined' && bookState && bookState.settings ? bookState.settings : {};
     const geometry = typeof window.resolvePDFGeometry === 'function'
         ? window.resolvePDFGeometry(settings)
-        : null;
+        : (window.almadenTypstPdfState?.shared?.currentGeometry || null);
     const unit = (geometry && geometry.unit) || settings.unit || 'cm';
-    const conversionFactor = (geometry && geometry.conversionFactor)
-        || (unit === 'cm' ? 37.7952755906 : 96);
+    const conversionFactors = { mm: 96 / 25.4, cm: 96 / 2.54, in: 96, pt: 96 / 72 };
+    const conversionFactor = (geometry && geometry.conversionFactor) || conversionFactors[unit] || conversionFactors.cm;
     const trimWidth = (geometry && geometry.width) || parseFloat(settings.page_width) || 21;
-    const contentHeightPx = Math.max((geometry && geometry.maxPageContentHeight) || 0, 1);
+    const trimHeight = (geometry && geometry.height) || parseFloat(settings.page_height) || 29.7;
+    const top = parseFloat(geometry?.content_top ?? settings.margin_top) || 2;
+    const bottom = parseFloat(geometry?.content_bottom ?? settings.margin_bottom) || 2;
+    const contentHeightPx = Math.max(trimHeight - top - bottom, 1) * conversionFactor;
 
     const leftMarginOdd = parseFloat(settings.margin_left_odd ?? settings.margin_left ?? 2.0) || 0;
     const rightMarginOdd = parseFloat(settings.margin_right_odd ?? settings.margin_right ?? 2.0) || 0;
@@ -128,7 +143,7 @@ function getImageViewportLayoutConstraints() {
 
     const captionReservePx = 48;
     const usableHeightPx = Math.max(contentHeightPx - captionReservePx, 1);
-    const maxHeightPercent = Math.max(30, Math.floor((usableHeightPx / contentWidthPx) * 100));
+    const maxHeightPercent = 90;
 
     return {
         unit,
@@ -138,7 +153,7 @@ function getImageViewportLayoutConstraints() {
         usableHeightPx,
         captionReservePx,
         maxHeightPercent,
-        minHeightPercent: 30,
+        minHeightPercent: 15,
     };
 }
 
@@ -147,24 +162,46 @@ function parseImageViewportPercentValue(value, fallback = 100) {
     return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function getImageViewportSafeMaxHeightPercent(state, constraints = getImageViewportLayoutConstraints()) {
+    const marginMm = (Number.parseFloat(state.marginTopMm) || 0) + (Number.parseFloat(state.marginBottomMm) || 0);
+    const captionMm = String(state.caption || '').trim() ? (Number.parseFloat(state.captionGapMm) || 0) + 6 : 0;
+    const reservedPx = (marginMm + captionMm) * (96 / 25.4);
+    return clampImageViewportNumber(Math.floor((constraints.contentHeightPx - reservedPx) / constraints.contentHeightPx * 100), constraints.minHeightPercent, 90);
+}
+
 function normalizeImageViewportStateToLayout(state, constraints = getImageViewportLayoutConstraints()) {
     const nextState = { ...state };
-    const parsedHeight = parseImageViewportPercentValue(nextState.viewportHeight, 100);
-    const clampedHeight = clampImageViewportNumber(parsedHeight, constraints.minHeightPercent, constraints.maxHeightPercent);
-    const normalizedHeight = `${clampedHeight}%`;
-    const needsNormalization = normalizedHeight !== nextState.viewportHeight;
+    if (nextState.heightMode !== 'fixed') {
+        return { state: nextState, needsNormalization: false, maxHeightPercent: constraints.maxHeightPercent };
+    }
+    const maxHeightPercent = getImageViewportSafeMaxHeightPercent(nextState, constraints);
+    const parsedHeight = parseImageViewportPercentValue(nextState.heightPercent, 45);
+    const clampedHeight = clampImageViewportNumber(parsedHeight, constraints.minHeightPercent, maxHeightPercent);
+    const normalizedHeight = String(clampedHeight);
+    const needsNormalization = normalizedHeight !== String(nextState.heightPercent);
 
     if (needsNormalization) {
-        nextState.viewportHeight = normalizedHeight;
+        nextState.heightPercent = normalizedHeight;
     }
 
     return {
         state: nextState,
         needsNormalization,
-        maxHeightPercent: constraints.maxHeightPercent,
+        maxHeightPercent,
     };
 }
 
 function countImageViewportWords(text) {
     return String(text || '').trim().match(/\S+/g)?.length || 0;
+}
+
+function getImageViewportTypstAnchor(position) {
+    const parsed = parseImageViewportPosition(position);
+    const horizontal = parsed.x < 34 ? 'left' : (parsed.x > 66 ? 'right' : 'center');
+    const vertical = parsed.y < 34 ? 'top' : (parsed.y > 66 ? 'bottom' : 'center');
+    return {
+        x: horizontal,
+        y: vertical,
+        css: `${horizontal} ${vertical}`,
+    };
 }

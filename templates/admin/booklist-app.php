@@ -79,6 +79,9 @@ if ( $is_logged_in && $current_user ) {
         };
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <?php if ( function_exists( 'almaden_bookster_get_bundled_fonts_stylesheet_url' ) ) : ?>
+    <link rel="stylesheet" href="<?php echo esc_url( almaden_bookster_get_bundled_fonts_stylesheet_url() ); ?>">
+    <?php endif; ?>
     <link href="<?php echo esc_url( almaden_get_thumbnail_fonts_url() ); ?>" rel="stylesheet">
     <!-- Urbanist Font for UI -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -93,8 +96,9 @@ if ( $is_logged_in && $current_user ) {
             bookId: 0,
             settings: {},
             settingsNonce: '',
+            mediaPickerNonce: '',
             ajaxUrl: ajaxurl,
-            installedFonts: <?php echo json_encode( function_exists( 'almaden_bookster_get_installed_fonts_list' ) ? almaden_bookster_get_installed_fonts_list() : array() ); ?>,
+            installedFonts: <?php echo json_encode( function_exists( 'almaden_bookster_get_available_fonts_list' ) ? almaden_bookster_get_available_fonts_list() : ( function_exists( 'almaden_bookster_get_installed_fonts_list' ) ? almaden_bookster_get_installed_fonts_list() : array() ) ); ?>,
             coverSettings: {}
         };
 
@@ -461,6 +465,7 @@ if ( $is_logged_in && $current_user ) {
     
     <!-- Include the Settings Modal and JS -->
     <?php include plugin_dir_path( __FILE__ ) . '../editor/editor-settings-modal.php'; ?>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/shared/book-media-picker.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-tabs.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-fields.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-settings-credits-constants.js?v=' . time(), __FILE__ ) ); ?>"></script>

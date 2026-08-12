@@ -13,7 +13,7 @@
 	// Collect initially installed font families from the DOM
 	function collectInstalledFamilies() {
 		installedFamilies = [];
-		$('#almaden-installed-list .almaden-installed-item').each(function () {
+		$('#almaden-installed-list .almaden-installed-item, #almaden-bundled-list .almaden-installed-item').each(function () {
 			installedFamilies.push($(this).data('family'));
 		});
 	}

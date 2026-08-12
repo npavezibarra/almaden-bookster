@@ -16,10 +16,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- PDF.js para renderizar el PDF Typst en vistas de una página y spread -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <!-- Google Fonts: Inter para la interfaz, Merriweather para el estilo de libro PDF -->
+    <?php if ( function_exists( 'almaden_bookster_get_bundled_fonts_stylesheet_url' ) ) : ?>
+    <link rel="stylesheet" href="<?php echo esc_url( almaden_bookster_get_bundled_fonts_stylesheet_url() ); ?>">
+    <?php endif; ?>
+    <!-- Google Fonts: solo para las familias instaladas que no vienen incluidas -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <?php if ( ! empty( $google_fonts_url ) ) : ?>
     <link id="google-fonts-stylesheet" href="<?php echo esc_url( $google_fonts_url ); ?>" rel="stylesheet">
+    <?php endif; ?>
     <!-- Urbanist Font for UI -->
     <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&amp;display=swap" rel="stylesheet">
     <!-- Font Awesome Icons para UI -->

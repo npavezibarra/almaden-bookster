@@ -6,6 +6,12 @@ window.ALMADEN_IMAGE_BLOCK_DEFAULTS = {
     position: '50% 50%',
     blockId: '',
     caption: '',
+    heightMode: 'auto',
+    heightPercent: '45',
+    marginTopMm: '0',
+    marginBottomMm: '0',
+    captionGapMm: '1.5',
+    captionAlign: 'left',
 };
 
 function escapeHtmlAttribute(value) {
@@ -31,6 +37,12 @@ function normalizeImageBlockConfig(config = {}) {
         fit: String(config.fit || window.ALMADEN_IMAGE_BLOCK_DEFAULTS.fit),
         position: String(config.position || window.ALMADEN_IMAGE_BLOCK_DEFAULTS.position),
         blockId: String(config.blockId || window.ALMADEN_IMAGE_BLOCK_DEFAULTS.blockId),
+        heightMode: String(config.heightMode || window.ALMADEN_IMAGE_BLOCK_DEFAULTS.heightMode) === 'fixed' ? 'fixed' : 'auto',
+        heightPercent: String(config.heightPercent || window.ALMADEN_IMAGE_BLOCK_DEFAULTS.heightPercent),
+        marginTopMm: String(config.marginTopMm ?? window.ALMADEN_IMAGE_BLOCK_DEFAULTS.marginTopMm),
+        marginBottomMm: String(config.marginBottomMm ?? window.ALMADEN_IMAGE_BLOCK_DEFAULTS.marginBottomMm),
+        captionGapMm: String(config.captionGapMm ?? window.ALMADEN_IMAGE_BLOCK_DEFAULTS.captionGapMm),
+        captionAlign: ['left', 'center', 'right'].includes(String(config.captionAlign)) ? String(config.captionAlign) : 'left',
         isPlaceholder: !!config.isPlaceholder,
     };
 }
@@ -51,6 +63,12 @@ function buildImageBlockMarkup(config = {}) {
         `data-zoom="${escapeHtmlAttribute(image.zoom)}"`,
         `data-fit="${escapeHtmlAttribute(image.fit)}"`,
         `data-position="${escapeHtmlAttribute(image.position)}"`,
+        `data-height-mode="${escapeHtmlAttribute(image.heightMode)}"`,
+        `data-height-percent="${escapeHtmlAttribute(image.heightPercent)}"`,
+        `data-margin-top-mm="${escapeHtmlAttribute(image.marginTopMm)}"`,
+        `data-margin-bottom-mm="${escapeHtmlAttribute(image.marginBottomMm)}"`,
+        `data-caption-gap-mm="${escapeHtmlAttribute(image.captionGapMm)}"`,
+        `data-caption-align="${escapeHtmlAttribute(image.captionAlign)}"`,
     ].filter(Boolean);
 
     const mediaHtml = image.src

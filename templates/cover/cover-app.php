@@ -32,10 +32,14 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
         };
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <?php if ( function_exists( 'almaden_bookster_get_bundled_fonts_stylesheet_url' ) ) : ?>
+    <link rel="stylesheet" href="<?php echo esc_url( almaden_bookster_get_bundled_fonts_stylesheet_url() ); ?>">
+    <?php endif; ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- FIX: usar $google_fonts_url en lugar de $fonts_url para que las fuentes web carguen -->
-    <link href="<?php echo esc_url($google_fonts_url); ?>" rel="stylesheet">
+    <?php if ( ! empty( $google_fonts_url ) ) : ?>
+    <link href="<?php echo esc_url( $google_fonts_url ); ?>" rel="stylesheet">
+    <?php endif; ?>
     <!-- Urbanist Font for UI -->
     <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -202,6 +206,7 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
             nonce: "<?php echo esc_js($cover_nonce); ?>",
             exportNonce: "<?php echo esc_js($cover_export_nonce); ?>",
             ajaxUrl: "<?php echo esc_url(admin_url('admin-ajax.php')); ?>",
+            mediaPickerNonce: "<?php echo esc_js( wp_create_nonce( 'almaden_bookster_media_picker_' . $book_id ) ); ?>",
             exportUrl: "<?php echo esc_url(admin_url('admin-post.php')); ?>",
             pageWidthCm: <?php echo floatval($page_width); ?>,
             pageHeightCm: <?php echo floatval($page_height); ?>,
@@ -245,6 +250,7 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-utils.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-book-format.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-dimensions.js?v=' . time() ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/shared/book-media-picker.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-media.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-image-diagnostics-format.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-image-diagnostics-render.js?v=' . time() ); ?>"></script>

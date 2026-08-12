@@ -174,6 +174,11 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
             if (inList) { compiledBlocks.push(`</${listType}>`); inList = false; }
             compiledBlocks.push(line); // se restaurará con el img real después
         }
+        // Bloque de imagen editable preservado como HTML real.
+        else if (/^%%IMAGE_BLOCK_PLACEHOLDER_\d+%%$/.test(line)) {
+            if (inList) { compiledBlocks.push(`</${listType}>`); inList = false; }
+            compiledBlocks.push(line);
+        }
         // Shortcodes estructurales (placeholder %%SC_PLACEHOLDER_N%%)
         else if (/^%%SC_PLACEHOLDER_\d+%%$/.test(line)) {
             if (inList) { compiledBlocks.push(`</${listType}>`); inList = false; }

@@ -104,6 +104,25 @@ function syncBookFlowParityMode() {
 
 let mediaUploaderChapterImage;
 window.openChapterImageUploader = function() {
+    const applySelection = (attachment) => {
+        if (!attachment) return;
+        const input = document.getElementById('setting-chapter-image-url');
+        if (input) {
+            input.value = attachment.originalUrl || attachment.originalImageURL || attachment.url || '';
+        }
+    };
+
+    if (window.AlmadenBooksterMediaPicker && bookState && bookState.bookId && bookState.mediaPickerNonce) {
+        window.AlmadenBooksterMediaPicker.open({
+            bookId: bookState.bookId,
+            ajaxUrl: bookState.ajaxUrl,
+            nonce: bookState.mediaPickerNonce,
+            title: 'Seleccionar Imagen para Chapter Image',
+            buttonText: 'Usar esta imagen'
+        }).then(applySelection).catch(() => {});
+        return;
+    }
+
     if (typeof wp === 'undefined' || !wp.media) {
         alert('El mecanismo de Media de WordPress no está disponible en esta pantalla. Asegúrate de guardar y recargar la página.');
         return;
@@ -123,10 +142,7 @@ window.openChapterImageUploader = function() {
 
     mediaUploaderChapterImage.on('select', function() {
         const attachment = mediaUploaderChapterImage.state().get('selection').first().toJSON();
-        const input = document.getElementById('setting-chapter-image-url');
-        if (input) {
-            input.value = attachment.originalImageURL || attachment.url;
-        }
+        applySelection(attachment);
     });
 
     mediaUploaderChapterImage.open();
@@ -217,6 +233,25 @@ window.toggleEbookBgType = function() {
 
 let mediaUploaderEbookBg;
 window.openMediaUploaderEbookBg = function() {
+    const applySelection = (attachment) => {
+        if (!attachment) return;
+        const input = document.getElementById('setting-ebook-bg-image');
+        if (input) {
+            input.value = attachment.originalUrl || attachment.originalImageURL || attachment.url || '';
+        }
+    };
+
+    if (window.AlmadenBooksterMediaPicker && bookState && bookState.bookId && bookState.mediaPickerNonce) {
+        window.AlmadenBooksterMediaPicker.open({
+            bookId: bookState.bookId,
+            ajaxUrl: bookState.ajaxUrl,
+            nonce: bookState.mediaPickerNonce,
+            title: 'Seleccionar Imagen de Fondo General',
+            buttonText: 'Usar esta imagen'
+        }).then(applySelection).catch(() => {});
+        return;
+    }
+
     if (typeof wp === 'undefined' || !wp.media) {
         alert('El mecanismo de Media de WordPress no está disponible en esta pantalla. Asegúrate de guardar y recargar la página.');
         return;
@@ -233,7 +268,7 @@ window.openMediaUploaderEbookBg = function() {
     });
     mediaUploaderEbookBg.on('select', function() {
         let attachment = mediaUploaderEbookBg.state().get('selection').first().toJSON();
-        document.getElementById('setting-ebook-bg-image').value = attachment.originalImageURL || attachment.url;
+        applySelection(attachment);
     });
     mediaUploaderEbookBg.open();
 }
@@ -251,6 +286,25 @@ window.toggleCoverPanelBgType = function() {
 
 let mediaUploaderCoverPanel;
 window.openMediaUploaderCoverPanel = function() {
+    const applySelection = (attachment) => {
+        if (!attachment) return;
+        const input = document.getElementById('setting-ebook-cover-panel-bg-image');
+        if (input) {
+            input.value = attachment.originalUrl || attachment.originalImageURL || attachment.url || '';
+        }
+    };
+
+    if (window.AlmadenBooksterMediaPicker && bookState && bookState.bookId && bookState.mediaPickerNonce) {
+        window.AlmadenBooksterMediaPicker.open({
+            bookId: bookState.bookId,
+            ajaxUrl: bookState.ajaxUrl,
+            nonce: bookState.mediaPickerNonce,
+            title: 'Seleccionar Imagen de Fondo',
+            buttonText: 'Usar esta imagen'
+        }).then(applySelection).catch(() => {});
+        return;
+    }
+
     if (typeof wp === 'undefined' || !wp.media) {
         alert('El mecanismo de Media de WordPress no está disponible en esta pantalla. Asegúrate de guardar y recargar la página.');
         return;
@@ -267,7 +321,7 @@ window.openMediaUploaderCoverPanel = function() {
     });
     mediaUploaderCoverPanel.on('select', function() {
         let attachment = mediaUploaderCoverPanel.state().get('selection').first().toJSON();
-        document.getElementById('setting-ebook-cover-panel-bg-image').value = attachment.originalImageURL || attachment.url;
+        applySelection(attachment);
     });
     mediaUploaderCoverPanel.open();
 }

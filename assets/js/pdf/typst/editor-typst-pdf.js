@@ -168,6 +168,18 @@
                 state.rebuildUniversalCounter();
             }
 
+            const imageBlocksHeader = response.headers.get('X-Almaden-Image-Blocks');
+            if (imageBlocksHeader) {
+                try {
+                    shared.imageBlocks = JSON.parse(decodeURIComponent(imageBlocksHeader));
+                } catch (error) {
+                    shared.imageBlocks = [];
+                    console.warn('No se pudo leer la geometría de imágenes Typst.', error);
+                }
+            } else {
+                shared.imageBlocks = [];
+            }
+
             const integrityHeader = response.headers.get('X-Almaden-PDF-Integrity');
             if (integrityHeader) {
                 try {

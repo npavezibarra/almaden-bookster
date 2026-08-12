@@ -105,6 +105,9 @@ graph TD
 ### 3. Barra de Herramientas y Markdown
 
 *   **[editor-toolbar.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-toolbar.js)**
+    *   **`toolbar/toolbar-image-media-library.js`**: Biblioteca inline para listar y subir imágenes del libro sin abrir un segundo modal.
+    *   **`toolbar/toolbar-image-viewport-ui.js`**, **`toolbar/toolbar-image-viewport-state.js`** y **`toolbar/toolbar-image-viewport-drag.js`**: Estado, interfaz y arrastre para recortar y encuadrar la imagen dentro del mismo flujo.
+    *   **`toolbar/toolbar-image-layout.js`**: Edición contextual desde RAW, aplicación visual de altura/márgenes y apertura por `blockId` desde los overlays del PDF.
     *   **Responsabilidad**: Formateo de texto inline, inserción de marcadores y manejo de los diálogos de carga de la biblioteca multimedia (`wp.media`) de WordPress.
     *   **Funciones Clave**:
         *   [wrapText](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-toolbar.js#L4): Envuelve la selección o el cursor con prefijos y sufijos Markdown (ej. `**` para negritas), restaurando automáticamente el foco al editor.
@@ -152,10 +155,10 @@ graph TD
         *   `creditsPopulateForm` y `creditsBindRootEvents` (en el archivo principal): Punto de entrada y orquestación del subsistema de créditos.
 
 *   **[editor-settings-templates.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-settings-templates.js)**
-    *   **Responsabilidad**: Permite a los usuarios guardar configuraciones globales actuales como presets de estilo ("plantillas") e importarlas rápidamente.
+    *   **Responsabilidad**: Permite a los usuarios guardar configuraciones globales actuales como `Book Templates` e importarlas rápidamente.
     *   **Funciones Clave**:
-        *   [loadSettingsTemplates](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-settings-templates.js#L4): Solicita presets de formato persistidos en la base de datos de WordPress y los dibuja en el modal.
-        *   [applySettingsTemplate](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-settings-templates.js#L68): Carga los valores de una plantilla preestablecida y simula eventos de interacción del usuario en cada input para actualizar el estado global.
+        *   [loadBookTemplates](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-settings-templates.js#L4): Solicita presets de formato persistidos en el repositorio de `Book Templates` y los dibuja en el modal.
+        *   [applyBookTemplate](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-settings-templates.js#L68): Carga los valores de un book template preestablecido y simula eventos de interacción del usuario en cada input para actualizar el estado global.
 
 ---
 

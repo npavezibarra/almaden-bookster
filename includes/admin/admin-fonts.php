@@ -34,6 +34,246 @@ function almaden_bookster_create_fonts_table() {
 }
 
 /**
+ * Built-in Google Fonts shipped with the plugin.
+ *
+ * These do not need to be installed by the admin. They are always available
+ * in selectors and always loaded when the editor/export requests a font CDN.
+ *
+ * @return array<int, array<string, string>>
+ */
+function almaden_bookster_get_bundled_fonts_list() {
+	return array(
+		array(
+			'family'   => 'Inter',
+			'category' => 'sans-serif',
+			'variants' => '100,200,300,regular,500,600,700,800,900,100italic,200italic,300italic,italic,500italic,600italic,700italic,800italic,900italic',
+			'subsets'  => 'cyrillic,cyrillic-ext,greek,greek-ext,latin,latin-ext,vietnamese',
+			'source'   => 'bundled',
+		),
+		array(
+			'family'   => 'Merriweather',
+			'category' => 'serif',
+			'variants' => '300,regular,700,900,300italic,italic,700italic,900italic',
+			'subsets'  => 'cyrillic,cyrillic-ext,latin,latin-ext,vietnamese',
+			'source'   => 'bundled',
+		),
+		array(
+			'family'   => 'Playfair Display',
+			'category' => 'serif',
+			'variants' => 'regular,500,600,700,800,900,italic,500italic,600italic,700italic,800italic,900italic',
+			'subsets'  => 'cyrillic,cyrillic-ext,latin,latin-ext,vietnamese',
+			'source'   => 'bundled',
+		),
+		array(
+			'family'   => 'Lora',
+			'category' => 'serif',
+			'variants' => 'regular,500,600,700,italic,500italic,600italic,700italic',
+			'subsets'  => 'cyrillic,cyrillic-ext,latin,latin-ext,vietnamese',
+			'source'   => 'bundled',
+		),
+		array(
+			'family'   => 'Cinzel',
+			'category' => 'serif',
+			'variants' => 'regular,500,600,700,800,900',
+			'subsets'  => 'latin,latin-ext',
+			'source'   => 'bundled',
+		),
+		array(
+			'family'   => 'Cormorant Garamond',
+			'category' => 'serif',
+			'variants' => '300,regular,500,600,700,300italic,italic,500italic,600italic,700italic',
+			'subsets'  => 'cyrillic,cyrillic-ext,latin,latin-ext,vietnamese',
+			'source'   => 'bundled',
+		),
+		array(
+			'family'   => 'Outfit',
+			'category' => 'sans-serif',
+			'variants' => '100,200,300,regular,500,600,700,800,900',
+			'subsets'  => 'latin,latin-ext',
+			'source'   => 'bundled',
+		),
+	);
+}
+
+/**
+ * Build a stable map of available fonts by family.
+ *
+ * @param array<int, array<string, string>> $fonts Fonts to merge.
+ * @return array<int, array<string, string>>
+ */
+function almaden_bookster_normalize_fonts_by_family( $fonts ) {
+	$normalized = array();
+
+	foreach ( (array) $fonts as $font ) {
+		$family = isset( $font['family'] ) ? trim( (string) $font['family'] ) : '';
+		if ( '' === $family ) {
+			continue;
+		}
+
+		$key = strtolower( $family );
+		if ( ! isset( $normalized[ $key ] ) ) {
+			$normalized[ $key ] = array(
+				'family'   => $family,
+				'category' => isset( $font['category'] ) ? sanitize_text_field( (string) $font['category'] ) : 'serif',
+				'variants' => isset( $font['variants'] ) ? sanitize_text_field( (string) $font['variants'] ) : '',
+				'subsets'  => isset( $font['subsets'] ) ? sanitize_text_field( (string) $font['subsets'] ) : '',
+				'source'   => isset( $font['source'] ) ? sanitize_text_field( (string) $font['source'] ) : 'installed',
+			);
+		}
+	}
+
+	return array_values( $normalized );
+}
+
+/**
+ * Build a Google Fonts v2 URL from a list of font records.
+ *
+ * @param array<int, array<string, string>> $fonts Fonts to include.
+ * @return string
+ */
+function almaden_bookster_build_google_fonts_url( $fonts ) {
+	$font_families_for_cdn = array();
+
+	foreach ( almaden_bookster_normalize_fonts_by_family( $fonts ) as $font ) {
+		$family = isset( $font['family'] ) ? trim( (string) $font['family'] ) : '';
+		if ( '' === $family ) {
+			continue;
+		}
+
+		if ( isset( $font['source'] ) && 'bundled' === strtolower( (string) $font['source'] ) ) {
+			continue;
+		}
+
+		$variants_str = isset( $font['variants'] ) ? (string) $font['variants'] : '';
+		$family_slug  = str_replace( ' ', '+', $family );
+		$tuples       = array();
+
+		if ( '' === trim( $variants_str ) ) {
+			$tuples[] = '0,400';
+			$tuples[] = '0,700';
+			$tuples[] = '1,400';
+		} else {
+			$variants_arr = array_filter( array_map( 'trim', explode( ',', $variants_str ) ) );
+			foreach ( $variants_arr as $variant ) {
+				$italic = 0;
+				$weight = 400;
+
+				if ( false !== strpos( $variant, 'italic' ) ) {
+					$italic = 1;
+					$variant = str_replace( 'italic', '', $variant );
+				}
+
+				$variant = '' === $variant || 'regular' === $variant ? '400' : $variant;
+				if ( is_numeric( $variant ) ) {
+					$weight = intval( $variant );
+				}
+
+				if ( $weight >= 100 && $weight <= 900 ) {
+					$tuples[] = $italic . ',' . $weight;
+				}
+			}
+		}
+
+		$tuples = array_values( array_unique( $tuples ) );
+		sort( $tuples, SORT_NATURAL );
+		$font_families_for_cdn[] = $family_slug . ':ital,wght@' . implode( ';', $tuples );
+	}
+
+	$font_families_for_cdn = array_values( array_unique( $font_families_for_cdn ) );
+	if ( empty( $font_families_for_cdn ) ) {
+		return '';
+	}
+
+	return 'https://fonts.googleapis.com/css2?' . implode(
+		'&',
+		array_map(
+			static function ( $font_family ) {
+				return 'family=' . $font_family;
+			},
+			$font_families_for_cdn
+		)
+	) . '&display=swap';
+}
+
+/**
+ * Get the bundled font stylesheet URL.
+ *
+ * @return string
+ */
+function almaden_bookster_get_bundled_fonts_stylesheet_url() {
+	return plugins_url(
+		'assets/fonts/bundled/bundled-fonts.css',
+		dirname( dirname( dirname( __FILE__ ) ) ) . '/almaden-bookster.php'
+	);
+}
+
+/**
+ * Get all fonts available to the plugin, including bundled defaults.
+ *
+ * @return array<int, array<string, string>>
+ */
+function almaden_bookster_get_available_fonts_list() {
+	$fonts = array();
+
+	foreach ( almaden_bookster_get_bundled_fonts_list() as $font ) {
+		$family = strtolower( trim( (string) ( $font['family'] ?? '' ) ) );
+		if ( '' === $family ) {
+			continue;
+		}
+		$fonts[ $family ] = $font;
+	}
+
+	foreach ( almaden_bookster_get_installed_fonts_list() as $font ) {
+		$family = strtolower( trim( (string) ( $font['family'] ?? '' ) ) );
+		if ( '' === $family ) {
+			continue;
+		}
+
+		if ( isset( $fonts[ $family ] ) ) {
+			$fonts[ $family ] = array_merge(
+				$fonts[ $family ],
+				array(
+					'category' => isset( $font['category'] ) && '' !== trim( (string) $font['category'] ) ? sanitize_text_field( (string) $font['category'] ) : ( $fonts[ $family ]['category'] ?? 'serif' ),
+					'variants' => isset( $font['variants'] ) && '' !== trim( (string) $font['variants'] ) ? sanitize_text_field( (string) $font['variants'] ) : ( $fonts[ $family ]['variants'] ?? '' ),
+					'subsets'  => isset( $font['subsets'] ) && '' !== trim( (string) $font['subsets'] ) ? sanitize_text_field( (string) $font['subsets'] ) : ( $fonts[ $family ]['subsets'] ?? '' ),
+					'source'   => 'installed',
+				)
+			);
+		} else {
+			$fonts[ $family ] = array_merge(
+				$font,
+				array(
+					'source' => 'installed',
+				)
+			);
+		}
+	}
+
+	return array_values( $fonts );
+}
+
+/**
+ * Check whether a font family is bundled with the plugin.
+ *
+ * @param string $family Font family name.
+ * @return bool
+ */
+function almaden_bookster_is_bundled_font( $family ) {
+	$family = strtolower( trim( (string) $family ) );
+	if ( '' === $family ) {
+		return false;
+	}
+
+	foreach ( almaden_bookster_get_bundled_fonts_list() as $font ) {
+		if ( strtolower( (string) ( $font['family'] ?? '' ) ) === $family ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
  * AJAX: Save or update the Google Fonts API key.
  */
 function almaden_bookster_save_api_key() {

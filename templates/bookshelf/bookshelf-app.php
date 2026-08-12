@@ -196,6 +196,9 @@ if ( class_exists( '\AlmadenBookster\Auth\AuthOrchestrator' ) ) {
         };
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <?php if ( function_exists( 'almaden_bookster_get_bundled_fonts_stylesheet_url' ) ) : ?>
+    <link rel="stylesheet" href="<?php echo esc_url( almaden_bookster_get_bundled_fonts_stylesheet_url() ); ?>">
+    <?php endif; ?>
     <link href="<?php echo esc_url( almaden_get_thumbnail_fonts_url() ); ?>" rel="stylesheet">
     <!-- Urbanist Font for UI -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

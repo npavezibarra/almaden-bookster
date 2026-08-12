@@ -161,19 +161,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function openMediaUploader(title, onSelect) {
-        if (mediaFrame) {
-            mediaFrame.off('select'); // clear previous listeners
-        } else {
-            mediaFrame = wp.media({
-                title: title,
-                button: { text: 'Usar esta imagen' },
-                multiple: false
-            });
-        }
-
-        mediaFrame.on('select', function() {
-            const attachment = mediaFrame.state().get('selection').first().toJSON();
-            const originalUrl = attachment.originalImageURL || attachment.url || '';
+        const handleSelection = (attachment) => {
+            if (!attachment) return;
+            const originalUrl = attachment.originalUrl || attachment.originalImageURL || attachment.url || '';
             resolveCoverImagePreview(attachment, originalUrl).then((previewData) => {
                 const previewSafe = previewData && Object.prototype.hasOwnProperty.call(previewData, 'previewSafe')
                     ? !!previewData.previewSafe
@@ -186,6 +176,32 @@ document.addEventListener('DOMContentLoaded', () => {
                     attachment
                 });
             });
+        };
+
+        if (window.AlmadenBooksterMediaPicker && coverData && coverData.bookId && coverData.mediaPickerNonce) {
+            window.AlmadenBooksterMediaPicker.open({
+                bookId: coverData.bookId,
+                ajaxUrl: coverData.ajaxUrl,
+                nonce: coverData.mediaPickerNonce,
+                title: title,
+                buttonText: 'Usar esta imagen'
+            }).then(handleSelection).catch(() => {});
+            return;
+        }
+
+        if (mediaFrame) {
+            mediaFrame.off('select'); // clear previous listeners
+        } else {
+            mediaFrame = wp.media({
+                title: title,
+                button: { text: 'Usar esta imagen' },
+                multiple: false
+            });
+        }
+
+        mediaFrame.on('select', function() {
+            const attachment = mediaFrame.state().get('selection').first().toJSON();
+            handleSelection(attachment);
         });
 
         mediaFrame.open();

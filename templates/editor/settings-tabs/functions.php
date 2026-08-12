@@ -1,6 +1,6 @@
 <?php
 // Cargar fuentes instaladas para los selectores
-$selector_fonts = almaden_bookster_get_installed_fonts_list();
+$selector_fonts = function_exists( 'almaden_bookster_get_available_fonts_list' ) ? almaden_bookster_get_available_fonts_list() : almaden_bookster_get_installed_fonts_list();
 
 // Fuentes predeterminadas que siempre están disponibles
 $default_fonts = array(

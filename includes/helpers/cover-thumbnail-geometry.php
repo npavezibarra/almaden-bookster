@@ -5,60 +5,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 function almaden_get_thumbnail_fonts_url() {
     require_once dirname(__FILE__) . '/../admin/admin-fonts.php';
-    if (!function_exists('almaden_bookster_get_installed_fonts_list')) return '';
-    
-    $installed_fonts = almaden_bookster_get_installed_fonts_list();
-    $font_families_for_cdn = array();
-    $font_families_for_cdn[] = 'Inter:wght@100;200;300;400;500;600;700;800;900';
-    $font_families_for_cdn[] = 'Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900';
-    $font_families_for_cdn[] = 'Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900';
-
-    foreach ( $installed_fonts as $ifont ) {
-        $family_slug = str_replace( ' ', '+', $ifont['family'] );
-        $variants_str = isset($ifont['variants']) ? $ifont['variants'] : '';
-        if ( empty($variants_str) ) {
-            $font_families_for_cdn[] = $family_slug . ':ital,wght@0,400;0,700;1,400';
-            continue;
-        }
-
-        $variants_arr = explode(',', $variants_str);
-        $tuples = array();
-        foreach ( $variants_arr as $v ) {
-            $v = trim($v);
-            if ( empty($v) ) continue;
-            
-            $ital = 0;
-            $wght = 400;
-            
-            if ( strpos($v, 'italic') !== false ) {
-                $ital = 1;
-                $w_str = str_replace('italic', '', $v);
-                if ( $w_str === '' || $w_str === 'regular' ) {
-                    $wght = 400;
-                } else {
-                    $wght = intval($w_str);
-                }
-            } else {
-                if ( $v === 'regular' ) {
-                    $wght = 400;
-                } else {
-                    $wght = intval($v);
-                }
-            }
-            
-            if ($wght >= 100 && $wght <= 900) {
-                $tuples[] = $ital . ',' . $wght;
-            }
-        }
-        
-        if ( empty($tuples) ) {
-            $font_families_for_cdn[] = $family_slug . ':ital,wght@0,400;0,700;1,400';
-        } else {
-            sort($tuples);
-            $font_families_for_cdn[] = $family_slug . ':ital,wght@' . implode(';', $tuples);
-        }
+    if ( ! function_exists( 'almaden_bookster_get_available_fonts_list' ) || ! function_exists( 'almaden_bookster_build_google_fonts_url' ) ) {
+        return '';
     }
-    return 'https://fonts.googleapis.com/css2?' . implode( '&', array_map( function( $f ) { return 'family=' . $f; }, $font_families_for_cdn ) ) . '&display=swap';
+
+    return almaden_bookster_build_google_fonts_url( almaden_bookster_get_available_fonts_list() );
 }
 
 function almaden_bookster_round_up_mm( $value ) {

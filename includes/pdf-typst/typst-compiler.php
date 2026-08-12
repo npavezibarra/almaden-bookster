@@ -9,6 +9,8 @@ if ( ! defined( 'ABSPATH' ) && ! defined( 'ALMADEN_TYPST_TESTING' ) ) {
 	exit;
 }
 
+require_once __DIR__ . '/typst-compiler-assets.php';
+
 function almaden_bookster_find_typst_binary() {
 	$candidates = array();
 	if ( defined( 'ALMADEN_BOOKSTER_TYPST_BINARY' ) ) {
@@ -145,11 +147,17 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 		$font_path = $fonts_dir;
 	}
 	file_put_contents( $input, $document['source'], LOCK_EX );
+	$asset_stage = almaden_bookster_typst_stage_assets( $document['assets'] ?? array(), $temp_dir );
+	if ( is_wp_error( $asset_stage ) ) {
+		almaden_bookster_typst_remove_tree( $temp_dir );
+		return $asset_stage;
+	}
 	$stdout = '';
 	$stderr = '';
 	$GLOBALS['almaden_bookster_typst_page_flow_map'] = array();
 	$GLOBALS['almaden_bookster_typst_page_template_results'] = array();
-	$query_document = static function ( $selector ) use ( $binary, $temp_dir, $font_path, $input, &$stdout, &$stderr ) {
+	$GLOBALS['almaden_bookster_typst_image_blocks'] = array();
+	$query_document = static function ( $selector, $all = false ) use ( $binary, $temp_dir, $font_path, $input, &$stdout, &$stderr ) {
 		$command = array( $binary, 'query', '--root', $temp_dir, '--diagnostic-format', 'short' );
 		if ( '' !== $font_path ) {
 			$command[] = '--font-path';
@@ -159,24 +167,17 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 		$command[] = $selector;
 		$result = almaden_bookster_run_process( $command, $stdout, $stderr, 90 );
 		$report = json_decode( $stdout, true );
-		return ! is_wp_error( $result ) && isset( $report[0]['value'] ) && is_array( $report[0]['value'] )
-			? $report[0]['value']
-			: array();
+		if ( is_wp_error( $result ) || ! is_array( $report ) ) {
+			return array();
+		}
+		$values = array_values( array_filter( array_column( $report, 'value' ), 'is_array' ) );
+		return $all ? $values : ( $values[0] ?? array() );
 	};
 	if ( ! empty( $document['page_templates'] ) ) {
 		$flow_context = $document['page_template_context'] ?? array( 'templates' => $document['page_templates'] ?? array(), 'columns_count' => 2, 'columns_gap' => 0.8, 'unit' => 'cm' );
 		$template_assets = isset( $document['assets'] ) && is_array( $document['assets'] ) ? $document['assets'] : array();
 		$sync_template_assets = static function () use ( $temp_dir, &$template_assets ) {
-			$assets_dir = $temp_dir . '/assets';
-			if ( ! is_dir( $assets_dir ) ) {
-				wp_mkdir_p( $assets_dir );
-			}
-			foreach ( $template_assets as $name => $path ) {
-				$target = $assets_dir . '/' . $name;
-				if ( preg_match( '/^[a-f0-9]{64}\.[a-z0-9]+$/i', $name ) && is_file( $path ) && ! is_file( $target ) ) {
-					copy( $path, $target );
-				}
-			}
+			return almaden_bookster_typst_stage_assets( $template_assets, $temp_dir );
 		};
 		$read_flow_map = static function () use ( $query_document ) {
 			return $query_document( '<almaden-flow-report>' );
@@ -297,14 +298,10 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 		$GLOBALS['almaden_bookster_typst_page_flow_map'] = $read_flow_map();
 		$document['assets'] = $template_assets;
 	}
-	if ( ! empty( $document['assets'] ) ) {
-		$assets_dir = $temp_dir . '/assets';
-		wp_mkdir_p( $assets_dir );
-		foreach ( $document['assets'] as $name => $path ) {
-			if ( preg_match( '/^[a-f0-9]{64}\.[a-z0-9]+$/i', $name ) && is_file( $path ) ) {
-				copy( $path, $assets_dir . '/' . $name );
-			}
-		}
+	$asset_stage = almaden_bookster_typst_stage_assets( $document['assets'] ?? array(), $temp_dir );
+	if ( is_wp_error( $asset_stage ) ) {
+		almaden_bookster_typst_remove_tree( $temp_dir );
+		return $asset_stage;
 	}
 	$command = array( $binary, 'compile', '--root', $temp_dir, '--diagnostic-format', 'short' );
 	if ( '' !== $font_path ) {
@@ -339,6 +336,10 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 		return is_wp_error( $result ) ? $result : new WP_Error( 'typst_no_pdf', 'Typst no produjo un archivo PDF.' );
 	}
 
+	$GLOBALS['almaden_bookster_typst_image_blocks'] = array_values( array_filter(
+		$query_document( '<almaden-image-report>', true ),
+		static function ( $entry ) { return ! empty( $entry['id'] ) && ! empty( $entry['page'] ); }
+	) );
 	$universal_counter = array_values( array_filter( (array) $query_document( '<almaden-chapter-counter-report>' ), static function ( $entry ) {
 		return is_array( $entry ) && '' !== trim( (string) ( $entry['id'] ?? '' ) );
 	} ) );

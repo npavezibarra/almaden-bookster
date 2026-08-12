@@ -21,7 +21,7 @@ add_action( 'wp_ajax_almaden_compile_typst_pdf', 'almaden_bookster_ajax_compile_
  */
 function almaden_bookster_typst_preview_cache_key( $document ) {
 	$parts = array(
-		'almaden-typst-preview-v2',
+		'almaden-typst-preview-v3',
 		(string) ( $document['source'] ?? '' ),
 		wp_json_encode( $document['page_templates'] ?? array() ),
 	);
@@ -108,6 +108,7 @@ function almaden_bookster_typst_preview_metadata() {
 		'page_flow'             => $GLOBALS['almaden_bookster_typst_page_flow_map'] ?? array(),
 		'page_template_results' => $GLOBALS['almaden_bookster_typst_page_template_results'] ?? array(),
 		'universal_counter'     => $GLOBALS['almaden_bookster_typst_universal_counter'] ?? null,
+		'image_blocks'          => $GLOBALS['almaden_bookster_typst_image_blocks'] ?? array(),
 		'opening_debug'         => $GLOBALS['almaden_bookster_typst_opening_debug'] ?? null,
 		'integrity_warning'     => (string) ( $GLOBALS['almaden_bookster_typst_integrity_warning'] ?? '' ),
 	);
@@ -117,6 +118,7 @@ function almaden_bookster_typst_restore_preview_metadata( $meta ) {
 	$GLOBALS['almaden_bookster_typst_page_flow_map']         = $meta['page_flow'] ?? array();
 	$GLOBALS['almaden_bookster_typst_page_template_results'] = $meta['page_template_results'] ?? array();
 	$GLOBALS['almaden_bookster_typst_universal_counter']     = $meta['universal_counter'] ?? null;
+	$GLOBALS['almaden_bookster_typst_image_blocks']          = $meta['image_blocks'] ?? array();
 	$GLOBALS['almaden_bookster_typst_opening_debug']         = $meta['opening_debug'] ?? null;
 	$GLOBALS['almaden_bookster_typst_integrity_warning']     = (string) ( $meta['integrity_warning'] ?? '' );
 }
@@ -138,6 +140,9 @@ function almaden_bookster_send_typst_preview_pdf( $book_id, $document, $pdf, $ca
 	}
 	if ( isset( $GLOBALS['almaden_bookster_typst_universal_counter'] ) ) {
 		header( 'X-Almaden-Universal-Counter: ' . rawurlencode( wp_json_encode( $GLOBALS['almaden_bookster_typst_universal_counter'] ) ) );
+	}
+	if ( ! empty( $GLOBALS['almaden_bookster_typst_image_blocks'] ) ) {
+		header( 'X-Almaden-Image-Blocks: ' . rawurlencode( wp_json_encode( $GLOBALS['almaden_bookster_typst_image_blocks'] ) ) );
 	}
 	if ( isset( $GLOBALS['almaden_bookster_typst_opening_debug'] ) ) {
 		header( 'X-Almaden-Typst-Opening-Debug: ' . rawurlencode( wp_json_encode( $GLOBALS['almaden_bookster_typst_opening_debug'] ) ) );

@@ -384,6 +384,23 @@ function creditsAppendRow(rowType, data = {}) {
 }
 
 function creditsEnsureMediaFrame(onSelect) {
+    if (window.AlmadenBooksterMediaPicker && bookState && bookState.bookId && bookState.mediaPickerNonce) {
+        window.AlmadenBooksterMediaPicker.open({
+            bookId: bookState.bookId,
+            ajaxUrl: bookState.ajaxUrl,
+            nonce: bookState.mediaPickerNonce,
+            title: 'Seleccionar imagen',
+            buttonText: 'Usar imagen'
+        }).then((attachment) => {
+            if (attachment && attachment.originalUrl && typeof onSelect === 'function') {
+                onSelect(attachment.originalUrl);
+            } else if (attachment && attachment.url && typeof onSelect === 'function') {
+                onSelect(attachment.url);
+            }
+        }).catch(() => {});
+        return null;
+    }
+
     if (typeof wp === 'undefined' || !wp.media) {
         alert('La biblioteca multimedia de WordPress no está disponible.');
         return null;

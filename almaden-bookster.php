@@ -46,6 +46,7 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-settings-credits.
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-credits-persistence.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-save-book.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-publish.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-book-media-picker.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-settings-templates.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-settings.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-cover.php';

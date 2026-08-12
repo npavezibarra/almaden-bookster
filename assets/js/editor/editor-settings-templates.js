@@ -1,17 +1,17 @@
-// --- PLANTILLAS DE AJUSTES ---
-let cachedTemplates = null;
+// --- BOOK TEMPLATES ---
+let cachedBookTemplates = null;
 
-function loadSettingsTemplates() {
+function loadBookTemplates() {
     const container = document.getElementById('templates-container');
     if (!container) return;
 
-    if (cachedTemplates) {
-        renderTemplates(cachedTemplates);
+    if (cachedBookTemplates) {
+        renderBookTemplates(cachedBookTemplates);
         return;
     }
 
     const data = new FormData();
-    data.append('action', 'almaden_get_settings_templates');
+    data.append('action', 'almaden_get_book_templates');
     data.append('book_id', bookState.bookId);
     data.append('nonce', bookState.settingsNonce);
 
@@ -22,24 +22,24 @@ function loadSettingsTemplates() {
     .then(res => res.json())
     .then(res => {
         if (res.success && res.data && res.data.templates) {
-            cachedTemplates = res.data.templates;
-            renderTemplates(cachedTemplates);
+            cachedBookTemplates = res.data.templates;
+            renderBookTemplates(cachedBookTemplates);
         } else {
-            container.innerHTML = '<div class="text-[10px] text-rose-500 italic">Error al cargar plantillas.</div>';
+            container.innerHTML = '<div class="text-[10px] text-rose-500 italic">Error al cargar plantillas de libro.</div>';
         }
     })
     .catch(err => {
-        console.error('Error fetching templates:', err);
+        console.error('Error fetching book templates:', err);
         container.innerHTML = '<div class="text-[10px] text-rose-500 italic">Error de conexión.</div>';
     });
 }
 
-function renderTemplates(templates) {
+function renderBookTemplates(templates) {
     const container = document.getElementById('templates-container');
     if (!container) return;
 
     if (templates.length === 0) {
-        container.innerHTML = '<div class="text-[10px] text-[var(--text-muted)] italic">No hay plantillas disponibles.</div>';
+        container.innerHTML = '<div class="text-[10px] text-[var(--text-muted)] italic">No hay plantillas de libro disponibles.</div>';
         return;
     }
 
@@ -51,12 +51,16 @@ function renderTemplates(templates) {
             <div>
                 <h5 class="text-xs font-bold text-[var(--text-main)] mb-1">${tpl.name}</h5>
                 <p class="text-[9px] text-[var(--text-muted)] leading-tight">${tpl.description || ''}</p>
+                <div class="mt-2 flex flex-wrap gap-1">
+                    <span class="inline-flex items-center rounded-full border border-[var(--border-color)] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">${tpl.visibility || 'private'}</span>
+                    ${tpl.sample_chapters && tpl.sample_chapters.length ? '<span class="inline-flex items-center rounded-full border border-[var(--border-color)] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">Con muestras</span>' : ''}
+                </div>
             </div>
             <div class="mt-3 flex items-center justify-between">
-                <button class="text-[10px] font-semibold text-white bg-black hover:bg-neutral-800 rounded px-3 py-1 transition" onclick="applySettingsTemplate('${tpl.id}')">
-                    Aplicar Plantilla
+                <button class="text-[10px] font-semibold text-white bg-black hover:bg-neutral-800 rounded px-3 py-1 transition" onclick="applyBookTemplate('${tpl.id}')">
+                    Aplicar plantilla
                 </button>
-                <button class="text-[10px] text-rose-500 hover:text-rose-700 transition" onclick="deleteSettingsTemplate('${tpl.id}')" title="Eliminar Plantilla">
+                <button class="text-[10px] text-rose-500 hover:text-rose-700 transition" onclick="deleteBookTemplate('${tpl.id}')" title="Eliminar plantilla">
                     <i class="fa-solid fa-trash"></i>
                 </button>
             </div>
@@ -65,9 +69,9 @@ function renderTemplates(templates) {
     });
 }
 
-function applySettingsTemplate(templateId) {
-    if (!cachedTemplates) return;
-    const tpl = cachedTemplates.find(t => t.id === templateId);
+function applyBookTemplate(templateId) {
+    if (!cachedBookTemplates) return;
+    const tpl = cachedBookTemplates.find(t => t.id === templateId);
     if (!tpl) return;
 
     if (!confirm(`¿Estás seguro de que deseas aplicar la plantilla "${tpl.name}"?\nEsto sobrescribirá tus configuraciones actuales de página, tipografía y cabeceras.`)) {
@@ -106,12 +110,12 @@ function applySettingsTemplate(templateId) {
 document.addEventListener('DOMContentLoaded', () => {
     const btnTemplates = document.getElementById('btn-tab-templates');
     if (btnTemplates) {
-        btnTemplates.addEventListener('click', loadSettingsTemplates);
+        btnTemplates.addEventListener('click', loadBookTemplates);
     }
 });
 
-function promptSaveCurrentAsTemplate() {
-    const name = prompt("Introduce un nombre para la nueva plantilla (ej. 'Mi Estilo Favorito'):");
+function promptSaveCurrentAsBookTemplate() {
+    const name = prompt("Introduce un nombre para la nueva plantilla de libro (ej. 'Mi Estilo Favorito'):");
     if (!name || name.trim() === '') return;
 
     // Collect all form data from settings modal
@@ -119,7 +123,7 @@ function promptSaveCurrentAsTemplate() {
     if (!form) return;
     const data = new FormData(form);
     
-    data.append('action', 'almaden_save_settings_template');
+    data.append('action', 'almaden_save_book_template');
     data.append('template_name', name.trim());
     data.append('book_id', bookState.bookId);
     data.append('nonce', bookState.settingsNonce);
@@ -131,26 +135,26 @@ function promptSaveCurrentAsTemplate() {
     .then(res => res.json())
     .then(res => {
         if (res.success) {
-            alert('¡Plantilla guardada con éxito!');
-            cachedTemplates = null; // Force reload
-            loadSettingsTemplates();
+            alert('¡Plantilla de libro guardada con éxito!');
+            cachedBookTemplates = null; // Force reload
+            loadBookTemplates();
         } else {
-            alert('Error: ' + (res.data || 'No se pudo guardar la plantilla'));
+            alert('Error: ' + (res.data || 'No se pudo guardar la plantilla de libro'));
         }
     })
     .catch(err => {
         console.error(err);
-        alert('Error de conexión al guardar la plantilla.');
+        alert('Error de conexión al guardar la plantilla de libro.');
     });
 }
 
-function deleteSettingsTemplate(templateId) {
-    if (!confirm('¿Estás seguro de que deseas eliminar esta plantilla de forma permanente?')) {
+function deleteBookTemplate(templateId) {
+    if (!confirm('¿Estás seguro de que deseas eliminar esta plantilla de libro de forma permanente?')) {
         return;
     }
 
     const data = new FormData();
-    data.append('action', 'almaden_delete_settings_template');
+    data.append('action', 'almaden_delete_book_template');
     data.append('template_id', templateId);
     data.append('book_id', bookState.bookId);
     data.append('nonce', bookState.settingsNonce);
@@ -162,15 +166,21 @@ function deleteSettingsTemplate(templateId) {
     .then(res => res.json())
     .then(res => {
         if (res.success) {
-            cachedTemplates = null; // Force reload
-            loadSettingsTemplates();
+            cachedBookTemplates = null; // Force reload
+            loadBookTemplates();
         } else {
-            alert('Error: ' + (res.data || 'No se pudo eliminar la plantilla'));
+            alert('Error: ' + (res.data || 'No se pudo eliminar la plantilla de libro'));
         }
     })
     .catch(err => {
         console.error(err);
-        alert('Error de conexión al eliminar la plantilla.');
+        alert('Error de conexión al eliminar la plantilla de libro.');
     });
 }
 
+// Backward-compatible aliases for legacy callers.
+function loadSettingsTemplates() { return loadBookTemplates(); }
+function renderTemplates(templates) { return renderBookTemplates(templates); }
+function applySettingsTemplate(templateId) { return applyBookTemplate(templateId); }
+function promptSaveCurrentAsTemplate() { return promptSaveCurrentAsBookTemplate(); }
+function deleteSettingsTemplate(templateId) { return deleteBookTemplate(templateId); }

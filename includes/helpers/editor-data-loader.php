@@ -356,66 +356,6 @@ if ( ! empty( $saved_chapters ) ) {
 	unset( $saved_chapter );
 }
 
-// Cargar fuentes instaladas desde la tabla de Google Fonts
-$installed_fonts = almaden_bookster_get_installed_fonts_list();
-
-// Construir URL dinámica de Google Fonts CDN con las fuentes instaladas y TODOS sus pesos
-$font_families_for_cdn = array();
-// Default built-ins (Inter, Merriweather, Playfair Display, Lora, Cinzel, Cormorant Garamond, Outfit)
-$font_families_for_cdn[] = 'Inter:wght@100;200;300;400;500;600;700;800;900';
-$font_families_for_cdn[] = 'Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900';
-$font_families_for_cdn[] = 'Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900';
-$font_families_for_cdn[] = 'Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700';
-$font_families_for_cdn[] = 'Cinzel:wght@400;500;600;700;800;900';
-$font_families_for_cdn[] = 'Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700';
-$font_families_for_cdn[] = 'Outfit:wght@100;200;300;400;500;600;700;800;900';
-
-foreach ( $installed_fonts as $ifont ) {
-	$family_slug = str_replace( ' ', '+', $ifont['family'] );
-	
-	$variants_str = isset($ifont['variants']) ? $ifont['variants'] : '';
-	if ( empty($variants_str) ) {
-		// Fallback
-		$font_families_for_cdn[] = $family_slug . ':ital,wght@0,400;0,700;1,400';
-		continue;
-	}
-
-	$variants_arr = explode(',', $variants_str);
-	$tuples = array();
-	foreach ( $variants_arr as $v ) {
-		$v = trim($v);
-		if ( empty($v) ) continue;
-		
-		$ital = 0;
-		$wght = 400;
-		
-		if ( strpos($v, 'italic') !== false ) {
-			$ital = 1;
-			$w_str = str_replace('italic', '', $v);
-			if ( $w_str === '' || $w_str === 'regular' ) {
-				$wght = 400;
-			} else {
-				$wght = intval($w_str);
-			}
-		} else {
-			if ( $v === 'regular' ) {
-				$wght = 400;
-			} else {
-				$wght = intval($v);
-			}
-		}
-		
-		if ($wght >= 100 && $wght <= 900) {
-			$tuples[] = $ital . ',' . $wght;
-		}
-	}
-	
-	if ( empty($tuples) ) {
-		$font_families_for_cdn[] = $family_slug . ':ital,wght@0,400;0,700;1,400';
-	} else {
-		// API v2 requires them to be sorted
-		sort($tuples);
-		$font_families_for_cdn[] = $family_slug . ':ital,wght@' . implode(';', $tuples);
-	}
-}
-$google_fonts_url = 'https://fonts.googleapis.com/css2?' . implode( '&', array_map( function( $f ) { return 'family=' . $f; }, $font_families_for_cdn ) ) . '&display=swap';
+// Cargar fuentes disponibles, incluyendo las que vienen incluidas con el plugin
+$installed_fonts = function_exists( 'almaden_bookster_get_available_fonts_list' ) ? almaden_bookster_get_available_fonts_list() : almaden_bookster_get_installed_fonts_list();
+$google_fonts_url = function_exists( 'almaden_bookster_build_google_fonts_url' ) ? almaden_bookster_build_google_fonts_url( $installed_fonts ) : '';

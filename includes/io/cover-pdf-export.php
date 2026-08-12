@@ -225,6 +225,7 @@ function almaden_bookster_handle_export_cover_pdf() {
 	$book_language = function_exists( 'almaden_bookster_get_book_language_from_settings' )
 		? almaden_bookster_get_book_language_from_settings( $db_settings, 'es' )
 		: 'es';
+	$bundled_fonts_url = function_exists( 'almaden_bookster_get_bundled_fonts_stylesheet_url' ) ? almaden_bookster_get_bundled_fonts_stylesheet_url() : '';
 	$filename_base = sanitize_title( $book_title );
 	if ( empty( $filename_base ) ) {
 		$filename_base = 'book-cover';
@@ -234,21 +235,24 @@ function almaden_bookster_handle_export_cover_pdf() {
 	$used_fonts = array();
 	foreach ( $layers as $layer ) {
 		if ( ! empty( $layer['fontFamily'] ) ) {
-			$used_fonts[] = str_replace( array( "\r", "\n", '"', "'" ), '', $layer['fontFamily'] );
+			$family = str_replace( array( "\r", "\n", '"', "'" ), '', (string) $layer['fontFamily'] );
+			if ( '' !== $family && function_exists( 'almaden_bookster_is_bundled_font' ) && almaden_bookster_is_bundled_font( $family ) ) {
+				continue;
+			}
+			$used_fonts[] = array(
+				'family'   => $family,
+				'category' => 'serif',
+				'variants' => 'regular,400,500,600,700,800,900,italic,500italic,600italic,700italic,800italic,900italic',
+			);
 		}
 	}
-	$used_fonts = array_unique( $used_fonts );
-	$font_families_for_cdn = array();
-	foreach ( $used_fonts as $f ) {
-		$family_slug = str_replace( ' ', '+', $f );
-		$font_families_for_cdn[] = 'family=' . $family_slug . ':ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900';
-	}
-	$google_fonts_url = '';
-	if ( ! empty( $font_families_for_cdn ) ) {
-		$google_fonts_url = 'https://fonts.googleapis.com/css2?' . implode( '&', $font_families_for_cdn ) . '&display=swap';
-	}
+	$used_fonts = array_values( array_filter( $used_fonts ) );
+	$google_fonts_url = function_exists( 'almaden_bookster_build_google_fonts_url' ) ? almaden_bookster_build_google_fonts_url( $used_fonts ) : '';
 
 	$html = '<!doctype html><html lang="' . esc_attr( $book_language ) . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' . esc_html( $book_title ) . ' - Cover Export</title>';
+	if ( $bundled_fonts_url ) {
+		$html .= '<link rel="stylesheet" href="' . esc_url( $bundled_fonts_url ) . '">';
+	}
 	if ( $google_fonts_url ) {
 		$html .= '<link rel="preconnect" href="https://fonts.googleapis.com">';
 		$html .= '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';

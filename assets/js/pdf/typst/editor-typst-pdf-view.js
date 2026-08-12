@@ -343,6 +343,7 @@
         if (window.almadenPageTemplateImagesUI && typeof window.almadenPageTemplateImagesUI.bind === 'function') {
             window.almadenPageTemplateImagesUI.bind(root);
         }
+        window.almadenTypstImageOverlays?.bind?.(root);
         updateGeometryIndicator();
         updateTextBounds(root);
     }

@@ -95,6 +95,9 @@ if ( $has_reader_access ) {
 	<script src="https://cdn.tailwindcss.com"></script>
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<?php if ( function_exists( 'almaden_bookster_get_bundled_fonts_stylesheet_url' ) ) : ?>
+	<link rel="stylesheet" href="<?php echo esc_url( almaden_bookster_get_bundled_fonts_stylesheet_url() ); ?>">
+	<?php endif; ?>
 	<link href="<?php echo esc_url( $fonts_url ); ?>" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&amp;display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/css/reader-app.css' ); ?>?v=<?php echo esc_attr( filemtime( dirname( __FILE__ ) . '/../../assets/css/reader-app.css' ) ); ?>">

@@ -8,7 +8,6 @@
 if ( ! defined( 'ABSPATH' ) && ! defined( 'ALMADEN_TYPST_TESTING' ) ) {
 	exit;
 }
-
 require_once __DIR__ . '/typst-document-helpers.php';
 require_once __DIR__ . '/typst-document-render-helpers.php';
 require_once __DIR__ . '/typst-document-context.php';
@@ -303,6 +302,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 			$content_render_options = array(
 				'hyphenation_exceptions' => $hyphenation_exceptions,
 				'asset_mode'             => $asset_mode,
+				'content_height' => max( 1, $height - $margin_top - $margin_bot - $header_reserve - $footer_reserve ), 'unit' => $unit,
 				'heading_styles'         => array(
 					1 => array(
 						'font_family'    => $heading1_font_family,
@@ -342,7 +342,8 @@ function almaden_bookster_build_typst_document( $payload ) {
 			}
 			$source       .= almaden_bookster_typst_render_blocks(
 				$chapter_footnotes['raw'] ?? $content,
-				$content_render_options
+				$content_render_options,
+				$assets
 			) . "\n";
 			if ( $uses_page_templates ) {
 				$source .= '#set align(left)' . "\n";

@@ -37,10 +37,10 @@ function almaden_bookster_typst_font_family( $value, $fallback = 'Merriweather' 
 }
 
 function almaden_bookster_typst_installed_font_variants( $family ) {
-	if ( ! function_exists( 'almaden_bookster_get_installed_fonts_list' ) ) {
+	if ( ! function_exists( 'almaden_bookster_get_available_fonts_list' ) ) {
 		return array();
 	}
-	foreach ( almaden_bookster_get_installed_fonts_list() as $font ) {
+	foreach ( almaden_bookster_get_available_fonts_list() as $font ) {
 		if ( 0 === strcasecmp( (string) ( $font['family'] ?? '' ), $family ) ) {
 			return array_filter( array_map( 'trim', explode( ',', (string) ( $font['variants'] ?? '' ) ) ) );
 		}
@@ -108,11 +108,27 @@ function almaden_bookster_typst_local_font_families() {
 	);
 }
 
+function almaden_bookster_typst_normalize_runtime_font( $family ) {
+	$aliases = array(
+		'garamond' => 'Libertinus Serif',
+	);
+	$key = strtolower( trim( (string) $family ) );
+	if ( isset( $aliases[ $key ] ) ) {
+		return $aliases[ $key ];
+	}
+	foreach ( array_merge( almaden_bookster_typst_local_font_families(), array( 'Libertinus Serif', 'New Computer Modern', 'DejaVu Sans Mono' ) ) as $available ) {
+		if ( 0 === strcasecmp( $available, $family ) ) {
+			return $available;
+		}
+	}
+	return $family;
+}
+
 /**
  * Download Google Fonts TTF files once and return cache paths for --font-path.
  */
 function almaden_bookster_typst_resolve_font( $family, $weight ) {
-	$family = almaden_bookster_typst_font_family( $family );
+	$family = almaden_bookster_typst_normalize_runtime_font( almaden_bookster_typst_font_family( $family ) );
 	$bundled = array( 'Libertinus Serif', 'New Computer Modern', 'DejaVu Sans Mono' );
 	if ( in_array( $family, $bundled, true ) || in_array( $family, almaden_bookster_typst_local_font_families(), true ) || defined( 'ALMADEN_TYPST_TESTING' ) ) {
 		return array( 'family' => $family, 'files' => array() );
