@@ -178,7 +178,13 @@ function almaden_save_book_template_ajax() {
 	$saved = file_put_contents( $file_path, wp_json_encode( $template_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE ) );
 
 	if ( $saved !== false ) {
-		wp_send_json_success( array( 'message' => 'Book template guardado con éxito.' ) );
+		wp_send_json_success(
+			array(
+				'message'  => 'Book template guardado con éxito.',
+				'template' => $template_data,
+				'template_id' => $slug,
+			)
+		);
 	} else {
 		wp_send_json_error( 'No se pudo escribir el archivo del book template en el servidor.' );
 	}

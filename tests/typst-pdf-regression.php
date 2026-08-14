@@ -56,6 +56,8 @@ $payload = array(
 		'book_chapter_flow_mode' => 'left',
 		'chapter_transition_blank_mode' => 'intentional_text',
 		'chapter_transition_blank_text' => 'Página intencional',
+		'footnote_mode'          => 'chapter',
+		'footnote_chapter_new_page' => 1,
 		'page_styles'             => array(
 			array(
 				'page_number' => 1,
@@ -101,10 +103,11 @@ $payload = array(
 				'title'   => 'Introducción',
 				'content' => "La **inteligencia artificial** está transformando el trabajo.\n\n" .
 					"A medida que estas herramientas se vuelven más accesibles, surge un nuevo desafío.\n\n" .
-					$problem_paragraph . "\n\n" . $problem_paragraph .
+				$problem_paragraph . "\n\n" . $problem_paragraph .
 					"\n\nTexto con nota[^1] y <foreign lang=\"en\">a complete foreign sentence</foreign>.\n\n" .
 					"> Una cita que debe conservarse.\n\n[align=center]\nTexto centrado.\n[/align]\n\n" .
 					"- Primer elemento\n- Segundo elemento\n\n[gap:3mm]\n\n" .
+					"* Tercer elemento\n* Cuarto elemento\n\n[gap:3mm]\n\n" .
 					"[^1]: Esta nota debe aparecer completa.",
 				'chapter_blank_before' => '2',
 				'chapter_blank_after'  => '1',
@@ -202,11 +205,26 @@ $required_typography = array(
 	'header: context {',
 	'footer: context {',
 );
+$list_count = substr_count( $document['source'], '#list(' );
+if ( $list_count < 2 ) {
+	fwrite( STDERR, 'La sintaxis Markdown con bullets `*` no se convirtió en listas Typst.' . PHP_EOL );
+	exit( 1 );
+}
+$tight_list = almaden_bookster_typst_render_blocks( "* Primer elemento\n* Segundo elemento\nTexto posterior sin línea vacía." );
+if ( ! preg_match( '/#list\([\s\S]*?\)\s+#par\[Texto posterior sin línea vacía\.\]/', $tight_list ) ) {
+	fwrite( STDERR, 'Una lista seguida por texto sin línea vacía no se cerró antes del párrafo Typst.' . PHP_EOL );
+	exit( 1 );
+}
 foreach ( $required_typography as $required ) {
 	if ( false === strpos( $document['source'], $required ) ) {
 		fwrite( STDERR, 'Falta configuración Typst: ' . $required . PHP_EOL );
 		exit( 1 );
 	}
+}
+$toc_title_style_count = substr_count( $document['source'], '#set text(font: "Outfit", size: 19.5pt, weight: 800, style: "normal", tracking: 0pt)' );
+if ( 1 !== $toc_title_style_count ) {
+	fwrite( STDERR, 'El índice está generando más de un título visible en el Typst base.' . PHP_EOL );
+	exit( 1 );
 }
 
 $full_blank_source = almaden_bookster_typst_chapter_parity_break(
@@ -286,6 +304,22 @@ if ( false !== strpos( $hidden_title_document['source'], '#heading(level: 1, out
 }
 if ( false === strpos( $hidden_title_document['source'], 'Texto de prueba.' ) ) {
 	fwrite( STDERR, 'El capítulo oculto perdió su contenido principal.' . PHP_EOL );
+	exit( 1 );
+}
+
+$chapter_endnote_payload = $hidden_title_payload;
+$chapter_endnote_payload['settings']['footnote_mode'] = 'chapter';
+$chapter_endnote_payload['settings']['footnote_chapter_new_page'] = 1;
+$chapter_endnote_payload['chapters'][0]['content'] = "Texto con referencia[^1].\n\n[^1]: Nota al final del capítulo.";
+$chapter_endnote_document = almaden_bookster_build_typst_document( $chapter_endnote_payload );
+if ( ! preg_match( '/#pagebreak\(weak: true\)\s+#block\[\s+#v\([^)]*\)\s+#heading/', $chapter_endnote_document['source'] ) ) {
+	fwrite( STDERR, 'Las referencias de capítulo no comenzaron en una página nueva cuando se solicitó.' . PHP_EOL );
+	exit( 1 );
+}
+$chapter_endnote_payload['settings']['footnote_chapter_new_page'] = 0;
+$inline_chapter_endnote_document = almaden_bookster_build_typst_document( $chapter_endnote_payload );
+if ( false !== strpos( $inline_chapter_endnote_document['source'], '#pagebreak(weak: true)' ) ) {
+	fwrite( STDERR, 'Las referencias de capítulo insertaron un salto de página con la opción desmarcada.' . PHP_EOL );
 	exit( 1 );
 }
 

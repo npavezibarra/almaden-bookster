@@ -72,8 +72,12 @@ function almaden_bookster_build_typst_document( $payload ) {
 		$blank_after  = $is_credits
 			? almaden_bookster_typst_credits_blank_count( $settings, 'after' )
 			: ( ! $is_toc ? almaden_bookster_typst_chapter_blank_count( $chapter, 'after' ) : 0 );
-		$chapter_hide_header = almaden_bookster_typst_bool( $chapter['hide_header'] ?? false ) || almaden_bookster_typst_bool( $chapter['hide_all_headers_footers'] ?? false );
-		$chapter_hide_footer = almaden_bookster_typst_bool( $chapter['hide_footer'] ?? false ) || almaden_bookster_typst_bool( $chapter['hide_all_headers_footers'] ?? false );
+		$chapter_hide_header = $is_credits
+			? almaden_bookster_typst_bool( $chapter['credits_hide_header'] ?? false )
+			: ( almaden_bookster_typst_bool( $chapter['hide_header'] ?? false ) || almaden_bookster_typst_bool( $chapter['hide_all_headers_footers'] ?? false ) );
+		$chapter_hide_footer = $is_credits
+			? almaden_bookster_typst_bool( $chapter['credits_hide_page_number'] ?? false )
+			: ( almaden_bookster_typst_bool( $chapter['hide_footer'] ?? false ) || almaden_bookster_typst_bool( $chapter['hide_all_headers_footers'] ?? false ) );
 		$credit_margin_top = $margin_top;
 		$credit_margin_bottom = $margin_bot;
 		if ( $is_credits && is_numeric( $chapter['credits_margin_top'] ?? null ) ) {
@@ -87,7 +91,12 @@ function almaden_bookster_build_typst_document( $payload ) {
 
 		$chapter_top_margin = $is_credits ? $credit_margin_top : $margin_top;
 		$chapter_bottom_margin = $is_credits ? $credit_margin_bottom : $margin_bot;
-		$chapter_header_reserve = $chapter_hide_header ? 0 : $header_reserve;
+		// Índice y Créditos deben conservar la misma reserva superior que el
+		// resto del libro para mantener la altura visual de la cabecera, aunque
+		// el texto de cabecera esté oculto.
+		$chapter_header_reserve = ( $is_toc || $is_credits )
+			? $header_reserve
+			: ( $chapter_hide_header ? 0 : $header_reserve );
 		$chapter_footer_reserve = $chapter_hide_footer ? 0 : $footer_reserve;
 		$source .= '#set page(margin: (top: ' . ( $chapter_top_margin + $chapter_header_reserve ) . $unit . ', bottom: ' . ( $chapter_bottom_margin + $chapter_footer_reserve ) . $unit . ', inside: ' . $margin_inside . $unit . ', outside: ' . $margin_outside . $unit . '))' . "\n";
 
@@ -102,10 +111,10 @@ function almaden_bookster_build_typst_document( $payload ) {
 		if ( $chapter_hide_footer ) {
 			$source .= '#metadata("' . almaden_bookster_typst_escape_string( $title ) . '") <almaden-hide-footer>' . "\n";
 		}
-		if ( $is_credits && almaden_bookster_typst_bool( $chapter['credits_hide_header'] ?? false ) ) {
+		if ( $is_credits && $chapter_hide_header ) {
 			$source .= '#metadata("credits") <almaden-hide-header>' . "\n";
 		}
-		if ( $is_credits && almaden_bookster_typst_bool( $chapter['credits_hide_page_number'] ?? false ) ) {
+		if ( $is_credits && $chapter_hide_footer ) {
 			$source .= '#metadata("credits") <almaden-hide-footer>' . "\n";
 		}
 
@@ -158,6 +167,14 @@ function almaden_bookster_build_typst_document( $payload ) {
 		$show_title = $opening_visibility['show_title'];
 		$show_prefix = $opening_visibility['show_prefix'] && null !== $chapter_number;
 		$show_subtitle = $opening_visibility['show_subtitle'];
+		if ( $is_toc ) {
+			// The TOC must render a single editable heading through the TOC
+			// template itself. Suppress the generic chapter-opening title so we
+			// do not duplicate "Índice" on the same page.
+			$show_title = false;
+			$show_prefix = false;
+			$show_subtitle = false;
+		}
 		$prefix_position = isset( $settings['chapter_prefix_position'] ) && 'below' === strtolower( trim( (string) $settings['chapter_prefix_position'] ) ) ? 'below' : 'above';
 		$subtitle_align = isset( $chapter['subtitle_align'] ) && in_array( $chapter['subtitle_align'], array( 'left', 'center', 'right' ), true )
 			? $chapter['subtitle_align']
@@ -247,7 +264,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 				),
 				$assets,
 				$resolve_toc_font,
-				! ( isset( $chapter['toc_hide_title'] ) && '1' === (string) $chapter['toc_hide_title'] )
+				! ( ( isset( $chapter['toc_hide_header'] ) && '1' === (string) $chapter['toc_hide_header'] ) || ( isset( $chapter['toc_hide_title'] ) && '1' === (string) $chapter['toc_hide_title'] ) )
 			);
 			$source .= $toc_title_source;
 			continue;
@@ -259,9 +276,17 @@ function almaden_bookster_build_typst_document( $payload ) {
 			$credits_font_weight = almaden_bookster_typst_font_weight( $chapter['credits_font_weight'] ?? $font_weight, $font_weight );
 			$credits_tracking = almaden_bookster_typst_number( $chapter, 'credits_letter_spacing', 0, -20, 20 );
 			$credits_align = almaden_bookster_typst_credits_alignment( $chapter['credits_align'] ?? '' );
+			$chapter_credits_vertical_align = strtolower( trim( (string) ( $chapter['credits_vertical_align'] ?? '' ) ) );
+			$credits_vertical_align_source = in_array( $chapter_credits_vertical_align, array( 'top', 'center', 'bottom' ), true )
+				? $chapter_credits_vertical_align
+				: ( $credits_config['vertical_align'] ?? 'bottom' );
+			$credits_vertical_align = almaden_bookster_typst_credits_vertical_alignment( $credits_vertical_align_source );
+			$chapter_credits_config = $credits_config;
+			$chapter_credits_config['vertical_align'] = $credits_vertical_align;
 			$source .= almaden_bookster_typst_render_credits(
-				$credits_config,
+				$chapter_credits_config,
 				$chapter['credits_author_label'] ?? '',
+				$book_title ?? '',
 				array(
 					'family'      => $credits_font_family,
 					'size'        => $credits_font_size,
@@ -352,6 +377,9 @@ function almaden_bookster_build_typst_document( $payload ) {
 			}
 			if ( ! empty( $chapter_endnotes ) ) {
 				if ( 'chapter' === $footnote_mode ) {
+					if ( $footnote_chapter_new_page ) {
+						$source .= "\n#pagebreak(weak: true)\n";
+					}
 					$source .= "\n" . almaden_bookster_typst_render_footnote_entries(
 						$chapter_endnotes,
 						array(

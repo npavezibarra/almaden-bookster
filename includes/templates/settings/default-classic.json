@@ -69,8 +69,9 @@
         "footer_align": "center",
         "footer_even_type": "page_number",
         "footer_odd_type": "page_number",
-        "footnote_mode": "page",
-        "footnote_chapter_title": "Referencia",
+		"footnote_mode": "page",
+		"footnote_chapter_new_page": 0,
+		"footnote_chapter_title": "Referencia",
         "footnote_book_title": "Referencias",
 
         "footnote_font_family": "Merriweather",

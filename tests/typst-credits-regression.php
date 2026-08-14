@@ -39,6 +39,7 @@ $payload = array(
 				'item' => array( 'font_family' => 'Inter Tight', 'font_size' => 14, 'font_weight' => 400, 'line_height' => 1.6 ),
 				'image_max_width' => 120,
 			),
+			'vertical_align' => 'bottom',
 			'logos' => array(
 				array(
 					'show_author_name'  => 1,
@@ -46,7 +47,7 @@ $payload = array(
 					'author_font_size'  => 16,
 				),
 			),
-			'section_order' => array( 'logos', 'people', 'editorial', 'collaborators', 'legal' ),
+			'section_order' => array( 'logos', 'people', 'editorial', 'legal', 'collaborators' ),
 			'section_styles' => array(
 				'people' => array(
 					'font_family' => 'Inter Tight',
@@ -107,8 +108,9 @@ $required = array(
 	'#strong[John Q. Est]',
 	'#emph[Autor]',
 	'#linebreak()',
-	'#line(length: 100%, stroke: 0.25pt)',
-	'#set page(margin: (top:',
+		'#line(length: 100%, stroke: 0.25pt)',
+		'#align(center + bottom)',
+		'#set page(margin: (top:',
 	'#align(right)[#strong[1.ª edición]]',
 	'Instituciones colaboradoras',
 	'Fundación Almaden',
@@ -127,6 +129,7 @@ $hidden_logo_assets = array();
 $hidden_logo = almaden_bookster_typst_render_credits(
 	array( 'logos' => array( array( 'show_author_name' => 0 ) ), 'section_order' => array( 'logos' ) ),
 	'No debe aparecer',
+	'Libro de prueba',
 	array( 'family' => 'Merriweather', 'size' => 11, 'weight' => 400, 'line_height' => 1.5 ),
 	$hidden_logo_assets,
 	static function ( $family ) { return $family; }
@@ -136,23 +139,46 @@ if ( false !== strpos( $hidden_logo, 'No debe aparecer' ) ) {
 	exit( 1 );
 }
 
+$text_logo_assets = array();
+$text_logo = almaden_bookster_typst_render_credits(
+	array( 'logos' => array( array( 'logo_source' => 'text' ) ), 'section_order' => array( 'logos' ) ),
+	'Autor visible',
+	'Libro de prueba',
+	array( 'family' => 'Merriweather', 'size' => 11, 'weight' => 400, 'line_height' => 1.5 ),
+	$text_logo_assets,
+	static function ( $family ) { return $family; }
+);
+if ( false === strpos( $text_logo, 'Libro de prueba' ) ) {
+	fwrite( STDERR, 'La fuente de logo en texto no está imprimiendo el título del libro.' . PHP_EOL );
+	exit( 1 );
+}
+
  $empty_collaborators_assets = array();
  $empty_collaborators = almaden_bookster_typst_render_credits(
  	array(
  		'collaborators_visible' => 1,
- 		'collaborators_title' => 'Colaboradores',
- 		'collaborators' => array(),
- 		'section_order' => array( 'collaborators' ),
- 	),
- 	'Sin colaboradores',
- 	array( 'family' => 'Merriweather', 'size' => 11, 'weight' => 400, 'line_height' => 1.5 ),
- 	$empty_collaborators_assets,
- 	static function ( $family ) { return $family; }
+		'collaborators_title' => 'Colaboradores',
+		'collaborators' => array(),
+		'section_order' => array( 'collaborators' ),
+	),
+	'Sin colaboradores',
+	'Libro de prueba',
+	array( 'family' => 'Merriweather', 'size' => 11, 'weight' => 400, 'line_height' => 1.5 ),
+	$empty_collaborators_assets,
+	static function ( $family ) { return $family; }
  );
- if ( false !== strpos( $empty_collaborators, 'Colaboradores' ) ) {
- 	fwrite( STDERR, 'La sección de colaboradores vacía no debería mostrar su título.' . PHP_EOL );
- 	exit( 1 );
- }
+if ( false !== strpos( $empty_collaborators, 'Colaboradores' ) ) {
+	fwrite( STDERR, 'La sección de colaboradores vacía no debería mostrar su título.' . PHP_EOL );
+	exit( 1 );
+}
+$collaborator_anchor = strpos( $source, 'Instituciones colaboradoras' );
+$before_collaborators = false !== $collaborator_anchor
+	? substr( $source, max( 0, $collaborator_anchor - 300 ), 300 )
+	: '';
+if ( false === $collaborator_anchor || false === strpos( $before_collaborators, '#pagebreak()' ) ) {
+	fwrite( STDERR, 'Colaboradores no está forzando un salto de página antes de su bloque.' . PHP_EOL );
+	exit( 1 );
+}
 
 if ( 2 !== substr_count( $source, '#metadata("credits-before") <almaden-intentional-blank>' ) ) {
 	fwrite( STDERR, 'Typst no generó exactamente dos páginas antes de créditos.' . PHP_EOL );
@@ -160,6 +186,20 @@ if ( 2 !== substr_count( $source, '#metadata("credits-before") <almaden-intentio
 }
 if ( 1 !== substr_count( $source, '#metadata("credits-after") <almaden-intentional-blank>' ) ) {
 	fwrite( STDERR, 'Typst no generó exactamente una página después de créditos.' . PHP_EOL );
+	exit( 1 );
+}
+
+$visible_footer_payload = $payload;
+$visible_footer_payload['chapters'][1]['hide_footer'] = '1';
+$visible_footer_payload['chapters'][1]['hide_all_headers_footers'] = '1';
+$visible_footer_payload['chapters'][1]['credits_hide_header'] = '0';
+$visible_footer_payload['chapters'][1]['credits_hide_page_number'] = '0';
+$visible_footer_source = almaden_bookster_build_typst_document( $visible_footer_payload )['source'];
+if ( false !== strpos( $visible_footer_source, '#metadata("Créditos") <almaden-hide-footer>' )
+	|| false !== strpos( $visible_footer_source, '#metadata("credits") <almaden-hide-footer>' )
+	|| false !== strpos( $visible_footer_source, '#metadata("Créditos") <almaden-hide-header>' )
+	|| false !== strpos( $visible_footer_source, '#metadata("credits") <almaden-hide-header>' ) ) {
+	fwrite( STDERR, 'Las banderas heredadas continúan ocultando la cabecera o el pie de Créditos.' . PHP_EOL );
 	exit( 1 );
 }
 

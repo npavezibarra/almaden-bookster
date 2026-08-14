@@ -11,46 +11,29 @@
 
                     <!-- TOC TAB: General -->
                     <div id="toc-tab-general" class="toc-tab-content space-y-6 block">
-                        <div class="p-4 bg-neutral-100 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-xl mb-4 text-black dark:text-white dark:text-neutral-300">
-                            <p class="text-sm font-semibold mb-1"><i class="fa-solid fa-circle-info mr-1"></i> Configuración General</p>
-                            <p class="text-xs">Estás editando el Índice. Configura opciones globales para esta sección.</p>
-                        </div>
-
-                    <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)] mb-4">
-                        <div>
-                            <label class="font-semibold block mb-1 text-sm">Ocultar Cabecera</label>
-                            <span class="text-xs text-[var(--text-muted)]">Oculta la cabecera superior en todas las páginas que forman parte del Índice.</span>
-                        </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="chapter_toc_hide_header" name="toc_hide_header" class="sr-only peer">
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
-                        </label>
-                    </div>
-
-                    <div class="flex items-start justify-between gap-4 p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)] mb-4">
-                        <div class="flex-1">
-                            <label class="font-semibold block mb-1 text-sm">Separar apertura de contenido</label>
-                            <span class="text-xs text-[var(--text-muted)]">Sobrescribe el ajuste global solo para el Índice. Deja en "Usar Global" para mantener el comportamiento del libro.</span>
-                        </div>
-                        <div class="w-56">
-                            <select id="chapter_toc_separate_opening_content" name="toc_separate_opening_content" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
-                                <option value="">Usar Global</option>
-                                <option value="1">Separar apertura</option>
-                                <option value="0">No separar apertura</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Opción: ocultar el pie completo del Índice -->
-                    <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)] mb-4">
-                        <div>
-                            <label class="font-semibold block mb-1 text-sm">Ocultar Pie de Página</label>
-                            <span class="text-xs text-[var(--text-muted)]">Oculta todo el pie de página en las hojas que forman parte del Índice.</span>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+                                <div>
+                                    <label class="font-semibold block mb-1 text-sm">Ocultar Cabecera</label>
+                                    <span class="text-xs text-[var(--text-muted)]">Oculta la cabecera superior en todas las páginas que forman parte del Índice.</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="chapter_toc_hide_header" name="toc_hide_header" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
+                                </label>
                             </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="chapter_toc_hide_page_numbers" name="toc_hide_page_numbers" class="sr-only peer">
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
-                            </label>
+
+                            <!-- Opción: ocultar el pie completo del Índice -->
+                            <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+                                <div>
+                                    <label class="font-semibold block mb-1 text-sm">Ocultar Pie de Página</label>
+                                    <span class="text-xs text-[var(--text-muted)]">Oculta todo el pie de página en las hojas que forman parte del Índice.</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="chapter_toc_hide_page_numbers" name="toc_hide_page_numbers" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
+                                </label>
+                            </div>
                         </div>
                     </div><!-- End TOC Tab: General -->
 
@@ -158,11 +141,6 @@
 
                     <!-- TOC TAB: Título del Índice -->
                     <div id="toc-tab-title" class="toc-tab-content space-y-6 hidden">
-                        <div class="p-4 bg-neutral-100 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-xl mb-4 text-black dark:text-white dark:text-neutral-300">
-                            <p class="text-sm font-semibold mb-1"><i class="fa-solid fa-heading mr-1"></i> Formato del Título del Índice</p>
-                            <p class="text-xs">Sobrescribe el formato global del título de capítulo exclusivamente para esta página.</p>
-                        </div>
-
                         <div class="flex items-center justify-between gap-4 p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)] mb-4">
                             <div class="flex-1">
                                 <label class="font-semibold block mb-1 text-sm">Ocultar Título</label>

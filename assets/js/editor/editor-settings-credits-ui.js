@@ -221,15 +221,30 @@ function creditsBuildEditorMarkup(config) {
 
             <div class="px-6 pt-5">
                 <div class="flex flex-wrap gap-2 border-b border-[var(--border-color)] pb-4" data-credits-tabs>
-                    <button type="button" data-credits-tab="editorial" class="credits-tab-btn rounded-xl border px-4 py-2 text-sm font-semibold transition bg-black text-white border-black">Editorial</button>
-                    <button type="button" data-credits-tab="people" class="credits-tab-btn rounded-xl border px-4 py-2 text-sm font-semibold transition bg-white text-[var(--text-main)] border-[var(--border-color)]">Personas</button>
-                    <button type="button" data-credits-tab="collaborators" class="credits-tab-btn rounded-xl border px-4 py-2 text-sm font-semibold transition bg-white text-[var(--text-main)] border-[var(--border-color)]">Colaboradores</button>
                     <button type="button" data-credits-tab="logos" class="credits-tab-btn rounded-xl border px-4 py-2 text-sm font-semibold transition bg-white text-[var(--text-main)] border-[var(--border-color)]">Logos</button>
+                    <button type="button" data-credits-tab="people" class="credits-tab-btn rounded-xl border px-4 py-2 text-sm font-semibold transition bg-white text-[var(--text-main)] border-[var(--border-color)]">Personas</button>
+                    <button type="button" data-credits-tab="editorial" class="credits-tab-btn rounded-xl border px-4 py-2 text-sm font-semibold transition bg-black text-white border-black">Editorial</button>
                     <button type="button" data-credits-tab="legal" class="credits-tab-btn rounded-xl border px-4 py-2 text-sm font-semibold transition bg-white text-[var(--text-main)] border-[var(--border-color)]">Legal</button>
+                    <button type="button" data-credits-tab="collaborators" class="credits-tab-btn rounded-xl border px-4 py-2 text-sm font-semibold transition bg-white text-[var(--text-main)] border-[var(--border-color)]">Colaboradores</button>
                 </div>
             </div>
 
             <div class="px-6 py-6 space-y-6">
+                <section data-credits-panel="logos" class="hidden space-y-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <h5 class="text-lg font-bold text-[var(--text-main)]">Logos</h5>
+                            <p class="text-sm text-[var(--text-muted)]">Logos adicionales que quieres registrar para la página de créditos.</p>
+                        </div>
+                        <button type="button" data-credits-action="add-logo" class="rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 transition">
+                            <i class="fa-solid fa-plus mr-1"></i> Agregar logo
+                        </button>
+                    </div>
+                    <div id="credits-logos-container" class="space-y-3">
+                        ${logos.length ? logos.map((item) => creditsBuildLogoRow(item)).join('') : ''}
+                    </div>
+                </section>
+
                 <section data-credits-panel="editorial" class="space-y-5">
                     <div class="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-sidebar)]/30 p-5">
                         <h5 class="text-lg font-bold text-[var(--text-main)]">Editorial</h5>
@@ -258,6 +273,24 @@ function creditsBuildEditorMarkup(config) {
                             <div>
                                 <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Páginas blancas finales</label>
                                 <input id="setting-credits-blank-after" data-credits-field="blank_after" type="number" min="0" value="${creditsEscapeHtml(editorial.blank_after ?? 0)}" class="w-full rounded-xl border border-[var(--border-color)] bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-sidebar)]/30 p-5">
+                        <div class="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <h5 class="text-lg font-bold text-[var(--text-main)]">Alineación vertical del bloque</h5>
+                                <p class="mt-1 text-sm text-[var(--text-muted)]">Posiciona el bloque principal de créditos arriba, al centro o abajo. Los colaboradores siempre van en una página aparte.</p>
+                            </div>
+                            <div class="w-full md:w-60">
+                                <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Alineación</label>
+                                <select data-credits-field="vertical_align" class="w-full rounded-xl border border-[var(--border-color)] bg-white px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black">
+                                    ${creditsOptionMarkup([
+                                        { value: 'top', label: 'Arriba' },
+                                        { value: 'center', label: 'Centro' },
+                                        { value: 'bottom', label: 'Abajo' },
+                                ], creditsNormalizeVerticalAlign(config.vertical_align || 'bottom'))}
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -308,21 +341,6 @@ function creditsBuildEditorMarkup(config) {
                     </div>
                 </section>
 
-                <section data-credits-panel="logos" class="hidden space-y-4">
-                    <div class="flex items-center justify-between gap-3">
-                        <div>
-                            <h5 class="text-lg font-bold text-[var(--text-main)]">Logos</h5>
-                            <p class="text-sm text-[var(--text-muted)]">Logos adicionales que quieres registrar para la página de créditos.</p>
-                        </div>
-                        <button type="button" data-credits-action="add-logo" class="rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 transition">
-                            <i class="fa-solid fa-plus mr-1"></i> Agregar logo
-                        </button>
-                    </div>
-                    <div id="credits-logos-container" class="space-y-3">
-                        ${logos.length ? logos.map((item) => creditsBuildLogoRow(item)).join('') : ''}
-                    </div>
-                </section>
-
                 <section data-credits-panel="legal" class="hidden space-y-4">
                     <div class="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-sidebar)]/30 p-5">
                         <h5 class="text-lg font-bold text-[var(--text-main)]">Legal</h5>
@@ -339,6 +357,36 @@ function creditsBuildEditorMarkup(config) {
                                 </select>
                             </div>
                         </div>
+                    </div>
+                </section>
+
+                <section data-credits-panel="collaborators" class="hidden space-y-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <h5 class="text-lg font-bold text-[var(--text-main)]">Colaboradores</h5>
+                            <p class="text-sm text-[var(--text-muted)]">Sellos, fundaciones, mecenas o entidades asociadas.</p>
+                        </div>
+                        <div class="flex flex-col items-end gap-2">
+                            <label class="inline-flex items-center gap-3 text-sm font-semibold text-[var(--text-main)]">
+                                <input type="checkbox" data-credits-field="collaborators_visible" ${collaboratorsVisible ? 'checked' : ''} class="h-5 w-5 rounded border-[var(--border-color)] text-black focus:ring-black">
+                                Visible
+                            </label>
+                            <button type="button" data-credits-action="add-collaborator" ${collaboratorsVisible ? '' : 'disabled'} class="rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 transition ${collaboratorsVisible ? '' : 'opacity-50 cursor-not-allowed'}">
+                                <i class="fa-solid fa-plus mr-1"></i> Agregar colaborador
+                            </button>
+                        </div>
+                    </div>
+                    <div class="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-sidebar)]/30 p-5 space-y-4">
+                        <div data-credits-collaborators-body class="${collaboratorsVisible ? '' : 'pointer-events-none opacity-50'} space-y-4">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Título de la sección</label>
+                                <input type="text" data-credits-field="collaborators_title" value="${creditsEscapeHtml(config.collaborators_title || '')}" placeholder="Colaboradores" class="w-full rounded-xl border border-[var(--border-color)] bg-white px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                            <div id="credits-collaborators-container" class="space-y-3">
+                                ${collaborators.length ? collaborators.map((item) => creditsBuildCollaboratorRow(item)).join('') : creditsBuildCollaboratorRow()}
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-[var(--text-muted)]">Si lo ocultas, el contenido se mantiene guardado pero no se mostrará en PDF ni en ebook.</p>
                     </div>
                 </section>
             </div>
@@ -556,6 +604,7 @@ function creditsGetConfigFromForm() {
     config.logos = creditsReadRepeaterRows('#credits-logos-container', 'logo');
     config.legal.copyright_text = creditsGetFieldValue(root, '#setting-credits-copyright', config.legal.copyright_text);
     config.legal.license = creditsGetFieldValue(root, '#setting-credits-license', 'all_rights_reserved') || 'all_rights_reserved';
+    config.vertical_align = creditsNormalizeVerticalAlign(creditsGetFieldValue(root, '[data-credits-field="vertical_align"]', 'bottom'));
 
     if (typeof creditsReadAdvancedCreditsConfig === 'function') {
         const advanced = creditsReadAdvancedCreditsConfig(root);

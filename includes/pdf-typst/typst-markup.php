@@ -223,6 +223,9 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 		: ( 'original' === (string) ( $options['asset_mode'] ?? '' ) ? 'original' : 'optimized' );
 	$image_placeholders = array();
 	$image_counter = 0;
+	// Normalize Markdown bullets that start with `*` into the list syntax this
+	// renderer already understands, before inline emphasis can consume them.
+	$raw = preg_replace( '/(^|\n)([ \t]*)\*\s+/m', '$1$2- ', (string) $raw );
 	$raw = preg_replace_callback( '/<figure\b[\s\S]*?<\/figure>/i', function ( $match ) use ( &$image_placeholders, &$image_counter, &$assets, $asset_mode, $options ) {
 		$figure = (string) ( $match[0] ?? '' );
 		if (
@@ -367,6 +370,9 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 			continue;
 		}
 
+		// A following paragraph or unknown wrapper may begin immediately after the
+		// final item. Close the function call before emitting more Typst markup.
+		$close_list();
 		// Unknown wrappers are retained as literal text instead of silently losing data.
 		$paragraph[] = $trimmed;
 	}

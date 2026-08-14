@@ -47,7 +47,10 @@ function creditsReadCollaboratorsStylesValue(root) {
 
 function creditsReadLogoValue(root) {
     const field = (name) => (root ? root.querySelector(`[data-credits-field="${name}"]`) : null);
-    const source = String(field('logo_source') && field('logo_source').value || 'image').trim().toLowerCase() === 'cover_logo' ? 'cover_logo' : 'image';
+    const source = (() => {
+        const normalized = String(field('logo_source') && field('logo_source').value || 'image').trim().toLowerCase();
+        return ['image', 'cover_logo', 'text'].includes(normalized) ? normalized : 'image';
+    })();
     const logoUrl = String(field('logo_url') && field('logo_url').value || '').trim();
     const position = creditsNormalizeLogoPosition(field('logo_position') ? field('logo_position').value : 'center');
     const sizePx = creditsNormalizeLogoSize(field('logo_size_px') ? field('logo_size_px').value : 120);
@@ -59,7 +62,13 @@ function creditsReadLogoValue(root) {
     const authorGapRaw = field('author_gap_px') ? String(field('author_gap_px').value || '').trim() : '';
     const authorGapPx = authorGapRaw === '' ? 10 : Math.max(0, Math.min(100, parseInt(authorGapRaw, 10) || 0));
     const authorTextTransform = creditsNormalizeLogoTextTransform(field('author_text_transform') ? field('author_text_transform').value : 'none');
-    const hasMeaningfulData = source === 'cover_logo' || logoUrl || showAuthorName || authorFontFamily || authorFontSize !== 16 || authorFontWeight || authorLetterSpacing || authorGapPx !== 10 || authorTextTransform !== 'none';
+    const titleFontFamily = String(field('title_font_family') && field('title_font_family').value || '').trim();
+    const titleFontSize = parseInt(field('title_font_size') && field('title_font_size').value || '0', 10) || '';
+    const titleFontWeight = String(field('title_font_weight') && field('title_font_weight').value || '').trim();
+    const titleLetterSpacing = String(field('title_letter_spacing') && field('title_letter_spacing').value || '').trim();
+    const titleLineHeight = String(field('title_line_height') && field('title_line_height').value || '').trim();
+    const titleTextTransform = creditsNormalizeLogoTextTransform(field('title_text_transform') ? field('title_text_transform').value : 'none');
+    const hasMeaningfulData = source === 'cover_logo' || source === 'text' || logoUrl || showAuthorName || authorFontFamily || authorFontSize !== 16 || authorFontWeight || authorLetterSpacing || authorGapPx !== 10 || authorTextTransform !== 'none' || titleFontFamily || titleFontSize || titleFontWeight || titleLetterSpacing || titleLineHeight || titleTextTransform !== 'none';
 
     return hasMeaningfulData ? [{
         logo_source: source,
@@ -73,6 +82,12 @@ function creditsReadLogoValue(root) {
         author_letter_spacing: authorLetterSpacing,
         author_gap_px: authorGapPx,
         author_text_transform: authorTextTransform,
+        title_font_family: titleFontFamily,
+        title_font_size: titleFontSize,
+        title_font_weight: titleFontWeight,
+        title_letter_spacing: titleLetterSpacing,
+        title_line_height: titleLineHeight,
+        title_text_transform: titleTextTransform,
     }] : [];
 }
 
@@ -96,6 +111,7 @@ function creditsReadAdvancedCreditsConfig(root) {
     });
 
     return {
+        vertical_align: String(root && root.querySelector('[data-credits-field="vertical_align"]') ? root.querySelector('[data-credits-field="vertical_align"]').value : 'bottom').trim() || 'bottom',
         collaborators_visible: creditsGetFieldChecked(root, '[data-credits-field="collaborators_visible"]'),
         collaborators_title: String(root && root.querySelector('[data-credits-field="collaborators_title"]') ? root.querySelector('[data-credits-field="collaborators_title"]').value : '').trim(),
         collaborators_styles: creditsReadCollaboratorsStylesValue(root),
@@ -113,31 +129,66 @@ function creditsUpdateAdvancedLogoPreview(root) {
     const placeholder = root.querySelector('[data-credits-logo-placeholder]');
     const uploadButton = root.querySelector('[data-credits-action="choose-logo-image"]');
     const authorControls = root.querySelector('[data-credits-logo-author-controls]');
+    const titleControls = root.querySelector('[data-credits-logo-text-controls]');
     const authorToggle = root.querySelector('[data-credits-field="show_author_name"]');
     const sizeField = root.querySelector('[data-credits-field="logo_size_px"]');
     const sizeLabel = root.querySelector('[data-credits-logo-size-label]');
-    const source = String(sourceField ? sourceField.value : 'image').trim().toLowerCase() === 'cover_logo' ? 'cover_logo' : 'image';
+    const titleFontFamilyField = root.querySelector('[data-credits-field="title_font_family"]');
+    const titleFontSizeField = root.querySelector('[data-credits-field="title_font_size"]');
+    const titleFontWeightField = root.querySelector('[data-credits-field="title_font_weight"]');
+    const titleLetterSpacingField = root.querySelector('[data-credits-field="title_letter_spacing"]');
+    const titleLineHeightField = root.querySelector('[data-credits-field="title_line_height"]');
+    const titleTextTransformField = root.querySelector('[data-credits-field="title_text_transform"]');
+    const source = (() => {
+        const normalized = String(sourceField ? sourceField.value : 'image').trim().toLowerCase();
+        return ['image', 'cover_logo', 'text'].includes(normalized) ? normalized : 'image';
+    })();
     const coverUrl = creditsGetBookCoverLogoUrlFromEditorState();
     const uploadedUrl = String(logoUrlField ? logoUrlField.value : '').trim();
     const activeUrl = source === 'cover_logo' ? coverUrl : uploadedUrl;
+    const bookTitle = String((bookState && (bookState.title || bookState.bookTitle)) || '').trim();
+    const displayTitle = bookTitle || 'Título del libro';
+    const titleStyle = source === 'text'
+        ? [
+            titleFontFamilyField && titleFontFamilyField.value ? `font-family: ${String(titleFontFamilyField.value).trim()};` : '',
+            titleFontSizeField && titleFontSizeField.value ? `font-size: ${Math.min(72, Math.max(8, parseInt(titleFontSizeField.value, 10) || 0))}px;` : '',
+            titleFontWeightField && titleFontWeightField.value ? `font-weight: ${String(titleFontWeightField.value).trim()};` : '',
+            titleLetterSpacingField && String(titleLetterSpacingField.value || '').trim() !== '' ? `letter-spacing: ${parseFloat(titleLetterSpacingField.value) || 0}px;` : '',
+            titleLineHeightField && String(titleLineHeightField.value || '').trim() !== '' ? `line-height: ${Math.min(3, Math.max(0.5, parseFloat(titleLineHeightField.value) || 1))};` : '',
+            titleTextTransformField && titleTextTransformField.value && titleTextTransformField.value !== 'none' ? `text-transform: ${String(titleTextTransformField.value).trim()};` : '',
+        ].join(' ')
+        : '';
+    const showPlaceholder = source === 'text' || !activeUrl;
 
     if (imagePreview) {
         imagePreview.src = activeUrl || 'data:image/gif;base64,R0lGODlhAQABAAAAACw=';
-        imagePreview.classList.toggle('hidden', !activeUrl);
+        imagePreview.classList.toggle('hidden', !activeUrl || source === 'text');
     }
     if (placeholder) {
-        placeholder.classList.toggle('hidden', !!activeUrl);
-        placeholder.textContent = source === 'cover_logo' && !coverUrl
-            ? 'No se encontró una capa LOGO en la portada.'
-            : 'Sin imagen seleccionada';
+        placeholder.classList.toggle('hidden', !showPlaceholder);
+        placeholder.classList.toggle('text-2xl', source === 'text');
+        placeholder.classList.toggle('font-bold', source === 'text');
+        placeholder.classList.toggle('tracking-tight', source === 'text');
+        placeholder.classList.toggle('text-[var(--text-main)]', source === 'text');
+        placeholder.classList.toggle('text-xs', source !== 'text');
+        placeholder.classList.toggle('font-semibold', source !== 'text');
+        placeholder.classList.toggle('text-[var(--text-muted)]', source !== 'text');
+        placeholder.classList.toggle('px-4', source === 'text');
+        placeholder.setAttribute('style', source === 'text' ? titleStyle : '');
+        placeholder.textContent = source === 'text'
+            ? displayTitle
+            : (source === 'cover_logo' && !coverUrl ? 'No se encontró una capa LOGO en la portada.' : 'Sin imagen seleccionada');
     }
     if (uploadButton) {
-        uploadButton.disabled = source === 'cover_logo';
-        uploadButton.classList.toggle('opacity-50', source === 'cover_logo');
-        uploadButton.classList.toggle('cursor-not-allowed', source === 'cover_logo');
+        uploadButton.disabled = source !== 'image';
+        uploadButton.classList.toggle('opacity-50', source !== 'image');
+        uploadButton.classList.toggle('cursor-not-allowed', source !== 'image');
     }
     if (authorControls && authorToggle) {
         authorControls.classList.toggle('hidden', !authorToggle.checked);
+    }
+    if (titleControls) {
+        titleControls.classList.toggle('hidden', source !== 'text');
     }
     if (sizeLabel && sizeField) {
         sizeLabel.textContent = `${creditsNormalizeLogoSize(sizeField.value || 120)} px`;
@@ -183,7 +234,7 @@ function creditsBindCreditsAdvancedEvents(root) {
             const option = sourceButton.getAttribute('data-credits-logo-source-option') || 'image';
             const sourceField = root.querySelector('[data-credits-field="logo_source"]');
             if (sourceField) {
-                sourceField.value = option === 'cover_logo' ? 'cover_logo' : 'image';
+                sourceField.value = ['image', 'cover_logo', 'text'].includes(option) ? option : 'image';
             }
             creditsUpdateAdvancedLogoPreview(root);
             creditsSyncStateFromForm();
@@ -212,7 +263,7 @@ function creditsBindCreditsAdvancedEvents(root) {
     root.addEventListener('change', (event) => {
         const input = event.target;
         if (!(input instanceof HTMLElement)) return;
-        if (!input.matches('[data-credits-field="logo_url"], [data-credits-field="logo_source"], [data-credits-field="show_author_name"], [data-credits-field="author_font_family"], [data-credits-field="author_font_size"], [data-credits-field="author_font_weight"], [data-credits-field="author_letter_spacing"], [data-credits-field="author_gap_px"], [data-credits-field="author_text_transform"], [data-credits-field="logo_position"], [data-credits-field="logo_size_px"], [data-credits-field="collaborators_visible"]')) {
+        if (!input.matches('[data-credits-field="logo_url"], [data-credits-field="logo_source"], [data-credits-field="show_author_name"], [data-credits-field="author_font_family"], [data-credits-field="author_font_size"], [data-credits-field="author_font_weight"], [data-credits-field="author_letter_spacing"], [data-credits-field="author_gap_px"], [data-credits-field="author_text_transform"], [data-credits-field="title_font_family"], [data-credits-field="title_font_size"], [data-credits-field="title_font_weight"], [data-credits-field="title_letter_spacing"], [data-credits-field="title_line_height"], [data-credits-field="title_text_transform"], [data-credits-field="logo_position"], [data-credits-field="logo_size_px"], [data-credits-field="collaborators_visible"]')) {
             return;
         }
         if (input.matches('[data-credits-field="collaborators_visible"]')) {

@@ -10,12 +10,19 @@
         <div class="grid grid-cols-1 gap-3">
             <div>
                 <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Ubicación de las notas</label>
-                <select id="setting-footnote-mode" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                <select id="setting-footnote-mode" onchange="toggleChapterFootnotePageBreakSetting()" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                     <option value="page">Pie de página</option>
                     <option value="chapter">Final del capítulo</option>
                     <option value="book">Final del libro</option>
                 </select>
             </div>
+            <label id="setting-footnote-chapter-new-page-wrap" class="hidden items-start gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--bg-sidebar)] px-3 py-2.5 text-xs text-[var(--text-main)]">
+                <input id="setting-footnote-chapter-new-page" type="checkbox" class="mt-0.5 rounded border-[var(--border-color)] text-black focus:ring-black bg-[var(--bg-app)] h-4 w-4">
+                <span>
+                    <strong class="block font-semibold">Iniciar las referencias en una página nueva</strong>
+                    <span class="mt-0.5 block text-[9px] font-normal leading-relaxed text-[var(--text-muted)]">Si está desmarcado, las referencias comenzarán justo después del último párrafo del capítulo.</span>
+                </span>
+            </label>
         </div>
 
         <div class="grid grid-cols-2 gap-3">

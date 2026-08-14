@@ -180,6 +180,7 @@ function almaden_bookster_save_book_ajax() {
 		// Credits metadata
 		$credits_font_family   = isset( $chapter['credits_font_family'] ) ? sanitize_text_field( $chapter['credits_font_family'] ) : '';
 		$credits_align         = isset( $chapter['credits_align'] ) ? sanitize_text_field( $chapter['credits_align'] ) : '';
+		$credits_vertical_align = isset( $chapter['credits_vertical_align'] ) ? sanitize_text_field( $chapter['credits_vertical_align'] ) : '';
 			$credits_font_size     = isset( $chapter['credits_font_size'] ) ? sanitize_text_field( $chapter['credits_font_size'] ) : '';
 			$credits_letter_spacing = isset( $chapter['credits_letter_spacing'] ) ? sanitize_text_field( $chapter['credits_letter_spacing'] ) : '';
 			$credits_font_weight   = isset( $chapter['credits_font_weight'] ) ? sanitize_text_field( $chapter['credits_font_weight'] ) : '';
@@ -187,6 +188,13 @@ function almaden_bookster_save_book_ajax() {
 			$credits_hide_page_number = isset( $chapter['credits_hide_page_number'] ) ? sanitize_text_field( $chapter['credits_hide_page_number'] ) : '0';
 			$credits_margin_top    = isset( $chapter['credits_margin_top'] ) ? sanitize_text_field( $chapter['credits_margin_top'] ) : '';
 			$credits_margin_bottom = isset( $chapter['credits_margin_bottom'] ) ? sanitize_text_field( $chapter['credits_margin_bottom'] ) : '';
+			if ( '1' === (string) $is_credits ) {
+				// The credits-specific switches are authoritative. Synchronizing the
+				// legacy flags also repairs books created with both flags pre-enabled.
+				$hide_header = '1' === (string) $credits_hide_header ? '1' : '0';
+				$hide_footer = '1' === (string) $credits_hide_page_number ? '1' : '0';
+				$hide_all_headers_footers = ( '1' === $hide_header && '1' === $hide_footer ) ? '1' : '0';
+			}
 		
 		// TOC metadata
 		$toc_font_family       = isset( $chapter['toc_font_family'] ) ? sanitize_text_field( $chapter['toc_font_family'] ) : '';
@@ -294,6 +302,7 @@ function almaden_bookster_save_book_ajax() {
 			update_post_meta( $post_id, '_is_credits', $is_credits );
 			update_post_meta( $post_id, '_credits_font_family', $credits_font_family );
 			update_post_meta( $post_id, '_credits_align', $credits_align );
+			update_post_meta( $post_id, '_credits_vertical_align', $credits_vertical_align );
 				update_post_meta( $post_id, '_credits_font_size', $credits_font_size );
 				update_post_meta( $post_id, '_credits_letter_spacing', $credits_letter_spacing );
 				update_post_meta( $post_id, '_credits_font_weight', $credits_font_weight );
@@ -384,6 +393,7 @@ function almaden_bookster_save_book_ajax() {
 				'is_credits'            => $is_credits,
 				'credits_font_family'   => $credits_font_family,
 				'credits_align'         => $credits_align,
+				'credits_vertical_align' => $credits_vertical_align,
 					'credits_font_size'     => $credits_font_size,
 					'credits_letter_spacing' => $credits_letter_spacing,
 					'credits_font_weight'   => $credits_font_weight,

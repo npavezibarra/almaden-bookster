@@ -72,7 +72,8 @@
     }
 
     function renderApproximateMarkdown(value) {
-        let html = escapeHtml(value)
+        const lines = String(value || '').replace(/\r\n?/g, '\n').split('\n');
+        let html = escapeHtml(lines.join('\n'))
             .replace(/&lt;figure\b[\s\S]*?&lt;\/figure&gt;/gi, '<em>[Imagen]</em>')
             .replace(/&lt;img\b[\s\S]*?\/?&gt;/gi, '<em>[Imagen]</em>')
             .replace(/\[size=(\d+(?:\.\d+)?)\]/gi, (match, size) => {
@@ -88,6 +89,7 @@
             .replace(/\*([^*]+)\*/g, '<em>$1</em>')
             .replace(/^#{1,6}\s+/gm, '')
             .replace(/^&gt;\s?/gm, '')
+            .replace(/(^|\n)[ \t]*[*-]\s+/g, '$1• ')
             .replace(/\n/g, '<br>');
         return html;
     }

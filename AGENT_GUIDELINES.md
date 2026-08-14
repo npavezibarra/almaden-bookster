@@ -116,7 +116,8 @@ These files define the HTML structure and PHP rendering for the BookCraft applic
 - **`booklist-app.php`**: Taller / workshop list of books.
 - **`booklist-create-modal.php`**: New book creation dialog.
 
-### 3. Other Apps (`templates/reader/`, `templates/bookshelf/`, `templates/cover/`)
+### 3. Other Apps (`templates/ebook/`, `templates/reader/`, `templates/bookshelf/`, `templates/cover/`)
+- **`ebook/ebook-single-app.php`**: Public ebook detail page with preview, purchase CTA, and handoff to the reader when access is granted.
 - **`reader/reader-app.php`**: Ebook Reader page shell.
 - **`bookshelf/bookshelf-app.php`**: Public Ebook store / bookshelf template.
 - **`cover/cover-app.php`**: Page shell layout for the Book Cover editor.

@@ -3,28 +3,35 @@
         const modalPanel = document.getElementById('modal-panel');
         const openBtn = document.getElementById('open-modal-btn');
         const closeBtn = document.getElementById('close-modal-btn');
-        const cancelBtn = document.getElementById('cancel-modal-btn');
+        const cancelButtons = document.querySelectorAll('.cancel-modal-btn');
         
         function openModal() {
+            if (!modal || !modalPanel) return;
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modalPanel.classList.remove('opacity-0', 'scale-95');
                 modalPanel.classList.add('opacity-100', 'scale-100');
             }, 10);
-            document.getElementById('book_title').focus();
+            const titleInput = document.getElementById('book_title');
+            if (titleInput) titleInput.focus();
+            document.dispatchEvent(new CustomEvent('almaden-book-create-modal:open'));
         }
 
         function closeModal() {
+            if (!modal || !modalPanel) return;
             modalPanel.classList.remove('opacity-100', 'scale-100');
             modalPanel.classList.add('opacity-0', 'scale-95');
             setTimeout(() => {
                 modal.classList.add('hidden');
             }, 300);
+            document.dispatchEvent(new CustomEvent('almaden-book-create-modal:close'));
         }
 
         if (openBtn) openBtn.addEventListener('click', openModal);
         if (closeBtn) closeBtn.addEventListener('click', closeModal);
-        if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+        cancelButtons.forEach(btn => btn.addEventListener('click', closeModal));
+        window.openModal = openModal;
+        window.closeModal = closeModal;
 
         // Close modal on escape key
         document.addEventListener('keydown', (e) => {

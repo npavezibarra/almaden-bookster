@@ -219,8 +219,9 @@ window.savePDFSettings = function(silent = false, skipPreview = false) {
     data.append('chapter_transition_blank_text', getVal('setting-chapter-transition-blank-text') || '...');
 
     // Footnotes
-    data.append('footnote_mode', getVal('setting-footnote-mode') || 'page');
-    data.append('footnote_chapter_title', getVal('setting-footnote-chapter-title') || 'Referencia');
+	    data.append('footnote_mode', getVal('setting-footnote-mode') || 'page');
+	    data.append('footnote_chapter_new_page', getChecked('setting-footnote-chapter-new-page'));
+	    data.append('footnote_chapter_title', getVal('setting-footnote-chapter-title') || 'Referencia');
     data.append('footnote_book_title', getVal('setting-footnote-book-title') || 'Referencias');
     data.append('footnote_font_family', getVal('setting-footnote-font-family'));
     data.append('footnote_font_size', getCleanVal('setting-footnote-font-size'));

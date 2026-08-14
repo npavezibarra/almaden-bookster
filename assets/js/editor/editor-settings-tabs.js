@@ -85,6 +85,16 @@ window.setFootnoteAlignment = function(alignment) {
     });
 };
 
+window.toggleChapterFootnotePageBreakSetting = function() {
+    const mode = document.getElementById('setting-footnote-mode');
+    const wrapper = document.getElementById('setting-footnote-chapter-new-page-wrap');
+    if (!wrapper) return;
+
+    const visible = mode?.value === 'chapter';
+    wrapper.classList.toggle('hidden', !visible);
+    wrapper.classList.toggle('flex', visible);
+};
+
 function normalizeFootnoteLineHeight(value, fontSize, fallback = 11.5) {
     const parsed = parseFloat(value);
     if (!Number.isFinite(parsed)) {
@@ -323,6 +333,8 @@ window.populateSettingsForm = function() {
 
     // Pestaña Footnotes
     if (document.getElementById('setting-footnote-mode')) document.getElementById('setting-footnote-mode').value = ['page', 'chapter', 'book'].includes(String(settings.footnote_mode || '').toLowerCase()) ? settings.footnote_mode : 'page';
+    if (document.getElementById('setting-footnote-chapter-new-page')) document.getElementById('setting-footnote-chapter-new-page').checked = settings.footnote_chapter_new_page == 1;
+    toggleChapterFootnotePageBreakSetting();
     if (document.getElementById('setting-footnote-chapter-title')) document.getElementById('setting-footnote-chapter-title').value = settings.footnote_chapter_title || 'Referencia';
     if (document.getElementById('setting-footnote-book-title')) document.getElementById('setting-footnote-book-title').value = settings.footnote_book_title || 'Referencias';
     if (document.getElementById('setting-footnote-font-family')) document.getElementById('setting-footnote-font-family').value = settings.footnote_font_family || 'Merriweather';

@@ -34,6 +34,7 @@
                 }
                 : {},
             logo_count: logos.length,
+            vertical_align: String(source.vertical_align || 'bottom'),
             logo_source: String(firstLogo.logo_source || 'image'),
             logo_urls: logos.map((logo) => String(logo && logo.logo_url ? logo.logo_url : '')),
             logo_show_author_name: firstLogo.show_author_name === 1 || firstLogo.show_author_name === '1' || firstLogo.show_author_name === true,

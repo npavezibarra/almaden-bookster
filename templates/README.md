@@ -6,9 +6,10 @@ Archivos y subdirectorios contenidos aquí:
 * admin
 *   `booklist-onboarding.php`: panel guiado del taller para activar la primera editorial y crear el primer libro.
 * bookshelf
+* ebook
+*   `ebook-single-app.php`: ficha pública individual del ebook, con preview bloqueado y CTA de compra; si el usuario ya compró, delega al reader.
 * cover
 * editor
-* ebook
 * publishers
 *   `publisher-page.php`: directorio y perfil público de editoriales.
 *   `publisher-onboarding-app.php`: onboarding público `/crear-editorial` con wizard de alta.

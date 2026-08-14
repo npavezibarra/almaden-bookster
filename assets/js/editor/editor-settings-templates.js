@@ -1,6 +1,149 @@
 // --- BOOK TEMPLATES ---
 let cachedBookTemplates = null;
 
+function getBookTemplateStatusEl() {
+    return document.getElementById('book-template-save-status');
+}
+
+function getBookTemplateSaveButton() {
+    return document.getElementById('save-book-template-btn');
+}
+
+function setBookTemplateStatus(message, type = 'info') {
+    const el = getBookTemplateStatusEl();
+    if (!el) return;
+
+    if (!message) {
+        el.textContent = '';
+        el.className = 'mt-2 text-[10px] hidden';
+        return;
+    }
+
+    const baseClasses = 'mt-2 text-[10px]';
+    const toneClasses = {
+        info: 'text-[var(--text-muted)]',
+        success: 'text-emerald-600 dark:text-emerald-400',
+        error: 'text-rose-600 dark:text-rose-400',
+    };
+
+    el.textContent = message;
+    el.className = `${baseClasses} ${toneClasses[type] || toneClasses.info}`;
+    el.classList.remove('hidden');
+}
+
+function setBookTemplateButtonLoading(isLoading) {
+    const btn = getBookTemplateSaveButton();
+    if (!btn) return;
+
+    if (!btn.dataset.originalHtml) {
+        btn.dataset.originalHtml = btn.innerHTML;
+    }
+
+    btn.disabled = isLoading;
+    btn.classList.toggle('opacity-60', isLoading);
+    btn.classList.toggle('cursor-wait', isLoading);
+
+    if (isLoading) {
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Guardando plantilla...</span>';
+    } else {
+        btn.innerHTML = btn.dataset.originalHtml;
+    }
+}
+
+function buildCurrentBookTemplateSettings() {
+    const getVal = (id, fallback = '') => {
+        const el = document.getElementById(id);
+        return el ? el.value : fallback;
+    };
+
+    const getCleanVal = (id) => {
+        const el = document.getElementById(id);
+        return el ? el.value.replace(',', '.') : '';
+    };
+
+    const parseVal = (id, fallback) => {
+        const val = getCleanVal(id);
+        const clean = parseFloat(val);
+        return isNaN(clean) ? fallback : clean;
+    };
+
+    const getChecked = (id) => {
+        const el = document.getElementById(id);
+        return el ? (el.checked ? 1 : 0) : 0;
+    };
+
+    const getBookLanguage = () => getVal('setting-book-language', getVal('setting-content-language', 'es'));
+
+    const getBookFlowMode = () => {
+        const el = document.getElementById('setting-book-chapter-flow-mode');
+        return el && el.value === 'left' ? 'left' : 'continuous';
+    };
+
+    const getLegacyParityFromFlowMode = () => (getBookFlowMode() === 'left' ? 'even' : 'any');
+
+    const creditsConfig = typeof getCreditsConfigFromForm === 'function'
+        ? getCreditsConfigFromForm()
+        : (bookState.settings?.credits_config || {});
+    const creditsLegacy = typeof almadenCreditsConfigToLegacy === 'function'
+        ? almadenCreditsConfigToLegacy(creditsConfig)
+        : {
+            credits_edition: getVal('setting-credits-edition'),
+            credits_date: getVal('setting-credits-date'),
+            credits_isbn: getVal('setting-credits-isbn'),
+            credits_copyright: getVal('setting-credits-copyright'),
+            credits_printer: getVal('setting-credits-printer'),
+            credits_blank_before: parseVal('setting-credits-blank-before', 0),
+            credits_blank_after: parseVal('setting-credits-blank-after', 0),
+            credits_license: getVal('setting-credits-license'),
+            credits_custom: typeof getCustomCreditsJSON === 'function' ? getCustomCreditsJSON() : '[]'
+        };
+
+    const stateBuilder = typeof almadenBuildPDFSettingsState === 'function'
+        ? almadenBuildPDFSettingsState
+        : null;
+
+    if (stateBuilder) {
+        return stateBuilder({
+            getVal,
+            getCleanVal,
+            getChecked,
+            parseVal,
+            getBookLanguage,
+            getBookFlowMode,
+            getLegacyParityFromFlowMode,
+            creditsConfig,
+            creditsLegacy
+        });
+    }
+
+    return {
+        page_size: getVal('setting-page-size'),
+        chapter_title_font_family: getVal('setting-chapter-title-font-family'),
+        chapter_title_font_size: parseVal('setting-chapter-title-font-size', 24),
+        credits_config: creditsConfig,
+        credits_edition: creditsLegacy.credits_edition || '',
+        credits_date: creditsLegacy.credits_date || '',
+        credits_isbn: creditsLegacy.credits_isbn || '',
+        credits_copyright: creditsLegacy.credits_copyright || '',
+        credits_printer: creditsLegacy.credits_printer || '',
+        credits_blank_before: creditsLegacy.credits_blank_before ?? 0,
+        credits_blank_after: creditsLegacy.credits_blank_after ?? 0,
+        credits_license: creditsLegacy.credits_license || 'all_rights_reserved',
+        credits_custom: creditsLegacy.credits_custom || '[]'
+    };
+}
+
+function appendSettingsSnapshotToFormData(formData, snapshot) {
+    Object.entries(snapshot || {}).forEach(([key, value]) => {
+        if (value === undefined || value === null) return;
+        if (typeof value === 'object') {
+            formData.append(key, JSON.stringify(value));
+            return;
+        }
+        formData.append(key, value);
+    });
+}
+
 function loadBookTemplates() {
     const container = document.getElementById('templates-container');
     if (!container) return;
@@ -9,6 +152,8 @@ function loadBookTemplates() {
         renderBookTemplates(cachedBookTemplates);
         return;
     }
+
+    setBookTemplateStatus('Cargando plantillas de libro...', 'info');
 
     const data = new FormData();
     data.append('action', 'almaden_get_book_templates');
@@ -24,13 +169,16 @@ function loadBookTemplates() {
         if (res.success && res.data && res.data.templates) {
             cachedBookTemplates = res.data.templates;
             renderBookTemplates(cachedBookTemplates);
+            setBookTemplateStatus('');
         } else {
             container.innerHTML = '<div class="text-[10px] text-rose-500 italic">Error al cargar plantillas de libro.</div>';
+            setBookTemplateStatus('No se pudieron cargar las plantillas de libro.', 'error');
         }
     })
     .catch(err => {
         console.error('Error fetching book templates:', err);
         container.innerHTML = '<div class="text-[10px] text-rose-500 italic">Error de conexión.</div>';
+        setBookTemplateStatus('Error de conexión al cargar plantillas.', 'error');
     });
 }
 
@@ -118,15 +266,17 @@ function promptSaveCurrentAsBookTemplate() {
     const name = prompt("Introduce un nombre para la nueva plantilla de libro (ej. 'Mi Estilo Favorito'):");
     if (!name || name.trim() === '') return;
 
-    // Collect all form data from settings modal
-    const form = document.getElementById('settings-form');
-    if (!form) return;
-    const data = new FormData(form);
+    const settingsSnapshot = buildCurrentBookTemplateSettings();
+    const data = new FormData();
+    appendSettingsSnapshotToFormData(data, settingsSnapshot);
     
     data.append('action', 'almaden_save_book_template');
     data.append('template_name', name.trim());
     data.append('book_id', bookState.bookId);
     data.append('nonce', bookState.settingsNonce);
+
+    setBookTemplateButtonLoading(true);
+    setBookTemplateStatus('Guardando plantilla de libro...', 'info');
 
     fetch(bookState.ajaxUrl, {
         method: 'POST',
@@ -135,16 +285,23 @@ function promptSaveCurrentAsBookTemplate() {
     .then(res => res.json())
     .then(res => {
         if (res.success) {
-            alert('¡Plantilla de libro guardada con éxito!');
-            cachedBookTemplates = null; // Force reload
+            const savedName = res.data && res.data.template ? res.data.template.name : name.trim();
+            setBookTemplateStatus(`Plantilla "${savedName}" guardada con éxito.`, 'success');
+            cachedBookTemplates = null; // Force reload from disk so gallery stays in sync
+            setBookTemplateStatus('Actualizando galería de plantillas...', 'info');
             loadBookTemplates();
         } else {
+            setBookTemplateStatus('No se pudo guardar la plantilla de libro.', 'error');
             alert('Error: ' + (res.data || 'No se pudo guardar la plantilla de libro'));
         }
     })
     .catch(err => {
         console.error(err);
+        setBookTemplateStatus('Error de conexión al guardar la plantilla.', 'error');
         alert('Error de conexión al guardar la plantilla de libro.');
+    })
+    .finally(() => {
+        setBookTemplateButtonLoading(false);
     });
 }
 
@@ -168,13 +325,16 @@ function deleteBookTemplate(templateId) {
         if (res.success) {
             cachedBookTemplates = null; // Force reload
             loadBookTemplates();
+            setBookTemplateStatus('Plantilla eliminada.', 'success');
         } else {
             alert('Error: ' + (res.data || 'No se pudo eliminar la plantilla de libro'));
+            setBookTemplateStatus('No se pudo eliminar la plantilla de libro.', 'error');
         }
     })
     .catch(err => {
         console.error(err);
         alert('Error de conexión al eliminar la plantilla de libro.');
+        setBookTemplateStatus('Error de conexión al eliminar la plantilla.', 'error');
     });
 }
 

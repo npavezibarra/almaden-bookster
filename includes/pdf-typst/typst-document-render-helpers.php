@@ -203,12 +203,12 @@ function almaden_bookster_typst_render_toc( $chapter, $chapters, $settings, $fal
 	return $output;
 }
 
-function almaden_bookster_typst_render_credits( $config, $author_label, $fallbacks, &$assets, $resolve_font, $cover_settings = array(), $asset_mode = 'original' ) {
+function almaden_bookster_typst_render_credits( $config, $author_label, $book_title, $fallbacks, &$assets, $resolve_font, $cover_settings = array(), $asset_mode = 'original' ) {
 	$config = is_array( $config ) ? $config : array();
 	$styles = isset( $config['section_styles'] ) && is_array( $config['section_styles'] ) ? $config['section_styles'] : array();
 	$order  = isset( $config['section_order'] ) && is_array( $config['section_order'] )
 		? $config['section_order']
-		: array( 'editorial', 'people', 'collaborators', 'logos', 'legal' );
+		: array( 'logos', 'people', 'editorial', 'legal', 'collaborators' );
 	$sections = array();
 	$role_labels = array(
 		'author' => 'Autor', 'coauthor' => 'Coautor', 'editor' => 'Editor', 'translator' => 'Traductor',
@@ -341,12 +341,32 @@ function almaden_bookster_typst_render_credits( $config, $author_label, $fallbac
 	$logo_rows = array();
 	foreach ( (array) ( $config['logos'] ?? array() ) as $logo ) {
 		$parts = array();
-		$image_url = almaden_bookster_typst_resolve_credits_logo_url( $logo, $cover_settings );
-		$image = almaden_bookster_typst_register_upload( $image_url, $assets, $asset_mode );
 		$logo_align = almaden_bookster_typst_credits_alignment( $logo['position'] ?? 'center' );
-		if ( '' !== $image ) {
-			$size = max( 24, min( 400, (int) ( $logo['size_px'] ?? 120 ) ) ) * 0.75;
-			$parts[] = '#align(' . $logo_align . ')[#box(width: ' . round( $size, 2 ) . 'pt)[#image("' . almaden_bookster_typst_escape_string( $image ) . '", width: 100%, fit: "contain")]]';
+		$logo_source = strtolower( trim( (string) ( $logo['logo_source'] ?? 'image' ) ) );
+		if ( 'text' === $logo_source ) {
+			$resolved_title = trim( (string) $book_title );
+			if ( '' !== $resolved_title ) {
+				$title_text = almaden_bookster_typst_transform_title( $resolved_title, $logo['title_text_transform'] ?? 'none' );
+				$title_style = almaden_bookster_typst_credits_text_style(
+					array(
+						'font_family'    => $logo['title_font_family'] ?? '',
+						'font_size'      => $logo['title_font_size'] ?? '',
+						'font_weight'    => $logo['title_font_weight'] ?? '700',
+						'line_height'    => $logo['title_line_height'] ?? 1.05,
+						'text_align'     => $logo_align,
+						'letter_spacing' => $logo['title_letter_spacing'] ?? 0,
+					),
+					$fallbacks['family'], 24, '700', 1.05, $resolve_font, 0, $logo_align
+				);
+				$parts[] = almaden_bookster_typst_credits_styled_block( $text( $title_text ), $title_style );
+			}
+		} else {
+			$image_url = almaden_bookster_typst_resolve_credits_logo_url( $logo, $cover_settings );
+			$image = almaden_bookster_typst_register_upload( $image_url, $assets, $asset_mode );
+			if ( '' !== $image ) {
+				$size = max( 24, min( 400, (int) ( $logo['size_px'] ?? 120 ) ) ) * 0.75;
+				$parts[] = '#align(' . $logo_align . ')[#box(width: ' . round( $size, 2 ) . 'pt)[#image("' . almaden_bookster_typst_escape_string( $image ) . '", width: 100%, fit: "contain")]]';
+			}
 		}
 		if ( almaden_bookster_typst_bool( $logo['show_author_name'] ?? false ) && '' !== trim( (string) $author_label ) ) {
 			$author_style = almaden_bookster_typst_credits_text_style(
@@ -382,22 +402,70 @@ function almaden_bookster_typst_render_credits( $config, $author_label, $fallbac
 	);
 	$sections['legal'] = almaden_bookster_typst_credits_line_block( implode( "\n#linebreak()\n", $legal_rows ), $legal_style['align'] );
 
-	$renderable_sections = array();
+	$main_sections = array();
+	$collaborator_sections = array();
 	foreach ( $order as $section_id ) {
 		if ( empty( $sections[ $section_id ] ) ) {
 			continue;
 		}
-		$renderable_sections[] = $section_id;
+		if ( 'collaborators' === $section_id ) {
+			$collaborator_sections[] = $section_id;
+			continue;
+		}
+		$main_sections[] = $section_id;
 	}
+
 	$output = '';
-	foreach ( $renderable_sections as $section_index => $section_id ) {
-		$section_style = almaden_bookster_typst_credits_text_style(
-			$styles[ $section_id ] ?? array(),
-			$fallbacks['family'], $fallbacks['size'], $fallbacks['weight'], $fallbacks['line_height'], $resolve_font, $fallbacks['tracking'] ?? 0, $fallbacks['align'] ?? ''
-		);
-		$output .= almaden_bookster_typst_credits_styled_block( $sections[ $section_id ], $section_style );
-		if ( $section_index < count( $renderable_sections ) - 1 ) {
-			$output .= $section_style['separator'] ? "\n#v(6pt)\n#line(length: 100%, stroke: 0.25pt)\n#v(6pt)\n" : "\n#v(8pt)\n";
+	if ( ! empty( $main_sections ) ) {
+		$main_content = '';
+		foreach ( $main_sections as $section_index => $section_id ) {
+			$section_style = almaden_bookster_typst_credits_text_style(
+				$styles[ $section_id ] ?? array(),
+				$fallbacks['family'], $fallbacks['size'], $fallbacks['weight'], $fallbacks['line_height'], $resolve_font, $fallbacks['tracking'] ?? 0, $fallbacks['align'] ?? ''
+			);
+			$main_content .= almaden_bookster_typst_credits_styled_block( $sections[ $section_id ], $section_style );
+			if ( $section_index < count( $main_sections ) - 1 ) {
+				$main_content .= $section_style['separator'] ? "\n#v(6pt)\n#line(length: 100%, stroke: 0.25pt)\n#v(6pt)\n" : "\n#v(8pt)\n";
+			}
+		}
+
+		if ( '' !== trim( $main_content ) ) {
+			$vertical_align = almaden_bookster_typst_credits_vertical_alignment( $config['vertical_align'] ?? 'bottom' );
+			$place_alignment = 'center + top';
+			if ( 'center' === $vertical_align ) {
+				$place_alignment = 'center + horizon';
+			} elseif ( 'bottom' === $vertical_align ) {
+				$place_alignment = 'center + bottom';
+			}
+
+			$output .= "#block(width: 100%, height: 100%)[\n";
+			$output .= '#align(' . $place_alignment . ')[ ' . "\n";
+			$output .= "#block(width: 100%, breakable: false)[\n";
+			$output .= $main_content . "\n";
+			$output .= "]\n";
+			$output .= "]\n";
+			$output .= "]\n";
+		}
+	}
+
+	if ( ! empty( $collaborator_sections ) ) {
+		$collaborator_output = '';
+		foreach ( $collaborator_sections as $section_index => $section_id ) {
+			$section_style = almaden_bookster_typst_credits_text_style(
+				$styles[ $section_id ] ?? array(),
+				$fallbacks['family'], $fallbacks['size'], $fallbacks['weight'], $fallbacks['line_height'], $resolve_font, $fallbacks['tracking'] ?? 0, $fallbacks['align'] ?? ''
+			);
+			$collaborator_output .= almaden_bookster_typst_credits_styled_block( $sections[ $section_id ], $section_style );
+			if ( $section_index < count( $collaborator_sections ) - 1 ) {
+				$collaborator_output .= $section_style['separator'] ? "\n#v(6pt)\n#line(length: 100%, stroke: 0.25pt)\n#v(6pt)\n" : "\n#v(8pt)\n";
+			}
+		}
+
+		if ( '' !== trim( $collaborator_output ) ) {
+			if ( '' !== trim( $output ) ) {
+				$output .= "#pagebreak()\n";
+			}
+			$output .= $collaborator_output;
 		}
 	}
 

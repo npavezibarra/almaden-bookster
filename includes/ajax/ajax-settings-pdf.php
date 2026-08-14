@@ -70,6 +70,7 @@ function almaden_get_book_pdf_settings( $book_id ) {
 		'ebook_chapter_prefix_letter_spacing' => 0.0,
 		'ebook_chapter_prefix_ornament' => 'none',
 		'footnote_mode'              => 'page',
+		'footnote_chapter_new_page'  => 0,
 		'footnote_chapter_title'     => 'Referencia',
 		'footnote_book_title'        => 'Referencias',
 		'footnote_font_family'       => 'Merriweather',
@@ -202,6 +203,75 @@ function almaden_get_book_pdf_settings( $book_id ) {
 					$pdf_settings[$key] = $db_settings[$key];
 				}
 			}
+		}
+	}
+
+	// A creation template is applied again on the first read as a safety net.
+	// This covers installs where the settings table was unavailable during the
+	// redirect immediately after book creation. The marker is removed as soon
+	// as the editor saves its own settings.
+	$template_seed_pending = get_post_meta( $book_id, '_almaden_book_template_seed_pending', true );
+	$template_key = get_post_meta( $book_id, '_almaden_book_template', true );
+	$template_label = get_post_meta( $book_id, '_almaden_book_template_label', true );
+	$template_needs_bootstrap = $template_seed_pending;
+	if ( ! $template_needs_bootstrap && $db_settings && 'Merriweather' === (string) ( $db_settings['font_family_content'] ?? '' ) ) {
+		$template_needs_bootstrap = '' !== $template_key || '' !== $template_label;
+	}
+
+	if ( $template_needs_bootstrap ) {
+		if ( function_exists( 'almaden_bookster_get_book_template_payload_for_seed' ) ) {
+			$template = almaden_bookster_get_book_template_payload_for_seed( $template_key, $template_label );
+			$template_settings = ( $template && isset( $template['settings'] ) && is_array( $template['settings'] ) )
+				? $template['settings']
+				: array();
+			foreach ( $template_settings as $key => $value ) {
+				if ( array_key_exists( $key, $pdf_settings ) ) {
+					$pdf_settings[ $key ] = $value;
+				}
+			}
+
+			if ( isset( $template_settings['book_separate_opening_content'] ) ) {
+				$pdf_settings['book_separate_opening_content'] = intval( $template_settings['book_separate_opening_content'] );
+				update_post_meta( $book_id, '_almaden_book_separate_opening_content', $pdf_settings['book_separate_opening_content'] ? 1 : 0 );
+			}
+			if ( isset( $template_settings['book_chapter_flow_mode'] ) ) {
+				$pdf_settings['book_chapter_flow_mode'] = sanitize_text_field( (string) $template_settings['book_chapter_flow_mode'] );
+				update_post_meta( $book_id, '_almaden_book_chapter_flow_mode', $pdf_settings['book_chapter_flow_mode'] );
+			}
+			foreach ( array(
+				'chapter_subtitle_show', 'chapter_subtitle_font_family', 'chapter_subtitle_font_size',
+				'chapter_subtitle_align', 'chapter_subtitle_font_style', 'chapter_subtitle_text_transform',
+				'chapter_subtitle_font_weight', 'chapter_subtitle_margin_top', 'chapter_subtitle_margin_bottom',
+				'chapter_subtitle_letter_spacing', 'ebook_subtitle_show', 'ebook_subtitle_font_family',
+				'ebook_subtitle_font_size', 'ebook_subtitle_align', 'ebook_subtitle_font_style',
+				'ebook_subtitle_text_transform', 'ebook_subtitle_font_weight', 'ebook_subtitle_padding_top',
+				'ebook_subtitle_padding_bottom', 'ebook_subtitle_letter_spacing',
+			) as $meta_field ) {
+				if ( array_key_exists( $meta_field, $template_settings ) ) {
+					update_post_meta( $book_id, '_almaden_' . $meta_field, $template_settings[ $meta_field ] );
+				}
+			}
+
+			if ( ! $template_seed_pending ) {
+				update_post_meta( $book_id, '_almaden_book_template_seed_pending', 1 );
+			}
+		}
+	}
+
+	$credits_config_raw = get_post_meta( $book_id, '_almaden_credits_config', true );
+	if ( ( '' === trim( (string) $credits_config_raw ) || '[]' === trim( (string) $credits_config_raw ) ) && function_exists( 'almaden_bookster_seed_default_credits_config_for_book' ) ) {
+		$book_post = get_post( $book_id );
+		$author_label = '';
+		if ( $book_post && ! empty( $book_post->post_author ) ) {
+			$author_user = get_userdata( (int) $book_post->post_author );
+			if ( $author_user ) {
+				$author_label = trim( (string) ( $author_user->display_name ?: $author_user->user_nicename ) );
+			}
+		}
+		$created_month = $book_post ? mysql2date( 'Y-m', (string) $book_post->post_date, false ) : current_time( 'Y-m' );
+		$seed_credits = almaden_bookster_seed_default_credits_config_for_book( $book_id, $author_label, $created_month );
+		if ( ! is_wp_error( $seed_credits ) ) {
+			$pdf_settings['credits_config'] = $seed_credits;
 		}
 	}
 

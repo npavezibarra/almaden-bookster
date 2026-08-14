@@ -171,8 +171,9 @@ function almaden_bookster_save_settings_ajax() {
 		'first_page_footer_custom'   => sanitize_text_field( $_POST['first_page_footer_custom'] ),
 		'chapter_transition_blank_mode' => ( isset( $_POST['chapter_transition_blank_mode'] ) && in_array( $_POST['chapter_transition_blank_mode'], array( 'full_blank', 'blank_with_header_footer', 'intentional_text' ), true ) ) ? sanitize_text_field( $_POST['chapter_transition_blank_mode'] ) : 'full_blank',
 		'chapter_transition_blank_text' => isset( $_POST['chapter_transition_blank_text'] ) ? sanitize_text_field( wp_unslash( $_POST['chapter_transition_blank_text'] ) ) : '...',
-		'footnote_mode'              => ( isset( $_POST['footnote_mode'] ) && in_array( $_POST['footnote_mode'], array( 'page', 'chapter', 'book' ), true ) ) ? sanitize_text_field( $_POST['footnote_mode'] ) : 'page',
-		'footnote_chapter_title'     => isset( $_POST['footnote_chapter_title'] ) ? sanitize_text_field( wp_unslash( $_POST['footnote_chapter_title'] ) ) : 'Referencia',
+			'footnote_mode'              => ( isset( $_POST['footnote_mode'] ) && in_array( $_POST['footnote_mode'], array( 'page', 'chapter', 'book' ), true ) ) ? sanitize_text_field( $_POST['footnote_mode'] ) : 'page',
+			'footnote_chapter_new_page'  => isset( $_POST['footnote_chapter_new_page'] ) ? intval( $_POST['footnote_chapter_new_page'] ) : 0,
+			'footnote_chapter_title'     => isset( $_POST['footnote_chapter_title'] ) ? sanitize_text_field( wp_unslash( $_POST['footnote_chapter_title'] ) ) : 'Referencia',
 		'footnote_book_title'        => isset( $_POST['footnote_book_title'] ) ? sanitize_text_field( wp_unslash( $_POST['footnote_book_title'] ) ) : 'Referencias',
 		'footnote_font_family'       => isset( $_POST['footnote_font_family'] ) ? sanitize_text_field( $_POST['footnote_font_family'] ) : 'Merriweather',
 		'footnote_font_size'         => $footnote_font_size,
@@ -247,6 +248,9 @@ function almaden_bookster_save_settings_ajax() {
 	}
 
 	if ( false !== $result ) {
+		// The creation template is now part of the persisted book settings.
+		// Do not re-apply it after the user manually saves editor changes.
+		delete_post_meta( $book_id, '_almaden_book_template_seed_pending' );
 		update_post_meta( $book_id, '_almaden_book_separate_opening_content', $book_separate_opening_content ? 1 : 0 );
 		update_post_meta( $book_id, '_almaden_book_chapter_flow_mode', $book_chapter_flow_mode );
 		update_post_meta( $book_id, '_almaden_book_flow_legacy_parity', $data['chapter_start_parity'] );

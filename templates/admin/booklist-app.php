@@ -181,7 +181,7 @@ if ( $is_logged_in && $current_user ) {
     <main id="almaden-workshop" class="almaden-app-content-shell flex-1 pb-10" style="background-color: #f5f5f5;">
         <div class="mx-auto w-full max-w-7xl px-8">
             <?php if ( $book_created || $book_deleted || $book_imported || ! empty( $book_imported_error ) ) : ?>
-            <div id="success-toast" class="mb-8 bg-black text-white p-4 rounded-lg shadow-lg flex items-center justify-between animate-fade-in-down">
+            <div id="success-toast" class="mb-8 bg-black text-white p-4 rounded-lg shadow-lg flex items-center justify-between animate-fade-in-down" data-auto-dismiss-toast="1">
                 <div class="flex items-center">
                     <svg class="h-5 w-5 text-<?php echo ($book_created || $book_imported) ? 'amber' : 'rose'; ?>-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <?php if ( $book_created || $book_imported ) : ?>
@@ -210,6 +210,38 @@ if ( $is_logged_in && $current_user ) {
                     </svg>
                 </button>
             </div>
+            <script>
+                (function() {
+                    var toast = document.getElementById('success-toast');
+                    if (!toast) {
+                        return;
+                    }
+
+                    var cleanToastUrl = function() {
+                        if (!window.history || !window.history.replaceState) {
+                            return;
+                        }
+
+                        try {
+                            var url = new URL(window.location.href);
+                            ['book_created', 'book_deleted', 'book_imported', 'book_imported_error'].forEach(function(param) {
+                                url.searchParams.delete(param);
+                            });
+                            window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+                        } catch (error) {
+                            // If URL cleanup fails, still keep the toast temporary.
+                        }
+                    };
+
+                    cleanToastUrl();
+
+                    window.setTimeout(function() {
+                        if (toast && toast.parentNode) {
+                            toast.parentNode.removeChild(toast);
+                        }
+                    }, 3000);
+                })();
+            </script>
             <?php endif; ?>
 
             <div class="mb-8 border-b border-gray-200 pb-5 flex justify-between items-end">
@@ -462,6 +494,7 @@ if ( $is_logged_in && $current_user ) {
     <?php include plugin_dir_path( __FILE__ ) . 'booklist-create-modal.php'; ?>
 
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/admin/booklist-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/admin/booklist-create-modal.js?v=' . time(), __FILE__ ) ); ?>"></script>
     
     <!-- Include the Settings Modal and JS -->
     <?php include plugin_dir_path( __FILE__ ) . '../editor/editor-settings-modal.php'; ?>

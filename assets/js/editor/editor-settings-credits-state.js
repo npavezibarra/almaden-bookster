@@ -19,6 +19,11 @@ function creditsNormalizeLogoTextTransform(value) {
     return ['none', 'uppercase', 'lowercase', 'capitalize'].includes(normalized) ? normalized : 'none';
 }
 
+function creditsNormalizeVerticalAlign(value) {
+    const normalized = String(value || '').trim().toLowerCase();
+    return ['top', 'center', 'bottom'].includes(normalized) ? normalized : 'top';
+}
+
 function creditsNormalizeLogoFontWeight(value) {
     const normalized = String(value || '').trim();
     return ['', '300', '400', '500', '600', '700', '800'].includes(normalized) ? normalized : '';
@@ -110,6 +115,7 @@ function creditsNormalizeLogoValue(value) {
     const source = value && typeof value === 'object' ? value : {};
     const logoUrl = String(source.logo_url || source.image_url || source.url || '').trim();
     const hasMeaningfulData = String(source.logo_source || '') === 'cover_logo'
+        || String(source.logo_source || '') === 'text'
         || logoUrl
         || source.show_author_name === true
         || source.show_author_name === 1
@@ -119,14 +125,23 @@ function creditsNormalizeLogoValue(value) {
         || String(source.author_font_weight || '').trim()
         || String(source.author_letter_spacing || '').trim()
         || String(source.author_gap_px || '').trim()
-        || String(source.author_text_transform || '').trim();
+        || String(source.author_text_transform || '').trim()
+        || String(source.title_font_family || '').trim()
+        || String(source.title_font_size || '').trim()
+        || String(source.title_font_weight || '').trim()
+        || String(source.title_letter_spacing || '').trim()
+        || String(source.title_line_height || '').trim()
+        || String(source.title_text_transform || '').trim();
 
     if (!hasMeaningfulData) {
         return null;
     }
 
     return {
-        logo_source: String(source.logo_source || source.source_type || source.mode || 'image').trim().toLowerCase() === 'cover_logo' ? 'cover_logo' : 'image',
+        logo_source: (() => {
+            const normalized = String(source.logo_source || source.source_type || source.mode || 'image').trim().toLowerCase();
+            return ['image', 'cover_logo', 'text'].includes(normalized) ? normalized : 'image';
+        })(),
         logo_url: logoUrl,
         position: creditsNormalizeLogoPosition(source.position || source.align || 'center'),
         size_px: creditsNormalizeLogoSize(source.size_px ?? source.size ?? 120),
@@ -137,11 +152,18 @@ function creditsNormalizeLogoValue(value) {
         author_letter_spacing: creditsNormalizeOptionalDecimal(source.author_letter_spacing ?? '', -10, 20, ''),
         author_gap_px: creditsNormalizeOptionalInteger(source.author_gap_px ?? 10, 0, 100, 10),
         author_text_transform: creditsNormalizeLogoTextTransform(source.author_text_transform || 'none'),
+        title_font_family: String(source.title_font_family || '').trim(),
+        title_font_size: creditsNormalizeOptionalInteger(source.title_font_size ?? '', 8, 72, ''),
+        title_font_weight: creditsNormalizeLogoFontWeight(source.title_font_weight || ''),
+        title_letter_spacing: creditsNormalizeOptionalDecimal(source.title_letter_spacing ?? '', -10, 20, ''),
+        title_line_height: creditsNormalizeOptionalDecimal(source.title_line_height ?? '', 0.5, 3, ''),
+        title_text_transform: creditsNormalizeLogoTextTransform(source.title_text_transform || 'none'),
     };
 }
 
 function creditsGetDefaultConfig() {
     return {
+        vertical_align: 'bottom',
         editorial: {
             edition_number: '',
             publication_date: '',
@@ -155,7 +177,25 @@ function creditsGetDefaultConfig() {
         collaborators_visible: 1,
         collaborators_title: 'Colaboradores',
         collaborators_styles: creditsGetDefaultCollaboratorsStyles(),
-        logos: [],
+        logos: [{
+            logo_source: 'text',
+            logo_url: '',
+            position: 'center',
+            size_px: 120,
+            show_author_name: 0,
+            author_font_family: '',
+            author_font_size: 16,
+            author_font_weight: '',
+            author_letter_spacing: '',
+            author_gap_px: 10,
+            author_text_transform: 'none',
+            title_font_family: '',
+            title_font_size: 24,
+            title_font_weight: '700',
+            title_letter_spacing: '',
+            title_line_height: '',
+            title_text_transform: 'none',
+        }],
         section_order: creditsGetDefaultSectionOrder(),
         section_styles: creditsGetDefaultSectionOrder().reduce((acc, sectionId) => {
             acc[sectionId] = creditsGetDefaultSectionStyle();
@@ -215,6 +255,7 @@ function creditsNormalizeConfig(rawConfig) {
     const collaboratorsStylesSource = source.collaborators_styles && typeof source.collaborators_styles === 'object'
         ? source.collaborators_styles
         : (source.credits_collaborators_styles && typeof source.credits_collaborators_styles === 'object' ? source.credits_collaborators_styles : {});
+    const verticalAlignSource = source.vertical_align || source.credits_vertical_align || defaults.vertical_align;
 
     const config = JSON.parse(JSON.stringify(defaults));
     config.editorial.edition_number = String(editorialSource.edition_number || source.credits_edition || '').trim();
@@ -297,6 +338,7 @@ function creditsNormalizeConfig(rawConfig) {
         : defaults.legal.license;
     config.collaborators_title = collaboratorsTitleSource || defaults.collaborators_title;
     config.collaborators_styles = creditsNormalizeCollaboratorsStylesValue(collaboratorsStylesSource, config.section_styles.collaborators || defaults.section_styles.collaborators || {});
+    config.vertical_align = creditsNormalizeVerticalAlign(verticalAlignSource);
     config.section_order = creditsGetDefaultSectionOrder().filter((sectionId) => true);
     if (Array.isArray(sectionOrderSource) && sectionOrderSource.length) {
         const normalizedOrder = [];
@@ -347,6 +389,7 @@ function creditsConfigToLegacy(config) {
         credits_collaborators_styles: JSON.stringify(normalized.collaborators_styles || {}),
         credits_section_order: JSON.stringify(normalized.section_order || []),
         credits_section_styles: JSON.stringify(normalized.section_styles || {}),
+        credits_vertical_align: normalized.vertical_align || 'bottom',
         credits_logo_source: firstLogo.logo_source || 'image',
         credits_logo_url: firstLogo.logo_url || '',
         credits_logo_position: firstLogo.position || 'center',
@@ -362,5 +405,15 @@ function creditsConfigToLegacy(config) {
             ? 10
             : Math.max(0, Math.min(100, parseInt(firstLogo.author_gap_px, 10) || 0)),
         credits_logo_author_text_transform: firstLogo.author_text_transform || 'none',
+        credits_logo_title_font_family: firstLogo.title_font_family || '',
+        credits_logo_title_font_size: parseInt(firstLogo.title_font_size || '', 10) || '',
+        credits_logo_title_font_weight: firstLogo.title_font_weight || '',
+        credits_logo_title_letter_spacing: firstLogo.title_letter_spacing === '' || firstLogo.title_letter_spacing === null || typeof firstLogo.title_letter_spacing === 'undefined'
+            ? ''
+            : Number(firstLogo.title_letter_spacing),
+        credits_logo_title_line_height: firstLogo.title_line_height === '' || firstLogo.title_line_height === null || typeof firstLogo.title_line_height === 'undefined'
+            ? ''
+            : Number(firstLogo.title_line_height),
+        credits_logo_title_text_transform: firstLogo.title_text_transform || 'none',
     };
 }

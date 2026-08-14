@@ -59,9 +59,11 @@
                     </div>
                     
                     <div class="mt-4 pt-4 border-t border-[var(--border-color)]">
-                        <button type="button" onclick="promptSaveCurrentAsBookTemplate()" class="text-[11px] font-semibold text-black dark:text-white bg-transparent border border-black dark:border-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded px-3 py-1.5 transition">
-                            <i class="fa-solid fa-plus mr-1"></i> Guardar Ajustes Actuales como Plantilla de Libro
+                        <button type="button" id="save-book-template-btn" onclick="promptSaveCurrentAsBookTemplate()" class="text-[11px] font-semibold text-black dark:text-white bg-transparent border border-black dark:border-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded px-3 py-1.5 transition inline-flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i>
+                            Guardar Ajustes Actuales como Plantilla de Libro
                         </button>
+                        <div id="book-template-save-status" class="mt-2 text-[10px] text-[var(--text-muted)] hidden"></div>
                     </div>
                 </div>
             </div>

@@ -236,7 +236,7 @@ function creditsPopulateForm(config) {
         if (typeof creditsUpdateCollaboratorsVisibilityState === 'function') {
             creditsUpdateCollaboratorsVisibilityState(root);
         }
-        creditsRenderTabState(root, root.dataset.activeCreditsTab || 'editorial');
+        creditsRenderTabState(root, root.dataset.activeCreditsTab || 'logos');
         creditsSyncStateFromForm();
     } finally {
         creditsSuppressRemoteSave = false;

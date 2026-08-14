@@ -217,6 +217,7 @@ function almaden_bookster_typst_build_document_context( $payload ) {
 		$footnote_font_family = $font_family;
 	}
 	$footnote_mode = almaden_bookster_typst_footnote_mode( $settings );
+	$footnote_chapter_new_page = almaden_bookster_typst_bool( $settings['footnote_chapter_new_page'] ?? false );
 	$footnote_chapter_title = almaden_bookster_typst_footnote_title( $settings, 'chapter' );
 	$footnote_book_title = almaden_bookster_typst_footnote_title( $settings, 'book' );
 	$first_page_header_show = almaden_bookster_typst_bool( $settings['first_page_header_show'] ?? true );

@@ -41,6 +41,7 @@ function almaden_bookster_credits_debug_summary( $config ) {
 		'people_count'        => isset( $config['people'] ) && is_array( $config['people'] ) ? count( $config['people'] ) : 0,
 		'collaborators_count' => isset( $config['collaborators'] ) && is_array( $config['collaborators'] ) ? count( $config['collaborators'] ) : 0,
 		'logo_count'          => count( $logos ),
+		'vertical_align'      => isset( $config['vertical_align'] ) ? sanitize_text_field( $config['vertical_align'] ) : 'bottom',
 		'logo_source'         => isset( $first_logo['logo_source'] ) ? sanitize_text_field( $first_logo['logo_source'] ) : 'image',
 		'logo_urls'           => array_values( array_map( static function( $logo ) {
 			return isset( $logo['logo_url'] ) ? esc_url_raw( $logo['logo_url'] ) : '';
@@ -76,6 +77,7 @@ function almaden_bookster_store_credits_config( $book_id, $config ) {
 	update_post_meta( $book_id, '_almaden_credits_blank_after', intval( $legacy['credits_blank_after'] ) );
 	update_post_meta( $book_id, '_almaden_credits_license', $legacy['credits_license'] );
 	update_post_meta( $book_id, '_almaden_credits_custom', wp_slash( $legacy['credits_custom'] ) );
+	update_post_meta( $book_id, '_almaden_credits_vertical_align', $legacy['credits_vertical_align'] );
 
 	$stored = almaden_bookster_normalize_credits_config( get_post_meta( $book_id, '_almaden_credits_config', true ) );
 	almaden_bookster_credits_debug_log(
@@ -97,7 +99,7 @@ function almaden_bookster_store_credits_config( $book_id, $config ) {
 function almaden_bookster_save_credits_from_request( $book_id, $request ) {
 	$has_config = isset( $request['credits_config'] );
 	$has_legacy = false;
-	foreach ( array( 'credits_edition', 'credits_date', 'credits_isbn', 'credits_copyright', 'credits_printer', 'credits_blank_before', 'credits_blank_after', 'credits_license', 'credits_custom', 'credits_logo_source', 'credits_logo_url', 'credits_logo_position', 'credits_logo_size_px', 'credits_logo_show_author_name', 'credits_logo_author_font_family', 'credits_logo_author_font_size', 'credits_logo_author_font_weight', 'credits_logo_author_letter_spacing', 'credits_logo_author_gap_px', 'credits_logo_author_text_transform' ) as $field ) {
+	foreach ( array( 'credits_edition', 'credits_date', 'credits_isbn', 'credits_copyright', 'credits_printer', 'credits_blank_before', 'credits_blank_after', 'credits_license', 'credits_custom', 'credits_vertical_align', 'credits_logo_source', 'credits_logo_url', 'credits_logo_position', 'credits_logo_size_px', 'credits_logo_show_author_name', 'credits_logo_author_font_family', 'credits_logo_author_font_size', 'credits_logo_author_font_weight', 'credits_logo_author_letter_spacing', 'credits_logo_author_gap_px', 'credits_logo_author_text_transform' ) as $field ) {
 		if ( isset( $request[ $field ] ) ) {
 			$has_legacy = true;
 			break;
@@ -129,6 +131,7 @@ function almaden_bookster_save_credits_from_request( $book_id, $request ) {
 		'credits_blank_after'  => isset( $request['credits_blank_after'] ) ? intval( $request['credits_blank_after'] ) : 0,
 		'credits_license'      => isset( $request['credits_license'] ) ? sanitize_text_field( wp_unslash( $request['credits_license'] ) ) : 'all_rights_reserved',
 		'credits_custom'       => isset( $request['credits_custom'] ) ? wp_unslash( $request['credits_custom'] ) : '[]',
+		'credits_vertical_align' => isset( $request['credits_vertical_align'] ) ? sanitize_text_field( wp_unslash( $request['credits_vertical_align'] ) ) : '',
 		'credits_logo_source'   => isset( $request['credits_logo_source'] ) ? sanitize_text_field( wp_unslash( $request['credits_logo_source'] ) ) : '',
 		'credits_logo_url'      => isset( $request['credits_logo_url'] ) ? esc_url_raw( wp_unslash( $request['credits_logo_url'] ) ) : '',
 		'credits_logo_position' => isset( $request['credits_logo_position'] ) ? sanitize_text_field( wp_unslash( $request['credits_logo_position'] ) ) : '',
@@ -140,6 +143,12 @@ function almaden_bookster_save_credits_from_request( $book_id, $request ) {
 		'credits_logo_author_letter_spacing' => isset( $request['credits_logo_author_letter_spacing'] ) ? sanitize_text_field( wp_unslash( $request['credits_logo_author_letter_spacing'] ) ) : '',
 		'credits_logo_author_gap_px' => isset( $request['credits_logo_author_gap_px'] ) ? intval( $request['credits_logo_author_gap_px'] ) : 10,
 		'credits_logo_author_text_transform' => isset( $request['credits_logo_author_text_transform'] ) ? sanitize_text_field( wp_unslash( $request['credits_logo_author_text_transform'] ) ) : '',
+		'credits_logo_title_font_family' => isset( $request['credits_logo_title_font_family'] ) ? sanitize_text_field( wp_unslash( $request['credits_logo_title_font_family'] ) ) : '',
+		'credits_logo_title_font_size' => isset( $request['credits_logo_title_font_size'] ) ? intval( $request['credits_logo_title_font_size'] ) : 0,
+		'credits_logo_title_font_weight' => isset( $request['credits_logo_title_font_weight'] ) ? sanitize_text_field( wp_unslash( $request['credits_logo_title_font_weight'] ) ) : '',
+		'credits_logo_title_letter_spacing' => isset( $request['credits_logo_title_letter_spacing'] ) ? sanitize_text_field( wp_unslash( $request['credits_logo_title_letter_spacing'] ) ) : '',
+		'credits_logo_title_line_height' => isset( $request['credits_logo_title_line_height'] ) ? sanitize_text_field( wp_unslash( $request['credits_logo_title_line_height'] ) ) : '',
+		'credits_logo_title_text_transform' => isset( $request['credits_logo_title_text_transform'] ) ? sanitize_text_field( wp_unslash( $request['credits_logo_title_text_transform'] ) ) : '',
 	);
 
 	$config = almaden_bookster_normalize_credits_config( $raw_config, $legacy_input );

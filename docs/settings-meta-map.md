@@ -19,7 +19,7 @@ This document maps the canonical source of truth for the current book layout sys
 | Global PDF | Chapter title style | Table `almaden_book_settings` | `chapter_title_*` |
 | Global PDF | Chapter prefix style | Table `almaden_book_settings` | `chapter_prefix_*` |
 | Global PDF | Footnote separator | Table `almaden_book_settings` | `footnote_separator_*` |
-| Global PDF | Footnote placement and typography | Table `almaden_book_settings` | `footnote_mode`, `footnote_*_title`, `footnote_font_*`, `footnote_align`, `footnote_line_height`, `footnote_letter_spacing`, `footnote_entry_spacing`, `footnote_hyphenate` |
+| Global PDF | Footnote placement and typography | Table `almaden_book_settings` | `footnote_mode`, `footnote_chapter_new_page`, `footnote_*_title`, `footnote_font_*`, `footnote_align`, `footnote_line_height`, `footnote_letter_spacing`, `footnote_entry_spacing`, `footnote_hyphenate` |
 | Global PDF | Subtitle defaults | `post_meta` on book | `_almaden_chapter_subtitle_*` |
 | Global Ebook | Ebook typography / chapter opener | Table `almaden_book_settings` | `ebook_*`, `ebook_chapter_*` |
 | Global Ebook | Ebook subtitle defaults | `post_meta` on book | `_almaden_ebook_subtitle_*` |

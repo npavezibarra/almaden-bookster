@@ -316,6 +316,11 @@ function almaden_bookster_typst_credits_alignment( $align ) {
 	return in_array( $align, array( 'left', 'center', 'right' ), true ) ? $align : '';
 }
 
+function almaden_bookster_typst_credits_vertical_alignment( $align ) {
+	$align = strtolower( trim( (string) $align ) );
+	return in_array( $align, array( 'top', 'center', 'bottom' ), true ) ? $align : 'bottom';
+}
+
 function almaden_bookster_typst_normalize_cover_settings( $cover_settings ) {
 	if ( is_string( $cover_settings ) && '' !== trim( $cover_settings ) ) {
 		$decoded = json_decode( $cover_settings, true );

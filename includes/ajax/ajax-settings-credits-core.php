@@ -5,6 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 function almaden_bookster_get_default_credits_config() {
 	return array(
+		'vertical_align' => 'bottom',
 		'editorial' => array(
 			'edition_number' => '',
 			'publication_date' => '',
@@ -18,7 +19,27 @@ function almaden_bookster_get_default_credits_config() {
 		'collaborators_visible' => 1,
 		'collaborators_title' => 'Colaboradores',
 		'collaborators_styles' => almaden_bookster_get_default_credits_collaborators_styles(),
-		'logos' => array(),
+		'logos' => array(
+			array(
+				'logo_source' => 'text',
+				'logo_url' => '',
+				'position' => 'center',
+				'size_px' => 120,
+				'show_author_name' => 0,
+				'author_font_family' => '',
+				'author_font_size' => 16,
+				'author_font_weight' => '',
+				'author_letter_spacing' => '',
+				'author_gap_px' => 10,
+				'author_text_transform' => 'none',
+				'title_font_family' => '',
+				'title_font_size' => 24,
+				'title_font_weight' => '700',
+				'title_letter_spacing' => '',
+				'title_line_height' => '',
+				'title_text_transform' => 'none',
+			),
+		),
 		'section_order' => almaden_bookster_get_default_credits_section_order(),
 		'section_styles' => almaden_bookster_get_default_credits_section_styles(),
 		'legal' => array(
@@ -62,7 +83,7 @@ function almaden_bookster_normalize_credits_logo_size_value( $value ) {
 
 function almaden_bookster_normalize_credits_logo_source_value( $value ) {
 	$value = strtolower( sanitize_text_field( (string) $value ) );
-	return 'cover_logo' === $value ? 'cover_logo' : 'image';
+	return in_array( $value, array( 'image', 'cover_logo', 'text' ), true ) ? $value : 'image';
 }
 
 function almaden_bookster_normalize_credits_logo_author_font_size_value( $value ) {
@@ -76,13 +97,34 @@ function almaden_bookster_normalize_credits_logo_author_font_size_value( $value 
 	return $size ?: 16;
 }
 
+function almaden_bookster_normalize_credits_logo_title_font_size_value( $value ) {
+	$size = absint( $value );
+	if ( $size < 8 ) {
+		return 24;
+	}
+	if ( $size > 72 ) {
+		return 72;
+	}
+	return $size ?: 24;
+}
+
 function almaden_bookster_normalize_credits_logo_author_font_weight_value( $value ) {
 	$value = sanitize_text_field( (string) $value );
 	$allowed = array( '', '300', '400', '500', '600', '700', '800' );
 	return in_array( $value, $allowed, true ) ? $value : '';
 }
 
+function almaden_bookster_normalize_credits_logo_title_font_weight_value( $value ) {
+	$value = sanitize_text_field( (string) $value );
+	$allowed = array( '', '300', '400', '500', '600', '700', '800' );
+	return in_array( $value, $allowed, true ) ? $value : '';
+}
+
 function almaden_bookster_normalize_credits_logo_author_letter_spacing_value( $value ) {
+	return almaden_bookster_normalize_credits_optional_decimal_value( $value, -10, 20 );
+}
+
+function almaden_bookster_normalize_credits_logo_title_letter_spacing_value( $value ) {
 	return almaden_bookster_normalize_credits_optional_decimal_value( $value, -10, 20 );
 }
 
@@ -103,6 +145,12 @@ function almaden_bookster_normalize_credits_logo_author_text_transform_value( $v
 	return in_array( $value, $allowed, true ) ? $value : 'none';
 }
 
+function almaden_bookster_normalize_credits_logo_title_text_transform_value( $value ) {
+	$value = strtolower( sanitize_text_field( (string) $value ) );
+	$allowed = array( 'none', 'uppercase', 'lowercase', 'capitalize' );
+	return in_array( $value, $allowed, true ) ? $value : 'none';
+}
+
 function almaden_bookster_normalize_credits_publication_date_value( $value ) {
 	$value = sanitize_text_field( (string) $value );
 	if ( preg_match( '/^\d{4}-\d{2}-\d{2}$/', $value ) ) {
@@ -114,8 +162,36 @@ function almaden_bookster_normalize_credits_publication_date_value( $value ) {
 	return $value;
 }
 
+function almaden_bookster_normalize_credits_vertical_align_value( $value ) {
+	$value = strtolower( sanitize_text_field( (string) $value ) );
+	return in_array( $value, array( 'top', 'center', 'bottom' ), true ) ? $value : 'top';
+}
+
 function almaden_bookster_get_default_credits_section_order() {
-	return array( 'editorial', 'people', 'collaborators', 'logos', 'legal' );
+	return array( 'logos', 'people', 'editorial', 'legal', 'collaborators' );
+}
+
+function almaden_bookster_build_default_credits_seed_config( $author_label = '', $publication_date = '' ) {
+	$config = almaden_bookster_get_default_credits_config();
+	$author_label = sanitize_text_field( (string) $author_label );
+	$publication_date = sanitize_text_field( (string) $publication_date );
+
+	$config['section_order'] = almaden_bookster_get_default_credits_section_order();
+	$config['editorial']['publication_date'] = '' !== trim( $publication_date )
+		? almaden_bookster_normalize_credits_publication_date_value( $publication_date )
+		: current_time( 'Y-m' );
+
+	if ( '' !== trim( $author_label ) ) {
+		$config['people'] = array(
+			array(
+				'name'         => $author_label,
+				'role'         => 'author',
+				'show_contact' => 0,
+			),
+		);
+	}
+
+	return almaden_bookster_normalize_credits_config( $config );
 }
 
 function almaden_bookster_normalize_credits_section_order_value( $value ) {

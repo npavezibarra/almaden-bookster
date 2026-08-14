@@ -41,7 +41,7 @@
                     <div class="grid grid-cols-1 gap-4">
                         <h4 class="font-bold border-b border-[var(--border-color)] pb-2">Tipografía de la Página de Créditos</h4>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Tipografía</label>
                             <select id="chapter_credits_font_family" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
@@ -56,6 +56,15 @@
                                 <option value="center">Centro</option>
                                 <option value="right">Derecha</option>
                                 <option value="justify">Justificado</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Alineación vertical</label>
+                            <select id="chapter_credits_vertical_align" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                <option value="">Global / Arriba</option>
+                                <option value="top">Arriba</option>
+                                <option value="center">Centro</option>
+                                <option value="bottom">Abajo</option>
                             </select>
                         </div>
                     </div>

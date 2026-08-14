@@ -103,6 +103,9 @@ function compileMarkdownToHTML(markdownText, appendFootnotes = false) {
     });
 
     // Aplicar parseo inline al cuerpo principal
+    // Normalizar bullets tipo Markdown con `*` para que no se confundan con
+    // cursivas en el parser inline y sigan llegando al bloque de lista.
+    cleanMarkdown = cleanMarkdown.replace(/(^|\n)([ \t]*)\*\s+/g, '$1$2- ');
     let html = parseInlineMarkdown(cleanMarkdown);
 
     // Reemplazar referencias inline de notas al pie

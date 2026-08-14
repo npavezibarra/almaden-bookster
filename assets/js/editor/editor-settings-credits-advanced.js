@@ -1,10 +1,10 @@
 function creditsGetCreditsSectionDefinitions() {
     return [
-        { id: 'editorial', label: 'Editorial', description: 'Datos generales del libro que aparecerán en la página de créditos.' },
-        { id: 'people', label: 'Personas', description: 'Autores, editores y demás roles personales del libro.' },
-        { id: 'collaborators', label: 'Colaboradores', description: 'Sellos, fundaciones, mecenas o entidades asociadas.' },
         { id: 'logos', label: 'Logo', description: 'Logo principal del libro o una imagen personalizada.' },
+        { id: 'people', label: 'Personas', description: 'Autores, editores y demás roles personales del libro.' },
+        { id: 'editorial', label: 'Editorial', description: 'Datos generales del libro que aparecerán en la página de créditos.' },
         { id: 'legal', label: 'Legal', description: 'Texto legal y tipo de licencia para esta edición.' },
+        { id: 'collaborators', label: 'Colaboradores', description: 'Sellos, fundaciones, mecenas o entidades asociadas.' },
     ];
 }
 
@@ -207,11 +207,21 @@ function creditsGetBookCoverLogoUrlFromEditorState() {
     }
 }
 
+function creditsGetBookTitleFromEditorState() {
+    const state = typeof bookState !== 'undefined' && bookState ? bookState : window.bookState || null;
+    return String((state && (state.title || state.bookTitle)) || '').trim();
+}
+
 function creditsBuildLogoControls(logo = {}) {
-    const source = String(logo.logo_source || logo.source_type || logo.mode || 'image').trim().toLowerCase() === 'cover_logo' ? 'cover_logo' : 'image';
+    const source = (() => {
+        const normalized = String(logo.logo_source || logo.source_type || logo.mode || 'image').trim().toLowerCase();
+        return ['image', 'cover_logo', 'text'].includes(normalized) ? normalized : 'image';
+    })();
     const uploadedUrl = String(logo.logo_url || logo.image_url || logo.url || '').trim();
     const coverUrl = creditsGetBookCoverLogoUrlFromEditorState();
     const activeUrl = source === 'cover_logo' ? coverUrl : uploadedUrl;
+    const bookTitle = creditsGetBookTitleFromEditorState();
+    const displayTitle = bookTitle || 'Título del libro';
     const showAuthorName = logo.show_author_name === 1 || logo.show_author_name === '1' || logo.show_author_name === true;
     const authorFontFamily = String(logo.author_font_family || '').trim();
     const authorFontSize = parseInt(logo.author_font_size || 16, 10) || 16;
@@ -222,6 +232,23 @@ function creditsBuildLogoControls(logo = {}) {
         : Math.max(0, Math.min(100, parseInt(logo.author_gap_px, 10) || 0));
     const authorTextTransform = creditsNormalizeLogoTextTransform(logo.author_text_transform || 'none');
     const authorName = String((bookState && bookState.bookAuthorLabel) || '').trim();
+    const titleFontFamily = String(logo.title_font_family || '').trim();
+    const titleFontSize = String(logo.title_font_size ?? '').trim();
+    const titleFontWeight = String(logo.title_font_weight || '').trim();
+    const titleLetterSpacing = String(logo.title_letter_spacing ?? '').trim();
+    const titleLineHeight = String(logo.title_line_height ?? '').trim();
+    const titleTextTransform = creditsNormalizeLogoTextTransform(logo.title_text_transform || 'none');
+    const showPlaceholder = source === 'text' || !activeUrl;
+    const titleStyle = source === 'text'
+        ? [
+            titleFontFamily ? `font-family: ${titleFontFamily};` : '',
+            titleFontSize ? `font-size: ${Math.min(72, Math.max(8, parseInt(titleFontSize, 10) || 0))}px;` : '',
+            titleFontWeight ? `font-weight: ${titleFontWeight};` : '',
+            titleLetterSpacing !== '' ? `letter-spacing: ${parseFloat(titleLetterSpacing) || 0}px;` : '',
+            titleLineHeight !== '' ? `line-height: ${Math.min(3, Math.max(0.5, parseFloat(titleLineHeight) || 1))};` : '',
+            titleTextTransform !== 'none' ? `text-transform: ${titleTextTransform};` : '',
+        ].join(' ')
+        : '';
 
     return `
         <div class="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-sidebar)]/30 p-5 space-y-5">
@@ -230,24 +257,27 @@ function creditsBuildLogoControls(logo = {}) {
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <h6 class="text-base font-extrabold uppercase tracking-[0.2em] text-[var(--text-main)]">Logo del libro</h6>
-                    <p class="mt-1 text-sm text-[var(--text-muted)]">Elige entre una imagen subida o el logo declarado en la portada del libro.</p>
+                    <p class="mt-1 text-sm text-[var(--text-muted)]">Elige entre una imagen subida, el logo declarado en la portada del libro o el título como texto.</p>
                 </div>
                 <div class="inline-flex overflow-hidden rounded-2xl border border-[var(--border-color)] bg-white">
                     <button type="button" data-credits-logo-source-option="image" class="px-4 py-2 text-sm font-semibold ${source === 'image' ? 'bg-black text-white' : 'text-[var(--text-main)] hover:bg-[var(--bg-sidebar)]'}">Imagen</button>
                     <button type="button" data-credits-logo-source-option="cover_logo" ${coverUrl ? '' : 'disabled'} class="px-4 py-2 text-sm font-semibold ${source === 'cover_logo' ? 'bg-black text-white' : 'text-[var(--text-main)] hover:bg-[var(--bg-sidebar)]'} ${coverUrl ? '' : 'opacity-40 cursor-not-allowed'}">Logo</button>
+                    <button type="button" data-credits-logo-source-option="text" class="px-4 py-2 text-sm font-semibold ${source === 'text' ? 'bg-black text-white' : 'text-[var(--text-main)] hover:bg-[var(--bg-sidebar)]'}">Texto</button>
                 </div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-5">
                 <div class="space-y-3">
                     <div class="rounded-2xl border border-[var(--border-color)] bg-white p-4">
                         <div class="flex min-h-40 items-center justify-center overflow-hidden rounded-xl border border-dashed border-[var(--border-color)] bg-[var(--bg-app)]/60 p-4">
-                            <img data-credits-logo-preview src="${activeUrl ? creditsEscapeHtml(activeUrl) : 'data:image/gif;base64,R0lGODlhAQABAAAAACw='}" alt="" class="${activeUrl ? '' : 'hidden'} max-w-full object-contain">
-                            <div data-credits-logo-placeholder class="text-center text-xs font-semibold text-[var(--text-muted)] ${activeUrl ? 'hidden' : ''}">
-                                ${source === 'cover_logo' && !coverUrl ? 'No se encontró una capa LOGO en la portada.' : 'Sin imagen seleccionada'}
+                            <img data-credits-logo-preview src="${activeUrl ? creditsEscapeHtml(activeUrl) : 'data:image/gif;base64,R0lGODlhAQABAAAAACw='}" alt="" class="${activeUrl && source !== 'text' ? '' : 'hidden'} max-w-full object-contain">
+                            <div data-credits-logo-placeholder class="${showPlaceholder ? (source === 'text' ? 'text-center flex items-center justify-center px-4 text-2xl font-bold tracking-tight text-[var(--text-main)]' : 'text-center text-xs font-semibold text-[var(--text-muted)]') : 'hidden'}" ${titleStyle ? `style="${creditsEscapeHtml(titleStyle)}"` : ''}>
+                                ${source === 'text'
+                                    ? creditsEscapeHtml(displayTitle)
+                                    : (source === 'cover_logo' && !coverUrl ? 'No se encontró una capa LOGO en la portada.' : 'Sin imagen seleccionada')}
                             </div>
                         </div>
                     </div>
-                    <button type="button" data-credits-action="choose-logo-image" class="w-full rounded-xl bg-black px-4 py-3 text-sm font-semibold text-white hover:bg-neutral-800 transition ${source === 'cover_logo' ? 'opacity-50 cursor-not-allowed' : ''}">
+                    <button type="button" data-credits-action="choose-logo-image" class="w-full rounded-xl bg-black px-4 py-3 text-sm font-semibold text-white hover:bg-neutral-800 transition ${source !== 'image' ? 'opacity-50 cursor-not-allowed' : ''}">
                         <i class="fa-solid fa-image mr-1"></i>
                         Subir imagen
                     </button>
@@ -269,6 +299,60 @@ function creditsBuildLogoControls(logo = {}) {
                                 <span data-credits-logo-size-label class="text-[11px] font-semibold text-[var(--text-muted)]">${creditsNormalizeLogoSize(logo.size_px || 120)} px</span>
                             </div>
                             <input type="range" min="24" max="400" step="1" data-credits-field="logo_size_px" value="${creditsEscapeHtml(creditsNormalizeLogoSize(logo.size_px || 120))}" class="w-full accent-black">
+                        </div>
+                    </div>
+                    <div data-credits-logo-text-controls class="rounded-2xl border border-[var(--border-color)] bg-white/70 p-4 space-y-4 ${source === 'text' ? '' : 'hidden'}">
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <h6 class="text-sm font-bold text-[var(--text-main)]">Estilo del título</h6>
+                                <p class="mt-1 text-[11px] text-[var(--text-muted)]">Solo aplica cuando el logo usa el título como texto.</p>
+                            </div>
+                            <span class="rounded-full bg-[var(--bg-app)] px-3 py-1 text-[11px] font-semibold text-[var(--text-muted)]">Texto</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Tipografía del título</label>
+                                <select data-credits-field="title_font_family" class="w-full rounded-xl border border-[var(--border-color)] bg-white px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black">
+                                    ${creditsBuildCreditsFontOptions(titleFontFamily)}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Tamaño título (px)</label>
+                                <input type="number" min="8" max="72" step="1" data-credits-field="title_font_size" value="${creditsEscapeHtml(titleFontSize)}" placeholder="Heredar" class="w-full rounded-xl border border-[var(--border-color)] bg-white px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Peso</label>
+                                <select data-credits-field="title_font_weight" class="w-full rounded-xl border border-[var(--border-color)] bg-white px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black">
+                                    ${creditsOptionMarkup([
+                                        { value: '', label: 'Heredar' },
+                                        { value: '300', label: 'Light (300)' },
+                                        { value: '400', label: 'Normal (400)' },
+                                        { value: '500', label: 'Medium (500)' },
+                                        { value: '600', label: 'Semibold (600)' },
+                                        { value: '700', label: 'Bold (700)' },
+                                        { value: '800', label: 'Extra Bold (800)' },
+                                    ], titleFontWeight)}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Letter spacing (px)</label>
+                                <input type="number" min="-10" max="20" step="0.1" data-credits-field="title_letter_spacing" value="${creditsEscapeHtml(titleLetterSpacing)}" placeholder="Heredar" class="w-full rounded-xl border border-[var(--border-color)] bg-white px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Line height</label>
+                                <input type="number" min="0.5" max="3" step="0.1" data-credits-field="title_line_height" value="${creditsEscapeHtml(titleLineHeight)}" placeholder="Heredar" class="w-full rounded-xl border border-[var(--border-color)] bg-white px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Transformación del texto</label>
+                                <select data-credits-field="title_text_transform" class="w-full rounded-xl border border-[var(--border-color)] bg-white px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black">
+                                    ${creditsOptionMarkup([
+                                        { value: 'none', label: 'Normal' },
+                                        { value: 'uppercase', label: 'ALL CAPS' },
+                                        { value: 'lowercase', label: 'lowercase' },
+                                        { value: 'capitalize', label: 'Capitalize' },
+                                    ], titleTextTransform)}
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <label class="inline-flex items-center gap-3 text-sm font-semibold text-[var(--text-main)]">
@@ -344,6 +428,7 @@ function creditsBuildAdvancedEditorMarkup(config) {
     const collaborators = Array.isArray(normalized.collaborators) ? normalized.collaborators : [];
     const collaboratorsVisible = normalized.collaborators_visible === 1 || normalized.collaborators_visible === '1' || normalized.collaborators_visible === true;
     const logo = Array.isArray(normalized.logos) && normalized.logos.length ? normalized.logos[0] : {};
+    const verticalAlign = creditsNormalizeVerticalAlign(normalized.vertical_align || 'bottom');
 
     const panels = {
         editorial: `
@@ -375,6 +460,24 @@ function creditsBuildAdvancedEditorMarkup(config) {
                         <div>
                             <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Páginas blancas finales</label>
                             <input id="setting-credits-blank-after" data-credits-field="blank_after" type="number" min="0" value="${creditsEscapeHtml(editorial.blank_after ?? 0)}" class="w-full rounded-xl border border-[var(--border-color)] bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black">
+                        </div>
+                    </div>
+                </div>
+                <div class="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-sidebar)]/30 p-5">
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                            <h5 class="text-lg font-bold text-[var(--text-main)]">Alineación vertical del bloque</h5>
+                            <p class="mt-1 text-sm text-[var(--text-muted)]">Ajusta cómo se posiciona el bloque principal de créditos en la página. Los colaboradores siempre se renderizan en una página aparte.</p>
+                        </div>
+                        <div class="w-full md:w-60">
+                            <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Alineación</label>
+                            <select data-credits-field="vertical_align" class="w-full rounded-xl border border-[var(--border-color)] bg-white px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black">
+                                ${creditsOptionMarkup([
+                                    { value: 'top', label: 'Arriba' },
+                                    { value: 'center', label: 'Centro' },
+                                    { value: 'bottom', label: 'Abajo' },
+                                ], verticalAlign)}
+                            </select>
                         </div>
                     </div>
                 </div>

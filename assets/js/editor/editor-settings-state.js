@@ -193,8 +193,9 @@ window.almadenBuildPDFSettingsState = function(ctx) {
         chapter_transition_blank_text: getVal('setting-chapter-transition-blank-text') || '...',
         chapter_start_parity: getLegacyParityFromFlowMode(),
 
-        footnote_mode: getVal('setting-footnote-mode') || 'page',
-        footnote_chapter_title: getVal('setting-footnote-chapter-title') || 'Referencia',
+	        footnote_mode: getVal('setting-footnote-mode') || 'page',
+	        footnote_chapter_new_page: getChecked('setting-footnote-chapter-new-page'),
+	        footnote_chapter_title: getVal('setting-footnote-chapter-title') || 'Referencia',
         footnote_book_title: getVal('setting-footnote-book-title') || 'Referencias',
         footnote_font_family: getVal('setting-footnote-font-family'),
         footnote_font_size: parseVal('setting-footnote-font-size', 8.5),

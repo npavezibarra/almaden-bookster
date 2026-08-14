@@ -16,7 +16,9 @@
     const PDFJS_WORKER_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     const PREVIEW_CACHE_DB = 'almaden-bookster-pdf-preview';
     const PREVIEW_CACHE_STORE = 'compiled-previews';
-    const PREVIEW_CACHE_VERSION = 'v3';
+    // Bump whenever server-side pagination or running-header/footer semantics
+    // change; the persistent key otherwise reuses a PDF compiled by old code.
+    const PREVIEW_CACHE_VERSION = 'v5';
     const PREVIEW_CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
     function getZoomFactor() {
@@ -364,7 +366,14 @@
             return Array.from({ length: pageCount }, (_, index) => index + 1);
         }
 
-        const safeStart = Math.max(1, Math.min(pageCount, startPage));
+        const chapterIndex = Array.isArray(counter.chapters)
+            ? counter.chapters.findIndex(entry => String(entry?.id || '') === String(chapter.id || ''))
+            : -1;
+        // The first chapter owns the physical opening of the book. Include all
+        // structural pages before its content so page 1 is visible in chapter
+        // mode when an even-page start inserts an opening parity page.
+        const visibleStart = chapterIndex === 0 ? 1 : startPage;
+        const safeStart = Math.max(1, Math.min(pageCount, visibleStart));
         const safeEnd = Math.max(safeStart, Math.min(pageCount, endPage));
         const pages = [];
         for (let pageNumber = safeStart; pageNumber <= safeEnd; pageNumber += 1) {
