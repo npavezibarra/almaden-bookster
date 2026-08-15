@@ -50,6 +50,14 @@ function setBookTemplateButtonLoading(isLoading) {
     }
 }
 
+function getBookTemplatesAjaxNonce() {
+    if (typeof window.almadenBookTemplatesNonce === 'string' && window.almadenBookTemplatesNonce) {
+        return window.almadenBookTemplatesNonce;
+    }
+
+    return bookState && bookState.settingsNonce ? bookState.settingsNonce : '';
+}
+
 function buildCurrentBookTemplateSettings() {
     const getVal = (id, fallback = '') => {
         const el = document.getElementById(id);
@@ -158,7 +166,10 @@ function loadBookTemplates() {
     const data = new FormData();
     data.append('action', 'almaden_get_book_templates');
     data.append('book_id', bookState.bookId);
-    data.append('nonce', bookState.settingsNonce);
+    const nonce = getBookTemplatesAjaxNonce();
+    if (nonce) {
+        data.append('nonce', nonce);
+    }
 
     fetch(bookState.ajaxUrl, {
         method: 'POST',
@@ -198,16 +209,20 @@ function renderBookTemplates(templates) {
         div.innerHTML = `
             <div>
                 <h5 class="text-xs font-bold text-[var(--text-main)] mb-1">${tpl.name}</h5>
-                <p class="text-[9px] text-[var(--text-muted)] leading-tight">${tpl.description || ''}</p>
                 <div class="mt-2 flex flex-wrap gap-1">
                     <span class="inline-flex items-center rounded-full border border-[var(--border-color)] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">${tpl.visibility || 'private'}</span>
                     ${tpl.sample_chapters && tpl.sample_chapters.length ? '<span class="inline-flex items-center rounded-full border border-[var(--border-color)] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">Con muestras</span>' : ''}
                 </div>
             </div>
-            <div class="mt-3 flex items-center justify-between">
-                <button class="text-[10px] font-semibold text-white bg-black hover:bg-neutral-800 rounded px-3 py-1 transition" onclick="applyBookTemplate('${tpl.id}')">
-                    Aplicar plantilla
-                </button>
+            <div class="mt-3 flex flex-wrap items-center gap-2 justify-between">
+                <div class="flex flex-wrap items-center gap-2">
+                    <button class="text-[10px] font-semibold text-white bg-black hover:bg-neutral-800 rounded px-3 py-1 transition" onclick="applyBookTemplate('${tpl.id}')">
+                        Aplicar plantilla
+                    </button>
+                    <button class="text-[10px] font-semibold text-[var(--text-main)] bg-transparent border border-[var(--border-color)] hover:bg-[var(--bg-app)] rounded px-3 py-1 transition" onclick="downloadBookTemplate('${tpl.id}')" title="Descargar plantilla">
+                        Descargar JSON
+                    </button>
+                </div>
                 <button class="text-[10px] text-rose-500 hover:text-rose-700 transition" onclick="deleteBookTemplate('${tpl.id}')" title="Eliminar plantilla">
                     <i class="fa-solid fa-trash"></i>
                 </button>
@@ -273,7 +288,10 @@ function promptSaveCurrentAsBookTemplate() {
     data.append('action', 'almaden_save_book_template');
     data.append('template_name', name.trim());
     data.append('book_id', bookState.bookId);
-    data.append('nonce', bookState.settingsNonce);
+    const nonce = getBookTemplatesAjaxNonce();
+    if (nonce) {
+        data.append('nonce', nonce);
+    }
 
     setBookTemplateButtonLoading(true);
     setBookTemplateStatus('Guardando plantilla de libro...', 'info');
@@ -314,7 +332,10 @@ function deleteBookTemplate(templateId) {
     data.append('action', 'almaden_delete_book_template');
     data.append('template_id', templateId);
     data.append('book_id', bookState.bookId);
-    data.append('nonce', bookState.settingsNonce);
+    const nonce = getBookTemplatesAjaxNonce();
+    if (nonce) {
+        data.append('nonce', nonce);
+    }
 
     fetch(bookState.ajaxUrl, {
         method: 'POST',
@@ -335,6 +356,111 @@ function deleteBookTemplate(templateId) {
         console.error(err);
         alert('Error de conexión al eliminar la plantilla de libro.');
         setBookTemplateStatus('Error de conexión al eliminar la plantilla.', 'error');
+    });
+}
+
+function downloadBookTemplate(templateId) {
+    const data = new FormData();
+    data.append('action', 'almaden_download_book_template');
+    data.append('template_id', templateId);
+    data.append('book_id', bookState.bookId || 0);
+    const nonce = getBookTemplatesAjaxNonce();
+    if (nonce) {
+        data.append('nonce', nonce);
+    }
+
+    fetch(bookState.ajaxUrl, {
+        method: 'POST',
+        body: data
+    })
+    .then(async res => {
+        if (!res.ok) {
+            let message = 'No se pudo descargar la plantilla.';
+            try {
+                const payload = await res.json();
+                message = payload?.data || payload?.message || message;
+            } catch (e) {
+                try {
+                    const text = await res.text();
+                    if (text) message = text;
+                } catch (err) {
+                    // Ignore secondary parsing failures.
+                }
+            }
+            throw new Error(message);
+        }
+
+        const contentDisposition = res.headers.get('content-disposition') || '';
+        const filenameMatch = contentDisposition.match(/filename\*=UTF-8''([^;]+)|filename=\"?([^\";]+)\"?/i);
+        const filename = filenameMatch
+            ? decodeURIComponent(filenameMatch[1] || filenameMatch[2] || 'book-template.json')
+            : 'book-template.json';
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename.endsWith('.json') ? filename : `${filename}.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    })
+    .catch(err => {
+        console.error(err);
+        alert(err.message || 'No se pudo descargar la plantilla.');
+    });
+}
+
+function promptUploadBookTemplate() {
+    const input = document.getElementById('book-template-upload-input');
+    if (!input) return;
+    input.value = '';
+    input.click();
+}
+
+function handleBookTemplateUpload(event) {
+    const input = event && event.target ? event.target : null;
+    const file = input && input.files && input.files[0] ? input.files[0] : null;
+    if (!file) return;
+
+    const data = new FormData();
+    data.append('action', 'almaden_upload_book_template');
+    data.append('template_file', file);
+    data.append('book_id', bookState.bookId || 0);
+
+    const nonce = getBookTemplatesAjaxNonce();
+    if (nonce) {
+        data.append('nonce', nonce);
+    }
+
+    setBookTemplateStatus('Cargando plantilla JSON...', 'info');
+
+    fetch(bookState.ajaxUrl, {
+        method: 'POST',
+        body: data
+    })
+    .then(async res => {
+        const payload = await res.json().catch(() => null);
+        if (!res.ok || !payload || !payload.success) {
+            throw new Error((payload && payload.data) || 'No se pudo cargar la plantilla.');
+        }
+        return payload;
+    })
+    .then(res => {
+        const importedName = res.data && res.data.template ? res.data.template.name : file.name;
+        cachedBookTemplates = null;
+        setBookTemplateStatus(`Plantilla "${importedName}" cargada con éxito.`, 'success');
+        loadBookTemplates();
+    })
+    .catch(err => {
+        console.error(err);
+        setBookTemplateStatus(err.message || 'No se pudo cargar la plantilla.', 'error');
+        alert(err.message || 'No se pudo cargar la plantilla.');
+    })
+    .finally(() => {
+        if (input) {
+            input.value = '';
+        }
     });
 }
 

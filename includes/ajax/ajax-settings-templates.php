@@ -85,10 +85,83 @@ function almaden_bookster_collect_book_template_files() {
 	return $files;
 }
 
+function almaden_bookster_find_book_template_file_by_id( $template_id ) {
+	$template_id = sanitize_title( (string) $template_id );
+	if ( '' === $template_id ) {
+		return null;
+	}
+
+	$match = null;
+	foreach ( almaden_bookster_collect_book_template_files() as $entry ) {
+		$content = file_get_contents( $entry['path'] );
+		if ( ! $content ) {
+			continue;
+		}
+
+		$json = json_decode( $content, true );
+		if ( json_last_error() !== JSON_ERROR_NONE ) {
+			continue;
+		}
+
+		$normalized = almaden_bookster_normalize_book_template_payload(
+			$json,
+			$entry['source'],
+			basename( $entry['path'], '.json' )
+		);
+		if ( $normalized && $normalized['id'] === $template_id ) {
+			$match = array(
+				'entry'      => $entry,
+				'normalized' => $normalized,
+			);
+		}
+	}
+
+	return $match;
+}
+
+function almaden_bookster_book_template_id_exists( $template_id ) {
+	return null !== almaden_bookster_find_book_template_file_by_id( $template_id );
+}
+
+function almaden_bookster_generate_unique_book_template_id( $base_id ) {
+	$base_id = sanitize_title( (string) $base_id );
+	if ( '' === $base_id ) {
+		$base_id = 'book-template';
+	}
+
+	$candidate = $base_id;
+	$index = 2;
+	while ( almaden_bookster_book_template_id_exists( $candidate ) ) {
+		$candidate = $base_id . '-' . $index;
+		++$index;
+	}
+
+	return $candidate;
+}
+
+function almaden_bookster_validate_book_template_library_nonce( $nonce, $book_id = 0 ) {
+	$nonce = sanitize_text_field( (string) $nonce );
+	if ( '' === $nonce ) {
+		return false;
+	}
+
+	if ( wp_verify_nonce( $nonce, 'almaden_book_templates_library' ) ) {
+		return true;
+	}
+
+	return $book_id > 0 && wp_verify_nonce( $nonce, 'almaden_save_settings_nonce_' . (int) $book_id );
+}
+
 // --- AJAX Obtener Book Templates ---
 function almaden_get_book_templates_ajax() {
 	$book_id = isset( $_POST['book_id'] ) ? intval( $_POST['book_id'] ) : 0;
-	if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'almaden_save_settings_nonce_' . $book_id ) ) {
+	$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
+
+	/*
+	 * La galería de plantillas es de solo lectura, así que la dejamos funcionar
+	 * incluso en contextos globales donde todavía no existe un book_id real.
+	 */
+	if ( $book_id > 0 && '' !== $nonce && ! wp_verify_nonce( $nonce, 'almaden_save_settings_nonce_' . $book_id ) ) {
 		wp_send_json_error( 'Validación de seguridad fallida.' );
 	}
 
@@ -120,6 +193,105 @@ add_action( 'wp_ajax_almaden_get_book_templates', 'almaden_get_book_templates_aj
 add_action( 'wp_ajax_nopriv_almaden_get_book_templates', 'almaden_get_book_templates_ajax' );
 add_action( 'wp_ajax_almaden_get_settings_templates', 'almaden_get_book_templates_ajax' );
 add_action( 'wp_ajax_nopriv_almaden_get_settings_templates', 'almaden_get_book_templates_ajax' );
+
+// --- AJAX Descargar Book Template ---
+function almaden_download_book_template_ajax() {
+	$book_id = isset( $_POST['book_id'] ) ? intval( $_POST['book_id'] ) : 0;
+	$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
+
+	/*
+	 * La descarga es de solo lectura, pero si viene un libro concreto seguimos
+	 * validando el nonce para mantener coherencia con el editor.
+	 */
+	if ( ! almaden_bookster_validate_book_template_library_nonce( $nonce, $book_id ) ) {
+		wp_send_json_error( 'Validación de seguridad fallida.', 403 );
+	}
+
+	$template_id = isset( $_POST['template_id'] ) ? sanitize_text_field( wp_unslash( $_POST['template_id'] ) ) : '';
+	$match = almaden_bookster_find_book_template_file_by_id( $template_id );
+
+	if ( ! $match || empty( $match['entry']['path'] ) || ! file_exists( $match['entry']['path'] ) ) {
+		wp_send_json_error( 'No se encontró la plantilla solicitada.', 404 );
+	}
+
+	$path = $match['entry']['path'];
+	$normalized = $match['normalized'];
+	$filename = sanitize_file_name( ( $normalized['id'] ?: 'book-template' ) . '.json' );
+	$content = file_get_contents( $path );
+	if ( false === $content ) {
+		wp_send_json_error( 'No se pudo leer el archivo de la plantilla.', 500 );
+	}
+
+	nocache_headers();
+	header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ) );
+	header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+	header( 'Content-Length: ' . strlen( $content ) );
+	echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	exit;
+}
+add_action( 'wp_ajax_almaden_download_book_template', 'almaden_download_book_template_ajax' );
+
+// --- AJAX Subir Book Template ---
+function almaden_upload_book_template_ajax() {
+	$book_id = isset( $_POST['book_id'] ) ? intval( $_POST['book_id'] ) : 0;
+	$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
+
+	if ( ! almaden_bookster_validate_book_template_library_nonce( $nonce, $book_id ) ) {
+		wp_send_json_error( 'Validación de seguridad fallida.', 403 );
+	}
+
+	if ( empty( $_FILES['template_file']['tmp_name'] ) || ! is_uploaded_file( $_FILES['template_file']['tmp_name'] ) ) {
+		wp_send_json_error( 'No se recibió ningún archivo JSON.', 400 );
+	}
+
+	$raw_content = file_get_contents( $_FILES['template_file']['tmp_name'] );
+	if ( false === $raw_content || '' === trim( (string) $raw_content ) ) {
+		wp_send_json_error( 'El archivo está vacío o no se pudo leer.', 400 );
+	}
+
+	$json = json_decode( $raw_content, true );
+	if ( json_last_error() !== JSON_ERROR_NONE || ! is_array( $json ) ) {
+		wp_send_json_error( 'El archivo no contiene un JSON válido.', 400 );
+	}
+
+	$normalized = almaden_bookster_normalize_book_template_payload( $json, 'custom', basename( (string) ( $_FILES['template_file']['name'] ?? 'book-template.json' ), '.json' ) );
+	if ( ! $normalized ) {
+		wp_send_json_error( 'El JSON no tiene la estructura mínima de una plantilla de libro.', 400 );
+	}
+
+	$template_id = almaden_bookster_generate_unique_book_template_id( $normalized['id'] ?: $normalized['name'] );
+	$template_data = array(
+		'id'              => $template_id,
+		'kind'            => 'book-template',
+		'name'            => $normalized['name'],
+		'description'     => $normalized['description'] ?? '',
+		'visibility'      => in_array( (string) ( $normalized['visibility'] ?? 'private' ), array( 'public', 'private' ), true ) ? $normalized['visibility'] : 'private',
+		'source'          => 'custom',
+		'settings'        => $normalized['settings'],
+		'preview'         => is_array( $normalized['preview'] ?? null ) ? $normalized['preview'] : array(),
+		'sample_chapters' => is_array( $normalized['sample_chapters'] ?? null ) ? $normalized['sample_chapters'] : array(),
+	);
+
+	$dirs = almaden_bookster_book_template_directories();
+	$templates_dir = $dirs['custom'];
+	if ( ! file_exists( $templates_dir ) ) {
+		wp_mkdir_p( $templates_dir );
+	}
+
+	$file_path = trailingslashit( $templates_dir ) . $template_id . '.json';
+	$saved = file_put_contents( $file_path, wp_json_encode( $template_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE ) );
+	if ( false === $saved ) {
+		wp_send_json_error( 'No se pudo guardar la plantilla en el servidor.', 500 );
+	}
+
+	wp_send_json_success(
+		array(
+			'message'  => 'Book template cargado con éxito.',
+			'template' => $template_data,
+		)
+	);
+}
+add_action( 'wp_ajax_almaden_upload_book_template', 'almaden_upload_book_template_ajax' );
 
 // --- AJAX Guardar Nuevo Book Template ---
 function almaden_save_book_template_ajax() {

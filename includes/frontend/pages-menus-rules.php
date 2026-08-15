@@ -112,14 +112,17 @@ if ( ! function_exists( 'almaden_bookster_should_show_bookshelf_in_regular_menu'
 		$distribution_settings = function_exists( 'almaden_bookster_get_distribution_settings' ) ? almaden_bookster_get_distribution_settings() : array();
 		$distribution_enabled = ! empty( $distribution_settings['menu_injection_enabled'] );
 		$page_id = function_exists( 'almaden_bookster_get_store_page_id' ) ? almaden_bookster_get_store_page_id() : 0;
+		$is_admin_only = function_exists( 'almaden_bookster_is_page_admin_only' ) && almaden_bookster_is_page_admin_only( 'store' );
 
-		return $menu_enabled && $distribution_enabled && $page_id > 0;
+		return $menu_enabled && $distribution_enabled && $page_id > 0 && ! $is_admin_only;
 	}
 }
 
 if ( ! function_exists( 'almaden_bookster_should_show_shell_home_in_regular_menu' ) ) {
 	function almaden_bookster_should_show_shell_home_in_regular_menu() {
-		return function_exists( 'almaden_bookster_is_shell_home_menu_enabled' ) && almaden_bookster_is_shell_home_menu_enabled() && function_exists( 'almaden_bookster_get_shell_home_page_id' ) && almaden_bookster_get_shell_home_page_id() > 0;
+		$is_admin_only = function_exists( 'almaden_bookster_is_page_admin_only' ) && almaden_bookster_is_page_admin_only( 'shell_home' );
+
+		return function_exists( 'almaden_bookster_is_shell_home_menu_enabled' ) && almaden_bookster_is_shell_home_menu_enabled() && function_exists( 'almaden_bookster_get_shell_home_page_id' ) && almaden_bookster_get_shell_home_page_id() > 0 && ! $is_admin_only;
 	}
 }
 

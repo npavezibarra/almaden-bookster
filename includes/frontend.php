@@ -8,6 +8,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 function almaden_bookster_load_shell_home() {
 	if ( is_page( almaden_bookster_get_shell_home_slug() ) && is_main_query() ) {
 		show_admin_bar( false );
+		if ( function_exists( 'almaden_bookster_maybe_render_shell_page_access' ) && ! almaden_bookster_maybe_render_shell_page_access( 'shell_home' ) ) {
+			return;
+		}
 
 		$template_path = dirname( __FILE__ ) . '/../templates/shell/shell-home-app.php';
 		if ( file_exists( $template_path ) ) {
@@ -27,6 +30,9 @@ function almaden_bookster_load_quiz_builder() {
 	}
 
 	show_admin_bar( false );
+	if ( function_exists( 'almaden_bookster_maybe_render_shell_page_access' ) && ! almaden_bookster_maybe_render_shell_page_access( 'quiz_builder' ) ) {
+		return;
+	}
 
 	$template_path = dirname( __FILE__ ) . '/../templates/quiz-builder/quiz-builder-app.php';
 	if ( file_exists( $template_path ) ) {
@@ -81,6 +87,9 @@ add_action( 'template_redirect', 'almaden_bookster_redirect_legacy_learni_routes
 function almaden_bookster_load_dashboard() {
 	if ( is_page( almaden_bookster_get_dashboard_slug() ) && is_main_query() ) {
 		show_admin_bar( false );
+		if ( function_exists( 'almaden_bookster_maybe_render_shell_page_access' ) && ! almaden_bookster_maybe_render_shell_page_access( 'dashboard' ) ) {
+			return;
+		}
 
 		$template_path = dirname( __FILE__ ) . '/../templates/dashboard/dashboard-app.php';
 		if ( file_exists( $template_path ) ) {
@@ -96,13 +105,8 @@ add_action( 'template_redirect', 'almaden_bookster_load_dashboard', 5 );
 // 2. Interceptar la página configurada para cargar nuestra app independiente
 function almaden_bookster_load_booklist() {
 	if ( is_page( almaden_bookster_get_creator_slug() ) && is_main_query() ) {
-		$is_auth_modal_view = isset( $_GET['pl_auth_view'] ) && in_array( sanitize_key( (string) wp_unslash( $_GET['pl_auth_view'] ) ), array( 'login', 'register' ), true );
-		if ( ! is_user_logged_in() && ! $is_auth_modal_view ) {
-			auth_redirect();
-		}
-
-		if ( is_user_logged_in() && ! almaden_bookster_user_can_manage_books() ) {
-			wp_die( 'No tienes permisos para acceder al taller de libros.' );
+		if ( function_exists( 'almaden_bookster_maybe_render_shell_page_access' ) && ! almaden_bookster_maybe_render_shell_page_access( 'creator' ) ) {
+			return;
 		}
 
 		// Ocultar barra de administración de WordPress
@@ -130,13 +134,8 @@ add_action( 'template_redirect', 'almaden_bookster_load_booklist', 5 );
 // 2b. Interceptar la página de cursos para cargar la app interna de Learni.
 function almaden_bookster_load_course_creator() {
 	if ( is_page( almaden_bookster_get_course_creator_slug() ) && is_main_query() ) {
-		$is_auth_modal_view = isset( $_GET['pl_auth_view'] ) && in_array( sanitize_key( (string) wp_unslash( $_GET['pl_auth_view'] ) ), array( 'login', 'register' ), true );
-		if ( ! is_user_logged_in() && ! $is_auth_modal_view ) {
-			auth_redirect();
-		}
-
-		if ( is_user_logged_in() && ( function_exists( 'almaden_bookster_user_can_manage_courses' ) ? ! almaden_bookster_user_can_manage_courses() : ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_almaden_learni' ) && ! current_user_can( 'edit_posts' ) ) ) ) {
-			wp_die( 'No tienes permisos para acceder al creador de cursos.' );
+		if ( function_exists( 'almaden_bookster_maybe_render_shell_page_access' ) && ! almaden_bookster_maybe_render_shell_page_access( 'course_creator' ) ) {
+			return;
 		}
 
 		show_admin_bar( false );
@@ -156,6 +155,9 @@ add_action( 'template_redirect', 'almaden_bookster_load_course_creator', 5 );
 function almaden_bookster_load_course_archive() {
 	if ( is_page( almaden_bookster_get_course_archive_slug() ) && is_main_query() ) {
 		show_admin_bar( false );
+		if ( function_exists( 'almaden_bookster_maybe_render_shell_page_access' ) && ! almaden_bookster_maybe_render_shell_page_access( 'course_archive' ) ) {
+			return;
+		}
 		$css_path = dirname( __FILE__ ) . '/../modules/learni/assets/dashboard/course-dashboard.css';
 		$css_ver  = file_exists( $css_path ) ? (string) filemtime( $css_path ) : ALMADEN_BOOKSTER_LEARNI_VERSION;
 		wp_enqueue_style( 'almaden-bookster-learni-dashboard', ALMADEN_BOOKSTER_LEARNI_PLUGIN_URL . 'assets/dashboard/course-dashboard.css', array(), $css_ver );
@@ -176,13 +178,8 @@ function almaden_bookster_load_blog_creator() {
 		return;
 	}
 
-	$is_auth_modal_view = isset( $_GET['pl_auth_view'] ) && in_array( sanitize_key( (string) wp_unslash( $_GET['pl_auth_view'] ) ), array( 'login', 'register' ), true );
-	if ( ! is_user_logged_in() && ! $is_auth_modal_view ) {
-		auth_redirect();
-	}
-
-	if ( is_user_logged_in() && ( function_exists( 'almaden_bookster_user_can_manage_blog_posts' ) ? ! almaden_bookster_user_can_manage_blog_posts() : ! current_user_can( 'edit_posts' ) ) ) {
-		wp_die( 'No tienes permisos para acceder al editor de blog.' );
+	if ( function_exists( 'almaden_bookster_maybe_render_shell_page_access' ) && ! almaden_bookster_maybe_render_shell_page_access( 'blog_creator' ) ) {
+		return;
 	}
 
 	show_admin_bar( false );

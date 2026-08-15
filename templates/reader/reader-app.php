@@ -51,18 +51,25 @@ $chapters_query = new WP_Query( array(
 ) );
 
 $chapters = array();
-$page_counter = 1;
+$visible_chapter_counter = 0;
 if ( $chapters_query->have_posts() ) {
 	while ( $chapters_query->have_posts() ) {
 		$chapters_query->the_post();
+		$is_toc = get_post_meta( get_the_ID(), '_is_toc', true );
+		$is_credits = get_post_meta( get_the_ID(), '_is_credits', true );
+		$page_number = '';
+		if ( '1' !== (string) $is_toc && '1' !== (string) $is_credits ) {
+			$visible_chapter_counter++;
+			$page_number = $visible_chapter_counter;
+		}
 		$chapters[] = array(
 			'id'         => get_the_ID(),
 			'title'      => get_the_title(),
 			'content'    => get_the_content(),
-			'page'       => $page_counter,
+			'page'       => $page_number,
 			'hide_title' => get_post_meta( get_the_ID(), '_hide_title', true ),
-			'is_toc'     => get_post_meta( get_the_ID(), '_is_toc', true ),
-			'is_credits' => get_post_meta( get_the_ID(), '_is_credits', true ),
+			'is_toc'     => $is_toc,
+			'is_credits' => $is_credits,
 			'credits_hide_page_number' => get_post_meta( get_the_ID(), '_credits_hide_page_number', true ),
 			'exclude_from_numbering' => get_post_meta( get_the_ID(), '_exclude_from_numbering', true ),
 			'subtitle_text'            => get_post_meta( get_the_ID(), '_subtitle_text', true ),
@@ -77,7 +84,6 @@ if ( $chapters_query->have_posts() ) {
 			'subtitle_margin_bottom'   => get_post_meta( get_the_ID(), '_subtitle_margin_bottom', true ),
 			'quiz_id'                  => function_exists( 'almaden_bookster_learni_get_quiz_id_for_chapter' ) ? (int) almaden_bookster_learni_get_quiz_id_for_chapter( get_the_ID() ) : 0,
 		);
-		$page_counter++;
 	}
 	wp_reset_postdata();
 }

@@ -112,6 +112,10 @@ function renderSidebar() {
     if (chapterCountEl) {
         chapterCountEl.textContent = bookState.chapters.length;
     }
+
+    if (bookState && bookState.viewMode === 'ebook' && typeof refreshEbookPreview === 'function') {
+        refreshEbookPreview(false);
+    }
 }
 
 window.renderSidebar = renderSidebar;

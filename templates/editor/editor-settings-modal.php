@@ -58,11 +58,18 @@
                         <div class="text-[10px] text-[var(--text-muted)] italic"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Cargando plantillas de libro...</div>
                     </div>
                     
-                    <div class="mt-4 pt-4 border-t border-[var(--border-color)]">
-                        <button type="button" id="save-book-template-btn" onclick="promptSaveCurrentAsBookTemplate()" class="text-[11px] font-semibold text-black dark:text-white bg-transparent border border-black dark:border-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded px-3 py-1.5 transition inline-flex items-center gap-2">
-                            <i class="fa-solid fa-plus"></i>
-                            Guardar Ajustes Actuales como Plantilla de Libro
-                        </button>
+                <div class="mt-4 pt-4 border-t border-[var(--border-color)]">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button type="button" id="save-book-template-btn" onclick="promptSaveCurrentAsBookTemplate()" class="text-[11px] font-semibold text-black dark:text-white bg-transparent border border-black dark:border-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded px-3 py-1.5 transition inline-flex items-center gap-2">
+                                <i class="fa-solid fa-plus"></i>
+                                Guardar Ajustes Actuales como Plantilla de Libro
+                            </button>
+                            <button type="button" onclick="promptUploadBookTemplate()" class="text-[11px] font-semibold text-black dark:text-white bg-transparent border border-black dark:border-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded px-3 py-1.5 transition inline-flex items-center gap-2">
+                                <i class="fa-solid fa-file-arrow-up"></i>
+                                Cargar Plantilla JSON
+                            </button>
+                            <input id="book-template-upload-input" type="file" accept=".json,application/json" class="hidden" onchange="handleBookTemplateUpload(event)">
+                        </div>
                         <div id="book-template-save-status" class="mt-2 text-[10px] text-[var(--text-muted)] hidden"></div>
                     </div>
                 </div>
@@ -509,3 +516,6 @@
         </div>
     </div>
 </div>
+<script>
+    window.almadenBookTemplatesNonce = <?php echo json_encode( wp_create_nonce( 'almaden_book_templates_library' ) ); ?>;
+</script>

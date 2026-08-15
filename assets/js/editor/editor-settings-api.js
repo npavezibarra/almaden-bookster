@@ -374,8 +374,14 @@ window.savePDFSettings = function(silent = false, skipPreview = false) {
                 } catch (styleErr) {
                     console.error("Error al aplicar los estilos dinámicos del PDF:", styleErr);
                 }
+                if (bookState && bookState.viewMode === 'ebook' && typeof refreshEbookPreview === 'function') {
+                    refreshEbookPreview(false);
+                }
             } else if (!skipPreview && typeof refreshEditorDisplay === 'function') {
                 refreshEditorDisplay(false);
+                if (bookState && bookState.viewMode === 'ebook' && typeof refreshEbookPreview === 'function') {
+                    refreshEbookPreview(false);
+                }
             }
             if (typeof updateParityButtonVisibility === 'function') updateParityButtonVisibility();
 

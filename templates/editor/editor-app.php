@@ -1,5 +1,15 @@
 <?php
 require_once plugin_dir_path( dirname( __DIR__ ) ) . 'includes/helpers/editor-data-loader.php';
+require_once dirname( __FILE__ ) . '/../../includes/helpers/cover-thumbnail.php';
+
+$ebook_cover_html = function_exists( 'almaden_get_cover_thumbnail_html' ) ? almaden_get_cover_thumbnail_html( $book_id ) : '';
+$wide_size = '1300px';
+if ( function_exists( 'wp_get_global_settings' ) ) {
+    $wide_size_val = wp_get_global_settings( array( 'layout', 'wideSize' ) );
+    if ( ! empty( $wide_size_val ) ) {
+        $wide_size = $wide_size_val;
+    }
+}
 
 // Prevent caching of the editor page
 if (!headers_sent()) {
@@ -51,6 +61,9 @@ if (!headers_sent()) {
                 </button>
                 <button id="view-preview-btn" onclick="setViewMode('preview')" class="px-3 py-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] transition">
                     Solo PDF
+                </button>
+                <button id="view-ebook-btn" onclick="setViewMode('ebook')" class="px-3 py-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] transition">
+                    Ebook
                 </button>
                 <button id="view-split-btn" onclick="setViewMode('split')" class="px-3 py-1.5 rounded-md bg-black text-white shadow-sm transition">
                     Dividido
@@ -379,6 +392,75 @@ if (!headers_sent()) {
                 <div id="pdf-ruler-wrapper" class="hidden w-full h-6 bg-white border-b border-gray-300 relative overflow-hidden pointer-events-none select-none shrink-0"><div id="pdf-ruler" class="absolute top-0 bottom-0 h-full"></div></div>
                 <div id="pdf-scroller" class="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 relative">
                     <!-- PDF binario compilado y verificado por Typst -->
+                </div>
+            </section>
+
+            <!-- PANEL DE VISTA PREVIA EBOOK -->
+            <section id="ebook-preview-pane" class="hidden flex-1 flex flex-col overflow-hidden transition-all bg-[#f6f3ed]">
+                <div class="h-12 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] px-4 flex items-center justify-between gap-4 text-xs text-[var(--text-muted)] no-print">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="hidden lg:inline-flex rounded-md border border-[var(--border-color)] bg-[var(--bg-app)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">
+                            Vista Ebook
+                        </span>
+                        <span id="ebook-preview-chapter-count" class="truncate text-[11px] font-semibold text-[var(--text-main)]">Portada + capítulos</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" class="h-7 rounded-md border border-[var(--border-color)] bg-[var(--bg-app)] px-2 text-[11px] text-[var(--text-muted)] transition hover:text-[var(--text-main)]" onclick="window.showEbookIndexView?.()" title="Volver a la portada">
+                            <i class="fa-solid fa-book-open mr-1"></i>
+                            Portada
+                        </button>
+                    </div>
+                </div>
+
+                <div id="ebook-page-shell" class="flex-1 flex flex-col overflow-hidden w-full mx-auto" style="max-width: <?php echo esc_attr( $wide_size ); ?>;">
+                    <div id="ebook-view-index" class="flex-1 flex flex-col md:flex-row overflow-hidden">
+                        <div id="ebook-cover-panel" class="w-full md:w-1/2 h-1/2 md:h-full flex items-center md:items-start justify-center p-8 md:p-16 lg:p-24 border-b md:border-b-0 md:border-r border-gray-200">
+                            <div id="ebook-cover-wrapper" class="w-full max-w-sm" style="box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
+                                <?php echo ! empty( $ebook_cover_html ) ? $ebook_cover_html : '<div class="flex aspect-[3/4] items-center justify-center rounded-[1.5rem] border border-gray-200 bg-gradient-to-br from-stone-200 to-stone-100 text-neutral-500">Sin portada</div>'; ?>
+                            </div>
+                        </div>
+
+                        <div id="ebook-index-panel" class="w-full md:w-1/2 h-1/2 md:h-full overflow-y-auto p-8 md:p-16 lg:p-24 relative bg-white">
+                            <div class="flex justify-between items-center gap-4 mb-12">
+                                <div class="min-w-0">
+                                    <h2 id="ebook-book-title" class="text-2xl md:text-3xl font-bold text-gray-900 truncate"><?php echo esc_html( $book_title ); ?></h2>
+                                    <p class="mt-2 text-sm text-gray-500 truncate"><?php echo esc_html( $book_author_label ?? '' ); ?></p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-1" id="ebook-chapters-list">
+                                <!-- Chapters will be rendered here via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="ebook-view-chapter" class="hidden flex-1 flex flex-col overflow-hidden">
+                        <header id="ebook-chapter-navbar" class="w-full h-16 border-b border-gray-100 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-6 backdrop-blur sticky top-0 z-50 transition-colors bg-white/95">
+                            <button type="button" onclick="showEbookIndexView()" class="flex items-center text-gray-500 hover:text-black transition-colors font-medium shrink-0" title="Portada">
+                                <i class="fa-solid fa-list-ul mr-2 text-sm"></i>
+                            </button>
+                            <h3 class="min-w-0 justify-self-center text-center text-sm font-semibold text-gray-800 truncate px-4 opacity-0 transition-opacity duration-300" id="ebook-chapter-nav-title">Chapter Title</h3>
+                            <div class="flex items-center space-x-2 shrink-0">
+                                <button type="button" onclick="showEbookPrevChapter()" id="ebook-btn-prev-chapter" class="px-3 py-2 rounded-full bg-transparent border border-gray-200 hover:bg-black/5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hidden">
+                                    <i class="fa-solid fa-chevron-left mr-2 text-xs"></i>Anterior
+                                </button>
+                                <button type="button" onclick="showEbookNextChapter()" id="ebook-btn-next-chapter" class="px-3 py-2 rounded-full bg-transparent border border-gray-200 hover:bg-black/5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hidden">
+                                    Siguiente<i class="fa-solid fa-chevron-right ml-2 text-xs"></i>
+                                </button>
+                            </div>
+                        </header>
+
+                        <main class="flex-1 overflow-y-auto p-6 md:p-12 relative" id="ebook-chapter-scroll-area">
+                            <article id="ebook-chapter-content" class="prose mx-auto max-w-[700px]">
+                                <!-- Markdown content will be rendered here -->
+                            </article>
+                        </main>
+                    </div>
+                </div>
+
+                <div id="ebook-footnote-popup" class="fixed hidden z-50 bg-white border border-gray-200 shadow-xl rounded-lg p-4 text-sm text-gray-800 max-w-xs md:max-w-sm font-sans prose prose-sm transition-opacity duration-200 opacity-0 pointer-events-none" style="transform: translate(-50%, -100%); margin-top: -10px;">
+                    <div id="ebook-footnote-popup-content"></div>
+                    <div class="absolute w-3 h-3 bg-white border-b border-r border-gray-200 transform rotate-45 left-1/2 -ml-1.5 -bottom-1.5"></div>
                 </div>
             </section>
         </main>

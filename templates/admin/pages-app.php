@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <div class="wrap" id="almaden-pages-app">
 	<h1>Pages - AlmadenBookster</h1>
 	<?php if ( ! empty( $success_flag ) ) : ?>
-		<div class="notice notice-success is-dismissible">
+		<div style="margin: 16px 0 20px; padding: 14px 16px; border: 1px solid #e5e7eb; border-left: 4px solid #9ca3af; border-radius: 14px; background: #fafafa; color: #374151;">
 			<p>
 				<?php if ( ! empty( $sync_section ) ) : ?>
 					Se sincronizó la sección <strong><?php echo esc_html( $sync_section ); ?></strong> correctamente.
@@ -30,7 +30,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<?php
 				$status = isset( $section['status'] ) && is_array( $section['status'] ) ? $section['status'] : array();
 				$status_label = isset( $status['label'] ) ? (string) $status['label'] : 'No encontrada';
-				$status_class = isset( $status['status'] ) && false !== strpos( (string) $status['status'], 'found' ) ? 'notice-success' : 'notice-warning';
 				$section_id = isset( $section['key'] ) ? sanitize_key( (string) $section['key'] ) : 'page-section-' . (string) $section_index;
 				$title_name = isset( $section['title_name'] ) ? (string) $section['title_name'] : '';
 				$slug_name = isset( $section['slug_name'] ) ? (string) $section['slug_name'] : '';
@@ -38,14 +37,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 				$input_title_id = $title_name;
 				$input_slug_id = $slug_name;
 				$extra_fields = isset( $section['extra_fields'] ) && is_array( $section['extra_fields'] ) ? $section['extra_fields'] : array();
+				$is_found = isset( $status['status'] ) && false !== strpos( (string) $status['status'], 'found' );
+				$badge_style = $is_found
+					? 'background: #f3f4f6; border-color: #d1d5db; color: #374151;'
+					: 'background: #fafafa; border-color: #e5e7eb; color: #6b7280;';
 				?>
-				<section id="<?php echo esc_attr( $section_id ); ?>" style="padding: 8px 0 28px; <?php echo $section_index + 1 < count( $page_sections ) ? 'border-bottom: 1px solid #e5e7eb;' : ''; ?>">
-					<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px;">
+				<section id="<?php echo esc_attr( $section_id ); ?>" style="padding: 20px; margin: 0 0 18px; border: 1px solid #e5e7eb; border-radius: 18px; background: #ffffff; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);">
+					<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px;">
 						<div>
 							<h2 style="margin: 0 0 8px; font-size: 20px;"><?php echo esc_html( isset( $section['heading'] ) ? $section['heading'] : '' ); ?></h2>
 							<p class="description" style="margin: 0; max-width: 760px;"><?php echo esc_html( isset( $section['description'] ) ? $section['description'] : '' ); ?></p>
 						</div>
-						<div class="notice <?php echo esc_attr( $status_class ); ?>" style="margin: 0; padding: 10px 14px; min-width: 180px;">
+						<div style="margin: 0; padding: 10px 14px; min-width: 180px; border: 1px solid #e5e7eb; border-left: 4px solid #9ca3af; border-radius: 12px; background: #fafafa; color: #374151; line-height: 1.35; <?php echo esc_attr( $badge_style ); ?>">
 							<p style="margin: 0;"><strong><?php echo esc_html( $status_label ); ?></strong></p>
 						</div>
 					</div>
@@ -135,14 +138,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<p class="description" style="margin: 0; max-width: 760px;">Esta fase mueve las imágenes existentes de cada libro a su carpeta propia en Media y reescribe URLs antiguas dentro de contenido y metadatos.</p>
 			</div>
 			<?php if ( ! empty( $book_media_migration_report['last_run'] ) ) : ?>
-				<div class="notice notice-success" style="margin: 0; padding: 10px 14px; min-width: 180px;">
+				<div style="margin: 0; padding: 10px 14px; min-width: 180px; border: 1px solid #e5e7eb; border-left: 4px solid #9ca3af; border-radius: 12px; background: #fafafa; color: #374151;">
 					<p style="margin: 0;"><strong>Ejecutada</strong></p>
 				</div>
 			<?php endif; ?>
 		</div>
 
 		<?php if ( ! empty( $book_media_migration_status['done'] ) ) : ?>
-			<div class="notice notice-success is-dismissible" style="margin: 0 0 16px;">
+			<div style="margin: 0 0 16px; padding: 12px 14px; border: 1px solid #e5e7eb; border-left: 4px solid #9ca3af; border-radius: 12px; background: #fafafa; color: #374151;">
 				<p>La migración de media se ejecutó correctamente.</p>
 			</div>
 		<?php endif; ?>

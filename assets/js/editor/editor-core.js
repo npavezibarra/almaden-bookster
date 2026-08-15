@@ -132,6 +132,8 @@ function initEventListeners() {
                 }
                 if (bookState.viewMode === 'split' && typeof scheduleSplitPreviewRefresh === 'function') {
                     scheduleSplitPreviewRefresh(false);
+                } else if (bookState.viewMode === 'ebook' && typeof refreshEbookPreview === 'function') {
+                    refreshEbookPreview(false);
                 }
                 saveStateToLocalStorage();
             }
@@ -159,6 +161,8 @@ function initEventListeners() {
                 renderSidebar(); // Actualiza el sidebar en tiempo real
                 if (bookState.viewMode === 'split' && typeof scheduleSplitPreviewRefresh === 'function') {
                     scheduleSplitPreviewRefresh(false);
+                } else if (bookState.viewMode === 'ebook' && typeof refreshEbookPreview === 'function') {
+                    refreshEbookPreview(false);
                 }
                 saveStateToLocalStorage();
             }
@@ -170,6 +174,8 @@ function initEventListeners() {
             bookState.title = bookTitle.value;
             if (bookState.viewMode === 'split' && typeof scheduleSplitPreviewRefresh === 'function') {
                 scheduleSplitPreviewRefresh(false);
+            } else if (bookState.viewMode === 'ebook' && typeof refreshEbookPreview === 'function') {
+                refreshEbookPreview(false);
             }
             saveStateToLocalStorage();
         });

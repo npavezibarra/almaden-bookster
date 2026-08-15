@@ -3,8 +3,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( ! function_exists( 'almaden_bookster_maybe_render_authors_page_access' ) ) {
+	function almaden_bookster_maybe_render_authors_page_access( $page_key ) {
+		$page_key = sanitize_key( (string) $page_key );
+
+		if ( '' === $page_key ) {
+			return true;
+		}
+
+		if ( function_exists( 'almaden_bookster_maybe_render_shell_page_access' ) && almaden_bookster_maybe_render_shell_page_access( $page_key ) ) {
+			return true;
+		}
+
+		return false;
+	}
+}
+
 function almaden_bookster_load_authors_page() {
 	if ( ! is_page( almaden_bookster_get_authors_slug() ) || ! is_main_query() ) {
+		return;
+	}
+
+	if ( function_exists( 'almaden_bookster_maybe_render_authors_page_access' ) && ! almaden_bookster_maybe_render_authors_page_access( 'authors' ) ) {
 		return;
 	}
 
@@ -24,6 +44,10 @@ add_action( 'template_redirect', 'almaden_bookster_load_authors_page', 5 );
 function almaden_bookster_load_author_detail_page() {
 	$author_slug = get_query_var( 'almaden_author_slug', '' );
 	if ( '' === trim( (string) $author_slug ) || ! is_main_query() ) {
+		return;
+	}
+
+	if ( function_exists( 'almaden_bookster_maybe_render_authors_page_access' ) && ! almaden_bookster_maybe_render_authors_page_access( 'author' ) ) {
 		return;
 	}
 
@@ -63,6 +87,10 @@ function almaden_bookster_render_author_template( $template ) {
 	}
 
 	if ( '' === trim( (string) $author_slug ) ) {
+		return $template;
+	}
+
+	if ( function_exists( 'almaden_bookster_maybe_render_authors_page_access' ) && ! almaden_bookster_maybe_render_authors_page_access( 'author' ) ) {
 		return $template;
 	}
 

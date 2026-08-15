@@ -48,6 +48,8 @@ function loadActiveChapter() {
         updateWordCounts();
         if (bookState.viewMode === 'preview' && typeof compilePDFPreview === 'function') {
             compilePDFPreview(true);
+        } else if (bookState.viewMode === 'ebook' && typeof refreshEbookPreview === 'function') {
+            refreshEbookPreview(false);
         } else if (typeof refreshEditorDisplay === 'function') {
             refreshEditorDisplay(false);
         }
@@ -61,6 +63,8 @@ function loadActiveChapter() {
         updateWordCounts();
         if (bookState.viewMode === 'preview' && typeof compilePDFPreview === 'function') {
             compilePDFPreview(true);
+        } else if (bookState.viewMode === 'ebook' && typeof refreshEbookPreview === 'function') {
+            refreshEbookPreview(false);
         } else if (typeof refreshEditorDisplay === 'function') {
             refreshEditorDisplay(false);
         }
@@ -73,6 +77,15 @@ function selectChapter(id) {
     loadActiveChapter();
     renderSidebar();
     saveStateToLocalStorage();
+
+    if (bookState.viewMode === 'ebook' && typeof showEbookChapterView === 'function') {
+        const chapterIndex = bookState.chapters.findIndex(c => String(c.id) === String(id));
+        if (chapterIndex >= 0 && bookState.chapters[chapterIndex].is_toc !== '1' && bookState.chapters[chapterIndex].is_credits !== '1') {
+            showEbookChapterView(chapterIndex);
+        } else if (typeof showEbookIndexView === 'function') {
+            showEbookIndexView();
+        }
+    }
 }
 
 function createNewChapter(isToc = false, isCredits = false) {
@@ -119,6 +132,15 @@ function createNewChapter(isToc = false, isCredits = false) {
     loadActiveChapter();
     saveStateToLocalStorage();
     showToast('Capítulo creado', 'fa-solid fa-plus-circle');
+
+    if (bookState.viewMode === 'ebook' && typeof showEbookChapterView === 'function') {
+        const newChapterIndex = bookState.chapters.length - 1;
+        if (newChapterIndex >= 0 && isToc !== true && isCredits !== true) {
+            showEbookChapterView(newChapterIndex);
+        } else if (typeof showEbookIndexView === 'function') {
+            showEbookIndexView();
+        }
+    }
 }
 
 function deleteChapter(id) {

@@ -15,6 +15,20 @@ function almaden_bookster_register_pages_menu() {
 }
 add_action( 'admin_menu', 'almaden_bookster_register_pages_menu', 20 );
 
+if ( ! function_exists( 'almaden_bookster_build_page_visibility_field' ) ) {
+	function almaden_bookster_build_page_visibility_field( $section_key ) {
+		$section_key = sanitize_key( (string) $section_key );
+
+		return array(
+			'type'          => 'checkbox',
+			'name'          => 'page_visibility_admin_only[' . $section_key . ']',
+			'label_heading'  => 'Acceso',
+			'label'         => 'Ocultar para todos excepto el admin desarrollador.',
+			'checked'       => function_exists( 'almaden_bookster_is_page_admin_only' ) ? almaden_bookster_is_page_admin_only( $section_key ) : false,
+		);
+	}
+}
+
 function almaden_bookster_handle_pages_settings_save() {
 	if ( ! almaden_bookster_user_can_manage_books() ) {
 		wp_die( 'Permisos insuficientes.' );
@@ -98,6 +112,7 @@ function almaden_bookster_handle_pages_settings_save() {
 			'title'   => isset( $_POST['quiz_title'] ) ? sanitize_text_field( wp_unslash( $_POST['quiz_title'] ) ) : '',
 		)
 	);
+	$page_visibility_settings = function_exists( 'almaden_bookster_sanitize_page_visibility_settings' ) ? almaden_bookster_sanitize_page_visibility_settings( array( 'admin_only_pages' => isset( $_POST['page_visibility_admin_only'] ) ? (array) wp_unslash( $_POST['page_visibility_admin_only'] ) : array() ) ) : array();
 	$sync_section = isset( $_POST['sync_section'] ) ? sanitize_key( (string) wp_unslash( $_POST['sync_section'] ) ) : '';
 
 	update_option( 'almaden_bookster_pages_settings', $settings );
@@ -105,6 +120,7 @@ function almaden_bookster_handle_pages_settings_save() {
 	update_option( 'almaden_bookster_publisher_page_settings', $publisher_settings );
 	update_option( 'almaden_bookster_publisher_onboarding_page_settings', $publisher_onboarding_settings );
 	update_option( 'almaden_bookster_quiz_page_settings', $quiz_settings );
+	update_option( 'almaden_bookster_page_visibility_settings', $page_visibility_settings );
 	if ( '' !== $sync_section ) {
 		almaden_bookster_sync_pages_for_section( $sync_section );
 		almaden_bookster_mark_shell_page( $sync_section );
@@ -242,6 +258,7 @@ function almaden_bookster_get_pages_admin_sections() {
 			'url'         => function_exists( 'almaden_bookster_get_shell_home_page_url' ) ? almaden_bookster_get_shell_home_page_url() : '',
 			'status'      => function_exists( 'almaden_bookster_get_page_sync_state' ) ? almaden_bookster_get_page_sync_state( isset( $shared_settings['shell_home_page_id'] ) ? $shared_settings['shell_home_page_id'] : 0, isset( $shared_settings['shell_home_slug'] ) ? $shared_settings['shell_home_slug'] : '', isset( $shared_settings['shell_home_title'] ) ? $shared_settings['shell_home_title'] : '' ) : array(),
 			'extra_fields' => array(
+				almaden_bookster_build_page_visibility_field( 'shell_home' ),
 				array(
 					'type'  => 'checkbox',
 					'name'  => 'shell_home_menu_enabled',
@@ -262,6 +279,9 @@ function almaden_bookster_get_pages_admin_sections() {
 			'slug'        => isset( $shared_settings['creator_slug'] ) ? $shared_settings['creator_slug'] : '',
 			'url'         => function_exists( 'almaden_bookster_get_creator_page_url' ) ? almaden_bookster_get_creator_page_url() : '',
 			'status'      => function_exists( 'almaden_bookster_get_page_sync_state' ) ? almaden_bookster_get_page_sync_state( isset( $shared_settings['creator_page_id'] ) ? $shared_settings['creator_page_id'] : 0, isset( $shared_settings['creator_slug'] ) ? $shared_settings['creator_slug'] : '', isset( $shared_settings['creator_title'] ) ? $shared_settings['creator_title'] : '' ) : array(),
+			'extra_fields' => array(
+				almaden_bookster_build_page_visibility_field( 'creator' ),
+			),
 		),
 		array(
 			'key'         => 'dashboard',
@@ -275,6 +295,9 @@ function almaden_bookster_get_pages_admin_sections() {
 			'slug'        => isset( $shared_settings['dashboard_slug'] ) ? $shared_settings['dashboard_slug'] : '',
 			'url'         => function_exists( 'almaden_bookster_get_dashboard_page_url' ) ? almaden_bookster_get_dashboard_page_url() : '',
 			'status'      => function_exists( 'almaden_bookster_get_page_sync_state' ) ? almaden_bookster_get_page_sync_state( isset( $shared_settings['dashboard_page_id'] ) ? $shared_settings['dashboard_page_id'] : 0, isset( $shared_settings['dashboard_slug'] ) ? $shared_settings['dashboard_slug'] : '', isset( $shared_settings['dashboard_title'] ) ? $shared_settings['dashboard_title'] : '' ) : array(),
+			'extra_fields' => array(
+				almaden_bookster_build_page_visibility_field( 'dashboard' ),
+			),
 		),
 		array(
 			'key'         => 'course_creator',
@@ -288,6 +311,9 @@ function almaden_bookster_get_pages_admin_sections() {
 			'slug'        => isset( $shared_settings['course_creator_slug'] ) ? $shared_settings['course_creator_slug'] : '',
 			'url'         => $course_creator_url,
 			'status'      => function_exists( 'almaden_bookster_get_page_sync_state' ) ? almaden_bookster_get_page_sync_state( isset( $shared_settings['course_creator_page_id'] ) ? $shared_settings['course_creator_page_id'] : 0, isset( $shared_settings['course_creator_slug'] ) ? $shared_settings['course_creator_slug'] : '', isset( $shared_settings['course_creator_title'] ) ? $shared_settings['course_creator_title'] : '' ) : array(),
+			'extra_fields' => array(
+				almaden_bookster_build_page_visibility_field( 'course_creator' ),
+			),
 		),
 		array(
 			'key'         => 'course_archive',
@@ -301,6 +327,9 @@ function almaden_bookster_get_pages_admin_sections() {
 			'slug'        => isset( $shared_settings['course_archive_slug'] ) ? $shared_settings['course_archive_slug'] : '',
 			'url'         => $course_archive_url,
 			'status'      => function_exists( 'almaden_bookster_get_page_sync_state' ) ? almaden_bookster_get_page_sync_state( isset( $shared_settings['course_archive_page_id'] ) ? $shared_settings['course_archive_page_id'] : 0, isset( $shared_settings['course_archive_slug'] ) ? $shared_settings['course_archive_slug'] : '', isset( $shared_settings['course_archive_title'] ) ? $shared_settings['course_archive_title'] : '' ) : array(),
+			'extra_fields' => array(
+				almaden_bookster_build_page_visibility_field( 'course_archive' ),
+			),
 		),
 		array(
 			'key'         => 'authors',
@@ -314,6 +343,9 @@ function almaden_bookster_get_pages_admin_sections() {
 			'slug'        => isset( $shared_settings['authors_slug'] ) ? $shared_settings['authors_slug'] : '',
 			'url'         => function_exists( 'almaden_bookster_get_authors_page_url' ) ? almaden_bookster_get_authors_page_url() : '',
 			'status'      => function_exists( 'almaden_bookster_get_page_sync_state' ) ? almaden_bookster_get_page_sync_state( isset( $shared_settings['authors_page_id'] ) ? $shared_settings['authors_page_id'] : 0, isset( $shared_settings['authors_slug'] ) ? $shared_settings['authors_slug'] : '', isset( $shared_settings['authors_title'] ) ? $shared_settings['authors_title'] : '' ) : array(),
+			'extra_fields' => array(
+				almaden_bookster_build_page_visibility_field( 'authors' ),
+			),
 		),
 		array(
 			'key'         => 'author',
@@ -327,6 +359,9 @@ function almaden_bookster_get_pages_admin_sections() {
 			'slug'        => function_exists( 'almaden_bookster_get_author_page_slug' ) ? almaden_bookster_get_author_page_slug() : '',
 			'url'         => function_exists( 'almaden_bookster_get_author_page_url' ) ? almaden_bookster_get_author_page_url() : '',
 			'status'      => function_exists( 'almaden_bookster_get_page_sync_state' ) ? almaden_bookster_get_page_sync_state( function_exists( 'almaden_bookster_get_author_page_id' ) ? almaden_bookster_get_author_page_id() : 0, function_exists( 'almaden_bookster_get_author_page_slug' ) ? almaden_bookster_get_author_page_slug() : '', function_exists( 'almaden_bookster_get_author_page_title' ) ? almaden_bookster_get_author_page_title() : '' ) : array(),
+			'extra_fields' => array(
+				almaden_bookster_build_page_visibility_field( 'author' ),
+			),
 		),
 		array(
 			'key'         => 'publisher',
@@ -340,6 +375,9 @@ function almaden_bookster_get_pages_admin_sections() {
 			'slug'        => function_exists( 'almaden_bookster_get_publisher_page_slug' ) ? almaden_bookster_get_publisher_page_slug() : '',
 			'url'         => function_exists( 'almaden_bookster_get_publisher_page_url' ) ? almaden_bookster_get_publisher_page_url() : '',
 			'status'      => function_exists( 'almaden_bookster_get_page_sync_state' ) ? almaden_bookster_get_page_sync_state( function_exists( 'almaden_bookster_get_publisher_page_id' ) ? almaden_bookster_get_publisher_page_id() : 0, function_exists( 'almaden_bookster_get_publisher_page_slug' ) ? almaden_bookster_get_publisher_page_slug() : '', function_exists( 'almaden_bookster_get_publisher_page_title' ) ? almaden_bookster_get_publisher_page_title() : '' ) : array(),
+			'extra_fields' => array(
+				almaden_bookster_build_page_visibility_field( 'publisher' ),
+			),
 		),
 		array(
 			'key'         => 'publisher_onboarding',
@@ -353,6 +391,9 @@ function almaden_bookster_get_pages_admin_sections() {
 			'slug'        => function_exists( 'almaden_bookster_get_publisher_onboarding_page_slug' ) ? almaden_bookster_get_publisher_onboarding_page_slug() : '',
 			'url'         => function_exists( 'almaden_bookster_get_publisher_onboarding_page_url' ) ? almaden_bookster_get_publisher_onboarding_page_url() : '',
 			'status'      => function_exists( 'almaden_bookster_get_page_sync_state' ) ? almaden_bookster_get_page_sync_state( function_exists( 'almaden_bookster_get_publisher_onboarding_page_id' ) ? almaden_bookster_get_publisher_onboarding_page_id() : 0, function_exists( 'almaden_bookster_get_publisher_onboarding_page_slug' ) ? almaden_bookster_get_publisher_onboarding_page_slug() : '', function_exists( 'almaden_bookster_get_publisher_onboarding_page_title' ) ? almaden_bookster_get_publisher_onboarding_page_title() : '' ) : array(),
+			'extra_fields' => array(
+				almaden_bookster_build_page_visibility_field( 'publisher_onboarding' ),
+			),
 		),
 		array(
 			'key'         => 'quiz',
@@ -366,6 +407,9 @@ function almaden_bookster_get_pages_admin_sections() {
 			'slug'        => function_exists( 'almaden_bookster_get_quiz_page_slug' ) ? almaden_bookster_get_quiz_page_slug() : '',
 			'url'         => function_exists( 'almaden_bookster_get_quiz_page_url' ) ? almaden_bookster_get_quiz_page_url() : '',
 			'status'      => function_exists( 'almaden_bookster_get_page_sync_state' ) ? almaden_bookster_get_page_sync_state( function_exists( 'almaden_bookster_get_quiz_page_id' ) ? almaden_bookster_get_quiz_page_id() : 0, function_exists( 'almaden_bookster_get_quiz_page_slug' ) ? almaden_bookster_get_quiz_page_slug() : '', function_exists( 'almaden_bookster_get_quiz_page_title' ) ? almaden_bookster_get_quiz_page_title() : '' ) : array(),
+			'extra_fields' => array(
+				almaden_bookster_build_page_visibility_field( 'quiz' ),
+			),
 		),
 		array(
 			'key'         => 'store',
@@ -380,6 +424,7 @@ function almaden_bookster_get_pages_admin_sections() {
 			'url'         => function_exists( 'almaden_bookster_get_store_page_url' ) ? almaden_bookster_get_store_page_url() : '',
 			'status'      => function_exists( 'almaden_bookster_get_page_sync_state' ) ? almaden_bookster_get_page_sync_state( isset( $shared_settings['store_page_id'] ) ? $shared_settings['store_page_id'] : 0, isset( $shared_settings['store_slug'] ) ? $shared_settings['store_slug'] : '', isset( $shared_settings['store_title'] ) ? $shared_settings['store_title'] : '' ) : array(),
 			'extra_fields' => array(
+				almaden_bookster_build_page_visibility_field( 'store' ),
 				array(
 					'type'  => 'text',
 					'name'  => 'store_menu_label',

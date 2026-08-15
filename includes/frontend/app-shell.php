@@ -222,15 +222,11 @@ if ( ! function_exists( 'almaden_bookster_render_shared_nav' ) ) {
 									</div>
 							</div>
 						<?php else : ?>
-							<button
-								type="button"
-								onclick="if (window.PLAuthOpenModal) { window.PLAuthOpenModal('login'); } return false;"
-								data-pl-auth-open
-								data-pl-auth-view="login"
-								class="inline-flex items-center rounded-full border border-black bg-black px-4 py-2 text-sm font-semibold text-white transition hover:border-neutral-800 hover:bg-neutral-800"
-							>
-								Login / Register
-							</button>
+							<?php
+							if ( function_exists( 'almaden_bookster_render_login_register_button' ) ) {
+								almaden_bookster_render_login_register_button();
+							}
+							?>
 						<?php endif; ?>
 					</div>
 				</div>

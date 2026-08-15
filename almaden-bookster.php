@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // --- Módulos de Google Fonts (Admin) ---
 require_once plugin_dir_path( __FILE__ ) . 'includes/frontend/pages.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/frontend/app-shell.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/frontend/shell-access.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-pages.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-fonts.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-distribution.php';

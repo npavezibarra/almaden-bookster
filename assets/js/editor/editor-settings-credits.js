@@ -82,6 +82,9 @@ function creditsSyncStateFromForm() {
     } else if (typeof refreshEditorDisplay === 'function') {
         refreshEditorDisplay(false);
     }
+    if (bookState && bookState.viewMode === 'ebook' && typeof refreshEbookPreview === 'function') {
+        refreshEbookPreview(false);
+    }
 }
 
 function creditsBindRootEvents(root) {

@@ -184,12 +184,14 @@ function initPdfPreviewMode() {
 function setViewMode(mode) {
     const editorPane = document.getElementById('editor-pane');
     const previewPane = document.getElementById('pdf-preview-pane');
+    const ebookPane = document.getElementById('ebook-preview-pane');
     const splitBtn = document.getElementById('view-split-btn');
     const editBtn = document.getElementById('view-edit-btn');
     const previewBtn = document.getElementById('view-preview-btn');
+    const ebookBtn = document.getElementById('view-ebook-btn');
 
     // Resetear clases de botones
-    [splitBtn, editBtn, previewBtn].forEach(btn => {
+    [splitBtn, editBtn, previewBtn, ebookBtn].forEach(btn => {
         if (btn) {
             btn.className = "px-3 py-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] transition";
         }
@@ -206,17 +208,30 @@ function setViewMode(mode) {
     if (mode === 'split') {
         if (editorPane) editorPane.classList.remove('hidden');
         if (previewPane) previewPane.classList.remove('hidden');
+        if (ebookPane) ebookPane.classList.add('hidden');
         if (splitBtn) splitBtn.className = "px-3 py-1.5 rounded-md bg-black text-white shadow-sm transition";
         refreshVisiblePdf();
     } else if (mode === 'edit') {
         if (editorPane) editorPane.classList.remove('hidden');
         if (previewPane) previewPane.classList.add('hidden');
+        if (ebookPane) ebookPane.classList.add('hidden');
         if (editBtn) editBtn.className = "px-3 py-1.5 rounded-md bg-black text-white shadow-sm transition";
     } else if (mode === 'preview') {
         if (editorPane) editorPane.classList.add('hidden');
         if (previewPane) previewPane.classList.remove('hidden');
+        if (ebookPane) ebookPane.classList.add('hidden');
         if (previewBtn) previewBtn.className = "px-3 py-1.5 rounded-md bg-black text-white shadow-sm transition";
         refreshVisiblePdf();
+    } else if (mode === 'ebook') {
+        if (editorPane) editorPane.classList.add('hidden');
+        if (previewPane) previewPane.classList.add('hidden');
+        if (ebookPane) ebookPane.classList.remove('hidden');
+        if (ebookBtn) ebookBtn.className = "px-3 py-1.5 rounded-md bg-black text-white shadow-sm transition";
+        if (typeof showEbookIndexView === 'function') {
+            showEbookIndexView();
+        } else if (typeof refreshEbookPreview === 'function') {
+            refreshEbookPreview(true);
+        }
     }
 
 }
