@@ -24,6 +24,7 @@ require_once plugin_dir_path( __FILE__ ) . 'admin/admin-fonts-page.php';
 require_once plugin_dir_path( __FILE__ ) . 'modules/learni/init.php';
 require_once plugin_dir_path( __FILE__ ) . 'modules/blog-post/init.php';
 require_once plugin_dir_path( __FILE__ ) . 'modules/login-register/init.php';
+require_once plugin_dir_path( __FILE__ ) . 'modules/content-protection/init.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/integrations/learni-integration.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/authors/authors.php';
 

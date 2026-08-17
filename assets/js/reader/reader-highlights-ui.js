@@ -26,6 +26,97 @@ function getReaderHighlightComposerSaveButton() {
     return document.getElementById('btn-save-comment-composer');
 }
 
+function getReaderHighlightToolbar() {
+    return document.getElementById('highlight-toolbar');
+}
+
+function getReaderHighlightToolbarSaveButton() {
+    return document.getElementById('btn-save-highlight');
+}
+
+function getReaderHighlightToolbarCommentButton() {
+    return document.getElementById('btn-open-comment-highlight');
+}
+
+function getReaderHighlightToolbarCancelButton() {
+    return document.getElementById('btn-cancel-highlight');
+}
+
+function updateReaderHighlightToolbarMode(mode) {
+    const normalizedMode = mode === 'highlight' ? 'highlight' : 'selection';
+    const saveBtn = getReaderHighlightToolbarSaveButton();
+    const commentBtn = getReaderHighlightToolbarCommentButton();
+    const cancelBtn = getReaderHighlightToolbarCancelButton();
+
+    almadenReaderHighlightState.toolbarMode = normalizedMode;
+
+    if (saveBtn) {
+        saveBtn.dataset.readerHighlightAction = normalizedMode === 'highlight' ? 'delete' : 'save';
+        saveBtn.title = normalizedMode === 'highlight' ? 'Borrar highlight' : 'Resaltar';
+        saveBtn.setAttribute('aria-label', saveBtn.title);
+        saveBtn.innerHTML = normalizedMode === 'highlight'
+            ? '<i class="fa-solid fa-trash-can text-sm"></i>'
+            : '<span class="w-4 h-4 rounded-full bg-yellow-500 border border-yellow-600 inline-block"></span>';
+    }
+
+    if (commentBtn) {
+        commentBtn.title = normalizedMode === 'highlight' ? 'Comentarios' : 'Comentar aquí';
+        commentBtn.setAttribute('aria-label', commentBtn.title);
+        commentBtn.innerHTML = normalizedMode === 'highlight'
+            ? '<i class="fa-solid fa-comment-dots text-sm"></i>'
+            : '<i class="fa-solid fa-comment-dots text-sm"></i>';
+    }
+
+    if (cancelBtn) {
+        cancelBtn.title = normalizedMode === 'highlight' ? 'Cerrar' : 'Cancelar';
+        cancelBtn.setAttribute('aria-label', cancelBtn.title);
+        cancelBtn.innerHTML = '<i class="fa-solid fa-xmark text-sm"></i>';
+    }
+}
+
+function clearReaderHighlightToolbarContext() {
+    almadenReaderHighlightState.activeToolbarHighlightId = null;
+    updateReaderHighlightToolbarMode('selection');
+}
+
+function openReaderHighlightToolbarForSelection(range) {
+    if (!range) {
+        hideHighlightToolbar();
+        return;
+    }
+
+    clearReaderHighlightToolbarContext();
+    showHighlightToolbarAtRange(range);
+}
+
+function openReaderHighlightToolbarForHighlight(highlight, anchorElement) {
+    if (!highlight) {
+        return;
+    }
+
+    hideReaderHighlightComposer();
+    closeReaderHighlightCommentComposer();
+    clearReaderSelection();
+    almadenReaderHighlightState.suppressSelectionCapture = true;
+    window.setTimeout(() => {
+        almadenReaderHighlightState.suppressSelectionCapture = false;
+    }, 120);
+    almadenReaderHighlightState.activeToolbarHighlightId = getReaderHighlightKey(highlight.id);
+    updateReaderHighlightToolbarMode('highlight');
+
+    if (anchorElement) {
+        showHighlightToolbarAtElement(anchorElement);
+        return;
+    }
+
+    hideHighlightToolbar();
+}
+
+function closeReaderHighlightToolbar() {
+    hideHighlightToolbar();
+    clearReaderHighlightToolbarContext();
+}
+
 function openReaderHighlightsPanel() {
     const panel = getReaderHighlightsPanel();
     const backdrop = getReaderHighlightsBackdrop();
@@ -175,6 +266,10 @@ function renderReaderHighlightsPanel() {
     const countLabel = getReaderHighlightsCountLabel();
     if (!listContainer) return;
 
+    if (typeof renderReaderHighlightsPage === 'function') {
+        renderReaderHighlightsPage();
+    }
+
     const highlights = getSortedBookHighlights();
     if (countLabel) {
         countLabel.textContent = highlights.length === 1
@@ -233,6 +328,7 @@ function renderReaderHighlightsPanel() {
             body.className = 'reader-highlight-item-body';
             const quote = document.createElement('div');
             quote.className = 'reader-highlight-item-quote';
+            quote.dataset.almadenProtectedExcerpt = 'highlight';
             quote.textContent = (highlight.selected_text || '').replace(/\s+/g, ' ').trim();
 
             body.appendChild(quote);
@@ -293,6 +389,7 @@ function renderReaderHighlightsPanel() {
         section.appendChild(list);
         listContainer.appendChild(section);
     });
+
 }
 
 function renderReaderHighlightCommentsSection(highlight, container) {
@@ -385,6 +482,7 @@ function renderReaderHighlightCommentsSection(highlight, container) {
 
     const textarea = document.createElement('textarea');
     textarea.className = 'reader-highlight-comment-input';
+    textarea.dataset.almadenCopyAllowed = 'user-note';
     textarea.rows = 2;
     textarea.placeholder = '';
     textarea.value = almadenReaderHighlightState.commentEditingText || '';

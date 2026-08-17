@@ -181,6 +181,9 @@ async function deleteReaderHighlight(highlight) {
         if (almadenReaderHighlightState.openCommentsHighlightId === deletedKey) {
             almadenReaderHighlightState.openCommentsHighlightId = null;
         }
+        if (almadenReaderHighlightState.activeToolbarHighlightId === deletedKey || almadenReaderHighlightState.toolbarMode === 'highlight') {
+            closeReaderHighlightToolbar();
+        }
 
         renderReaderHighlightsPanel();
 

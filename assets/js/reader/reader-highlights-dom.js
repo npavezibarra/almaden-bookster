@@ -5,11 +5,10 @@ function hideHighlightToolbar() {
     }
 }
 
-function showHighlightToolbarAtRange(range) {
+function showHighlightToolbarAtRect(rect) {
     const toolbar = document.getElementById('highlight-toolbar');
     if (!toolbar) return;
 
-    const rect = range.getBoundingClientRect();
     if (!rect || (!rect.width && !rect.height)) {
         hideHighlightToolbar();
         return;
@@ -22,6 +21,24 @@ function showHighlightToolbarAtRange(range) {
     toolbar.style.left = `${left}px`;
     toolbar.classList.remove('hidden');
     toolbar.classList.add('flex');
+}
+
+function showHighlightToolbarAtRange(range) {
+    if (!range) {
+        hideHighlightToolbar();
+        return;
+    }
+
+    showHighlightToolbarAtRect(range.getBoundingClientRect());
+}
+
+function showHighlightToolbarAtElement(element) {
+    if (!element || typeof element.getBoundingClientRect !== 'function') {
+        hideHighlightToolbar();
+        return;
+    }
+
+    showHighlightToolbarAtRect(element.getBoundingClientRect());
 }
 
 function getReaderHighlightLayer(root = getReaderChapterRoot()) {
@@ -56,6 +73,10 @@ function clearReaderSelection() {
 function captureReaderSelection() {
     const root = getReaderChapterRoot();
     const selection = window.getSelection();
+
+    if (almadenReaderHighlightState.suppressSelectionCapture) {
+        return;
+    }
 
     if (!root || !selection || selection.rangeCount === 0 || selection.isCollapsed) {
         almadenReaderHighlightState.selection = null;
@@ -92,7 +113,7 @@ function captureReaderSelection() {
         },
         text: selectedText
     };
-    showHighlightToolbarAtRange(range);
+    openReaderHighlightToolbarForSelection(range);
 }
 
 function wrapRangeWithHighlight(root, highlight) {
@@ -136,6 +157,7 @@ function wrapRangeWithHighlight(root, highlight) {
         box.dataset.chapterId = String(highlight.chapter_id || '');
         box.dataset.startOffset = String(startOffset);
         box.dataset.endOffset = String(endOffset);
+        box.setAttribute('aria-hidden', 'true');
         box.style.left = `${Math.max(0, rect.left - rootRect.left)}px`;
         box.style.top = `${Math.max(0, rect.top - rootRect.top)}px`;
         box.style.width = `${rect.width}px`;

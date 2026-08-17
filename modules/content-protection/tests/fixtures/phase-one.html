@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>Content Protection Phase One Fixture</title>
+    <link rel="stylesheet" href="../../assets/css/content-protection.css">
+</head>
+<body>
+    <main>
+        <p id="protected-copy" data-almaden-protected-content="ebook">Texto editorial protegido para la prueba de portapapeles.</p>
+        <label for="allowed-copy">Nota del usuario</label>
+        <textarea id="allowed-copy" data-almaden-copy-allowed="user-note">Texto escrito por el usuario.</textarea>
+    </main>
+    <div id="almaden-content-protection-notice" class="almaden-content-protection-notice" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+    <script>
+        window.almadenContentProtectionConfig = {
+            enabled: true,
+            blockClipboard: true,
+            blockDrag: true,
+            notice: 'La copia está bloqueada en esta prueba.'
+        };
+    </script>
+    <script src="../../assets/js/clipboard-guard.js"></script>
+</body>
+</html>

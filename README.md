@@ -26,6 +26,7 @@ Si eres un agente o vas a modificar codigo, usa este orden:
 - Configuracion interna de rutas y paginas del creador.
 - Libreria publica.
 - Reader publico.
+- Protección de copia convencional del contenido del Reader.
 - Integracion nativa con Learni para quizzes de libro y quizzes por capitulo.
 - Nuevo quiz builder por capitulo con panel de prompts, preview y contenido raw.
 

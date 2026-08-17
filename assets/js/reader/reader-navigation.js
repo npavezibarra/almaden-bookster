@@ -18,6 +18,14 @@ function normalizeReaderChapterImages(html) {
     return template.innerHTML;
 }
 
+function renderReaderChapterStatus(root, message, className, role) {
+    const status = document.createElement('p');
+    status.className = className;
+    status.setAttribute('role', role);
+    status.textContent = message;
+    root.replaceChildren(status);
+}
+
 // Reading Mode Toggle
 function toggleReadingMode(mode) {
     readingMode = mode;
@@ -160,6 +168,8 @@ if (scrollArea) {
 
 function showIndexView() {
     document.getElementById('almaden-view-chapter').classList.add('hidden');
+    const viewHighlights = document.getElementById('almaden-view-highlights');
+    if (viewHighlights) viewHighlights.classList.add('hidden');
     const viewIndex = document.getElementById('almaden-view-index');
     viewIndex.classList.remove('hidden');
     
@@ -171,10 +181,11 @@ function showIndexView() {
     });
     
     currentChapterIndex = -1;
+    if (window.AlmadenChapterLoader) window.AlmadenChapterLoader.release();
     if (typeof scaleThumbnails === 'function') scaleThumbnails(); // Re-scale if needed
 }
 
-function showChapterView(index) {
+async function showChapterView(index) {
     currentChapterIndex = index;
     const chapter = bookData.chapters[index];
     if (window.console && console.log) {
@@ -189,11 +200,26 @@ function showChapterView(index) {
     }
     
     document.getElementById('almaden-view-index').classList.add('hidden');
+    const viewHighlights = document.getElementById('almaden-view-highlights');
+    if (viewHighlights) viewHighlights.classList.add('hidden');
     const viewChapter = document.getElementById('almaden-view-chapter');
     viewChapter.classList.remove('hidden');
     
     // Pre-process shortcodes
-    let processedContent = chapter.content;
+    let processedContent = chapter.content || '';
+    if (window.AlmadenChapterLoader) {
+        const contentRoot = document.getElementById('chapter-content');
+        renderReaderChapterStatus(contentRoot, window.almadenContentProtectionConfig.loadingNotice, 'reader-chapter-loading', 'status');
+        try {
+            processedContent = await window.AlmadenChapterLoader.ensureChapterContent(index);
+        } catch (error) {
+            if (currentChapterIndex !== index || (error && error.name === 'AbortError')) return;
+            renderReaderChapterStatus(contentRoot, window.almadenContentProtectionConfig.chapterError, 'reader-chapter-load-error', 'alert');
+            return;
+        }
+        if (currentChapterIndex !== index) return;
+    }
+    if (window.AlmadenWatermark) window.AlmadenWatermark.update(chapter.id);
     
     // Process all inline shortcodes (lang, font, size, etc.)
     processedContent = window.AlmadenShortcodes.parseInline(processedContent);

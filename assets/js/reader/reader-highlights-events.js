@@ -10,8 +10,28 @@ document.addEventListener('touchend', () => {
     window.setTimeout(captureReaderSelection, 0);
 });
 
+document.addEventListener('click', event => {
+    const highlightElement = event.target && typeof event.target.closest === 'function'
+        ? event.target.closest('.reader-highlight')
+        : null;
+
+    if (!highlightElement) {
+        return;
+    }
+
+    const highlightId = parseInt(highlightElement.dataset.highlightId, 10) || 0;
+    const highlight = getReaderHighlightById(highlightId);
+    if (!highlight) {
+        return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    openReaderHighlightToolbarForHighlight(highlight, highlightElement);
+}, true);
+
 document.addEventListener('mousedown', event => {
-    const toolbar = document.getElementById('highlight-toolbar');
+    const toolbar = getReaderHighlightToolbar();
     const root = getReaderChapterRoot();
     const composer = getReaderHighlightComposer();
     if (!toolbar || !root) return;
@@ -38,15 +58,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const composerCancelBtn = document.getElementById('btn-cancel-comment-composer');
 
     if (saveBtn) {
-        saveBtn.addEventListener('click', saveReaderHighlight);
+        saveBtn.addEventListener('click', async () => {
+            if (almadenReaderHighlightState.toolbarMode === 'highlight') {
+                const highlight = getReaderHighlightById(almadenReaderHighlightState.activeToolbarHighlightId);
+                if (!highlight) {
+                    return;
+                }
+                await deleteReaderHighlight(highlight);
+                return;
+            }
+
+            await saveReaderHighlight();
+        });
     }
 
     if (openCommentBtn) {
-        openCommentBtn.addEventListener('click', openReaderHighlightComposer);
+        openCommentBtn.addEventListener('click', () => {
+            if (almadenReaderHighlightState.toolbarMode === 'highlight') {
+                const highlight = getReaderHighlightById(almadenReaderHighlightState.activeToolbarHighlightId);
+                if (highlight) {
+                    toggleReaderHighlightComments(highlight);
+                }
+                return;
+            }
+
+            openReaderHighlightComposer();
+        });
     }
 
     if (cancelBtn) {
-        cancelBtn.addEventListener('click', cancelReaderHighlight);
+        cancelBtn.addEventListener('click', () => {
+            if (almadenReaderHighlightState.toolbarMode === 'highlight') {
+                closeReaderHighlightToolbar();
+                return;
+            }
+
+            cancelReaderHighlight();
+        });
     }
 
     if (closePanelBtn) {

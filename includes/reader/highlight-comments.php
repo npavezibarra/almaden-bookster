@@ -185,6 +185,66 @@ function almaden_bookster_list_highlight_comments_ajax() {
 }
 add_action( 'wp_ajax_almaden_list_book_highlight_comments', 'almaden_bookster_list_highlight_comments_ajax' );
 
+/**
+ * Return every active highlight in a book together with its comments.
+ *
+ * The expanded highlights view needs the complete stream, so loading comments
+ * one highlight at a time would create an avoidable N+1 request pattern.
+ */
+function almaden_bookster_list_highlights_feed_ajax() {
+	if ( ! is_user_logged_in() ) {
+		wp_send_json_error( 'Debes iniciar sesión para ver highlights.', 403 );
+	}
+
+	$book_id = isset( $_GET['book_id'] ) ? absint( $_GET['book_id'] ) : 0;
+	$nonce = isset( $_GET['nonce'] ) ? sanitize_text_field( wp_unslash( $_GET['nonce'] ) ) : '';
+
+	if ( ! $book_id || ! wp_verify_nonce( $nonce, 'almaden_book_highlight_' . $book_id ) ) {
+		wp_send_json_error( 'Validación de seguridad fallida.', 403 );
+	}
+
+	if ( ! almaden_bookster_user_can_access_book( $book_id ) ) {
+		wp_send_json_error( 'No tienes acceso a este libro.', 403 );
+	}
+
+	$highlight_rows = almaden_bookster_get_user_book_highlights( $book_id, get_current_user_id() );
+	$highlights = array_map( 'almaden_bookster_highlight_row', $highlight_rows );
+	$comments_by_highlight = array();
+
+	foreach ( $highlights as $highlight ) {
+		$comments_by_highlight[ (string) $highlight['id'] ] = array();
+	}
+
+	$highlight_ids = array_values( array_filter( array_map( 'absint', wp_list_pluck( $highlights, 'id' ) ) ) );
+	if ( ! empty( $highlight_ids ) ) {
+		global $wpdb;
+		$comments_table = almaden_bookster_get_highlight_comments_table_name();
+
+		if ( almaden_bookster_table_exists( $comments_table ) ) {
+			$id_placeholders = implode( ', ', array_fill( 0, count( $highlight_ids ), '%d' ) );
+			$query_args = array_merge( array( $book_id ), $highlight_ids, array( 'active' ) );
+			$query = "SELECT * FROM $comments_table WHERE book_id = %d AND highlight_id IN ($id_placeholders) AND status = %s ORDER BY created_at ASC, id ASC";
+			$comment_rows = $wpdb->get_results( $wpdb->prepare( $query, $query_args ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+			foreach ( is_array( $comment_rows ) ? $comment_rows : array() as $comment_row ) {
+				$comment = almaden_bookster_highlight_comment_row( $comment_row );
+				$key = (string) $comment['highlight_id'];
+				if ( isset( $comments_by_highlight[ $key ] ) ) {
+					$comments_by_highlight[ $key ][] = $comment;
+				}
+			}
+		}
+	}
+
+	wp_send_json_success(
+		array(
+			'highlights'            => $highlights,
+			'comments_by_highlight' => (object) $comments_by_highlight,
+		)
+	);
+}
+add_action( 'wp_ajax_almaden_list_book_highlights_feed', 'almaden_bookster_list_highlights_feed_ajax' );
+
 function almaden_bookster_delete_highlight_comment_ajax() {
 	if ( ! is_user_logged_in() ) {
 		wp_send_json_error( 'Debes iniciar sesión para borrar comentarios.', 403 );

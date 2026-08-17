@@ -92,8 +92,6 @@ if ( $chapters_query->have_posts() ) {
 $source_book_id = get_post_meta( $book_id, '_almaden_source_book_id', true );
 $settings_book_id = $book_id;
 $book_settings = function_exists('almaden_get_book_pdf_settings') ? almaden_get_book_pdf_settings( $settings_book_id ) : array();
-
-
 $cover_settings = get_post_meta( $settings_book_id, '_almaden_cover_settings', true );
 $fallback_cover_url = '';
 if ( is_array( $cover_settings ) && !empty( $cover_settings['front_image'] ) ) {
@@ -131,12 +129,13 @@ if ( function_exists( 'wp_get_global_settings' ) ) {
 }
 
 // Encode to JSON for frontend
+$reader_chapters = function_exists( 'almaden_bookster_content_protection_prepare_chapters' ) ? almaden_bookster_content_protection_prepare_chapters( $chapters, $book_id ) : $chapters;
 $book_data_json = wp_json_encode( array(
 	'bookId' => $book_id,
 	'title'    => $book_title,
 	'author'   => $author,
 	'settings' => $book_settings,
-	'chapters' => $chapters,
+	'chapters' => $reader_chapters,
 	'cover_url' => $reader_cover_url,
 	'userCanAccess' => $has_reader_access,
 	'productId' => $book_product_id,
@@ -166,7 +165,6 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo esc_html( $book_title ); ?> - Reader</title>
-    
     <!-- Tailwind Config -->
     <script>
         window.tailwind = window.tailwind || {};
@@ -202,8 +200,8 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
     <link rel="stylesheet" href="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/css/quiz-builder/quiz-builder-components.css' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/css/quiz-builder/quiz-builder-components.css' ); ?>">
     <link rel="stylesheet" href="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/css/quiz-builder/quiz-builder-modal.css' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/css/quiz-builder/quiz-builder-modal.css' ); ?>">
     <link rel="stylesheet" href="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/css/quiz-builder/quiz-builder-simulation.css' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/css/quiz-builder/quiz-builder-simulation.css' ); ?>">
+    <?php if ( $has_reader_access && function_exists( 'almaden_bookster_content_protection_render_head' ) ) { almaden_bookster_content_protection_render_head( $book_id ); } ?>
     <style>
-        
         /* User Requested Constraints */
         div#almaden-view-index,
         header#chapter-navbar,
@@ -242,7 +240,6 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
                 <?php echo $cover_html; ?>
             </div>
         </div>
-        
         <!-- Right Side: Chapters List -->
         <div id="reader-index-panel" class="w-full md:w-1/2 h-1/2 md:h-full overflow-y-auto p-8 md:p-16 lg:p-24 relative">
             <div id="reader-index-header" class="flex justify-between items-center mb-12">
@@ -293,7 +290,6 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
                         <button onclick="changeTheme('black')" class="w-8 h-8 rounded-full border border-gray-600 bg-gray-900 ring-offset-2 hover:ring-2 ring-gray-300 transition-all" title="Tema Oscuro"></button>
                     </div>
                 </div>
-
                 <div class="w-px h-5 bg-gray-200 mx-1"></div>
 
                 <button onclick="toggleReadingMode('scroll')" id="btn-mode-scroll" class="p-2 text-gray-800 bg-gray-100 rounded text-sm w-9 h-9 flex items-center justify-center transition-colors" title="Scroll View">
@@ -303,7 +299,6 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
                     <i class="fa-solid fa-book-open"></i>
                 </button>
             </div>
-            
             <!-- Reading Progress Bar -->
             <div id="reading-progress-container" class="absolute bottom-0 left-0 w-full h-[3px] bg-transparent overflow-hidden">
                 <div id="reading-progress-bar" class="h-full w-0 transition-all duration-100 ease-out"></div>
@@ -319,7 +314,7 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
             <button id="btn-flip-next" onclick="flipNext()" class="absolute right-0 top-1/2 transform -translate-y-1/2 p-4 text-gray-300 hover:text-black hidden z-10 text-3xl transition-colors">
                 <i class="fa-solid fa-chevron-right"></i>
             </button>
-            <div id="chapter-content" class="prose">
+            <div id="chapter-content" class="prose" data-almaden-protected-content="ebook">
                 <!-- Markdown content will be rendered here -->
             </div>
             
@@ -339,26 +334,67 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
         </main>
     </div>
 
+    <!-- STATE: HIGHLIGHTS -->
+    <div id="almaden-view-highlights" class="w-full h-full flex flex-col hidden">
+        <header class="reader-highlights-page-navbar">
+            <button id="btn-highlights-page-index" type="button" class="reader-highlights-page-nav-button" title="Índice" aria-label="Volver al índice">
+                <i class="fa-solid fa-list-ul"></i>
+            </button>
+            <div class="reader-highlights-page-heading">
+                <span>Mis highlights</span>
+                <strong><?php echo esc_html( $book_title ); ?></strong>
+            </div>
+            <button id="btn-close-highlights-page" type="button" class="reader-highlights-page-nav-button" title="Volver a la lectura" aria-label="Volver a la lectura">
+                <i class="fa-solid fa-book-open"></i>
+            </button>
+        </header>
+        <div class="reader-highlights-page-layout">
+            <aside class="reader-highlights-page-sidebar" aria-label="Filtrar highlights por capítulo">
+                <div id="reader-highlights-page-filters" class="reader-highlights-page-filters"></div>
+            </aside>
+            <main id="reader-highlights-page-scroll" class="reader-highlights-page-main">
+                <div class="reader-highlights-page-toolbar">
+                    <div class="reader-highlights-page-toolbar-inner">
+                        <div class="reader-highlights-page-toolbar-copy">
+                            <span class="reader-highlights-page-toolbar-kicker">Capítulo activo</span>
+                            <strong id="reader-highlights-page-toolbar-title" class="reader-highlights-page-toolbar-title">Todos los capítulos</strong>
+                        </div>
+                        <button id="reader-highlights-page-toolbar-read" type="button" class="reader-highlights-page-toolbar-button" hidden>
+                            <i class="fa-solid fa-book-open-reader"></i>
+                            <span>Leer capítulo</span>
+                        </button>
+                    </div>
+                </div>
+                <div id="reader-highlights-page-feed" class="reader-highlights-page-feed" aria-live="polite"></div>
+            </main>
+        </div>
+    </div>
+
     <!-- Highlights Drawer -->
     <div id="reader-highlights-backdrop" class="fixed inset-0 bg-black/20 hidden z-40"></div>
-    <aside id="reader-highlights-panel" class="fixed right-4 top-20 w-[min(92vw,28rem)] max-h-[calc(100vh-6rem)] bg-white border border-gray-200 shadow-2xl rounded-3xl overflow-hidden hidden z-50 flex flex-col">
-        <div class="flex items-start justify-between gap-4 p-5 border-b border-gray-100">
+    <aside id="reader-highlights-panel" class="fixed right-4 top-20 w-[min(92vw,28rem)] max-h-[calc(100vh-6rem)] bg-white border border-neutral-200 shadow-2xl rounded-3xl overflow-hidden hidden z-50 flex flex-col">
+        <div class="flex items-start justify-between gap-4 p-5 border-b border-neutral-100">
             <div>
-                <h4 class="text-lg font-semibold text-gray-900">Mis highlights</h4>
+                <h4 class="text-lg font-semibold text-neutral-900">Mis highlights</h4>
             </div>
-            <button id="btn-close-reader-highlights" class="w-9 h-9 rounded-full border border-gray-200 text-gray-500 hover:text-black hover:bg-gray-50 transition-colors" title="Cerrar">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+            <div class="flex items-center gap-2">
+                <button id="btn-expand-reader-highlights" class="w-9 h-9 rounded-full border border-neutral-200 text-neutral-500 hover:text-black hover:bg-neutral-50 transition-colors" title="Expandir highlights" aria-label="Expandir highlights">
+                    <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+                </button>
+                <button id="btn-close-reader-highlights" class="w-9 h-9 rounded-full border border-neutral-200 text-neutral-500 hover:text-black hover:bg-neutral-50 transition-colors" title="Cerrar" aria-label="Cerrar">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
         </div>
         <div id="reader-highlights-list" class="p-4 overflow-y-auto space-y-3">
-            <div class="text-sm text-gray-400 italic px-1 py-2">Abre el panel para ver tus highlights guardados.</div>
+            <div class="text-sm text-neutral-400 italic px-1 py-2">Abre el panel para ver tus highlights guardados.</div>
         </div>
     </aside>
 
     <!-- Footnote Popup -->
-    <div id="footnote-popup" class="fixed hidden z-50 bg-white border border-gray-200 shadow-xl rounded-lg p-4 text-sm text-gray-800 max-w-xs md:max-w-sm font-sans prose prose-sm transition-opacity duration-200 opacity-0 pointer-events-none" style="transform: translate(-50%, -100%); margin-top: -10px;">
-        <div id="footnote-popup-content"></div>
-        <div class="absolute w-3 h-3 bg-white border-b border-r border-gray-200 transform rotate-45 left-1/2 -ml-1.5 -bottom-1.5"></div>
+    <div id="footnote-popup" class="fixed hidden z-50 bg-white border border-neutral-200 shadow-xl rounded-lg p-4 text-sm text-neutral-800 max-w-xs md:max-w-sm font-sans prose prose-sm transition-opacity duration-200 opacity-0 pointer-events-none" style="transform: translate(-50%, -100%); margin-top: -10px;">
+        <div id="footnote-popup-content" data-almaden-protected-content="footnote"></div>
+        <div class="absolute w-3 h-3 bg-white border-b border-r border-neutral-200 transform rotate-45 left-1/2 -ml-1.5 -bottom-1.5"></div>
     </div>
 
     <!-- Highlight Toolbar -->
@@ -385,7 +421,7 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
                 <i class="fa-solid fa-xmark text-sm"></i>
             </button>
         </div>
-        <textarea id="highlight-comment-input" rows="4" class="w-full resize-y rounded-2xl border border-gray-200 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-yellow-300" placeholder="Escribe tu comentario..."></textarea>
+        <textarea id="highlight-comment-input" rows="4" data-almaden-copy-allowed="user-note" class="w-full resize-y rounded-2xl border border-gray-200 px-4 py-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-yellow-300" placeholder="Escribe tu comentario..."></textarea>
         <div class="mt-3 flex justify-end gap-2">
             <button id="btn-cancel-comment-composer" class="px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-sm transition-colors">Cancelar</button>
             <button id="btn-save-comment-composer" class="px-4 py-2 rounded-full bg-black hover:bg-gray-800 text-white font-semibold text-sm transition-colors">Guardar comentario</button>
@@ -412,11 +448,13 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-highlights-dom.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-highlights-dom.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-highlights-ui.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-highlights-ui.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-highlights-api.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-highlights-api.js' ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-highlights-page.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-highlights-page.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-highlights-events.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-highlights-events.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-navigation.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-navigation.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-quizzes.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-quizzes.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-progress.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-progress.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-app.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-app.js' ); ?>"></script>
+    <?php if ( function_exists( 'almaden_bookster_content_protection_render_footer' ) ) { almaden_bookster_content_protection_render_footer( $book_id ); } ?>
     <?php else : ?>
         <div class="min-h-screen px-6 py-10 md:py-14" style="background-color: #f5f5f5;">
             <div class="mx-auto w-full max-w-7xl">

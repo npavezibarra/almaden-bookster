@@ -5,6 +5,9 @@ let almadenReaderHighlightState = {
     panelOpen: false,
     deleteInFlight: false,
     pendingFocusHighlightId: null,
+    toolbarMode: 'selection',
+    activeToolbarHighlightId: null,
+    suppressSelectionCapture: false,
     commentsByHighlightId: {},
     commentsLoadingByHighlightId: {},
     openCommentsHighlightId: null,
@@ -144,6 +147,15 @@ function getSortedBookHighlights() {
             if (startDiff !== 0) return startDiff;
             return parseInt(a.id, 10) - parseInt(b.id, 10);
         });
+}
+
+function getReaderHighlightById(highlightId) {
+    const normalizedId = getReaderHighlightKey(highlightId);
+    if (!normalizedId || !bookData || !Array.isArray(bookData.highlights)) {
+        return null;
+    }
+
+    return bookData.highlights.find(highlight => getReaderHighlightKey(highlight.id) === normalizedId && String(highlight.status || 'active') === 'active') || null;
 }
 
 function getReaderHighlightChapterTitle(highlight) {

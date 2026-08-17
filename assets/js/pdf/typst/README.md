@@ -46,6 +46,71 @@ graph TD
    misma numeración global y conserva el layout de lectura para revisión
    completa.
 
+## Guías de sangría (bleed)
+
+El visor representa la sangría como una ayuda visual alrededor del canvas de
+PDF.js. No cambia el tamaño del PDF, no modifica su contenido y no participa en
+la exportación. La implementación vive en `updateBleedGuides()` dentro de
+`editor-typst-pdf-view.js`.
+
+### Geometría y guías
+
+- `bookState.settings.bleeding` llega al visor mediante
+  `shared.currentGeometry.bleed`, en la misma unidad que `width` y `height`.
+- `getBleedGuideOffsetPx()` calcula los píxeles visibles a partir de la escala
+  real de cada página. Para ello usa la menor relación entre ancho/alto del
+  shell y las dimensiones editoriales, evitando diferencias por zoom.
+- La línea continua marca el límite final de corte y coincide exactamente con
+  el borde original de la página renderizada.
+- La línea punteada marca el límite exterior de la sangría. La distancia entre
+  ambas líneas corresponde al valor configurado; por ejemplo, `0.5 cm`.
+- El fondo entre ambos límites es blanco en páginas sin arte full bleed.
+
+La sangría solo existe arriba, abajo y en el lado exterior de la hoja. Nunca se
+agrega en el lado interior o lomo:
+
+| Página | Lado exterior con bleed | Lado interior sin bleed |
+| --- | --- | --- |
+| Par, página izquierda | Izquierdo | Derecho |
+| Impar, página derecha | Derecho | Izquierdo |
+
+Por esta razón, el fondo y la línea punteada usan offsets distintos según
+`data-page-number`. En el lado interior solo aparece la línea continua del
+límite de página; no debe existir gap ni una segunda guía.
+
+### Imágenes full bleed
+
+Las imágenes solo rellenan la sangría cuando el capítulo cumple las tres
+condiciones siguientes:
+
+1. `chapter_image_enabled` está activo.
+2. `chapter_image_mode` es `image_full_page`.
+3. `chapter_image_url` contiene una imagen.
+
+El visor relaciona la página física con el capítulo usando
+`bookState.pdfPreview.universalCounter.chapters[].startPage`. Después coloca la
+imagen original como una sola capa que cubre la página y su bleed. Esa capa
+comienza invisible; únicamente después de cargar correctamente oculta el canvas
+de PDF.js y pasa a ser visible. De este modo nunca aparecen dos versiones de la
+misma imagen. Si la carga falla, la capa se elimina y el canvas permanece como
+respaldo para evitar una página vacía.
+
+La capa de imagen usa `object-fit: cover` y `object-position: center center`:
+
+- conserva siempre la relación de aspecto original;
+- cubre el ancho de la página más la sangría exterior;
+- centra la imagen respecto de la página;
+- recorta el excedente superior e inferior cuando es necesario;
+- reemplaza visualmente la imagen del canvas, no se superpone como una segunda
+  copia;
+- nunca estira franjas, filas de píxeles ni bordes del canvas.
+
+No se debe reconstruir el bleed copiando o escalando píxeles del borde del
+canvas. Ese enfoque deforma imágenes y también puede interpretar texto cercano
+al borde como si fuera arte full bleed. Al volver a renderizar o cambiar zoom,
+`updateBleedGuides()` elimina todas las capas anteriores y las reconstruye con
+la geometría actual.
+
 ### Continuidad durante la edición
 
 `editor-typst-preview-experience.js` desacopla la escritura de la composición

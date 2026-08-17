@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Content Protection Phase Four Fixture</title>
+    <link rel="stylesheet" href="../../assets/css/content-protection.css">
+    <style>
+        body { margin: 0; font: 16px/1.6 system-ui, sans-serif; color: #1f2937; background: #f8fafc; }
+        nav { display: flex; gap: .5rem; padding: 1rem; background: white; border-bottom: 1px solid #e5e7eb; }
+        button, textarea { font: inherit; }
+        #almaden-view-chapter { position: relative; min-height: 100vh; }
+        #chapter-content { max-width: 44rem; margin: auto; padding: 3rem 1.5rem; background: white; }
+        #footnote-popup, #quiz-panel, #note-panel { max-width: 44rem; margin: 1rem auto; padding: 1rem; border: 1px solid #d1d5db; background: white; }
+        textarea { box-sizing: border-box; width: 100%; min-height: 5rem; }
+    </style>
+</head>
+<body>
+    <nav aria-label="Modo de lectura">
+        <button id="mode-scroll" type="button" aria-pressed="true">Scroll</button>
+        <button id="mode-flip" type="button" aria-pressed="false">Flip</button>
+        <button id="highlight" type="button">Crear highlight</button>
+    </nav>
+    <main id="almaden-view-chapter" data-mode="scroll">
+        <article id="chapter-content" data-almaden-protected-content="ebook">
+            <h1>Proemio</h1>
+            <p id="protected-paragraph">Texto protegido seleccionable para lectura, highlights y tecnologías de asistencia.</p>
+            <button id="footnote-button" type="button" aria-expanded="false">Abrir nota al pie</button>
+        </article>
+        <aside id="footnote-popup" data-almaden-protected-content="footnote" hidden>
+            <strong>Nota al pie</strong>: contenido editorial protegido.
+        </aside>
+        <section id="quiz-panel" aria-label="Quiz de comprensión">
+            <label><input type="radio" name="answer"> Roma</label>
+            <button type="button">Responder</button>
+        </section>
+        <section id="note-panel">
+            <label for="reader-note">Comentario personal</label>
+            <textarea id="reader-note" data-almaden-copy-allowed="user-note">Este texto escrito por el lector sí puede copiarse.</textarea>
+        </section>
+    </main>
+    <div id="almaden-content-protection-notice" class="almaden-content-protection-notice" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+    <script>
+        window.almadenContentProtectionConfig = {
+            enabled: true,
+            blockClipboard: true,
+            blockDrag: true,
+            telemetryEnabled: false,
+            protectedSelector: '[data-almaden-protected-content], [data-almaden-protected-excerpt]',
+            allowedSelector: '[data-almaden-copy-allowed], input, textarea, select, [contenteditable="true"]',
+            notice: 'La copia de texto está desactivada en este ebook.'
+        };
+        document.getElementById('mode-scroll').onclick = () => setMode('scroll');
+        document.getElementById('mode-flip').onclick = () => setMode('flip');
+        function setMode(mode) {
+            document.getElementById('almaden-view-chapter').dataset.mode = mode;
+            document.getElementById('mode-scroll').setAttribute('aria-pressed', String(mode === 'scroll'));
+            document.getElementById('mode-flip').setAttribute('aria-pressed', String(mode === 'flip'));
+        }
+        document.getElementById('footnote-button').onclick = event => {
+            const popup = document.getElementById('footnote-popup');
+            popup.hidden = !popup.hidden;
+            event.currentTarget.setAttribute('aria-expanded', String(!popup.hidden));
+        };
+        document.getElementById('highlight').onclick = () => document.body.dataset.highlightCreated = 'true';
+    </script>
+    <script src="../../assets/js/clipboard-guard.js"></script>
+</body>
+</html>

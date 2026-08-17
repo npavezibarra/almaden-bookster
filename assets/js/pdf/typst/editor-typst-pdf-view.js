@@ -68,6 +68,136 @@
         };
     }
 
+    function getBleedGuideOffsetPx(shell) {
+        const g = shared.currentGeometry || {};
+        const bleed = Number.parseFloat(g.bleed);
+        const width = Number.parseFloat(g.width);
+        const height = Number.parseFloat(g.height);
+        const shellWidth = shell ? Number.parseFloat(shell.clientWidth) : NaN;
+        const shellHeight = shell ? Number.parseFloat(shell.clientHeight) : NaN;
+
+        if (![bleed, width, height, shellWidth, shellHeight].every(Number.isFinite) || bleed <= 0 || width <= 0 || height <= 0) {
+            return null;
+        }
+
+        const pxPerUnit = Math.min(shellWidth / width, shellHeight / height);
+        const bleedPx = bleed * pxPerUnit;
+        return bleedPx > 0 ? bleedPx : null;
+    }
+
+    function getFullBleedChapterImageUrl(pageNumber) {
+        const counterChapters = window.bookState?.pdfPreview?.universalCounter?.chapters;
+        const chapters = window.bookState?.chapters;
+        if (!Array.isArray(counterChapters) || !Array.isArray(chapters)) return '';
+
+        const counterEntry = counterChapters.find(entry => Number(entry?.startPage || 0) === pageNumber);
+        if (!counterEntry) return '';
+
+        const chapter = chapters.find(entry => String(entry?.id || '') === String(counterEntry.id || ''));
+        if (!chapter) return '';
+
+        const imageEnabled = chapter.chapter_image_enabled === true || String(chapter.chapter_image_enabled || '') === '1';
+        const imageMode = String(chapter.chapter_image_mode || '').toLowerCase();
+        const imageUrl = String(chapter.chapter_image_url || '').trim();
+        return imageEnabled && imageMode === 'image_full_page' ? imageUrl : '';
+    }
+
+    function updateBleedGuides(root = document.getElementById('pdf-scroller')) {
+        if (!root) return;
+
+        root.querySelectorAll('[data-bleed-guide-backdrop]').forEach(overlay => overlay.remove());
+        root.querySelectorAll('[data-bleed-guide-trim]').forEach(overlay => overlay.remove());
+        root.querySelectorAll('[data-bleed-guide-page-limit]').forEach(overlay => overlay.remove());
+        root.querySelectorAll('[data-bleed-guide-image]').forEach(overlay => overlay.remove());
+        root.querySelectorAll('canvas[data-bleed-source-hidden="1"]').forEach(canvas => {
+            canvas.style.visibility = canvas.dataset.bleedOriginalVisibility || '';
+            delete canvas.dataset.bleedOriginalVisibility;
+            delete canvas.dataset.bleedSourceHidden;
+        });
+        root.querySelectorAll('[data-page-number]').forEach(shell => {
+            shell.style.overflow = 'visible';
+        });
+
+        const g = shared.currentGeometry || {};
+        const bleed = Number.parseFloat(g.bleed);
+        if (!Number.isFinite(bleed) || bleed <= 0) return;
+
+        root.querySelectorAll('[data-page-number]').forEach(shell => {
+            const bleedPx = getBleedGuideOffsetPx(shell);
+            if (!bleedPx) return;
+
+            const pageNumber = Number.parseInt(shell.dataset.pageNumber, 10);
+            const isOddPage = pageNumber % 2 === 1;
+            const imageUrl = getFullBleedChapterImageUrl(pageNumber);
+            const backdrop = document.createElement('div');
+            backdrop.dataset.bleedGuideBackdrop = '1';
+            backdrop.className = 'pointer-events-none absolute box-border z-0';
+            backdrop.style.top = `-${bleedPx}px`;
+            backdrop.style.right = isOddPage ? `-${bleedPx}px` : '0';
+            backdrop.style.bottom = `-${bleedPx}px`;
+            backdrop.style.left = isOddPage ? '0' : `-${bleedPx}px`;
+            backdrop.style.overflow = 'hidden';
+            backdrop.style.backgroundColor = '#ffffff';
+            shell.insertBefore(backdrop, shell.firstChild);
+
+            const canvas = shell.querySelector('canvas');
+            if (canvas) {
+                canvas.style.position = 'relative';
+                canvas.style.zIndex = '1';
+            }
+
+            if (imageUrl) {
+                const imageLayer = document.createElement('img');
+                imageLayer.dataset.bleedGuideImage = '1';
+                imageLayer.alt = '';
+                imageLayer.draggable = false;
+                imageLayer.className = 'pointer-events-none absolute z-10 block';
+                imageLayer.style.top = `-${bleedPx}px`;
+                imageLayer.style.left = isOddPage ? '0' : `-${bleedPx}px`;
+                imageLayer.style.width = `calc(100% + ${bleedPx}px)`;
+                imageLayer.style.height = `calc(100% + ${bleedPx * 2}px)`;
+                imageLayer.style.maxWidth = 'none';
+                imageLayer.style.maxHeight = 'none';
+                imageLayer.style.objectFit = 'cover';
+                imageLayer.style.objectPosition = 'center center';
+                imageLayer.style.opacity = '0';
+                imageLayer.addEventListener('load', () => {
+                    if (!imageLayer.isConnected || !shell.contains(imageLayer)) return;
+                    if (canvas) {
+                        canvas.dataset.bleedOriginalVisibility = canvas.style.visibility || '';
+                        canvas.dataset.bleedSourceHidden = '1';
+                        canvas.style.visibility = 'hidden';
+                    }
+                    imageLayer.style.opacity = '1';
+                }, { once: true });
+                imageLayer.addEventListener('error', () => imageLayer.remove(), { once: true });
+                shell.appendChild(imageLayer);
+                imageLayer.src = imageUrl;
+            }
+
+            const trimFrame = document.createElement('div');
+            trimFrame.dataset.bleedGuideTrim = '1';
+            trimFrame.className = 'pointer-events-none absolute box-border z-20';
+            trimFrame.style.top = `-${bleedPx}px`;
+            trimFrame.style.bottom = `-${bleedPx}px`;
+            trimFrame.style.left = isOddPage ? '0px' : `-${bleedPx}px`;
+            trimFrame.style.right = isOddPage ? `-${bleedPx}px` : '0px';
+            trimFrame.style.borderTop = '2px dotted rgba(15, 23, 42, 0.8)';
+            trimFrame.style.borderBottom = '2px dotted rgba(15, 23, 42, 0.8)';
+            trimFrame.style.borderLeft = isOddPage ? '0' : '2px dotted rgba(15, 23, 42, 0.8)';
+            trimFrame.style.borderRight = isOddPage ? '2px dotted rgba(15, 23, 42, 0.8)' : '0';
+            shell.appendChild(trimFrame);
+
+            const pageLimit = document.createElement('div');
+            pageLimit.dataset.bleedGuidePageLimit = '1';
+            pageLimit.className = 'pointer-events-none absolute box-border z-20';
+            pageLimit.style.inset = '0';
+            pageLimit.style.border = '1px solid rgba(71, 85, 105, 0.9)';
+            pageLimit.title = `Límite de corte de la página ${pageNumber}`;
+            shell.appendChild(pageLimit);
+        });
+    }
+
     function updateTextBounds(root = document.getElementById('pdf-scroller')) {
         if (!root) return;
 
@@ -345,6 +475,7 @@
         }
         window.almadenTypstImageOverlays?.bind?.(root);
         updateGeometryIndicator();
+        updateBleedGuides(root);
         updateTextBounds(root);
     }
 
@@ -428,6 +559,7 @@
         applyLayout,
         bindTextBoundsToggle,
         updateTextBounds,
+        updateBleedGuides,
         updateGeometryIndicator,
         setStatus,
         hasCurrentPreview: () => !!shared.currentPdfBlob,
