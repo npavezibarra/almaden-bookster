@@ -18,7 +18,7 @@
     const PREVIEW_CACHE_STORE = 'compiled-previews';
     // Bump whenever server-side pagination or running-header/footer semantics
     // change; the persistent key otherwise reuses a PDF compiled by old code.
-    const PREVIEW_CACHE_VERSION = 'v5';
+    const PREVIEW_CACHE_VERSION = 'v8';
     const PREVIEW_CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
     function getZoomFactor() {

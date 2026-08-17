@@ -14,12 +14,20 @@
                             <input id="setting-ebook-chapter-prefix-template" type="text" value="Capítulo {N}" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                         </div>
                     </div>
-                    <div class="grid grid-cols-4 gap-2 mb-2">
+                    <div class="grid grid-cols-5 gap-2 mb-2">
                         <div>
                             <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Posición</label>
                             <select id="setting-ebook-chapter-prefix-position" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                                 <option value="above">Arriba del título</option>
                                 <option value="below">Abajo del título</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Alineación</label>
+                            <select id="setting-ebook-chapter-prefix-align" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                <option value="left">Izquierda</option>
+                                <option value="center">Centro</option>
+                                <option value="right">Derecha</option>
                             </select>
                         </div>
                         <div>
@@ -140,6 +148,10 @@
                             <input id="setting-ebook-chapter-title-line-height" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
                         </div>
                     </div>
+                    <label class="flex items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--bg-app)] px-3 py-2 text-xs font-semibold text-[var(--text-main)] mt-2">
+                        <input type="checkbox" id="setting-ebook-chapter-title-hyphenate" class="h-3.5 w-3.5 rounded border-[var(--border-color)] text-black focus:ring-black">
+                        <span>Hyphenate</span>
+                    </label>
                 </div>
 
                 <div>

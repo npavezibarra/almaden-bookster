@@ -136,6 +136,7 @@ window.savePDFSettings = function(silent = false, skipPreview = false) {
     data.append('ebook_chapter_title_padding_bottom', getCleanVal('setting-ebook-chapter-title-padding-bottom'));
     data.append('ebook_chapter_title_padding_left', getCleanVal('setting-ebook-chapter-title-padding-left'));
     data.append('ebook_chapter_title_padding_right', getCleanVal('setting-ebook-chapter-title-padding-right'));
+    data.append('ebook_chapter_title_hyphenate', getChecked('setting-ebook-chapter-title-hyphenate'));
 
     data.append('ebook_subtitle_show', getChecked('setting-ebook-chapter-subtitle-show'));
     data.append('ebook_subtitle_font_family', getVal('setting-ebook-chapter-subtitle-font-family') || '');
@@ -151,6 +152,7 @@ window.savePDFSettings = function(silent = false, skipPreview = false) {
     data.append('ebook_chapter_prefix_show', getChecked('setting-ebook-chapter-prefix-show'));
     data.append('ebook_chapter_prefix_template', getVal('setting-ebook-chapter-prefix-template') || '');
     data.append('ebook_chapter_prefix_position', getVal('setting-ebook-chapter-prefix-position') || 'above');
+    data.append('ebook_chapter_prefix_align', getVal('setting-ebook-chapter-prefix-align') || 'center');
     data.append('ebook_chapter_prefix_font_family', getVal('setting-ebook-chapter-prefix-font-family') || 'Playfair Display');
     data.append('ebook_chapter_prefix_font_size', getCleanVal('setting-ebook-chapter-prefix-font-size'));
     data.append('ebook_chapter_prefix_font_weight', getVal('setting-ebook-chapter-prefix-font-weight') || 'normal');
@@ -267,6 +269,7 @@ window.savePDFSettings = function(silent = false, skipPreview = false) {
     data.append('chapter_title_padding_left', getCleanVal('setting-chapter-title-padding-left'));
     data.append('chapter_title_padding_right', getCleanVal('setting-chapter-title-padding-right'));
     data.append('chapter_title_line_height', getCleanVal('setting-chapter-title-line-height'));
+    data.append('chapter_title_hyphenate', getChecked('setting-chapter-title-hyphenate'));
 
     data.append('chapter_subtitle_show', getChecked('setting-chapter-subtitle-show'));
     data.append('chapter_subtitle_font_family', getVal('setting-chapter-subtitle-font-family') || '');
@@ -284,6 +287,7 @@ window.savePDFSettings = function(silent = false, skipPreview = false) {
     data.append('chapter_prefix_show', getChecked('setting-chapter-prefix-show'));
     data.append('chapter_prefix_template', getVal('setting-chapter-prefix-template'));
     data.append('chapter_prefix_position', getVal('setting-chapter-prefix-position'));
+    data.append('chapter_prefix_align', getVal('setting-chapter-prefix-align') || 'center');
     data.append('chapter_prefix_font_family', getVal('setting-chapter-prefix-font-family'));
     data.append('chapter_prefix_font_size', getCleanVal('setting-chapter-prefix-font-size'));
     data.append('chapter_prefix_font_weight', getVal('setting-chapter-prefix-font-weight'));

@@ -57,8 +57,12 @@ function almaden_bookster_typst_build_document_context( $payload ) {
 	$line_height   = almaden_bookster_typst_number( $settings, 'line_height_content', 1.65, 0.8, 4 );
 	$paragraph_gap = almaden_bookster_typst_number( $settings, 'content_paragraph_spacing', 14, 0, 200 );
 	$paragraph_indent = almaden_bookster_typst_number( $settings, 'content_paragraph_indent', 0, 0, 200 );
-	$title_size  = almaden_bookster_typst_number( $settings, 'chapter_title_font_size', 24, 8, 100 );
-	$title_gap   = almaden_bookster_typst_number( $settings, 'chapter_title_padding_bottom', 1.5, 0, 20 );
+	$title_size          = almaden_bookster_typst_number( $settings, 'chapter_title_font_size', 24, 8, 100 );
+	$title_padding_top   = almaden_bookster_typst_number( $settings, 'chapter_title_padding_top', 0, 0, 20 );
+	$title_padding_bottom = almaden_bookster_typst_number( $settings, 'chapter_title_padding_bottom', 1.5, 0, 20 );
+	$title_padding_left  = almaden_bookster_typst_number( $settings, 'chapter_title_padding_left', 0, 0, 20 );
+	$title_padding_right = almaden_bookster_typst_number( $settings, 'chapter_title_padding_right', 0, 0, 20 );
+	$title_line_height   = almaden_bookster_typst_number( $settings, 'chapter_title_line_height', 1.2, 0.8, 4 );
 	$title_font_family = almaden_bookster_typst_font_family( $settings['chapter_title_font_family'] ?? $font_family );
 	$title_font_weight = almaden_bookster_typst_font_weight( $settings['chapter_title_font_weight'] ?? 'bold' );
 	$title_font_style   = isset( $settings['chapter_title_font_style'] ) ? strtolower( trim( (string) $settings['chapter_title_font_style'] ) ) : 'normal';
@@ -66,6 +70,7 @@ function almaden_bookster_typst_build_document_context( $payload ) {
 		$title_font_style = 'normal';
 	}
 	$title_letter_spacing = almaden_bookster_typst_number( $settings, 'chapter_title_letter_spacing', 0, -20, 20 );
+	$chapter_title_hyphenate = almaden_bookster_typst_bool( $settings['chapter_title_hyphenate'] ?? false );
 	$lang        = isset( $settings['book_language'] ) ? preg_replace( '/[^a-zA-Z-]/', '', $settings['book_language'] ) : 'es';
 	$text_align  = isset( $settings['content_text_align'] ) &&
 		in_array( $settings['content_text_align'], array( 'left', 'center', 'right', 'justify' ), true )
@@ -101,6 +106,9 @@ function almaden_bookster_typst_build_document_context( $payload ) {
 		$prefix_font_style = 'normal';
 	}
 	$prefix_letter_spacing = almaden_bookster_typst_number( $settings, 'chapter_prefix_letter_spacing', 0, -20, 20 );
+	$prefix_align = isset( $settings['chapter_prefix_align'] ) && in_array( $settings['chapter_prefix_align'], array( 'left', 'center', 'right' ), true )
+		? $settings['chapter_prefix_align']
+		: 'center';
 	$prefix_ornament = almaden_bookster_typst_chapter_prefix_ornament( $settings['chapter_prefix_ornament'] ?? 'none' );
 	$prefix_font = almaden_bookster_typst_resolve_font( $prefix_font_family, $prefix_font_weight );
 	$prefix_font_error = function_exists( 'is_wp_error' ) && is_wp_error( $prefix_font ) ? $prefix_font : null;

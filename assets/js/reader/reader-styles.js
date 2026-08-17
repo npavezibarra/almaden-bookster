@@ -121,6 +121,8 @@ function generateDynamicStyles() {
             line-height: ${settings.ebook_chapter_title_line_height !== undefined ? settings.ebook_chapter_title_line_height : baseLhChapterTitle} !important;
             text-transform: ${settings.ebook_chapter_title_text_transform || 'none'} !important;
             text-align: ${settings.ebook_chapter_title_align || 'center'} !important;
+            hyphens: ${settings.ebook_chapter_title_hyphenate == 1 ? 'auto' : 'none'} !important;
+            -webkit-hyphens: ${settings.ebook_chapter_title_hyphenate == 1 ? 'auto' : 'none'} !important;
             padding-top: ${settings.ebook_chapter_title_padding_top !== undefined ? settings.ebook_chapter_title_padding_top : 2}em !important;
             padding-bottom: ${settings.ebook_chapter_title_padding_bottom !== undefined ? settings.ebook_chapter_title_padding_bottom : 2}em !important;
             padding-left: ${settings.ebook_chapter_title_padding_left !== undefined ? settings.ebook_chapter_title_padding_left : 0}em !important;

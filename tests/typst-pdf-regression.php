@@ -15,6 +15,20 @@ if ( ! function_exists( 'esc_url_raw' ) ) {
 
 require_once dirname( __DIR__ ) . '/includes/pdf-typst/typst-document.php';
 
+$prefix_visibility = almaden_bookster_typst_chapter_opening_visibility(
+	array(
+		'title'       => 'Capítulo con cabecera en blanco',
+		'hide_header' => '1',
+	),
+	array(
+		'chapter_prefix_show' => 1,
+	)
+);
+if ( empty( $prefix_visibility['show_prefix'] ) ) {
+	fwrite( STDERR, 'Ocultar la cabecera corrida ocultó también el prefijo editorial del capítulo.' . PHP_EOL );
+	exit( 1 );
+}
+
 $problem_paragraph = 'En los próximos años, la ventaja competitiva no dependerá únicamente del acceso a la tecnología, sino de la habilidad para integrarla de manera inteligente en procesos, organizaciones y proyectos personales. Quienes aprendan a combinar pensamiento crítico, conocimiento especializado y herramientas de inteligencia artificial estarán mejor preparados para adaptarse a un entorno en constante cambio y para convertir los avances tecnológicos en oportunidades reales de crecimiento. La inteligencia artificial está transformando la forma en que las personas crean, aprenden y trabajan. Lo que antes requería equipos completos o largos procesos técnicos ahora puede realizarse en cuestión de minutos, permitiendo que individuos y pequeñas organizaciones desarrollen proyectos con una velocidad sin precedentes. Sin embargo, esta aceleración no elimina la importancia del criterio humano; por el contrario, hace aún más valiosa la capacidad de formular buenas preguntas, evaluar resultados y tomar decisiones fundamentadas.';
 
 $payload = array(
@@ -53,6 +67,7 @@ $payload = array(
 		'chapter_prefix_font_style' => 'italic',
 		'chapter_prefix_letter_spacing' => 5,
 		'chapter_prefix_ornament' => 'line_below',
+		'chapter_prefix_align'     => 'right',
 		'book_chapter_flow_mode' => 'left',
 		'chapter_transition_blank_mode' => 'intentional_text',
 		'chapter_transition_blank_text' => 'Página intencional',
@@ -178,7 +193,7 @@ if ( false !== strpos( $document['source'], 'fill: context' ) ) {
 	exit( 1 );
 }
 $required_typography = array(
-		'background: context {',
+		'background: almaden-page-background()',
 		'rect(width: 100%, height: 100%, fill: almaden-page-style-color("fill"))',
 		'#set text(fill: rgb("111111"), font: "Libertinus Serif", size: 12pt, weight: 500, lang: "es", hyphenate: true',
 		'#line(length: 100%, stroke: 0.35pt)',
@@ -197,7 +212,10 @@ $required_typography = array(
 		'#let almaden-is-chapter-transition-page() = {',
 		'#set text(font: "Outfit", size: 19.5pt, weight: 800, style: "normal", tracking: 0pt)',
 		'#set text(font: "Inter Tight", size: 10.5pt, weight: 700, style: "italic", tracking: 0.3pt)',
-		'#text(font: "Inter Tight", size: 12pt, weight: 700, style: "italic", tracking: 3.75pt)',
+		'#align(right)[#text(font: "Inter Tight", size: 16pt, weight: 700, style: "italic", tracking: 5pt)',
+		'#text(font: "Inter Tight", size: 16pt, weight: 700, style: "italic", tracking: 5pt)',
+		'#block(width: 100%, breakable: false, inset: (top: 0cm, bottom: 1.5cm, left: 0cm, right: 0cm))',
+		'#set par(justify: false, first-line-indent: 0pt, leading: 0.2em, spacing: 0pt)',
 		'Capítulo 1',
 		'#line(length: 100%, stroke: 0.35pt)',
 	'#set page(width: 14cm, height: 20cm, margin: (top: ',
@@ -220,6 +238,87 @@ foreach ( $required_typography as $required ) {
 		fwrite( STDERR, 'Falta configuración Typst: ' . $required . PHP_EOL );
 		exit( 1 );
 	}
+}
+
+$chapter_controls_payload = array(
+	'title'    => 'Controles de capítulos',
+	'settings' => array(
+		'unit'                           => 'cm',
+		'page_width'                     => 14,
+		'page_height'                    => 21,
+		'margin_top'                     => 2,
+		'margin_bottom'                  => 2,
+		'font_family_content'            => 'Libertinus Serif',
+		'font_size_content'              => 11,
+		'book_language'                  => 'es',
+		'book_separate_opening_content'  => 1,
+		'chapter_page_one_align'         => 'right-bottom',
+		'chapter_prefix_show'            => 1,
+		'chapter_prefix_template'        => 'PREFIJO {N}',
+		'chapter_prefix_position'        => 'below',
+		'chapter_prefix_align'           => 'center',
+		'chapter_prefix_font_family'     => 'Libertinus Serif',
+		'chapter_prefix_font_size'       => 18,
+		'chapter_prefix_font_weight'     => 800,
+		'chapter_prefix_font_style'      => 'italic',
+		'chapter_prefix_letter_spacing'  => 2.5,
+		'chapter_prefix_ornament'        => 'asterisks',
+		'chapter_title_font_family'      => 'Libertinus Serif',
+		'chapter_title_font_size'        => 32,
+		'chapter_title_font_weight'      => 600,
+		'chapter_title_font_style'       => 'italic',
+		'chapter_title_align'            => 'right',
+		'chapter_title_text_transform'   => 'uppercase',
+		'chapter_title_letter_spacing'   => 1.5,
+		'chapter_title_padding_top'      => 0.4,
+		'chapter_title_padding_bottom'   => 0.6,
+		'chapter_title_padding_left'     => 0.7,
+		'chapter_title_padding_right'    => 0.8,
+		'chapter_title_line_height'      => 1.4,
+		'chapter_title_hyphenate'        => 1,
+		'chapter_subtitle_show'          => 1,
+		'chapter_subtitle_font_family'   => 'Libertinus Serif',
+		'chapter_subtitle_font_size'     => 14,
+		'chapter_subtitle_align'         => 'left',
+		'chapter_subtitle_font_style'    => 'italic',
+		'chapter_subtitle_text_transform'=> 'uppercase',
+		'chapter_subtitle_font_weight'   => 500,
+		'chapter_subtitle_margin_top'    => 0.2,
+		'chapter_subtitle_margin_bottom' => 0.4,
+		'chapter_subtitle_letter_spacing'=> 0.8,
+	),
+	'chapters' => array(
+		array(
+			'title'         => 'Título de control',
+			'subtitle_text' => 'Subtítulo de control',
+			'content'       => 'Contenido de control.',
+		),
+	),
+);
+$chapter_controls_document = almaden_bookster_build_typst_document( $chapter_controls_payload );
+$chapter_controls_source = $chapter_controls_document['source'];
+$chapter_control_fragments = array(
+	'#place(right + bottom)',
+	'#block(width: 100%, breakable: false, inset: (top: 0.4cm, bottom: 0.6cm, left: 0.7cm, right: 0.8cm))',
+	'#set par(justify: false, first-line-indent: 0pt, leading: 0.4em, spacing: 0pt)',
+	'#align(right)[#heading(level: 1, outlined: true)[#text(font: "Libertinus Serif", size: 32pt, weight: 600, style: "italic", tracking: 1.5pt, hyphenate: true)[TÍTULO DE CONTROL]]]',
+	'#block(width: 100%, breakable: false)',
+	'#align(center)[#text(font: "Libertinus Serif", size: 18pt, weight: 800, style: "italic", tracking: 2.5pt)[PREFIJO 1]]',
+	'#align(center)[\*\*\*]',
+	'#block(width: 100%, breakable: false, inset: (top: 0.2cm, bottom: 0.4cm))',
+	'#align(left)[#text(font: "Libertinus Serif", size: 14pt, weight: 500, style: "italic", tracking: 0.8pt)[SUBTÍTULO DE CONTROL]]',
+);
+foreach ( $chapter_control_fragments as $fragment ) {
+	if ( false === strpos( $chapter_controls_source, $fragment ) ) {
+		fwrite( STDERR, 'Un control de la sección Capítulos no llegó al Typst: ' . $fragment . PHP_EOL );
+		exit( 1 );
+	}
+}
+$title_position = strpos( $chapter_controls_source, 'TÍTULO DE CONTROL' );
+$prefix_position = strpos( $chapter_controls_source, 'PREFIJO 1' );
+if ( false === $title_position || false === $prefix_position || $prefix_position < $title_position ) {
+	fwrite( STDERR, 'La posición inferior del prefijo no se respetó.' . PHP_EOL );
+	exit( 1 );
 }
 $toc_title_style_count = substr_count( $document['source'], '#set text(font: "Outfit", size: 19.5pt, weight: 800, style: "normal", tracking: 0pt)' );
 if ( 1 !== $toc_title_style_count ) {

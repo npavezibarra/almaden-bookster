@@ -159,12 +159,14 @@ function almaden_bookster_save_book_ajax() {
 		$first_page_footer_type = isset( $chapter['first_page_footer_type'] ) ? sanitize_text_field( $chapter['first_page_footer_type'] ) : 'page_number';
 		$first_page_footer_custom = isset( $chapter['first_page_footer_custom'] ) ? sanitize_text_field( $chapter['first_page_footer_custom'] ) : '';
 		$opening_separate_content = isset( $chapter['opening_separate_content'] ) ? sanitize_text_field( $chapter['opening_separate_content'] ) : '';
-		$chapter_image_enabled = isset( $chapter['chapter_image_enabled'] ) ? sanitize_text_field( $chapter['chapter_image_enabled'] ) : '0';
-		$chapter_image_mode    = isset( $chapter['chapter_image_mode'] ) ? sanitize_text_field( $chapter['chapter_image_mode'] ) : 'page_blank';
-		$chapter_image_url     = isset( $chapter['chapter_image_url'] ) ? esc_url_raw( $chapter['chapter_image_url'] ) : '';
-		$chapter_image_inner_width = isset( $chapter['chapter_image_inner_width'] ) ? sanitize_text_field( $chapter['chapter_image_inner_width'] ) : '100';
-		$chapter_image_inner_header = isset( $chapter['chapter_image_inner_header'] ) ? sanitize_text_field( $chapter['chapter_image_inner_header'] ) : '0';
-		$chapter_image_inner_footer = isset( $chapter['chapter_image_inner_footer'] ) ? sanitize_text_field( $chapter['chapter_image_inner_footer'] ) : '0';
+			$chapter_image_enabled = isset( $chapter['chapter_image_enabled'] ) && '1' === (string) $chapter['chapter_image_enabled'] ? '1' : '0';
+			$chapter_image_mode    = isset( $chapter['chapter_image_mode'] ) && in_array( $chapter['chapter_image_mode'], array( 'page_blank', 'image_full_page', 'image_inner' ), true )
+				? sanitize_text_field( $chapter['chapter_image_mode'] )
+				: 'page_blank';
+			$chapter_image_url     = isset( $chapter['chapter_image_url'] ) ? esc_url_raw( $chapter['chapter_image_url'] ) : '';
+			$chapter_image_inner_width = (string) max( 10, min( 100, (float) ( $chapter['chapter_image_inner_width'] ?? 100 ) ) );
+			$chapter_image_inner_header = isset( $chapter['chapter_image_inner_header'] ) && '1' === (string) $chapter['chapter_image_inner_header'] ? '1' : '0';
+			$chapter_image_inner_footer = isset( $chapter['chapter_image_inner_footer'] ) && '1' === (string) $chapter['chapter_image_inner_footer'] ? '1' : '0';
 		$parity_image_mode     = isset( $chapter['parity_image_mode'] ) ? sanitize_text_field( $chapter['parity_image_mode'] ) : 'content';
 		$parity_image_width    = isset( $chapter['parity_image_width'] ) ? sanitize_text_field( $chapter['parity_image_width'] ) : '';
 		$parity_image_height   = isset( $chapter['parity_image_height'] ) ? sanitize_text_field( $chapter['parity_image_height'] ) : '';
@@ -288,6 +290,7 @@ function almaden_bookster_save_book_ajax() {
 			update_post_meta( $post_id, '_first_page_header_custom', $first_page_header_custom );
 			update_post_meta( $post_id, '_first_page_footer_type', $first_page_footer_type );
 			update_post_meta( $post_id, '_first_page_footer_custom', $first_page_footer_custom );
+			update_post_meta( $post_id, '_chapter_prefix_align', isset( $chapter['chapter_prefix_align'] ) ? sanitize_text_field( $chapter['chapter_prefix_align'] ) : 'center' );
 			update_post_meta( $post_id, '_opening_separate_content', $opening_separate_content );
 			update_post_meta( $post_id, '_chapter_image_enabled', $chapter_image_enabled );
 			update_post_meta( $post_id, '_chapter_image_mode', $chapter_image_mode );
@@ -379,9 +382,11 @@ function almaden_bookster_save_book_ajax() {
 				'first_page_header_type'  => $first_page_header_type,
 				'first_page_header_custom' => $first_page_header_custom,
 				'first_page_footer_type'  => $first_page_footer_type,
-				'first_page_footer_custom' => $first_page_footer_custom,
-				'opening_separate_content' => $opening_separate_content,
-				'chapter_image_mode'     => $chapter_image_mode,
+					'first_page_footer_custom' => $first_page_footer_custom,
+					'chapter_prefix_align'   => isset( $chapter['chapter_prefix_align'] ) ? sanitize_text_field( $chapter['chapter_prefix_align'] ) : 'center',
+					'opening_separate_content' => $opening_separate_content,
+					'chapter_image_enabled'  => $chapter_image_enabled,
+					'chapter_image_mode'     => $chapter_image_mode,
 				'chapter_image_url'      => $chapter_image_url,
 				'chapter_image_inner_width' => $chapter_image_inner_width,
 				'chapter_image_inner_header' => $chapter_image_inner_header,

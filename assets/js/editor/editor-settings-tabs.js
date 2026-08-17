@@ -67,6 +67,34 @@ function switchSettingTab(tabId) {
         activeBtn.classList.remove('border-transparent', 'text-[var(--text-muted)]');
         activeBtn.classList.add('border-black', 'text-black', 'dark:border-white', 'dark:text-white');
     }
+
+    if (tabId === 'tab-chapters' && typeof switchChapterSettingsInnerTab === 'function') {
+        switchChapterSettingsInnerTab('chapter-settings-inner-structure');
+    }
+}
+
+function switchChapterSettingsInnerTab(tabId) {
+    document.querySelectorAll('.chapter-settings-inner-tab-content').forEach(el => {
+        el.classList.add('hidden');
+        el.classList.remove('block');
+    });
+
+    document.querySelectorAll('.chapter-settings-inner-tab-btn').forEach(btn => {
+        btn.classList.remove('border-black', 'text-black', 'dark:border-white', 'dark:text-white');
+        btn.classList.add('border-transparent', 'text-[var(--text-muted)]');
+    });
+
+    const target = document.getElementById(tabId);
+    if (target) {
+        target.classList.remove('hidden');
+        target.classList.add('block');
+    }
+
+    const activeBtn = document.getElementById('btn-' + tabId);
+    if (activeBtn) {
+        activeBtn.classList.remove('border-transparent', 'text-[var(--text-muted)]');
+        activeBtn.classList.add('border-black', 'text-black', 'dark:border-white', 'dark:text-white');
+    }
 }
 
 window.setFootnoteAlignment = function(alignment) {
@@ -248,6 +276,7 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-ebook-chapter-title-padding-bottom')) document.getElementById('setting-ebook-chapter-title-padding-bottom').value = settings.ebook_chapter_title_padding_bottom ?? 2;
     if (document.getElementById('setting-ebook-chapter-title-padding-left')) document.getElementById('setting-ebook-chapter-title-padding-left').value = settings.ebook_chapter_title_padding_left ?? 0;
     if (document.getElementById('setting-ebook-chapter-title-padding-right')) document.getElementById('setting-ebook-chapter-title-padding-right').value = settings.ebook_chapter_title_padding_right ?? 0;
+    if (document.getElementById('setting-ebook-chapter-title-hyphenate')) document.getElementById('setting-ebook-chapter-title-hyphenate').checked = settings.ebook_chapter_title_hyphenate == 1;
 
     if (document.getElementById('setting-ebook-chapter-subtitle-show')) document.getElementById('setting-ebook-chapter-subtitle-show').checked = settings.ebook_subtitle_show == 1 || settings.ebook_subtitle_show === undefined;
     if (document.getElementById('setting-ebook-chapter-subtitle-font-family')) document.getElementById('setting-ebook-chapter-subtitle-font-family').value = settings.ebook_subtitle_font_family || '';
@@ -263,6 +292,7 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-ebook-chapter-prefix-show')) document.getElementById('setting-ebook-chapter-prefix-show').checked = settings.ebook_chapter_prefix_show == 1;
     if (document.getElementById('setting-ebook-chapter-prefix-template')) document.getElementById('setting-ebook-chapter-prefix-template').value = settings.ebook_chapter_prefix_template || 'Capítulo {N}';
     if (document.getElementById('setting-ebook-chapter-prefix-position')) document.getElementById('setting-ebook-chapter-prefix-position').value = settings.ebook_chapter_prefix_position || 'above';
+    if (document.getElementById('setting-ebook-chapter-prefix-align')) document.getElementById('setting-ebook-chapter-prefix-align').value = settings.ebook_chapter_prefix_align || 'center';
     if (document.getElementById('setting-ebook-chapter-prefix-font-family')) document.getElementById('setting-ebook-chapter-prefix-font-family').value = settings.ebook_chapter_prefix_font_family || 'Playfair Display';
     if (document.getElementById('setting-ebook-chapter-prefix-font-size')) document.getElementById('setting-ebook-chapter-prefix-font-size').value = settings.ebook_chapter_prefix_font_size || 16;
     if (document.getElementById('setting-ebook-chapter-prefix-font-weight')) document.getElementById('setting-ebook-chapter-prefix-font-weight').value = settings.ebook_chapter_prefix_font_weight || 'normal';
@@ -406,6 +436,7 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-chapter-title-padding-left')) document.getElementById('setting-chapter-title-padding-left').value = settings.chapter_title_padding_left ?? 0;
     if (document.getElementById('setting-chapter-title-padding-right')) document.getElementById('setting-chapter-title-padding-right').value = settings.chapter_title_padding_right ?? 0;
     if (document.getElementById('setting-chapter-title-line-height')) document.getElementById('setting-chapter-title-line-height').value = settings.chapter_title_line_height ?? 1.3;
+    if (document.getElementById('setting-chapter-title-hyphenate')) document.getElementById('setting-chapter-title-hyphenate').checked = settings.chapter_title_hyphenate == 1;
 
     if (document.getElementById('setting-chapter-subtitle-show')) document.getElementById('setting-chapter-subtitle-show').checked = settings.chapter_subtitle_show == 1 || settings.chapter_subtitle_show === undefined;
     if (document.getElementById('setting-chapter-subtitle-font-family')) document.getElementById('setting-chapter-subtitle-font-family').value = settings.chapter_subtitle_font_family || '';
@@ -426,6 +457,7 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-chapter-prefix-show')) document.getElementById('setting-chapter-prefix-show').checked = settings.chapter_prefix_show == 1;
     if (document.getElementById('setting-chapter-prefix-template')) document.getElementById('setting-chapter-prefix-template').value = settings.chapter_prefix_template || 'Capítulo {N}';
     if (document.getElementById('setting-chapter-prefix-position')) document.getElementById('setting-chapter-prefix-position').value = settings.chapter_prefix_position || 'above';
+    if (document.getElementById('setting-chapter-prefix-align')) document.getElementById('setting-chapter-prefix-align').value = settings.chapter_prefix_align || 'center';
     if (document.getElementById('setting-chapter-prefix-font-family')) document.getElementById('setting-chapter-prefix-font-family').value = settings.chapter_prefix_font_family || 'Playfair Display';
     if (document.getElementById('setting-chapter-prefix-font-size')) document.getElementById('setting-chapter-prefix-font-size').value = settings.chapter_prefix_font_size || 16;
     if (document.getElementById('setting-chapter-prefix-font-weight')) document.getElementById('setting-chapter-prefix-font-weight').value = settings.chapter_prefix_font_weight || 'normal';

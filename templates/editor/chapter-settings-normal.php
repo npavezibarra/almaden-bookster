@@ -21,134 +21,71 @@
             </div>
         </div>
 
-        <div id="chapter_legacy_opening_notice" class="hidden rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
-            <p class="text-xs font-semibold">Configuracion anterior detectada</p>
-            <p class="mt-1 text-xs">Este capitulo conserva una pagina previa legacy. Se mantiene sin cambios para evitar alterar libros existentes y se migrara en una fase posterior.</p>
-        </div>
-
-        <!-- Keep legacy values in the form for backwards compatibility, without
-             presenting a second editorial system to newly configured chapters. -->
+        <!-- Keep the legacy mode available to the data layer without exposing a
+             second image configuration interface. -->
         <div id="chapter_legacy_opening_settings" class="hidden" aria-hidden="true">
-            <div>
-                <label class="block font-semibold mb-1">Pagina previa a la apertura</label>
-                <p class="text-xs text-[var(--text-muted)] mb-2">Controla si este capítulo debe abrir con una página previa especial antes de la página de título/contenido.</p>
-                <select id="chapter_opening_page_mode" name="opening_page_mode" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-[var(--text-main)] focus:outline-none focus:border-black dark:border-white" onchange="toggleOpeningPageControls()">
-                    <option value="auto">Automático (compatibilidad actual)</option>
-                    <option value="none">Sin página previa</option>
-                    <option value="blank">Página en blanco intencional</option>
-                    <option value="image">Página con imagen de capítulo</option>
-                </select>
-            </div>
-        </div>
-
-        <div id="chapter_opening_image_controls" class="grid grid-cols-1 gap-4 hidden">
-            <div>
-                <label class="block font-semibold mb-1">Imagen de apertura</label>
-                <p class="text-xs text-[var(--text-muted)] mb-2">Selecciona la imagen que se mostrará en la página previa al capítulo.</p>
-                <div class="flex items-center gap-2 mb-4">
-                    <button type="button" onclick="openParityImageUploader()" class="px-4 py-2 bg-neutral-100 text-black dark:text-white hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700 border border-neutral-300 dark:border-neutral-700 rounded-lg text-sm font-semibold transition flex items-center gap-2">
-                        <i class="fa-solid fa-upload"></i> Subir / Seleccionar Imagen
-                    </button>
-                </div>
-
-                <label class="block font-semibold mb-1">Modo de imagen</label>
-                <p class="text-xs text-[var(--text-muted)] mb-2">Define si la imagen se extiende hasta el borde, respeta el content box o usa tamaño personalizado.</p>
-                <select id="chapter_parity_image_mode" name="parity_image_mode" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-[var(--text-main)] focus:outline-none focus:border-black dark:border-white" onchange="toggleParityImageSizeInputs()">
-                    <option value="content">Full dentro del content box</option>
-                    <option value="bleed">Full page con bleed</option>
-                    <option value="custom">Ajustable por el usuario</option>
-                </select>
-
-                <div id="parity_image_custom_size" class="hidden grid-cols-2 gap-4 mt-3">
-                    <div>
-                        <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Ancho (%)</label>
-                        <input type="number" id="chapter_parity_image_width" name="parity_image_width" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 100">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Alto (%)</label>
-                        <input type="number" id="chapter_parity_image_height" name="parity_image_height" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 100">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="chapter_image_settings_wrapper" class="space-y-3 rounded-xl border border-[var(--border-color)] bg-[var(--bg-app)] p-4 hidden">
-        <div class="flex items-start justify-between gap-4 p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
-            <div class="flex-1">
-                <label class="font-semibold block mb-1 text-[10px]">Separar apertura de contenido</label>
-                <span class="text-[10px] text-[var(--text-muted)]">Sobrescribe el ajuste global solo para este capítulo. Deja en "Usar Global" para mantener el comportamiento del libro.</span>
-            </div>
-            <div class="w-56">
-                <select id="chapter_opening_separate_content" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
-                    <option value="">Usar Global</option>
-                    <option value="1">Separar apertura</option>
-                    <option value="0">No separar apertura</option>
-                </select>
-            </div>
-        </div>
-
-        <div id="chapter_image_mode_wrapper">
-            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Modo de imagen de capitulo</label>
-            <select id="chapter_image_mode" onchange="toggleChapterImageSettingsForChapter()" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
-                <option value="page_blank">Page Blank</option>
-                <option value="image_full_page">Image Full Page</option>
-                <option value="image_inner">Image Inner</option>
+            <select id="chapter_opening_page_mode" name="opening_page_mode">
+                <option value="auto">Automático (compatibilidad actual)</option>
+                <option value="none">Sin página previa</option>
+                <option value="blank">Página en blanco intencional</option>
+                <option value="image">Página con imagen de capítulo</option>
             </select>
         </div>
 
-        <div id="chapter_image_upload_wrapper" class="space-y-2 hidden">
-            <div class="flex flex-wrap items-center gap-2">
-                <button type="button" onclick="openChapterImageUploaderForChapter()" class="px-4 py-2 bg-neutral-100 text-black dark:text-white hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700 border border-neutral-300 dark:border-neutral-700 rounded-lg text-sm font-semibold transition flex items-center gap-2">
-                    <i class="fa-solid fa-upload"></i> Subir / Seleccionar Imagen
-                </button>
-                <button type="button" onclick="clearChapterImageSelectionForChapter()" class="px-4 py-2 bg-transparent text-[var(--text-muted)] hover:text-black dark:hover:text-white border border-[var(--border-color)] rounded-lg text-sm font-semibold transition">
-                    Limpiar
-                </button>
+        <div id="chapter_image_settings_wrapper" class="space-y-3 rounded-xl border border-[var(--border-color)] bg-[var(--bg-app)] p-4 hidden">
+            <div class="flex items-center justify-between gap-4 p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+                <div>
+                    <label class="font-semibold block mb-1">Iniciar con Imagen</label>
+                    <span class="text-[10px] text-[var(--text-muted)]">Activa esta opción para mostrar una imagen al inicio del capítulo.</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="chapter_image_enabled" name="chapter_image_enabled" class="sr-only peer" onchange="toggleChapterImageSettingsForChapter()">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
+                </label>
             </div>
-            <input id="chapter_image_url" type="text" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="URL de la imagen">
-        </div>
 
-        <div id="chapter_image_fullpage_note" class="hidden rounded-lg border border-dashed border-[var(--border-color)] bg-[var(--bg-sidebar)] p-3">
-            <p class="text-[10px] text-[var(--text-muted)]">
-                Image Full Page ocupa toda la página considerando bleed, sin distorsionar la proporción original.
-            </p>
-        </div>
+            <div id="chapter_image_settings_content" class="space-y-3 hidden">
+                <div id="chapter_image_upload_wrapper" class="space-y-2 hidden">
+                    <div class="flex flex-wrap items-end gap-2">
+                        <div id="chapter_image_mode_wrapper" class="min-w-[240px] flex-1">
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Modo de imagen de capítulo</label>
+                            <select id="chapter_image_mode" onchange="toggleChapterImageSettingsForChapter()" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                <option value="page_blank">Full dentro del content box</option>
+                                <option value="image_full_page">Full bleed</option>
+                                <option value="image_inner">Ajustable por el usuario</option>
+                            </select>
+                        </div>
+                        <button type="button" onclick="openChapterImageUploaderForChapter()" class="px-4 py-2 bg-neutral-100 text-black dark:text-white hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700 border border-neutral-300 dark:border-neutral-700 rounded-lg text-sm font-semibold transition flex items-center gap-2">
+                            <i class="fa-solid fa-upload"></i> Subir / Seleccionar Imagen
+                        </button>
+                        <button type="button" onclick="clearChapterImageSelectionForChapter()" class="px-4 py-2 bg-transparent text-[var(--text-muted)] hover:text-black dark:hover:text-white border border-[var(--border-color)] rounded-lg text-sm font-semibold transition">
+                            Limpiar
+                        </button>
+                    </div>
+                    <input id="chapter_image_url" type="text" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="URL de la imagen">
+                </div>
 
-        <div id="chapter_image_inner_controls" class="grid grid-cols-1 gap-3 hidden">
-            <div>
-                <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Ancho de imagen (%)</label>
-                <input id="chapter_image_inner_width" type="range" min="10" max="100" step="1" value="100" oninput="syncChapterImageWidthLabelForChapter()" class="w-full">
-                <div class="flex items-center justify-between text-[10px] text-[var(--text-muted)]">
-                    <span>10%</span>
-                    <span id="chapter_image_inner_width_label" class="font-semibold text-[var(--text-main)]">100%</span>
-                    <span>100%</span>
+                <div id="chapter_image_fullpage_note" class="hidden rounded-lg border border-dashed border-[var(--border-color)] bg-[var(--bg-sidebar)] p-3">
+                    <p class="text-[10px] text-[var(--text-muted)]">
+                        Image Full Page ocupa toda la página considerando bleed, sin distorsionar la proporción original.
+                    </p>
                 </div>
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-                <div class="flex items-center justify-between p-3 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+
+                <div id="chapter_image_inner_controls" class="grid grid-cols-1 gap-3 hidden">
                     <div>
-                        <label class="font-semibold block mb-1 text-[10px]">Incluir cabecera</label>
-                        <span class="text-[10px] text-[var(--text-muted)]">Activa cabecera en la página inner.</span>
+                        <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Ancho de imagen (%)</label>
+                        <input id="chapter_image_inner_width" type="range" min="10" max="100" step="1" value="100" oninput="syncChapterImageWidthLabelForChapter()" class="w-full">
+                        <div class="flex items-center justify-between text-[10px] text-[var(--text-muted)]">
+                            <span>10%</span>
+                            <span id="chapter_image_inner_width_label" class="font-semibold text-[var(--text-main)]">100%</span>
+                            <span>100%</span>
+                        </div>
                     </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="chapter_image_inner_header" class="sr-only peer">
-                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
-                    </label>
                 </div>
-                <div class="flex items-center justify-between p-3 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
-                    <div>
-                        <label class="font-semibold block mb-1 text-[10px]">Incluir pie</label>
-                        <span class="text-[10px] text-[var(--text-muted)]">Activa pie en la página inner.</span>
-                    </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="chapter_image_inner_footer" class="sr-only peer">
-                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
-                    </label>
-                </div>
-            </div>
-        </div>
-    </div>
+
+			</div>
+		</div>
+	</div>
 
     <div id="chapter-tab-opening" class="chapter-tab-content space-y-6 hidden">
 		<div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
@@ -157,17 +94,24 @@
 				<span class="text-xs text-[var(--text-muted)]">Oculta el bloque de apertura del capítulo: título, prefijo, subtítulo y metadata asociada. El contenido comienza directamente y no afecta Créditos ni Índice.</span>
 			</div>
 			<label class="relative inline-flex items-center cursor-pointer">
-				<input type="checkbox" id="chapter_hide_opening" name="hide_chapter_opening" class="sr-only peer">
+				<input type="checkbox" id="chapter_hide_opening" name="hide_chapter_opening" class="sr-only peer" onchange="toggleOpeningPageControls()">
 				<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
 			</label>
 		</div>
 
-        <div id="chapter_opening_layout_hint" class="p-4 rounded-xl border border-dashed border-[var(--border-color)] bg-[var(--bg-sidebar)]">
-            <label class="block font-semibold mb-1">Apertura condicionada</label>
-            <p class="text-xs text-[var(--text-muted)]">
-                Esta sección se activa cuando el capítulo usa una página previa en blanco. Ahí podrás decidir si el bloque de apertura se mueve a esa página y cómo se alinea. Esto no modifica la cabecera superior corrida.
-            </p>
-        </div>
+		<div id="chapter_opening_separate_content_wrapper" class="flex items-start justify-between gap-4 p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+			<div class="flex-1">
+				<label class="font-semibold block mb-1">Separar apertura de contenido</label>
+				<span class="text-xs text-[var(--text-muted)]">Sobrescribe el ajuste global solo para este capítulo. Deja en "Usar Global" para mantener el comportamiento del libro.</span>
+			</div>
+			<div class="w-56">
+				<select id="chapter_opening_separate_content" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+					<option value="">Usar Global</option>
+					<option value="1">Separar apertura</option>
+					<option value="0">No separar apertura</option>
+				</select>
+			</div>
+		</div>
 
         <div id="chapter_opening_layout_controls" class="space-y-6 hidden">
             <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
@@ -309,7 +253,7 @@
         <div class="p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
             <div class="mb-3">
                 <label class="font-semibold block mb-1">Contenido en la primera página</label>
-                <span class="text-xs text-[var(--text-muted)]">Configura qué se muestra en la cabecera y pie de la primera página de este capítulo. Esto es independiente de la apertura del capítulo.</span>
+                <span class="text-xs text-[var(--text-muted)]">Configura qué se muestra en la cabecera y pie de la primera página de texto de este capítulo. Si el capítulo arranca con imagen, esa página queda fuera de este ajuste y nunca mostrará cabecera ni pie.</span>
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
@@ -345,7 +289,7 @@
             <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
                 <div>
                     <label class="font-semibold block mb-1">Ocultar cabecera</label>
-                    <span class="text-xs text-[var(--text-muted)]">Elimina por completo la cabecera corrida superior en todas las páginas de este capítulo.</span>
+                    <span class="text-xs text-[var(--text-muted)]">Oculta la cabecera corrida solo en la primera página de texto de este capítulo. La primera página con imagen nunca lleva cabecera.</span>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" id="chapter_hide_header" name="hide_header" class="sr-only peer">
@@ -355,7 +299,7 @@
             <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
                 <div>
                     <label class="font-semibold block mb-1">Ocultar pie</label>
-                    <span class="text-xs text-[var(--text-muted)]">Elimina por completo el pie en todas las páginas de este capítulo.</span>
+                    <span class="text-xs text-[var(--text-muted)]">Oculta el pie de página solo en la primera página de texto de este capítulo. La primera página con imagen nunca lleva pie.</span>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" id="chapter_hide_footer" name="hide_footer" class="sr-only peer">

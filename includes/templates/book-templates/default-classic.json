@@ -109,6 +109,7 @@
         "chapter_prefix_show": 1,
         "chapter_prefix_template": "CAPÍTULO {R}",
         "chapter_prefix_position": "above",
+        "chapter_prefix_align": "center",
         "chapter_prefix_font_family": "Newsreader",
         "chapter_prefix_font_size": 8,
         "chapter_prefix_font_style": "normal",
@@ -130,6 +131,7 @@
         "chapter_title_padding_left": 1,
         "chapter_title_padding_right": 1,
         "chapter_title_line_height": 1,
+        "chapter_title_hyphenate": 0,
         
         "chapter_subtitle_show": 1,
         "chapter_subtitle_font_family": "",

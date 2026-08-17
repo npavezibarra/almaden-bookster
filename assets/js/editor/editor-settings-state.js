@@ -113,6 +113,7 @@ window.almadenBuildPDFSettingsState = function(ctx) {
         ebook_chapter_title_padding_bottom: parseVal('setting-ebook-chapter-title-padding-bottom', 2),
         ebook_chapter_title_padding_left: parseVal('setting-ebook-chapter-title-padding-left', 0),
         ebook_chapter_title_padding_right: parseVal('setting-ebook-chapter-title-padding-right', 0),
+        ebook_chapter_title_hyphenate: getChecked('setting-ebook-chapter-title-hyphenate'),
 
         ebook_subtitle_show: getChecked('setting-ebook-chapter-subtitle-show'),
         ebook_subtitle_font_family: getVal('setting-ebook-chapter-subtitle-font-family') || '',
@@ -128,6 +129,7 @@ window.almadenBuildPDFSettingsState = function(ctx) {
         ebook_chapter_prefix_show: getChecked('setting-ebook-chapter-prefix-show'),
         ebook_chapter_prefix_template: getVal('setting-ebook-chapter-prefix-template') || 'Capítulo {N}',
         ebook_chapter_prefix_position: getVal('setting-ebook-chapter-prefix-position') || 'above',
+        ebook_chapter_prefix_align: getVal('setting-ebook-chapter-prefix-align') || 'center',
         ebook_chapter_prefix_font_family: getVal('setting-ebook-chapter-prefix-font-family') || 'Playfair Display',
         ebook_chapter_prefix_font_size: parseVal('setting-ebook-chapter-prefix-font-size', 16),
         ebook_chapter_prefix_font_weight: getVal('setting-ebook-chapter-prefix-font-weight') || 'normal',
@@ -238,6 +240,7 @@ window.almadenBuildPDFSettingsState = function(ctx) {
         chapter_title_padding_left: parseVal('setting-chapter-title-padding-left', 0),
         chapter_title_padding_right: parseVal('setting-chapter-title-padding-right', 0),
         chapter_title_line_height: parseVal('setting-chapter-title-line-height', 1.3),
+        chapter_title_hyphenate: getChecked('setting-chapter-title-hyphenate'),
 
         chapter_subtitle_show: getChecked('setting-chapter-subtitle-show'),
         chapter_subtitle_font_family: getVal('setting-chapter-subtitle-font-family') || '',
@@ -253,6 +256,7 @@ window.almadenBuildPDFSettingsState = function(ctx) {
         chapter_prefix_show: getChecked('setting-chapter-prefix-show'),
         chapter_prefix_template: getVal('setting-chapter-prefix-template'),
         chapter_prefix_position: getVal('setting-chapter-prefix-position'),
+        chapter_prefix_align: getVal('setting-chapter-prefix-align') || 'center',
         chapter_prefix_font_family: getVal('setting-chapter-prefix-font-family'),
         chapter_prefix_font_size: parseVal('setting-chapter-prefix-font-size', 16),
         chapter_prefix_font_weight: getVal('setting-chapter-prefix-font-weight'),

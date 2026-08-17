@@ -34,40 +34,34 @@ function toggleParityImageSizeInputs() {
 
 function toggleOpeningPageControls() {
     const modeField = document.getElementById('chapter_opening_page_mode');
+    const hideOpeningField = document.getElementById('chapter_hide_opening');
+    const separateContentWrapper = document.getElementById('chapter_opening_separate_content_wrapper');
     const layoutWrapper = document.getElementById('chapter_opening_layout_controls');
-    const layoutHint = document.getElementById('chapter_opening_layout_hint');
     const imageWrapper = document.getElementById('chapter_opening_image_controls');
     if (!modeField) return;
 
     const mode = modeField.value;
+    const openingIsHidden = !!(hideOpeningField && hideOpeningField.checked);
+
+    if (separateContentWrapper) {
+        separateContentWrapper.classList.toggle('hidden', openingIsHidden);
+    }
 
     if (layoutWrapper) {
         layoutWrapper.classList.toggle('hidden', mode !== 'blank');
     }
 
-    if (layoutHint) {
-        layoutHint.classList.toggle('hidden', mode === 'blank');
-    }
-
+    // The legacy image controls are data-only now. Keep stale cached markup hidden
+    // so the chapter modal always exposes a single image configuration flow.
     if (imageWrapper) {
-        imageWrapper.classList.toggle('hidden', mode !== 'image');
+        imageWrapper.classList.add('hidden');
     }
-
-    toggleParityImageSizeInputs();
-}
-
-function toggleLegacyOpeningCompatibilityNotice(chapter) {
-    const notice = document.getElementById('chapter_legacy_opening_notice');
-    if (!notice) return;
-
-    const openingMode = chapter && chapter.opening_page_mode ? String(chapter.opening_page_mode) : 'auto';
-    const hasLegacyOpening = !!(chapter && chapter.parity_image)
-        || ['blank', 'image'].includes(openingMode);
-    notice.classList.toggle('hidden', !hasLegacyOpening);
 }
 
 function toggleChapterImageSettingsForChapter() {
     const wrapper = document.getElementById('chapter_image_settings_wrapper');
+    const content = document.getElementById('chapter_image_settings_content');
+    const enabledField = document.getElementById('chapter_image_enabled');
     const modeWrapper = document.getElementById('chapter_image_mode_wrapper');
     const modeField = document.getElementById('chapter_image_mode');
     const uploadWrapper = document.getElementById('chapter_image_upload_wrapper');
@@ -78,28 +72,25 @@ function toggleChapterImageSettingsForChapter() {
 
     if (!wrapper || !modeField) return;
 
-    const settings = typeof bookState !== 'undefined' && bookState && bookState.settings
-        ? bookState.settings
-        : {};
-    const bookFlowMode = typeof window.getBookChapterFlowMode === 'function'
-        ? window.getBookChapterFlowMode(settings)
-        : (settings.book_chapter_flow_mode === 'left' ? 'left' : 'continuous');
-    const isLeftFlow = bookFlowMode === 'left';
-    wrapper.classList.toggle('hidden', !isLeftFlow);
+    wrapper.classList.remove('hidden');
 
+    const imageEnabled = !!(enabledField && enabledField.checked);
+    if (content) {
+        content.classList.toggle('hidden', !imageEnabled);
+    }
     if (modeWrapper) {
-        modeWrapper.classList.toggle('hidden', !isLeftFlow);
+        modeWrapper.classList.toggle('hidden', !imageEnabled);
     }
     const mode = modeField.value || 'page_blank';
-    const showImageControls = isLeftFlow && (mode === 'image_full_page' || mode === 'image_inner');
+    const showImageControls = imageEnabled && (mode === 'image_full_page' || mode === 'image_inner' || mode === 'page_blank');
     if (uploadWrapper) {
         uploadWrapper.classList.toggle('hidden', !showImageControls);
     }
     if (fullPageNote) {
-        fullPageNote.classList.toggle('hidden', !(isLeftFlow && mode === 'image_full_page'));
+        fullPageNote.classList.toggle('hidden', !(imageEnabled && mode === 'image_full_page'));
     }
     if (innerControls) {
-        innerControls.classList.toggle('hidden', !(isLeftFlow && mode === 'image_inner'));
+        innerControls.classList.toggle('hidden', !(imageEnabled && mode === 'image_inner'));
     }
     if (widthInput && widthLabel) {
         widthLabel.textContent = `${widthInput.value || '100'}%`;

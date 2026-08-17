@@ -245,6 +245,8 @@ function applyEbookPreviewStyles() {
             font-weight: ${settings.ebook_font_weight_headings || 'bold'} !important;
             text-transform: ${chapterTitleTextTransform} !important;
             text-align: ${chapterTitleAlign} !important;
+            hyphens: ${settings.ebook_chapter_title_hyphenate == 1 ? 'auto' : 'none'} !important;
+            -webkit-hyphens: ${settings.ebook_chapter_title_hyphenate == 1 ? 'auto' : 'none'} !important;
             padding-top: ${chapterTitlePaddingTop}em !important;
             padding-bottom: ${chapterTitlePaddingBottom}em !important;
             padding-left: ${chapterTitlePaddingLeft}em !important;
@@ -364,8 +366,11 @@ function buildEbookChapterPrefixHtml(chapter, index) {
     }
 
     const position = settings.ebook_chapter_prefix_position || 'above';
+    const align = ['left', 'center', 'right'].includes(String(settings.ebook_chapter_prefix_align || '').toLowerCase())
+        ? String(settings.ebook_chapter_prefix_align).toLowerCase()
+        : 'center';
     const extraClass = position === 'below' ? ' prefix-below' : '';
-    return `<div class="reader-chapter-prefix${extraClass}">${prefixText}${ornamentHtml}</div>`;
+    return `<div class="reader-chapter-prefix${extraClass}" style="text-align: ${align};">${prefixText}${ornamentHtml}</div>`;
 }
 
 function buildEbookChapterSubtitleHtml(chapter) {

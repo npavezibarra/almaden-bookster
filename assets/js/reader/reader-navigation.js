@@ -247,9 +247,11 @@ function showChapterView(index) {
             }
             
             const position = settings.ebook_chapter_prefix_position || 'above';
+            const align = ['left', 'center', 'right'].includes(String(settings.ebook_chapter_prefix_align || '').toLowerCase())
+                ? String(settings.ebook_chapter_prefix_align).toLowerCase()
+                : 'center';
             const extraClass = position === 'below' ? ' prefix-below' : '';
-            
-            prefixHtml = `<div class="reader-chapter-prefix${extraClass}">${prefixText}${ornamentHtml}</div>`;
+            prefixHtml = `<div class="reader-chapter-prefix${extraClass}" style="text-align: ${align};">${prefixText}${ornamentHtml}</div>`;
             
             let subtitleHtml = '';
             const showGlobalSubtitle = settings.ebook_subtitle_show == 1 || settings.ebook_subtitle_show === undefined;

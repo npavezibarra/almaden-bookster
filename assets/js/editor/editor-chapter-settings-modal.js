@@ -231,18 +231,21 @@ function openChapterSettingsModal() {
         document.getElementById('chapter_first_page_footer_custom').value = activeChapter.first_page_footer_custom || '';
         const legacyChapterImageDefaults = bookState.settings || {};
         const hasLegacyChapterImage = !!(
-            activeChapter.chapter_image_mode
-                && activeChapter.chapter_image_mode !== 'page_blank'
+            activeChapter.chapter_image_enabled === '1'
+            || (activeChapter.chapter_image_mode && activeChapter.chapter_image_mode !== 'page_blank')
             || (activeChapter.chapter_image_url && String(activeChapter.chapter_image_url).trim() !== '')
+            || legacyChapterImageDefaults.chapter_image_enabled === '1'
             || (legacyChapterImageDefaults.chapter_image_mode && legacyChapterImageDefaults.chapter_image_mode !== 'page_blank')
             || (legacyChapterImageDefaults.chapter_image_url && String(legacyChapterImageDefaults.chapter_image_url).trim() !== '')
         );
+        const derivedChapterImageEnabled = activeChapter.chapter_image_enabled === '1'
+            || legacyChapterImageDefaults.chapter_image_enabled === '1'
+            || !!hasLegacyChapterImage;
         document.getElementById('chapter_opening_separate_content').value = activeChapter.opening_separate_content ?? '';
+        document.getElementById('chapter_image_enabled').checked = derivedChapterImageEnabled;
         document.getElementById('chapter_image_mode').value = activeChapter.chapter_image_mode || legacyChapterImageDefaults.chapter_image_mode || 'page_blank';
         document.getElementById('chapter_image_url').value = activeChapter.chapter_image_url || legacyChapterImageDefaults.chapter_image_url || '';
         document.getElementById('chapter_image_inner_width').value = activeChapter.chapter_image_inner_width || legacyChapterImageDefaults.chapter_image_inner_width || '100';
-        document.getElementById('chapter_image_inner_header').checked = (activeChapter.chapter_image_inner_header ?? legacyChapterImageDefaults.chapter_image_inner_header ?? 0) === 1 || (activeChapter.chapter_image_inner_header ?? legacyChapterImageDefaults.chapter_image_inner_header ?? 0) === '1';
-        document.getElementById('chapter_image_inner_footer').checked = (activeChapter.chapter_image_inner_footer ?? legacyChapterImageDefaults.chapter_image_inner_footer ?? 0) === 1 || (activeChapter.chapter_image_inner_footer ?? legacyChapterImageDefaults.chapter_image_inner_footer ?? 0) === '1';
 
         document.getElementById('chapter_subtitle_text').value = activeChapter.subtitle_text || '';
         document.getElementById('chapter_subtitle_font_family').value = activeChapter.subtitle_font_family || '';
@@ -264,7 +267,6 @@ function openChapterSettingsModal() {
     toggleChapterCustomFirstPageHeader();
     toggleChapterCustomFirstPageFooter();
     toggleOpeningPageControls();
-    toggleLegacyOpeningCompatibilityNotice(activeChapter);
     toggleChapterImageSettingsForChapter();
 
     modal.classList.remove('hidden');
@@ -403,15 +405,12 @@ async function saveChapterSettings() {
         activeChapter.first_page_footer_type = document.getElementById('chapter_first_page_footer_type').value;
         activeChapter.first_page_footer_custom = document.getElementById('chapter_first_page_footer_custom').value;
         activeChapter.opening_separate_content = document.getElementById('chapter_opening_separate_content').value;
+        activeChapter.chapter_image_enabled = document.getElementById('chapter_image_enabled').checked ? '1' : '0';
         activeChapter.chapter_image_mode = document.getElementById('chapter_image_mode').value;
         activeChapter.chapter_image_url = document.getElementById('chapter_image_url').value;
         activeChapter.chapter_image_inner_width = document.getElementById('chapter_image_inner_width').value;
-        activeChapter.chapter_image_inner_header = document.getElementById('chapter_image_inner_header').checked ? '1' : '0';
-        activeChapter.chapter_image_inner_footer = document.getElementById('chapter_image_inner_footer').checked ? '1' : '0';
-        activeChapter.chapter_image_enabled = (
-            activeChapter.chapter_image_mode !== 'page_blank'
-            || (activeChapter.chapter_image_url && String(activeChapter.chapter_image_url).trim() !== '')
-        ) ? '1' : '0';
+		activeChapter.chapter_image_inner_header = '0';
+		activeChapter.chapter_image_inner_footer = '0';
 
         activeChapter.subtitle_text = document.getElementById('chapter_subtitle_text').value;
         activeChapter.subtitle_font_family = document.getElementById('chapter_subtitle_font_family').value;

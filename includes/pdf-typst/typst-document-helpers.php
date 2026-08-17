@@ -401,16 +401,13 @@ function almaden_bookster_typst_chapter_opening_visibility( $chapter, $settings 
 	$has_title = '' !== trim( (string) ( $chapter['title'] ?? '' ) );
 	$is_toc    = isset( $chapter['is_toc'] ) && '1' === (string) $chapter['is_toc'];
 	$is_credits = almaden_bookster_typst_is_credits_chapter( $chapter );
-	$hide_header = almaden_bookster_typst_bool( $chapter['hide_header'] ?? false )
-		|| almaden_bookster_typst_bool( $chapter['hide_all_headers_footers'] ?? false );
 	$hide_opening = '1' === (string) ( $chapter['hide_opening'] ?? '0' ) && ! $is_toc && ! $is_credits;
 	$show_title = $has_title && empty( $chapter['hide_title'] ) && ! $is_credits && ! $hide_opening;
 	$show_prefix = ! $hide_opening
 		&& ! $is_toc
 		&& ! $is_credits
 		&& almaden_bookster_typst_bool( $settings['chapter_prefix_show'] ?? false )
-		&& '1' !== (string) ( $chapter['exclude_from_numbering'] ?? '0' )
-		&& ! $hide_header;
+		&& '1' !== (string) ( $chapter['exclude_from_numbering'] ?? '0' );
 	$show_subtitle = ! $hide_opening
 		&& ! $is_toc
 		&& ! $is_credits
@@ -443,8 +440,8 @@ function almaden_bookster_typst_render_chapter_prefix( $prefix_text, $style, $al
 	if ( ! in_array( $font_style, array( 'normal', 'italic', 'oblique' ), true ) ) {
 		$font_style = 'normal';
 	}
-	$tracking = isset( $style['letter_spacing'] ) && is_numeric( $style['letter_spacing'] ) ? round( max( -20, min( 20, (float) $style['letter_spacing'] ) ) * 0.75, 3 ) : 0;
-	$body = '#text(font: "' . almaden_bookster_typst_escape_string( $font_family ) . '", size: ' . round( $font_size * 0.75, 3 ) . 'pt, weight: ' . $font_weight . ', style: "' . almaden_bookster_typst_escape_string( $font_style ) . '", tracking: ' . $tracking . 'pt)[' . almaden_bookster_typst_escape_markup( $prefix_text ) . ']';
+	$tracking = isset( $style['letter_spacing'] ) && is_numeric( $style['letter_spacing'] ) ? round( max( -20, min( 20, (float) $style['letter_spacing'] ) ), 3 ) : 0;
+	$body = '#text(font: "' . almaden_bookster_typst_escape_string( $font_family ) . '", size: ' . round( $font_size, 3 ) . 'pt, weight: ' . $font_weight . ', style: "' . almaden_bookster_typst_escape_string( $font_style ) . '", tracking: ' . $tracking . 'pt)[' . almaden_bookster_typst_escape_markup( $prefix_text ) . ']';
 	$parts = array();
 
 	if ( 'line_above_below' === $ornament ) {
@@ -458,8 +455,10 @@ function almaden_bookster_typst_render_chapter_prefix( $prefix_text, $style, $al
 	}
 
 	if ( 'asterisks' === $ornament ) {
-		$parts[] = '#align(center)[***]';
+		$parts[] = '#align(center)[' . almaden_bookster_typst_escape_markup( '***' ) . ']';
 	}
 
-	return '#block(breakable: false)[' . "\n" . implode( "\n#v(2mm)\n", $parts ) . "\n]";
+	return '#block(width: 100%, breakable: false)[' . "\n" .
+		'#set par(justify: false, first-line-indent: 0pt)' . "\n" .
+		implode( "\n#v(2mm)\n", $parts ) . "\n]";
 }
