@@ -61,13 +61,13 @@
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Tipografía</label>
+                                <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Tipografía del Título de Capítulo</label>
                                 <select id="chapter_toc_font_family" name="toc_font_family" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                                     <!-- Se llenará dinámicamente con JS desde bookState.installedFonts -->
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Tamaño de Fuente (px)</label>
+                                <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Tamaño del Título (px)</label>
                                 <input type="number" step="0.5" id="chapter_toc_font_size" name="toc_font_size" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 11.5">
                             </div>
                         </div>
@@ -93,8 +93,33 @@
                                 </select>
                             </div>
                         </div>
+
+						<div class="p-4 rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)] space-y-4">
+							<div>
+								<h4 class="text-sm font-semibold">Numeración del Capítulo {n/r}</h4>
+								<p class="text-[11px] text-[var(--text-muted)]">Se aplica solo cuando la enumeración está activada.</p>
+							</div>
+							<div class="grid grid-cols-2 gap-4">
+								<div><label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Familia</label><select id="chapter_toc_number_font_family" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs"><option value="">Igual al título</option></select></div>
+								<div><label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Tamaño (px)</label><input type="number" step="0.5" id="chapter_toc_number_font_size" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs" placeholder="Igual al título"></div>
+								<div><label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Peso</label><select id="chapter_toc_number_font_weight" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs"><option value="">Igual al título</option><option value="300">Light (300)</option><option value="normal">Normal (400)</option><option value="500">Medium (500)</option><option value="600">Semi-Bold (600)</option><option value="bold">Negrita (700)</option><option value="800">Extra-Bold (800)</option><option value="900">Black (900)</option></select></div>
+								<div><label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Estilo</label><select id="chapter_toc_number_font_style" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs"><option value="">Igual al título</option><option value="normal">Normal</option><option value="italic">Itálica</option></select></div>
+								<div class="col-span-2"><label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Letter Spacing (px)</label><input type="number" step="0.1" id="chapter_toc_number_letter_spacing" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs" placeholder="Igual al título"></div>
+							</div>
+						</div>
+
+						<div class="p-4 rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)] space-y-4">
+							<h4 class="text-sm font-semibold">Número de Página {pn}</h4>
+							<div class="grid grid-cols-2 gap-4">
+								<div><label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Familia</label><select id="chapter_toc_page_font_family" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs"><option value="">Igual al título</option></select></div>
+								<div><label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Tamaño (px)</label><input type="number" step="0.5" id="chapter_toc_page_font_size" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs" placeholder="Igual al título"></div>
+								<div><label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Peso</label><select id="chapter_toc_page_font_weight" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs"><option value="">Igual al título</option><option value="300">Light (300)</option><option value="normal">Normal (400)</option><option value="500">Medium (500)</option><option value="600">Semi-Bold (600)</option><option value="bold">Negrita (700)</option><option value="800">Extra-Bold (800)</option><option value="900">Black (900)</option></select></div>
+								<div><label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Estilo</label><select id="chapter_toc_page_font_style" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs"><option value="">Igual al título</option><option value="normal">Normal</option><option value="italic">Itálica</option></select></div>
+								<div class="col-span-2"><label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Letter Spacing (px)</label><input type="number" step="0.1" id="chapter_toc_page_letter_spacing" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs" placeholder="Igual al título"></div>
+							</div>
+						</div>
                         
-                        <div class="grid grid-cols-2 gap-4">
+						<div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Transformación</label>
                                 <select id="chapter_toc_text_transform" name="toc_text_transform" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
@@ -135,6 +160,23 @@
                                     <option value="middle">Centro (Middle)</option>
                                     <option value="bottom">Base (Bottom)</option>
                                 </select>
+                            </div>
+							<div>
+								<label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Grosor de la Línea (pt)</label>
+								<input type="number" min="0.1" max="3" step="0.05" id="chapter_toc_leader_thickness" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs" placeholder="0.35">
+							</div>
+							<div>
+								<label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Ancho mínimo de la Línea (em)</label>
+								<input type="number" min="1" max="12" step="0.5" id="chapter_toc_leader_min_width" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs" placeholder="4">
+								<p class="text-[11px] text-[var(--text-muted)] mt-1">Reserva este tramo incluso cuando el título ocupa dos líneas.</p>
+							</div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Ajuste vertical del número de página (pt)</label>
+                                <input type="number" step="0.1" id="chapter_toc_page_number_offset" name="toc_page_number_offset" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="-0.8">
+                                <p class="text-[11px] text-[var(--text-muted)] mt-1">Valores negativos lo suben un poco; positivos lo bajan.</p>
                             </div>
                         </div>
                     </div><!-- End TOC Tab: Lista -->

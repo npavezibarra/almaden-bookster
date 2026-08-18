@@ -103,10 +103,14 @@ function almaden_bookster_build_typst_document( $payload ) {
 			: ( ! $is_toc ? almaden_bookster_typst_chapter_blank_count( $chapter, 'after' ) : 0 );
 		$chapter_hide_header = $is_credits
 			? almaden_bookster_typst_bool( $chapter['credits_hide_header'] ?? false )
-			: almaden_bookster_typst_bool( $chapter['hide_header'] ?? false );
+			: ( $is_toc
+				? ( almaden_bookster_typst_bool( $chapter['toc_hide_header'] ?? false ) || almaden_bookster_typst_bool( $chapter['hide_header'] ?? false ) )
+				: almaden_bookster_typst_bool( $chapter['hide_header'] ?? false ) );
 		$chapter_hide_footer = $is_credits
 			? almaden_bookster_typst_bool( $chapter['credits_hide_page_number'] ?? false )
-			: almaden_bookster_typst_bool( $chapter['hide_footer'] ?? false );
+			: ( $is_toc
+				? ( almaden_bookster_typst_bool( $chapter['toc_hide_page_numbers'] ?? false ) || almaden_bookster_typst_bool( $chapter['hide_footer'] ?? false ) )
+				: almaden_bookster_typst_bool( $chapter['hide_footer'] ?? false ) );
 		$credit_margin_top = $margin_top;
 		$credit_margin_bottom = $margin_bot;
 		if ( $is_credits && is_numeric( $chapter['credits_margin_top'] ?? null ) ) {
@@ -131,10 +135,10 @@ function almaden_bookster_build_typst_document( $payload ) {
 		if ( '' !== $chapter_label_id ) {
 			$source .= '#metadata("' . almaden_bookster_typst_escape_string( $title ) . '") <almaden-chapter-start-' . almaden_bookster_typst_escape_string( $chapter_label_id ) . '>' . "\n";
 		}
-		if ( $is_credits && $chapter_hide_header ) {
+		if ( ( $is_toc || $is_credits ) && $chapter_hide_header ) {
 			$source .= '#metadata("' . almaden_bookster_typst_escape_string( $title ) . '") <almaden-hide-header>' . "\n";
 		}
-		if ( $is_credits && $chapter_hide_footer ) {
+		if ( ( $is_toc || $is_credits ) && $chapter_hide_footer ) {
 			$source .= '#metadata("' . almaden_bookster_typst_escape_string( $title ) . '") <almaden-hide-footer>' . "\n";
 		}
 		if ( $is_credits && $chapter_hide_header ) {
@@ -318,6 +322,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 		}
 
 		if ( $is_toc ) {
+			$toc_page_number_offset = is_numeric( $chapter['toc_page_number_offset'] ?? null ) ? (float) $chapter['toc_page_number_offset'] : -0.8;
 			$toc_title_source = almaden_bookster_typst_render_toc(
 				$chapter,
 				$chapters,
@@ -334,7 +339,8 @@ function almaden_bookster_build_typst_document( $payload ) {
 				),
 				$assets,
 				$resolve_toc_font,
-				! ( ( isset( $chapter['toc_hide_header'] ) && '1' === (string) $chapter['toc_hide_header'] ) || ( isset( $chapter['toc_hide_title'] ) && '1' === (string) $chapter['toc_hide_title'] ) )
+				! ( isset( $chapter['toc_hide_title'] ) && '1' === (string) $chapter['toc_hide_title'] ),
+				$toc_page_number_offset
 			);
 			$source .= $toc_title_source;
 			continue;

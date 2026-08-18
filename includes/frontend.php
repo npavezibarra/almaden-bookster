@@ -381,6 +381,10 @@ function almaden_bookster_get_default_book_seed_chapters( $template_key = '', $t
 			if ( 'toc' === $type ) {
 				$meta['toc_hide_header'] = '1';
 				$meta['toc_hide_page_numbers'] = '1';
+				$meta['toc_page_number_offset'] = '-0.8';
+				$meta['toc_leader_position'] = 'bottom';
+				$meta['toc_leader_thickness'] = '0.35';
+				$meta['toc_leader_min_width'] = '4';
 			}
 
 			if ( 'credits' === $type ) {
@@ -434,6 +438,10 @@ function almaden_bookster_get_default_book_seed_chapters( $template_key = '', $t
 				'hide_all_headers_footers' => '1',
 				'toc_hide_header'         => '1',
 				'toc_hide_page_numbers'   => '1',
+				'toc_page_number_offset'  => '-0.8',
+				'toc_leader_position'     => 'bottom',
+				'toc_leader_thickness'    => '0.35',
+				'toc_leader_min_width'    => '4',
 			),
 		),
 		array(

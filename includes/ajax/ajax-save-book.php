@@ -216,6 +216,20 @@ function almaden_bookster_save_book_ajax() {
 		$toc_item_align        = isset( $chapter['toc_item_align'] ) ? sanitize_text_field( $chapter['toc_item_align'] ) : 'left';
 		$toc_leader_style      = isset( $chapter['toc_leader_style'] ) ? sanitize_text_field( $chapter['toc_leader_style'] ) : 'dotted';
 		$toc_leader_position   = isset( $chapter['toc_leader_position'] ) ? sanitize_text_field( $chapter['toc_leader_position'] ) : 'middle';
+		$toc_leader_thickness  = isset( $chapter['toc_leader_thickness'] ) ? sanitize_text_field( $chapter['toc_leader_thickness'] ) : '0.35';
+		$toc_leader_min_width  = isset( $chapter['toc_leader_min_width'] ) ? sanitize_text_field( $chapter['toc_leader_min_width'] ) : '4';
+		$toc_number_font_family = isset( $chapter['toc_number_font_family'] ) ? sanitize_text_field( $chapter['toc_number_font_family'] ) : '';
+		$toc_number_font_size = isset( $chapter['toc_number_font_size'] ) ? sanitize_text_field( $chapter['toc_number_font_size'] ) : '';
+		$toc_number_font_weight = isset( $chapter['toc_number_font_weight'] ) ? sanitize_text_field( $chapter['toc_number_font_weight'] ) : '';
+		$toc_number_font_style = isset( $chapter['toc_number_font_style'] ) ? sanitize_text_field( $chapter['toc_number_font_style'] ) : '';
+		$toc_number_letter_spacing = isset( $chapter['toc_number_letter_spacing'] ) ? sanitize_text_field( $chapter['toc_number_letter_spacing'] ) : '';
+		$toc_page_font_family = isset( $chapter['toc_page_font_family'] ) ? sanitize_text_field( $chapter['toc_page_font_family'] ) : '';
+		$toc_page_font_size = isset( $chapter['toc_page_font_size'] ) ? sanitize_text_field( $chapter['toc_page_font_size'] ) : '';
+		$toc_page_font_weight = isset( $chapter['toc_page_font_weight'] ) ? sanitize_text_field( $chapter['toc_page_font_weight'] ) : '';
+		$toc_page_font_style = isset( $chapter['toc_page_font_style'] ) ? sanitize_text_field( $chapter['toc_page_font_style'] ) : '';
+		$toc_page_letter_spacing = isset( $chapter['toc_page_letter_spacing'] ) ? sanitize_text_field( $chapter['toc_page_letter_spacing'] ) : '';
+		$toc_page_number_offset = isset( $chapter['toc_page_number_offset'] ) ? sanitize_text_field( $chapter['toc_page_number_offset'] ) : '-0.8';
+		$toc_page_number_offset = '' !== trim( (string) $toc_page_number_offset ) ? $toc_page_number_offset : '-0.8';
 		$toc_title_text        = isset( $chapter['toc_title_text'] ) ? sanitize_text_field( $chapter['toc_title_text'] ) : '';
 		$toc_title_align       = isset( $chapter['toc_title_align'] ) ? sanitize_text_field( $chapter['toc_title_align'] ) : '';
 		$toc_title_font_family = isset( $chapter['toc_title_font_family'] ) ? sanitize_text_field( $chapter['toc_title_font_family'] ) : '';
@@ -330,6 +344,19 @@ function almaden_bookster_save_book_ajax() {
 			update_post_meta( $post_id, '_toc_item_align', $toc_item_align );
 			update_post_meta( $post_id, '_toc_leader_style', $toc_leader_style );
 			update_post_meta( $post_id, '_toc_leader_position', $toc_leader_position );
+			update_post_meta( $post_id, '_toc_leader_thickness', $toc_leader_thickness );
+			update_post_meta( $post_id, '_toc_leader_min_width', $toc_leader_min_width );
+			update_post_meta( $post_id, '_toc_number_font_family', $toc_number_font_family );
+			update_post_meta( $post_id, '_toc_number_font_size', $toc_number_font_size );
+			update_post_meta( $post_id, '_toc_number_font_weight', $toc_number_font_weight );
+			update_post_meta( $post_id, '_toc_number_font_style', $toc_number_font_style );
+			update_post_meta( $post_id, '_toc_number_letter_spacing', $toc_number_letter_spacing );
+			update_post_meta( $post_id, '_toc_page_font_family', $toc_page_font_family );
+			update_post_meta( $post_id, '_toc_page_font_size', $toc_page_font_size );
+			update_post_meta( $post_id, '_toc_page_font_weight', $toc_page_font_weight );
+			update_post_meta( $post_id, '_toc_page_font_style', $toc_page_font_style );
+			update_post_meta( $post_id, '_toc_page_letter_spacing', $toc_page_letter_spacing );
+			update_post_meta( $post_id, '_toc_page_number_offset', $toc_page_number_offset );
 			update_post_meta( $post_id, '_toc_hide_title', $toc_hide_title );
 			update_post_meta( $post_id, '_toc_title_text', $toc_title_text );
 			update_post_meta( $post_id, '_toc_title_align', $toc_title_align );
@@ -421,6 +448,19 @@ function almaden_bookster_save_book_ajax() {
 				'toc_item_align'        => $toc_item_align,
 				'toc_leader_style'      => $toc_leader_style,
 				'toc_leader_position'   => $toc_leader_position,
+				'toc_leader_thickness'  => $toc_leader_thickness,
+				'toc_leader_min_width'  => $toc_leader_min_width,
+				'toc_number_font_family' => $toc_number_font_family,
+				'toc_number_font_size' => $toc_number_font_size,
+				'toc_number_font_weight' => $toc_number_font_weight,
+				'toc_number_font_style' => $toc_number_font_style,
+				'toc_number_letter_spacing' => $toc_number_letter_spacing,
+				'toc_page_font_family' => $toc_page_font_family,
+				'toc_page_font_size' => $toc_page_font_size,
+				'toc_page_font_weight' => $toc_page_font_weight,
+				'toc_page_font_style' => $toc_page_font_style,
+				'toc_page_letter_spacing' => $toc_page_letter_spacing,
+				'toc_page_number_offset' => $toc_page_number_offset,
 				'toc_hide_title'        => $toc_hide_title,
 				'toc_title_text'        => $toc_title_text,
 				'toc_title_align'       => $toc_title_align,

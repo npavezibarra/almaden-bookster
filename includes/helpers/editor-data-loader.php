@@ -48,6 +48,7 @@ if ( $chapter_posts ) {
 		$toc_hide_page_numbers = get_post_meta( $cp->ID, '_toc_hide_page_numbers', true );
 		$toc_hide_title = get_post_meta( $cp->ID, '_toc_hide_title', true );
 		$toc_title_text = get_post_meta( $cp->ID, '_toc_title_text', true );
+		$toc_page_number_offset = get_post_meta( $cp->ID, '_toc_page_number_offset', true );
 		$hide_all_headers_footers = get_post_meta( $cp->ID, '_hide_all_headers_footers', true );
 		$hide_header = get_post_meta( $cp->ID, '_hide_header', true );
 		$hide_footer = get_post_meta( $cp->ID, '_hide_footer', true );
@@ -55,6 +56,10 @@ if ( $chapter_posts ) {
 			$toc_hide_header = '' === (string) $toc_hide_header ? '1' : $toc_hide_header;
 			$toc_hide_page_numbers = '' === (string) $toc_hide_page_numbers ? '1' : $toc_hide_page_numbers;
 			$toc_hide_title = '' === (string) $toc_hide_title ? '0' : $toc_hide_title;
+			$toc_page_number_offset = '' === trim( (string) $toc_page_number_offset ) ? '-0.8' : $toc_page_number_offset;
+			$hide_header = '1' === (string) $toc_hide_header ? '1' : '0';
+			$hide_footer = '1' === (string) $toc_hide_page_numbers ? '1' : '0';
+			$hide_all_headers_footers = ( '1' === (string) $hide_header && '1' === (string) $hide_footer ) ? '1' : '0';
 			if ( '' === trim( (string) $toc_title_text ) ) {
 				$toc_title_text = $cp->post_title ?: 'Índice';
 			}
@@ -147,6 +152,18 @@ if ( $chapter_posts ) {
 			'toc_item_align'          => get_post_meta( $cp->ID, '_toc_item_align', true ),
 			'toc_leader_style'         => get_post_meta( $cp->ID, '_toc_leader_style', true ),
 			'toc_leader_position'      => get_post_meta( $cp->ID, '_toc_leader_position', true ),
+			'toc_leader_thickness'     => get_post_meta( $cp->ID, '_toc_leader_thickness', true ),
+			'toc_leader_min_width'     => get_post_meta( $cp->ID, '_toc_leader_min_width', true ),
+			'toc_number_font_family'   => get_post_meta( $cp->ID, '_toc_number_font_family', true ),
+			'toc_number_font_size'     => get_post_meta( $cp->ID, '_toc_number_font_size', true ),
+			'toc_number_font_weight'   => get_post_meta( $cp->ID, '_toc_number_font_weight', true ),
+			'toc_number_font_style'    => get_post_meta( $cp->ID, '_toc_number_font_style', true ),
+			'toc_number_letter_spacing' => get_post_meta( $cp->ID, '_toc_number_letter_spacing', true ),
+			'toc_page_font_family'     => get_post_meta( $cp->ID, '_toc_page_font_family', true ),
+			'toc_page_font_size'       => get_post_meta( $cp->ID, '_toc_page_font_size', true ),
+			'toc_page_font_weight'     => get_post_meta( $cp->ID, '_toc_page_font_weight', true ),
+			'toc_page_font_style'      => get_post_meta( $cp->ID, '_toc_page_font_style', true ),
+			'toc_page_letter_spacing'  => get_post_meta( $cp->ID, '_toc_page_letter_spacing', true ),
 			'toc_title_text'           => $toc_title_text,
 			'toc_title_align'          => get_post_meta( $cp->ID, '_toc_title_align', true ),
 			'toc_title_font_family'    => get_post_meta( $cp->ID, '_toc_title_font_family', true ),
@@ -158,6 +175,7 @@ if ( $chapter_posts ) {
 			'toc_title_padding_top'    => get_post_meta( $cp->ID, '_toc_title_padding_top', true ),
 			'toc_title_padding_bottom' => get_post_meta( $cp->ID, '_toc_title_padding_bottom', true ),
 			'toc_title_line_height'    => get_post_meta( $cp->ID, '_toc_title_line_height', true ),
+			'toc_page_number_offset'   => $toc_page_number_offset,
 		);
 	}
 }
@@ -239,6 +257,18 @@ if ( empty( $saved_chapters ) ) {
 		'toc_item_align'             => '',
 		'toc_leader_style'           => '',
 		'toc_leader_position'        => '',
+		'toc_leader_thickness'       => '0.35',
+		'toc_leader_min_width'       => '4',
+		'toc_number_font_family'     => '',
+		'toc_number_font_size'       => '',
+		'toc_number_font_weight'     => '',
+		'toc_number_font_style'      => '',
+		'toc_number_letter_spacing'  => '',
+		'toc_page_font_family'       => '',
+		'toc_page_font_size'         => '',
+		'toc_page_font_weight'       => '',
+		'toc_page_font_style'        => '',
+		'toc_page_letter_spacing'    => '',
 		'toc_title_text'             => '',
 		'toc_title_align'            => '',
 		'toc_title_font_family'      => '',
@@ -250,6 +280,7 @@ if ( empty( $saved_chapters ) ) {
 		'toc_title_padding_top'      => '',
 		'toc_title_padding_bottom'   => '',
 		'toc_title_line_height'      => '',
+		'toc_page_number_offset'     => '-0.8',
 	);
 }
 

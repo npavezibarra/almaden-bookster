@@ -60,6 +60,17 @@ function openChapterSettingsModal() {
             });
         }
 
+        ['chapter_toc_number_font_family', 'chapter_toc_page_font_family'].forEach(selectId => {
+            const select = document.getElementById(selectId);
+            if (!select || select.options.length > 1 || !bookState.installedFonts) return;
+            bookState.installedFonts.forEach(font => {
+                const option = document.createElement('option');
+                option.value = font.family;
+                option.textContent = font.family;
+                select.appendChild(option);
+            });
+        });
+
         document.getElementById('chapter_toc_font_size').value = activeChapter.toc_font_size || '';
         document.getElementById('chapter_toc_enumerate').value = activeChapter.toc_enumerate || 'none';
         document.getElementById('chapter_toc_font_family').value = activeChapter.toc_font_family || '';
@@ -71,6 +82,19 @@ function openChapterSettingsModal() {
         document.getElementById('chapter_toc_item_spacing').value = activeChapter.toc_item_spacing || '';
         document.getElementById('chapter_toc_leader_style').value = activeChapter.toc_leader_style || 'dotted';
         document.getElementById('chapter_toc_leader_position').value = activeChapter.toc_leader_position || 'middle';
+        document.getElementById('chapter_toc_page_number_offset').value = activeChapter.toc_page_number_offset || '-0.8';
+        document.getElementById('chapter_toc_number_font_family').value = activeChapter.toc_number_font_family || '';
+        document.getElementById('chapter_toc_number_font_size').value = activeChapter.toc_number_font_size || '';
+        document.getElementById('chapter_toc_number_font_weight').value = activeChapter.toc_number_font_weight || '';
+        document.getElementById('chapter_toc_number_font_style').value = activeChapter.toc_number_font_style || '';
+        document.getElementById('chapter_toc_number_letter_spacing').value = activeChapter.toc_number_letter_spacing || '';
+        document.getElementById('chapter_toc_page_font_family').value = activeChapter.toc_page_font_family || '';
+        document.getElementById('chapter_toc_page_font_size').value = activeChapter.toc_page_font_size || '';
+        document.getElementById('chapter_toc_page_font_weight').value = activeChapter.toc_page_font_weight || '';
+        document.getElementById('chapter_toc_page_font_style').value = activeChapter.toc_page_font_style || '';
+        document.getElementById('chapter_toc_page_letter_spacing').value = activeChapter.toc_page_letter_spacing || '';
+        document.getElementById('chapter_toc_leader_thickness').value = activeChapter.toc_leader_thickness || '0.35';
+        document.getElementById('chapter_toc_leader_min_width').value = activeChapter.toc_leader_min_width || '4';
         const tocSeparateOpeningContentEl = document.getElementById('chapter_toc_separate_opening_content');
         if (tocSeparateOpeningContentEl) {
             tocSeparateOpeningContentEl.value = activeChapter.toc_separate_opening_content ?? '';
@@ -319,6 +343,18 @@ async function saveChapterSettings() {
         activeChapter.toc_item_spacing = cleanFloat('chapter_toc_item_spacing');
         activeChapter.toc_leader_style = document.getElementById('chapter_toc_leader_style').value;
         activeChapter.toc_leader_position = document.getElementById('chapter_toc_leader_position').value;
+        activeChapter.toc_leader_thickness = cleanFloat('chapter_toc_leader_thickness') || '0.35';
+        activeChapter.toc_leader_min_width = cleanFloat('chapter_toc_leader_min_width') || '4';
+        activeChapter.toc_number_font_family = document.getElementById('chapter_toc_number_font_family').value;
+        activeChapter.toc_number_font_size = cleanFloat('chapter_toc_number_font_size');
+        activeChapter.toc_number_font_weight = document.getElementById('chapter_toc_number_font_weight').value;
+        activeChapter.toc_number_font_style = document.getElementById('chapter_toc_number_font_style').value;
+        activeChapter.toc_number_letter_spacing = cleanFloat('chapter_toc_number_letter_spacing');
+        activeChapter.toc_page_font_family = document.getElementById('chapter_toc_page_font_family').value;
+        activeChapter.toc_page_font_size = cleanFloat('chapter_toc_page_font_size');
+        activeChapter.toc_page_font_weight = document.getElementById('chapter_toc_page_font_weight').value;
+        activeChapter.toc_page_font_style = document.getElementById('chapter_toc_page_font_style').value;
+        activeChapter.toc_page_letter_spacing = cleanFloat('chapter_toc_page_letter_spacing');
         const tocSeparateOpeningContentEl = document.getElementById('chapter_toc_separate_opening_content');
         if (tocSeparateOpeningContentEl) {
             activeChapter.toc_separate_opening_content = tocSeparateOpeningContentEl.value;
@@ -338,6 +374,15 @@ async function saveChapterSettings() {
         activeChapter.toc_title_padding_top = cleanFloat('chapter_toc_title_padding_top');
         activeChapter.toc_title_padding_bottom = cleanFloat('chapter_toc_title_padding_bottom');
         activeChapter.toc_title_line_height = cleanFloat('chapter_toc_title_line_height');
+        {
+            const tocPageNumberOffset = cleanFloat('chapter_toc_page_number_offset').trim();
+            activeChapter.toc_page_number_offset = '' !== tocPageNumberOffset ? tocPageNumberOffset : '-0.8';
+        }
+        activeChapter.hide_header = activeChapter.toc_hide_header;
+        activeChapter.hide_footer = activeChapter.toc_hide_page_numbers;
+        activeChapter.hide_all_headers_footers = (
+            activeChapter.hide_header === '1' && activeChapter.hide_footer === '1'
+        ) ? '1' : '0';
     } else if (isCredits) {
         activeChapter.credits_font_family = document.getElementById('chapter_credits_font_family').value;
         activeChapter.credits_align = document.getElementById('chapter_credits_align').value;

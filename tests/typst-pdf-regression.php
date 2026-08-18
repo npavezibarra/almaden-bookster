@@ -172,7 +172,9 @@ $payload['settings']['credits_config'] = array(
 );
 for ( $chapter_number = 2; $chapter_number <= 17; ++$chapter_number ) {
 	$payload['chapters'][] = array(
-		'title'   => 'Capítulo ' . $chapter_number,
+		'title'   => 17 === $chapter_number
+			? 'Capítulo 17 con un título deliberadamente largo que debe ocupar dos líneas en el índice'
+			: 'Capítulo ' . $chapter_number,
 		'content' => 'Contenido de prueba para comprobar un índice largo.',
 	);
 }
@@ -372,6 +374,58 @@ if ( false !== strpos( $toc_title_override_document['source'], '#set text(font: 
 }
 if ( false === strpos( $toc_title_override_document['source'], 'Contenido' ) ) {
 	fwrite( STDERR, 'El texto personalizado del Índice no llegó al Typst generado.' . PHP_EOL );
+	exit( 1 );
+}
+
+$toc_visible_title_payload = $payload;
+$toc_visible_title_payload['chapters'][0]['toc_title_text'] = 'Contenido';
+$toc_visible_title_payload['chapters'][0]['toc_hide_title'] = '0';
+$toc_visible_title_payload['chapters'][0]['toc_hide_header'] = '1';
+$toc_visible_title_payload['chapters'][0]['toc_hide_page_numbers'] = '1';
+$toc_visible_title_payload['chapters'][0]['hide_header'] = '0';
+$toc_visible_title_payload['chapters'][0]['hide_footer'] = '0';
+$toc_visible_title_payload['chapters'][0]['toc_page_number_offset'] = '-1.2';
+$toc_visible_title_payload['chapters'][0]['toc_leader_min_width'] = '5.5';
+$toc_visible_title_payload['chapters'][0]['toc_enumerate'] = 'roman';
+$toc_visible_title_document = almaden_bookster_build_typst_document( $toc_visible_title_payload );
+if ( false === strpos( $toc_visible_title_document['source'], '#set text(font: "Outfit", size: 19.5pt, weight: 800, style: "normal", tracking: 0pt)' ) ) {
+	fwrite( STDERR, 'El título visible del Índice dejó de renderizarse cuando la cabecera se ocultó.' . PHP_EOL );
+	exit( 1 );
+}
+if ( false === strpos( $toc_visible_title_document['source'], '#metadata("Contenido") <almaden-hide-header>' ) ) {
+	fwrite( STDERR, 'El Índice no propagó la ocultación de cabecera a los metadatos del PDF.' . PHP_EOL );
+	exit( 1 );
+}
+if ( false === strpos( $toc_visible_title_document['source'], '#metadata("Contenido") <almaden-hide-footer>' ) ) {
+	fwrite( STDERR, 'El Índice no propagó la ocultación del pie a los metadatos del PDF.' . PHP_EOL );
+	exit( 1 );
+}
+if ( false === strpos( $toc_visible_title_document['source'], '#move(dy: -1.2pt)' ) ) {
+	fwrite( STDERR, 'El nuevo ajuste vertical del número de página no llegó al render del Índice.' . PHP_EOL );
+	exit( 1 );
+}
+if ( false === strpos( $toc_visible_title_document['source'], 'columns: (number-width, title-width, 1fr, page-width)' ) ) {
+	fwrite( STDERR, 'El Índice no conserva las cuatro celdas de numeración, título, línea y página.' . PHP_EOL );
+	exit( 1 );
+}
+if ( false === strpos( $toc_visible_title_document['source'], 'size.width - number-width - page-width - 57.75pt - 3 * toc-gutter' ) ) {
+	fwrite( STDERR, 'El ancho mínimo configurable del leader no llegó al documento Typst.' . PHP_EOL );
+	exit( 1 );
+}
+if ( 1 !== substr_count( $toc_visible_title_document['source'], '#let toc-number-samples = ' ) || false === strpos( $toc_visible_title_document['source'], '[I.]' ) || false === strpos( $toc_visible_title_document['source'], '[XVII.]' ) ) {
+	fwrite( STDERR, 'Las numeraciones del Índice no se reunieron en una muestra compartida.' . PHP_EOL );
+	exit( 1 );
+}
+if ( false === strpos( $toc_visible_title_document['source'], 'toc-number-samples.fold(0pt, (current, sample) => calc.max(current, measure(sample).width))' ) ) {
+	fwrite( STDERR, 'La columna de numeración no usa el ancho real de su número más ancho.' . PHP_EOL );
+	exit( 1 );
+}
+if ( false === strpos( $toc_visible_title_document['source'], '#box(width: 100%, baseline: bottom)[#repeat([-], gap: 0.3em)]' ) ) {
+	fwrite( STDERR, 'La línea del Índice no ocupa su celda flexible.' . PHP_EOL );
+	exit( 1 );
+}
+if ( false === strpos( $toc_visible_title_document['source'], 'align: (left + top, right + top, left + bottom, right + bottom)' ) ) {
+	fwrite( STDERR, 'Las celdas del Índice no conservan el número de página junto a la última línea del título.' . PHP_EOL );
 	exit( 1 );
 }
 

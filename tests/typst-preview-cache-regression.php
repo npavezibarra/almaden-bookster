@@ -14,6 +14,12 @@ function wp_mkdir_p( $path ) { return is_dir( $path ) || mkdir( $path, 0777, tru
 
 require_once dirname( __DIR__ ) . '/includes/ajax/ajax-typst-pdf.php';
 
+$client_state_source = file_get_contents( dirname( __DIR__ ) . '/assets/js/pdf/typst/editor-typst-pdf-state.js' );
+if ( false === strpos( $client_state_source, "const PREVIEW_CACHE_VERSION = 'v9';" ) ) {
+	fwrite( STDERR, "La caché persistente del navegador no fue invalidada para el nuevo renderer del Índice.\n" );
+	exit( 1 );
+}
+
 $book_id = 987654;
 $cache_dir = almaden_bookster_typst_preview_cache_dir( $book_id );
 $asset = sys_get_temp_dir() . '/almaden-cache-regression-asset.txt';

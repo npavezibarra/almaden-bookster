@@ -190,6 +190,18 @@ function saveStateToLocalStorage(immediate = false) {
                         toc_item_align: chapter.toc_item_align,
                         toc_leader_style: chapter.toc_leader_style,
                         toc_leader_position: chapter.toc_leader_position,
+						toc_leader_thickness: chapter.toc_leader_thickness,
+						toc_leader_min_width: chapter.toc_leader_min_width,
+						toc_number_font_family: chapter.toc_number_font_family,
+						toc_number_font_size: chapter.toc_number_font_size,
+						toc_number_font_weight: chapter.toc_number_font_weight,
+						toc_number_font_style: chapter.toc_number_font_style,
+						toc_number_letter_spacing: chapter.toc_number_letter_spacing,
+						toc_page_font_family: chapter.toc_page_font_family,
+						toc_page_font_size: chapter.toc_page_font_size,
+						toc_page_font_weight: chapter.toc_page_font_weight,
+						toc_page_font_style: chapter.toc_page_font_style,
+						toc_page_letter_spacing: chapter.toc_page_letter_spacing,
                         toc_hide_title: chapter.toc_hide_title,
                         toc_title_text: chapter.toc_title_text,
                         toc_title_align: chapter.toc_title_align,
@@ -201,7 +213,8 @@ function saveStateToLocalStorage(immediate = false) {
                         toc_title_letter_spacing: chapter.toc_title_letter_spacing,
                         toc_title_padding_top: chapter.toc_title_padding_top,
                         toc_title_padding_bottom: chapter.toc_title_padding_bottom,
-                        toc_title_line_height: chapter.toc_title_line_height
+                        toc_title_line_height: chapter.toc_title_line_height,
+                        toc_page_number_offset: chapter.toc_page_number_offset
                     };
 
                     return payloadChapter;

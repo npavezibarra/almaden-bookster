@@ -141,6 +141,9 @@ de continuidad hasta que PDF.js termina de pintar la nueva revisión.
   assets y portada. El contador universal se excluye porque es resultado de la
   compilación y no una entrada editorial.
 - IndexedDB conserva hasta seis composiciones por libro durante siete días.
+- `PREVIEW_CACHE_VERSION` debe incrementarse cuando cambia la composición
+  server-side aunque el payload editorial sea idéntico; así el navegador no
+  reutiliza un PDF producido por una versión anterior del renderer.
 - El servidor conserva hasta doce composiciones privadas por libro durante
   siete días. Su clave incluye el source Typst y la fecha/tamaño de imágenes y
   fuentes locales.

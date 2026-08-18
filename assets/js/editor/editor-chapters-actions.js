@@ -122,7 +122,21 @@ function createNewChapter(isToc = false, isCredits = false) {
         toc_hide_page_numbers: isToc ? '1' : '0',
         toc_separate_opening_content: '',
         toc_hide_title: isToc ? '0' : '0',
-        toc_title_text: isToc ? 'Índice' : ''
+        toc_title_text: isToc ? 'Índice' : '',
+		toc_page_number_offset: isToc ? '-0.8' : '',
+		toc_leader_position: isToc ? 'bottom' : '',
+		toc_leader_thickness: isToc ? '0.35' : '',
+		toc_leader_min_width: isToc ? '4' : '',
+		toc_number_font_family: '',
+		toc_number_font_size: '',
+		toc_number_font_weight: '',
+		toc_number_font_style: '',
+		toc_number_letter_spacing: '',
+		toc_page_font_family: '',
+		toc_page_font_size: '',
+		toc_page_font_weight: '',
+		toc_page_font_style: '',
+		toc_page_letter_spacing: ''
     };
 
     bookState.chapters.push(newChapter);

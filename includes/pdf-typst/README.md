@@ -173,13 +173,53 @@ Responsabilidad: utilidades de render específico para Typst.
 
 Funciones principales:
 
-- `almaden_bookster_typst_toc_roman()`
-- `almaden_bookster_typst_render_toc()`
 - `almaden_bookster_typst_render_credits()`
 - `almaden_bookster_typst_pt_to_unit()`
 - `almaden_bookster_typst_length_literal()`
 - `almaden_bookster_typst_running_element_has_content()`
 - `almaden_bookster_typst_register_upload()`
+
+### `typst-toc.php`
+
+Responsabilidad: construir el Índice como una tabla editorial sin bordes.
+
+La estructura del Índice se modela como una fila de cuatro celdas lógicas:
+
+- `{n}` o `{r}`: numeración del capítulo, opcional.
+- `{chapter title}`: título del capítulo.
+- `{line}`: leader visual que conecta el título con el número de página.
+- `{pn}`: número de página.
+
+Cada fila vive como una unidad editorial, pero cada elemento mantiene su propia
+configuración tipográfica. Eso permite ajustar de forma independiente:
+
+- familia, peso, estilo y tracking de `{n}` / `{r}`;
+- familia, peso, estilo, tamaño y alineación del `{chapter title}`;
+- tipo de leader (`dotted`, `solid`, `dashed` o `none`);
+- familia, peso, estilo y tracking del `{pn}`.
+
+El renderer aplica además estas reglas de composición:
+
+- La columna de numeración no se mide por el ancho de cada fila, sino por el
+  número más ancho entre todos los capítulos visibles. Así, si un capítulo usa
+  `I.` y otro usa `XXII.`, la celda de `{n}` ocupa el ancho de `XXII.` y todos
+  los títulos arrancan desde el mismo eje.
+- El título se mide con su ancho natural, pero se le reserva un ancho máximo
+  derivado del ancho disponible de la página, del ancho de la numeración, del
+  ancho del número de página y de un mínimo para el leader.
+- El leader no pertenece al título como texto: es una celda propia. Cuando el
+  título ocupa dos líneas, el leader continúa desde la última línea del título
+  hasta `{pn}` en esa misma fila visual.
+- Si no hay numeración activa, la tabla se reduce a tres celdas: `{chapter
+  title}` + `{line}` + `{pn}`.
+- La posición vertical del número de página puede ajustarse con el offset
+  `page_number_offset`, que se traduce a `#move(dy: ...)` al renderizar Typst.
+
+Funciones principales:
+
+- `almaden_bookster_typst_toc_roman()`
+- `almaden_bookster_typst_toc_number_samples()`
+- `almaden_bookster_typst_render_toc()`
 
 ### Plantillas de página
 
