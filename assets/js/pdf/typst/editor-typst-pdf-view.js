@@ -182,17 +182,17 @@
             trimFrame.style.bottom = `-${bleedPx}px`;
             trimFrame.style.left = isOddPage ? '0px' : `-${bleedPx}px`;
             trimFrame.style.right = isOddPage ? `-${bleedPx}px` : '0px';
-            trimFrame.style.borderTop = '2px dotted rgba(15, 23, 42, 0.8)';
-            trimFrame.style.borderBottom = '2px dotted rgba(15, 23, 42, 0.8)';
-            trimFrame.style.borderLeft = isOddPage ? '0' : '2px dotted rgba(15, 23, 42, 0.8)';
-            trimFrame.style.borderRight = isOddPage ? '2px dotted rgba(15, 23, 42, 0.8)' : '0';
+            trimFrame.style.borderTop = '2px dotted rgba(34, 197, 94, 0.78)';
+            trimFrame.style.borderBottom = '2px dotted rgba(34, 197, 94, 0.78)';
+            trimFrame.style.borderLeft = isOddPage ? '0' : '2px dotted rgba(34, 197, 94, 0.78)';
+            trimFrame.style.borderRight = isOddPage ? '2px dotted rgba(34, 197, 94, 0.78)' : '0';
             shell.appendChild(trimFrame);
 
             const pageLimit = document.createElement('div');
             pageLimit.dataset.bleedGuidePageLimit = '1';
             pageLimit.className = 'pointer-events-none absolute box-border z-20';
             pageLimit.style.inset = '0';
-            pageLimit.style.border = '1px solid rgba(71, 85, 105, 0.9)';
+            pageLimit.style.border = '1px solid rgba(34, 197, 94, 0.78)';
             pageLimit.title = `Límite de corte de la página ${pageNumber}`;
             shell.appendChild(pageLimit);
         });
@@ -303,7 +303,7 @@
 
     function makePageShell(pageNumber, totalPages, isBlank = false) {
         const shell = document.createElement('div');
-        shell.className = 'relative overflow-hidden bg-white border border-slate-300 shadow-[0_10px_28px_rgba(15,23,42,0.12)]';
+        shell.className = 'relative overflow-hidden bg-white border border-emerald-500/60 shadow-[0_10px_28px_rgba(15,23,42,0.12)]';
         shell.setAttribute('aria-label', isBlank ? `Página ${pageNumber} en blanco` : `Página ${pageNumber} de ${totalPages}`);
         shell.dataset.pageNumber = String(pageNumber);
         shell.dataset.blank = isBlank ? '1' : '0';
@@ -391,7 +391,7 @@
 
         const root = document.createElement('div');
         root.className = layout === 'spread'
-            ? 'flex flex-col items-center gap-8 py-8'
+            ? 'flex flex-col items-center gap-14 py-10'
             : 'flex flex-col items-center gap-8 py-8';
         root.dataset.visualEditorSurface = '1';
         scroller.appendChild(root);

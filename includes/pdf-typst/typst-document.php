@@ -18,24 +18,24 @@ function almaden_bookster_typst_chapter_image_length_literal( $value, $unit ) {
 	return round( max( 0, (float) $value ), 4 ) . $unit;
 }
 
-function almaden_bookster_typst_chapter_image_background_source( $image_asset, $chapter_image_mode, $content_width, $unit, $chapter_image_inner_width ) {
+function almaden_bookster_typst_chapter_image_background_source( $image_asset, $chapter_image_mode, $page_width_with_bleed, $unit, $chapter_image_inner_width ) {
 	$image_asset = trim( (string) $image_asset );
 	if ( '' === $image_asset ) {
 		return '';
 	}
 
-	$content_width = max( 0, (float) $content_width );
+	$page_width_with_bleed = max( 0, (float) $page_width_with_bleed );
 	$chapter_image_inner_width = max( 10, min( 100, (float) $chapter_image_inner_width ) );
 	$background = '#place(top + left)[#almaden-page-background()]';
 
 	if ( 'image_full_page' === $chapter_image_mode ) {
 		return 'box(width: 100%, height: 100%)[' . $background
-			. '#place(center + horizon)[#image("' . almaden_bookster_typst_escape_string( $image_asset ) . '", width: 100%, height: 100%, fit: "cover")]]';
+			. '#place(center + horizon)[#image("' . almaden_bookster_typst_escape_string( $image_asset ) . '", width: 100%)]]';
 	}
 
 	$target_width = 'image_inner' === $chapter_image_mode
-		? ( $content_width * $chapter_image_inner_width / 100 )
-		: $content_width;
+		? ( $page_width_with_bleed * $chapter_image_inner_width / 100 )
+		: $page_width_with_bleed;
 	$target_width = max( 0.1, $target_width );
 
 	return 'box(width: 100%, height: 100%)[' . $background
@@ -154,14 +154,15 @@ function almaden_bookster_build_typst_document( $payload ) {
 		$has_new_chapter_image = $chapter_image_enabled && '' !== $chapter_image_url;
 
 		if ( $has_new_chapter_image ) {
-			$image_asset = almaden_bookster_typst_register_upload( $chapter_image_url, $assets, $asset_mode );
+			$image_asset_mode = 'image_full_page' === $chapter_image_mode ? 'original' : $asset_mode;
+			$image_asset = almaden_bookster_typst_register_upload( $chapter_image_url, $assets, $image_asset_mode );
 			if ( '' !== $image_asset ) {
-				$content_width = max( 0.1, $width - $margin_inside - $margin_outside );
+				$page_width_with_bleed = max( 0.1, $width + ( 2 * $bleed ) );
 				$source .= '#set page(background: {' . "\n";
 				$source .= almaden_bookster_typst_chapter_image_background_source(
 					$image_asset,
 					$chapter_image_mode,
-						$content_width,
+						$page_width_with_bleed,
 						$unit,
 						$chapter_image_inner_width
 					) . "\n";

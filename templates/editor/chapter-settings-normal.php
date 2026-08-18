@@ -67,13 +67,14 @@
 
                 <div id="chapter_image_fullpage_note" class="hidden rounded-lg border border-dashed border-[var(--border-color)] bg-[var(--bg-sidebar)] p-3">
                     <p class="text-[10px] text-[var(--text-muted)]">
-                        Image Full Page ocupa toda la página considerando bleed, sin distorsionar la proporción original.
+                        Image Full Page usa el ancho completo de la imagen hasta tocar el bleed; si la proporción no coincide, el ajuste ocurre solo arriba y abajo.
                     </p>
                 </div>
 
                 <div id="chapter_image_inner_controls" class="grid grid-cols-1 gap-3 hidden">
                     <div>
                         <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Ancho de imagen (%)</label>
+                        <p class="text-[10px] text-[var(--text-muted)] mb-2">100% equivale al ancho total de la página, incluyendo bleed.</p>
                         <input id="chapter_image_inner_width" type="range" min="10" max="100" step="1" value="100" oninput="syncChapterImageWidthLabelForChapter()" class="w-full">
                         <div class="flex items-center justify-between text-[10px] text-[var(--text-muted)]">
                             <span>10%</span>

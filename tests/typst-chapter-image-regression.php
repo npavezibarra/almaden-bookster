@@ -64,7 +64,7 @@ $expected_fragments = array(
 	'background: {',
 	'almaden-page-background()',
 	'box(width: 100%, height: 100%)[#place(top + left)[#almaden-page-background()]#place(center + horizon)',
-	'width: 100%, height: 100%, fit: "cover"',
+	'width: 100%)]]',
 	'<almaden-chapter-image-page>',
 	'<almaden-hide-header-page>',
 	'<almaden-hide-footer-page>',
@@ -84,9 +84,14 @@ if ( preg_match( '/#metadata\("[^"]*"\) <almaden-hide-header>/', $source ) || pr
 	fwrite( STDERR, "Las banderas de ocultacion siguen afectando todo el capitulo en vez de solo la primera pagina de texto.\n" );
 	exit( 1 );
 }
-$adjustable_source = almaden_bookster_typst_chapter_image_background_source( 'assets/chapter.png', 'image_inner', 9.8, 'cm', 50 );
-if ( false === strpos( $adjustable_source, 'width: 4.9cm' ) || false !== strpos( $adjustable_source, 'fit: "cover"' ) ) {
-	fwrite( STDERR, "El modo ajustable no conserva ancho porcentual y alto automatico.\n" );
+$full_bleed_source = almaden_bookster_typst_chapter_image_background_source( 'assets/chapter.png', 'image_full_page', 10.4, 'cm', 50 );
+if ( false !== strpos( $full_bleed_source, 'fit: "cover"' ) || false === strpos( $full_bleed_source, 'width: 100%)]]' ) || false === strpos( $full_bleed_source, '#image("assets/chapter.png", width: 100%)' ) ) {
+	fwrite( STDERR, "El modo full bleed sigue recortando lados o fijando altura en vez de respetar el ancho real.\n" );
+	exit( 1 );
+}
+$adjustable_source = almaden_bookster_typst_chapter_image_background_source( 'assets/chapter.png', 'image_inner', 10.4, 'cm', 50 );
+if ( false === strpos( $adjustable_source, 'width: 5.2cm' ) || false !== strpos( $adjustable_source, 'fit: "cover"' ) ) {
+	fwrite( STDERR, "El modo ajustable no usa el ancho total incluyendo bleed.\n" );
 	exit( 1 );
 }
 

@@ -100,6 +100,8 @@ graph TD
         *   `editor-chapter-settings-modal.js`: apertura, cierre y guardado del modal del capítulo activo.
         *   `editor-chapter-settings.js`: stub de compatibilidad histórica, ya sin lógica activa.
 
+    *   **Nota de imagen de capítulo**: el modo `image_inner` usa como referencia el ancho total de la página, incluyendo bleed. Por eso el 100% del slider significa "de borde exterior a borde exterior", no el content box recortado por márgenes. El modo `image_full_page` conserva el ancho completo de la imagen y solo deja que la diferencia de proporción se resuelva en vertical.
+
 ---
 
 ### 3. Barra de Herramientas y Markdown
