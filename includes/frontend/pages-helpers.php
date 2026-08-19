@@ -16,6 +16,7 @@ if ( ! function_exists( 'almaden_bookster_get_frontend_page_access_mode' ) ) {
 		$access_map = array(
 			'shell_home'     => 'private',
 			'dashboard'      => 'private',
+			'reading_stats'  => 'private',
 			'authors'        => 'public',
 			'publisher'      => 'public',
 			'store'          => 'public',
@@ -74,6 +75,8 @@ if ( ! function_exists( 'almaden_bookster_user_can_access_frontend_page' ) ) {
 			case 'blog_creator':
 				$can_edit_posts = function_exists( 'user_can' ) ? user_can( $user, 'edit_posts' ) : current_user_can( 'edit_posts' );
 				return $can_manage_options || $can_edit_posts;
+			case 'reading_stats':
+				return true;
 			default:
 				return $can_manage_options;
 		}

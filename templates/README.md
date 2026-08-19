@@ -9,6 +9,10 @@ Archivos y subdirectorios contenidos aquí:
 * ebook
 *   `ebook-single-app.php`: ficha pública individual del ebook, con preview bloqueado y CTA de compra; si el usuario ya compró, delega al reader.
 * cover
+* shell
+*   `shell-home-app.php`: home del shell con accesos rápidos a las secciones internas.
+*   `reading-stats-app.php`: panel personal de lectura con resumen de highlights, quizzes y actividad reciente.
+*   `access-denied-app.php`: pantalla común para acceso restringido dentro del shell.
 * editor
 * publishers
 *   `publisher-page.php`: directorio y perfil público de editoriales.

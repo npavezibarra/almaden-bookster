@@ -46,6 +46,12 @@ if ( ! function_exists( 'almaden_bookster_get_shell_navigation_exclusion_rules' 
 			function_exists( 'almaden_bookster_get_dashboard_page_id' ) ? almaden_bookster_get_dashboard_page_id() : 0
 		);
 		$add_rule(
+			'reading_stats',
+			function_exists( 'almaden_bookster_get_reading_stats_slug' ) ? almaden_bookster_get_reading_stats_slug() : 'my-reading-stats',
+			function_exists( 'almaden_bookster_get_reading_stats_title' ) ? almaden_bookster_get_reading_stats_title() : 'My Reading Stats',
+			function_exists( 'almaden_bookster_get_reading_stats_page_id' ) ? almaden_bookster_get_reading_stats_page_id() : 0
+		);
+		$add_rule(
 			'course_creator',
 			function_exists( 'almaden_bookster_get_course_creator_slug' ) ? almaden_bookster_get_course_creator_slug() : 'sala-de-clases',
 			function_exists( 'almaden_bookster_get_course_creator_title' ) ? almaden_bookster_get_course_creator_title() : 'Sala de clases',

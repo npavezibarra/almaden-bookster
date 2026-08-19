@@ -36,6 +36,12 @@ $shell_links = array(
 		'url'   => function_exists( 'almaden_bookster_get_store_page_url' ) ? almaden_bookster_get_store_page_url() : home_url( '/' ),
 		'desc'  => 'Entra al catálogo público de ebooks.',
 	),
+	array(
+		'key'   => 'reading_stats',
+		'label' => function_exists( 'almaden_bookster_get_reading_stats_title' ) ? almaden_bookster_get_reading_stats_title() : 'My Reading Stats',
+		'url'   => function_exists( 'almaden_bookster_get_reading_stats_page_url' ) ? almaden_bookster_get_reading_stats_page_url() : home_url( '/' ),
+		'desc'  => 'Revisa tus highlights, actividad y progreso de lectura.',
+	),
 );
 
 $shell_links = array_values(

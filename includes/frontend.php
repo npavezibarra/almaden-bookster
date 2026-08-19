@@ -102,6 +102,39 @@ function almaden_bookster_load_dashboard() {
 }
 add_action( 'template_redirect', 'almaden_bookster_load_dashboard', 5 );
 
+function almaden_bookster_load_reading_stats() {
+	$reading_stats_slug = function_exists( 'almaden_bookster_get_reading_stats_slug' ) ? almaden_bookster_get_reading_stats_slug() : 'my-reading-stats';
+	$reading_stats_route = function_exists( 'get_query_var' ) ? trim( (string) get_query_var( 'almaden_reading_stats_view', '' ) ) : '';
+
+	if ( ! is_main_query() || ( '' === $reading_stats_route && ! is_page( $reading_stats_slug ) ) ) {
+		return;
+	}
+
+	show_admin_bar( false );
+	if ( function_exists( 'almaden_bookster_maybe_render_shell_page_access' ) && ! almaden_bookster_maybe_render_shell_page_access( 'reading_stats' ) ) {
+		return;
+	}
+
+	global $wp_query;
+	if ( $wp_query ) {
+		$wp_query->is_404 = false;
+		$wp_query->is_page = true;
+		$wp_query->is_singular = true;
+	}
+
+	status_header( 200 );
+	nocache_headers();
+
+	$template_path = dirname( __FILE__ ) . '/../templates/shell/reading-stats-app.php';
+	if ( file_exists( $template_path ) ) {
+		require_once $template_path;
+		exit;
+	}
+
+	wp_die( 'Plantilla de estadisticas de lectura no encontrada.' );
+}
+add_action( 'template_redirect', 'almaden_bookster_load_reading_stats', 5 );
+
 // 2. Interceptar la página configurada para cargar nuestra app independiente
 function almaden_bookster_load_booklist() {
 	if ( is_page( almaden_bookster_get_creator_slug() ) && is_main_query() ) {

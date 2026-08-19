@@ -15,6 +15,9 @@ function almaden_bookster_get_pages_settings_defaults() {
 		'dashboard_page_id' => 0,
 		'dashboard_slug'    => 'dashboard',
 		'dashboard_title'   => 'Dashboard',
+		'reading_stats_page_id' => 0,
+		'reading_stats_slug'    => 'my-reading-stats',
+		'reading_stats_title'   => 'My Reading Stats',
 		'course_creator_page_id' => 0,
 		'course_creator_slug'    => 'sala-de-clases',
 		'course_creator_title'   => 'Sala de clases',
@@ -55,6 +58,8 @@ function almaden_bookster_sanitize_pages_settings( $raw_settings ) {
 	$shell_home_menu_enabled = ! empty( $raw_settings['shell_home_menu_enabled'] ) ? 1 : 0;
 	$dashboard_slug  = isset( $raw_settings['dashboard_slug'] ) ? sanitize_title( wp_unslash( $raw_settings['dashboard_slug'] ) ) : ( isset( $current_settings['dashboard_slug'] ) && '' !== $current_settings['dashboard_slug'] ? $current_settings['dashboard_slug'] : $defaults['dashboard_slug'] );
 	$dashboard_title = isset( $raw_settings['dashboard_title'] ) ? sanitize_text_field( wp_unslash( $raw_settings['dashboard_title'] ) ) : ( isset( $current_settings['dashboard_title'] ) && '' !== $current_settings['dashboard_title'] ? $current_settings['dashboard_title'] : $defaults['dashboard_title'] );
+	$reading_stats_slug  = isset( $raw_settings['reading_stats_slug'] ) ? sanitize_title( wp_unslash( $raw_settings['reading_stats_slug'] ) ) : ( isset( $current_settings['reading_stats_slug'] ) && '' !== $current_settings['reading_stats_slug'] ? $current_settings['reading_stats_slug'] : $defaults['reading_stats_slug'] );
+	$reading_stats_title = isset( $raw_settings['reading_stats_title'] ) ? sanitize_text_field( wp_unslash( $raw_settings['reading_stats_title'] ) ) : ( isset( $current_settings['reading_stats_title'] ) && '' !== $current_settings['reading_stats_title'] ? $current_settings['reading_stats_title'] : $defaults['reading_stats_title'] );
 	$course_creator_slug  = isset( $raw_settings['course_creator_slug'] ) ? sanitize_title( wp_unslash( $raw_settings['course_creator_slug'] ) ) : $defaults['course_creator_slug'];
 	$course_creator_title = isset( $raw_settings['course_creator_title'] ) ? sanitize_text_field( wp_unslash( $raw_settings['course_creator_title'] ) ) : $defaults['course_creator_title'];
 	$course_archive_slug  = isset( $raw_settings['course_archive_slug'] ) ? sanitize_title( wp_unslash( $raw_settings['course_archive_slug'] ) ) : $defaults['course_archive_slug'];
@@ -128,6 +133,14 @@ function almaden_bookster_sanitize_pages_settings( $raw_settings ) {
 		$store_menu_label = $defaults['store_menu_label'];
 	}
 
+	if ( '' === $reading_stats_slug ) {
+		$reading_stats_slug = $defaults['reading_stats_slug'];
+	}
+
+	if ( '' === $reading_stats_title ) {
+		$reading_stats_title = $defaults['reading_stats_title'];
+	}
+
 	return array(
 		'creator_page_id' => isset( $raw_settings['creator_page_id'] ) ? absint( $raw_settings['creator_page_id'] ) : 0,
 		'creator_slug'    => $slug,
@@ -139,6 +152,9 @@ function almaden_bookster_sanitize_pages_settings( $raw_settings ) {
 		'dashboard_page_id' => isset( $raw_settings['dashboard_page_id'] ) ? absint( $raw_settings['dashboard_page_id'] ) : ( isset( $current_settings['dashboard_page_id'] ) ? absint( $current_settings['dashboard_page_id'] ) : 0 ),
 		'dashboard_slug'    => $dashboard_slug,
 		'dashboard_title'   => $dashboard_title,
+		'reading_stats_page_id' => isset( $raw_settings['reading_stats_page_id'] ) ? absint( $raw_settings['reading_stats_page_id'] ) : ( isset( $current_settings['reading_stats_page_id'] ) ? absint( $current_settings['reading_stats_page_id'] ) : 0 ),
+		'reading_stats_slug'    => $reading_stats_slug,
+		'reading_stats_title'   => $reading_stats_title,
 		'course_creator_page_id' => isset( $raw_settings['course_creator_page_id'] ) ? absint( $raw_settings['course_creator_page_id'] ) : 0,
 		'course_creator_slug'    => $course_creator_slug,
 		'course_creator_title'   => $course_creator_title,

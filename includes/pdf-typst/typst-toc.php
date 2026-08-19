@@ -37,7 +37,7 @@ function almaden_bookster_typst_toc_leader_fill( $leader_style, $thickness = 0.3
 			return '';
 		case 'dotted':
 		default:
-			return '#repeat([·], gap: 0.2em)';
+			return '#repeat([.], gap: 0.2em)';
 	}
 }
 
@@ -144,10 +144,8 @@ function almaden_bookster_typst_render_toc( $chapter, $chapters, $settings, $fal
 	$title_padding_bottom = is_numeric( $chapter['toc_title_padding_bottom'] ?? null ) ? (float) $chapter['toc_title_padding_bottom'] : 1.5;
 	$item_spacing_pt = is_numeric( $chapter['toc_item_spacing'] ?? null ) ? round( (float) $chapter['toc_item_spacing'] * 0.75, 3 ) : 0.0;
 	$page_number_offset_pt = is_numeric( $page_number_offset ) ? (float) $page_number_offset : 0.0;
-	$leader_fill = almaden_bookster_typst_toc_leader_fill( $chapter['toc_leader_style'] ?? 'dotted', $chapter['toc_leader_thickness'] ?? 0.35 );
-	$leader_align = 'bottom' === strtolower( trim( (string) ( $chapter['toc_leader_position'] ?? 'bottom' ) ) ) ? 'bottom' : 'horizon';
-	$leader_min_width_em = is_numeric( $chapter['toc_leader_min_width'] ?? null ) ? max( 1.0, min( 12.0, (float) $chapter['toc_leader_min_width'] ) ) : 4.0;
-	$leader_min_width_pt = round( $leader_min_width_em * (float) $item_style['size'], 3 );
+	$leader_style = strtolower( trim( (string) ( $chapter['toc_leader_style'] ?? 'dotted' ) ) );
+	$leader_fill = almaden_bookster_typst_toc_leader_fill( $leader_style, $chapter['toc_leader_thickness'] ?? 0.35 );
 	$grid_gutter_pt = round( 0.35 * (float) $item_style['size'], 3 );
 	$item_align = in_array( $item_style['align'], array( 'left', 'center', 'right' ), true ) ? $item_style['align'] : 'left';
 	$enumerate = strtolower( trim( (string) ( $chapter['toc_enumerate'] ?? 'none' ) ) );
@@ -196,7 +194,11 @@ function almaden_bookster_typst_render_toc( $chapter, $chapters, $settings, $fal
 		$number = trim( (string) ( $entry['number'] ?? '' ) );
 		$number_content = '' !== $number ? almaden_bookster_typst_toc_styled_text( $number, $number_style ) : '';
 		$title_content = almaden_bookster_typst_toc_styled_text( $entry['title'], $item_style );
-		$leader_content = '' !== $leader_fill ? '#box(width: 100%, baseline: ' . $leader_align . ')[' . $leader_fill . ']' : '';
+		$leader_box_options = 'width: 1fr, inset: 0pt';
+		if ( 'solid' === $leader_style ) {
+			$leader_box_options .= ', baseline: bottom';
+		}
+		$leader_content = '' !== $leader_fill ? '#box(' . $leader_box_options . ')[' . $leader_fill . ']' : '';
 		$page_expr = '#context { let marks = query(<' . $entry['label'] . '>); if marks.len() > 0 { counter(page).display(at: marks.last().location()) } else { "" } }';
 		$page_expr = '#text(font: "' . almaden_bookster_typst_escape_string( $page_style['family'] ) . '", size: ' . $page_style['size'] . 'pt, weight: ' . $page_style['weight'] . ', style: "' . almaden_bookster_typst_escape_string( $page_style['style'] ) . '", tracking: ' . $page_style['tracking'] . 'pt)[' . $page_expr . ']';
 		$page_expr = 0.0 !== $page_number_offset_pt ? '#move(dy: ' . round( $page_number_offset_pt, 3 ) . 'pt)[' . $page_expr . ']' : $page_expr;
@@ -208,13 +210,13 @@ function almaden_bookster_typst_render_toc( $chapter, $chapters, $settings, $fal
 		$output .= '  let toc-gutter = ' . $grid_gutter_pt . 'pt' . "\n";
 		$output .= '  let number-width = toc-number-samples.fold(0pt, (current, sample) => calc.max(current, measure(sample).width))' . "\n";
 		$output .= '  let page-width = measure(toc-page).width' . "\n";
-		$output .= '  let natural-title-width = measure(toc-title).width' . "\n";
-		$output .= '  let max-title-width = calc.max(' . $item_style['size'] . 'pt, size.width - number-width - page-width - ' . $leader_min_width_pt . 'pt - ' . ( $has_number_column ? '3' : '2' ) . ' * toc-gutter)' . "\n";
-		$output .= '  let title-width = calc.min(natural-title-width, max-title-width)' . "\n";
+		$output .= '' !== $leader_content
+			? '  let toc-main = [#align(' . $item_align . ')[#toc-title#h(toc-gutter)#toc-leader]]' . "\n"
+			: '  let toc-main = [#align(' . $item_align . ')[#toc-title]]' . "\n";
 		if ( $has_number_column ) {
-			$output .= '  grid(columns: (number-width, title-width, 1fr, page-width), gutter: toc-gutter, row-gutter: 0pt, align: (left + top, ' . $item_align . ' + top, left + bottom, right + bottom), toc-number, toc-title, toc-leader, toc-page)' . "\n";
+			$output .= '  grid(columns: (number-width, 1fr, page-width), gutter: toc-gutter, row-gutter: 0pt, align: (left + top, left + top, right + bottom), toc-number, toc-main, toc-page)' . "\n";
 		} else {
-			$output .= '  grid(columns: (title-width, 1fr, page-width), gutter: toc-gutter, row-gutter: 0pt, align: (' . $item_align . ' + top, left + bottom, right + bottom), toc-title, toc-leader, toc-page)' . "\n";
+			$output .= '  grid(columns: (1fr, page-width), gutter: toc-gutter, row-gutter: 0pt, align: (left + top, right + bottom), toc-main, toc-page)' . "\n";
 		}
 		$output .= '})]' . "\n";
 		$output .= $entry_index < count( $visible_chapters ) - 1 ? '#v(' . $item_spacing_pt . 'pt)' . "\n" : '';

@@ -46,8 +46,11 @@ function almaden_bookster_handle_pages_settings_save() {
 			'shell_home_page_id' => isset( $_POST['shell_home_page_id'] ) ? absint( $_POST['shell_home_page_id'] ) : 0,
 			'shell_home_slug'    => isset( $_POST['shell_home_slug'] ) ? wp_unslash( $_POST['shell_home_slug'] ) : '',
 			'shell_home_title'   => isset( $_POST['shell_home_title'] ) ? wp_unslash( $_POST['shell_home_title'] ) : '',
-			'shell_home_menu_enabled' => isset( $_POST['shell_home_menu_enabled'] ) ? 1 : 0,
-			'authors_page_id' => isset( $_POST['authors_page_id'] ) ? absint( $_POST['authors_page_id'] ) : 0,
+				'shell_home_menu_enabled' => isset( $_POST['shell_home_menu_enabled'] ) ? 1 : 0,
+				'reading_stats_page_id' => isset( $_POST['reading_stats_page_id'] ) ? absint( $_POST['reading_stats_page_id'] ) : 0,
+				'reading_stats_slug'    => isset( $_POST['reading_stats_slug'] ) ? wp_unslash( $_POST['reading_stats_slug'] ) : '',
+				'reading_stats_title'   => isset( $_POST['reading_stats_title'] ) ? wp_unslash( $_POST['reading_stats_title'] ) : '',
+				'authors_page_id' => isset( $_POST['authors_page_id'] ) ? absint( $_POST['authors_page_id'] ) : 0,
 			'authors_slug'    => isset( $_POST['authors_slug'] ) ? wp_unslash( $_POST['authors_slug'] ) : '',
 			'authors_title'   => isset( $_POST['authors_title'] ) ? wp_unslash( $_POST['authors_title'] ) : '',
 			'store_page_id'   => isset( $_POST['store_page_id'] ) ? absint( $_POST['store_page_id'] ) : 0,
@@ -148,8 +151,9 @@ function almaden_bookster_get_page_id_for_section( $section_key ) {
 	$getters = array(
 		'shell_home'          => 'almaden_bookster_get_shell_home_page_id',
 		'creator'             => 'almaden_bookster_get_creator_page_id',
-		'dashboard'           => 'almaden_bookster_get_dashboard_page_id',
-		'course_creator'      => 'almaden_bookster_get_course_creator_page_id',
+			'dashboard'           => 'almaden_bookster_get_dashboard_page_id',
+			'reading_stats'       => 'almaden_bookster_get_reading_stats_page_id',
+			'course_creator'      => 'almaden_bookster_get_course_creator_page_id',
 		'course_archive'      => 'almaden_bookster_get_course_archive_page_id',
 		'authors'             => 'almaden_bookster_get_authors_page_id',
 		'author'              => 'almaden_bookster_get_author_page_id',
@@ -187,9 +191,12 @@ function almaden_bookster_sync_pages_for_section( $section_key ) {
 		case 'creator':
 			almaden_bookster_sync_creator_page();
 			break;
-		case 'dashboard':
-			almaden_bookster_sync_dashboard_page();
-			break;
+			case 'dashboard':
+				almaden_bookster_sync_dashboard_page();
+				break;
+			case 'reading_stats':
+				almaden_bookster_sync_reading_stats_page();
+				break;
 		case 'course_creator':
 			almaden_bookster_sync_course_creator_page();
 			break;
@@ -297,6 +304,22 @@ function almaden_bookster_get_pages_admin_sections() {
 			'status'      => function_exists( 'almaden_bookster_get_page_sync_state' ) ? almaden_bookster_get_page_sync_state( isset( $shared_settings['dashboard_page_id'] ) ? $shared_settings['dashboard_page_id'] : 0, isset( $shared_settings['dashboard_slug'] ) ? $shared_settings['dashboard_slug'] : '', isset( $shared_settings['dashboard_title'] ) ? $shared_settings['dashboard_title'] : '' ) : array(),
 			'extra_fields' => array(
 				almaden_bookster_build_page_visibility_field( 'dashboard' ),
+			),
+		),
+		array(
+			'key'         => 'reading_stats',
+			'heading'     => 'My Reading Stats',
+			'description' => 'Panel personal de highlights, quizzes y actividad de lectura.',
+			'page_id_name'=> 'reading_stats_page_id',
+			'title_name'  => 'reading_stats_title',
+			'slug_name'   => 'reading_stats_slug',
+			'page_id'     => function_exists( 'almaden_bookster_get_reading_stats_page_id' ) ? almaden_bookster_get_reading_stats_page_id() : 0,
+			'title'       => function_exists( 'almaden_bookster_get_reading_stats_title' ) ? almaden_bookster_get_reading_stats_title() : '',
+			'slug'        => function_exists( 'almaden_bookster_get_reading_stats_slug' ) ? almaden_bookster_get_reading_stats_slug() : '',
+			'url'         => function_exists( 'almaden_bookster_get_reading_stats_page_url' ) ? almaden_bookster_get_reading_stats_page_url() : '',
+			'status'      => function_exists( 'almaden_bookster_get_page_sync_state' ) ? almaden_bookster_get_page_sync_state( function_exists( 'almaden_bookster_get_reading_stats_page_id' ) ? almaden_bookster_get_reading_stats_page_id() : 0, function_exists( 'almaden_bookster_get_reading_stats_slug' ) ? almaden_bookster_get_reading_stats_slug() : '', function_exists( 'almaden_bookster_get_reading_stats_title' ) ? almaden_bookster_get_reading_stats_title() : '' ) : array(),
+			'extra_fields' => array(
+				almaden_bookster_build_page_visibility_field( 'reading_stats' ),
 			),
 		),
 		array(

@@ -183,11 +183,11 @@ Funciones principales:
 
 Responsabilidad: construir el Índice como una tabla editorial sin bordes.
 
-La estructura del Índice se modela como una fila de cuatro celdas lógicas:
+La estructura del Índice se modela como una fila de tres celdas físicas:
 
 - `{n}` o `{r}`: numeración del capítulo, opcional.
-- `{chapter title}`: título del capítulo.
-- `{line}`: leader visual que conecta el título con el número de página.
+- `{chapter title}` + `{line}`: contenido central donde el leader continúa el
+  flujo tipográfico del título.
 - `{pn}`: número de página.
 
 Cada fila vive como una unidad editorial, pero cada elemento mantiene su propia
@@ -204,14 +204,14 @@ El renderer aplica además estas reglas de composición:
   número más ancho entre todos los capítulos visibles. Así, si un capítulo usa
   `I.` y otro usa `XXII.`, la celda de `{n}` ocupa el ancho de `XXII.` y todos
   los títulos arrancan desde el mismo eje.
-- El título se mide con su ancho natural, pero se le reserva un ancho máximo
-  derivado del ancho disponible de la página, del ancho de la numeración, del
-  ancho del número de página y de un mínimo para el leader.
-- El leader no pertenece al título como texto: es una celda propia. Cuando el
-  título ocupa dos líneas, el leader continúa desde la última línea del título
-  hasta `{pn}` en esa misma fila visual.
-- Si no hay numeración activa, la tabla se reduce a tres celdas: `{chapter
-  title}` + `{line}` + `{pn}`.
+- El título y el leader comparten la celda central. El leader es un elemento
+  flexible `1fr` dentro del mismo párrafo: si el título ocupa dos o más líneas,
+  comienza inmediatamente después de la última palabra de la última línea y
+  completa el espacio hasta `{pn}`.
+- `dotted` repite el glifo tipográfico `.`, `solid` dibuja una línea continua,
+  `dashed` conserva la variante a rayas y `none` omite el leader.
+- Si no hay numeración activa, la tabla se reduce a dos celdas: contenido
+  central (`{chapter title}` + `{line}`) y `{pn}`.
 - La posición vertical del número de página puede ajustarse con el offset
   `page_number_offset`, que se traduce a `#move(dy: ...)` al renderizar Typst.
 

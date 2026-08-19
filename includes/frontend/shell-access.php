@@ -89,6 +89,38 @@ if ( ! function_exists( 'almaden_bookster_render_shell_access_denied_page' ) ) {
 	}
 }
 
+if ( ! function_exists( 'almaden_bookster_get_shell_login_url' ) ) {
+	function almaden_bookster_get_shell_login_url( $redirect_to = '' ) {
+		if ( '' === trim( (string) $redirect_to ) ) {
+			$redirect_to = function_exists( 'home_url' ) ? home_url( '/' ) : '/';
+		}
+
+		if ( class_exists( '\AlmadenBookster\Auth\Utilities\AuthUtils' ) ) {
+			return \AlmadenBookster\Auth\Utilities\AuthUtils::build_modal_url( 'login', function_exists( 'home_url' ) ? home_url( '/' ) : '/', array( 'redirect_to' => $redirect_to ) );
+		}
+
+		$base_url = function_exists( 'home_url' ) ? home_url( '/' ) : '/';
+		return add_query_arg(
+			array(
+				'pl_auth_view' => 'login',
+				'redirect_to'  => $redirect_to,
+			),
+			$base_url
+		);
+	}
+}
+
+if ( ! function_exists( 'almaden_bookster_is_auth_modal_request' ) ) {
+	function almaden_bookster_is_auth_modal_request() {
+		if ( ! isset( $_GET['pl_auth_view'] ) ) {
+			return false;
+		}
+
+		$view = sanitize_key( (string) wp_unslash( $_GET['pl_auth_view'] ) );
+		return in_array( $view, array( 'login', 'register', 'forgot' ), true );
+	}
+}
+
 if ( ! function_exists( 'almaden_bookster_get_shell_access_denied_copy' ) ) {
 	function almaden_bookster_get_shell_access_denied_copy( $page_key ) {
 		$page_key = sanitize_key( (string) $page_key );
@@ -124,6 +156,31 @@ if ( ! function_exists( 'almaden_bookster_maybe_render_shell_page_access' ) ) {
 
 		if ( function_exists( 'almaden_bookster_user_can_access_frontend_page' ) && almaden_bookster_user_can_access_frontend_page( $page_key ) ) {
 			return true;
+		}
+
+		if ( function_exists( 'is_user_logged_in' ) && ! is_user_logged_in() ) {
+			if ( function_exists( 'almaden_bookster_is_auth_modal_request' ) && almaden_bookster_is_auth_modal_request() ) {
+				$copy = function_exists( 'almaden_bookster_get_shell_access_denied_copy' ) ? almaden_bookster_get_shell_access_denied_copy( $page_key ) : array();
+				almaden_bookster_render_shell_access_denied_page(
+					array_merge(
+						array(
+							'page_key'   => $page_key,
+							'message'    => 'Inicia sesión para continuar.',
+							'submessage' => 'Después de entrar, volverás automáticamente a la página solicitada.',
+						),
+						is_array( $copy ) ? $copy : array()
+					)
+				);
+			}
+
+			$current_request_uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '/';
+			$current_url = function_exists( 'home_url' ) ? home_url( $current_request_uri ?: '/' ) : '/';
+			$login_url = function_exists( 'almaden_bookster_get_shell_login_url' ) ? almaden_bookster_get_shell_login_url( $current_url ) : '';
+
+			if ( '' !== trim( (string) $login_url ) ) {
+				wp_safe_redirect( $login_url );
+				exit;
+			}
 		}
 
 		if ( function_exists( 'almaden_bookster_render_shell_access_denied_page' ) ) {

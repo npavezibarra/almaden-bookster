@@ -37,6 +37,7 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/publishers/permissions.php'
 require_once plugin_dir_path( __FILE__ ) . 'includes/publishers/settings.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/publishers/onboarding.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/publishers/tour.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/book-templates/repository.php';
 
 // --- Frontend Booklist y Creación Automática de Página ---
 require_once plugin_dir_path( __FILE__ ) . 'includes/frontend.php';

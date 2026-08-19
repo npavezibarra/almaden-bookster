@@ -171,6 +171,7 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 	$source .= '  let chapter_marks = query(<almaden-chapter-start>).filter(mark => mark.location().page() <= current)' . "\n";
 	$source .= '  let chapter_start = if chapter_marks.len() > 0 { chapter_marks.last().location().page() } else { 0 }' . "\n";
 	$source .= '  let is_first_chapter_page = chapter_marks.filter(mark => mark.location().page() == current).len() > 0' . "\n";
+	$source .= '  let is_chapter_opening_page = query(<almaden-chapter-opening>).filter(mark => mark.location().page() == current).len() > 0' . "\n";
 	$source .= '  let chapter_image_marks = query(<almaden-chapter-image-page>).filter(mark => mark.location().page() < current)' . "\n";
 	$source .= '  let is_first_text_page_after_image = chapter_image_marks.len() > 0 and chapter_image_marks.last().location().page() == current - 1' . "\n";
 	$source .= '  let is_chapter_image_page = query(<almaden-chapter-image-page>).any(mark => mark.location().page() == current)' . "\n";
@@ -181,7 +182,7 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 	$source .= '  let chapter_suppresses = query(suppress_marker).filter(mark => mark.location().page() >= chapter_start and mark.location().page() <= current).len() > 0' . "\n";
 	$source .= '  let page_suppresses = query(suppress_page_marker).any(mark => mark.location().page() == current)' . "\n";
 	$source .= '  let is_even = calc.even(current)' . "\n";
-	$source .= '  let use_first_page_config = is_first_text_page_after_image or is_first_chapter_page' . "\n";
+	$source .= '  let use_first_page_config = is_chapter_opening_page or is_first_text_page_after_image or is_first_chapter_page' . "\n";
 	$source .= '  let kind = if is_intentional_blank or hides_transition_running or chapter_suppresses or page_suppresses or is_chapter_image_page {' . "\n";
 	$source .= '    "blank"' . "\n";
 	$source .= '  } else if use_first_page_config {' . "\n";

@@ -15,7 +15,7 @@ function wp_mkdir_p( $path ) { return is_dir( $path ) || mkdir( $path, 0777, tru
 require_once dirname( __DIR__ ) . '/includes/ajax/ajax-typst-pdf.php';
 
 $client_state_source = file_get_contents( dirname( __DIR__ ) . '/assets/js/pdf/typst/editor-typst-pdf-state.js' );
-if ( false === strpos( $client_state_source, "const PREVIEW_CACHE_VERSION = 'v9';" ) ) {
+if ( false === strpos( $client_state_source, "const PREVIEW_CACHE_VERSION = 'v11';" ) ) {
 	fwrite( STDERR, "La caché persistente del navegador no fue invalidada para el nuevo renderer del Índice.\n" );
 	exit( 1 );
 }

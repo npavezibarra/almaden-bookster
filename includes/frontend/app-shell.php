@@ -61,6 +61,13 @@ if ( ! function_exists( 'almaden_bookster_render_shared_nav' ) ) {
 				'url'   => almaden_bookster_get_dashboard_page_url(),
 			);
 		}
+		if ( function_exists( 'almaden_bookster_get_reading_stats_page_url' ) ) {
+			$user_menu_items[] = array(
+				'key'   => 'reading_stats',
+				'label' => function_exists( 'almaden_bookster_get_reading_stats_title' ) ? almaden_bookster_get_reading_stats_title() : 'My Reading Stats',
+				'url'   => almaden_bookster_get_reading_stats_page_url(),
+			);
+		}
 		if ( function_exists( 'almaden_bookster_get_creator_page_url' ) ) {
 			$user_menu_items[] = array(
 				'key'   => 'creator',

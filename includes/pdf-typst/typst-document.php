@@ -284,7 +284,10 @@ function almaden_bookster_build_typst_document( $payload ) {
 
 		if ( $show_subtitle ) {
 			$subtitle_text = trim( (string) ( $chapter['subtitle_text'] ?? '' ) );
-			$subtitle_font_family = almaden_bookster_typst_font_family( $chapter['subtitle_font_family'] ?? ( $settings['chapter_subtitle_font_family'] ?? $font_family ), $font_family );
+			$subtitle_font_family = almaden_bookster_typst_font_family(
+				almaden_bookster_typst_string_override( $chapter['subtitle_font_family'] ?? '', $settings['chapter_subtitle_font_family'] ?? $font_family ),
+				$font_family
+			);
 			$subtitle_font_size = almaden_bookster_typst_number( $chapter, 'subtitle_font_size', almaden_bookster_typst_number( $settings, 'chapter_subtitle_font_size', 12, 6, 72 ), 6, 72 );
 			$subtitle_font_weight = almaden_bookster_typst_font_weight( $chapter['subtitle_font_weight'] ?? ( $settings['chapter_subtitle_font_weight'] ?? $font_weight ), $font_weight );
 			$subtitle_font_style_source = trim( (string) ( $chapter['subtitle_font_style'] ?? '' ) );
@@ -305,6 +308,9 @@ function almaden_bookster_build_typst_document( $payload ) {
 		}
 
 		if ( ! empty( $opening_lines ) ) {
+			// Running header/footer settings for the first chapter page must follow
+			// the actual opening, which can come after a dedicated image page.
+			$source .= '#metadata("' . almaden_bookster_typst_escape_string( $title ) . '") <almaden-chapter-opening>' . "\n";
 			if ( $separate_opening ) {
 				$source .= '#almaden-page-styled("opening")[' . "\n";
 				$source .= '#box(width: 100%, height: 100%)[' . "\n";

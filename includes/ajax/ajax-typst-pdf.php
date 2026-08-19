@@ -21,7 +21,7 @@ add_action( 'wp_ajax_almaden_compile_typst_pdf', 'almaden_bookster_ajax_compile_
  */
 function almaden_bookster_typst_preview_cache_key( $document ) {
 	$parts = array(
-		'almaden-typst-preview-v3',
+		'almaden-typst-preview-v5',
 		(string) ( $document['source'] ?? '' ),
 		wp_json_encode( $document['page_templates'] ?? array() ),
 	);

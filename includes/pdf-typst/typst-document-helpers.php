@@ -20,6 +20,18 @@ function almaden_bookster_typst_number( $settings, $key, $fallback, $min, $max )
 	return max( $min, min( $max, $value ) );
 }
 
+/**
+ * Resolve a string override while treating an empty value as "inherit".
+ *
+ * Chapter payloads always include the override keys, even when the editor is
+ * using the book-level setting. A null-coalesce expression therefore cannot
+ * distinguish an intentional override from an empty inherited value.
+ */
+function almaden_bookster_typst_string_override( $override, $fallback ) {
+	$override = trim( (string) $override );
+	return '' !== $override ? $override : (string) $fallback;
+}
+
 function almaden_bookster_typst_transform_title( $title, $transform ) {
 	switch ( $transform ) {
 		case 'uppercase':

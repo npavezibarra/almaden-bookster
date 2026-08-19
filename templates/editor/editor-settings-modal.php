@@ -50,23 +50,33 @@
             <div id="tab-templates" class="setting-tab-content space-y-5 hidden">
                 <div class="border border-[var(--border-color)] rounded-xl p-4 bg-[var(--bg-app)] space-y-3 shadow-sm">
                     <h4 class="text-xs font-bold text-black dark:text-white uppercase tracking-wider flex items-center gap-1.5 border-b border-[var(--border-color)] pb-2 mb-1">
-                        <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Plantillas de Libro Predeterminadas
+                        <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Plantillas de Libro
                     </h4>
-                    <p class="text-[10px] text-[var(--text-muted)] mb-3">Aplica una configuración estandarizada de márgenes, tipografías, apertura y capítulos de muestra a tu libro. <strong>Atención: esto sobrescribirá tus ajustes actuales.</strong></p>
+                    <p class="text-[10px] text-[var(--text-muted)]">Aplica una configuración completa de diseño a tu libro. <strong>Al aplicar una plantilla se reemplazarán los ajustes actuales.</strong></p>
+
+                    <div class="inline-flex rounded-lg border border-[var(--border-color)] bg-[var(--bg-sidebar)] p-1" role="tablist" aria-label="Tipos de plantillas">
+                        <button type="button" id="book-template-tab-system" data-book-template-group="system" role="tab" aria-selected="true" class="book-template-subtab rounded-md bg-black px-3 py-1.5 text-[10px] font-bold text-white transition">
+                            Estándar <span id="book-template-count-system" class="ml-1 opacity-70">0</span>
+                        </button>
+                        <button type="button" id="book-template-tab-personal" data-book-template-group="personal" role="tab" aria-selected="false" class="book-template-subtab rounded-md px-3 py-1.5 text-[10px] font-bold text-[var(--text-muted)] transition hover:text-[var(--text-main)]">
+                            Mis plantillas <span id="book-template-count-personal" class="ml-1 opacity-70">0</span>
+                        </button>
+                    </div>
+
                     <div id="templates-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Renderizado por JS -->
                         <div class="text-[10px] text-[var(--text-muted)] italic"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Cargando plantillas de libro...</div>
                     </div>
                     
-                <div class="mt-4 pt-4 border-t border-[var(--border-color)]">
+                    <div class="mt-4 pt-4 border-t border-[var(--border-color)]">
                         <div class="flex flex-wrap items-center gap-2">
                             <button type="button" id="save-book-template-btn" onclick="promptSaveCurrentAsBookTemplate()" class="text-[11px] font-semibold text-black dark:text-white bg-transparent border border-black dark:border-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded px-3 py-1.5 transition inline-flex items-center gap-2">
                                 <i class="fa-solid fa-plus"></i>
-                                Guardar Ajustes Actuales como Plantilla de Libro
+                                Crear plantilla con estos ajustes
                             </button>
                             <button type="button" onclick="promptUploadBookTemplate()" class="text-[11px] font-semibold text-black dark:text-white bg-transparent border border-black dark:border-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded px-3 py-1.5 transition inline-flex items-center gap-2">
                                 <i class="fa-solid fa-file-arrow-up"></i>
-                                Cargar Plantilla JSON
+                                Importar JSON
                             </button>
                             <input id="book-template-upload-input" type="file" accept=".json,application/json" class="hidden" onchange="handleBookTemplateUpload(event)">
                         </div>

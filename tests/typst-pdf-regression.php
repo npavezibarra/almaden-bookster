@@ -316,6 +316,21 @@ foreach ( $chapter_control_fragments as $fragment ) {
 		exit( 1 );
 	}
 }
+if ( false === strpos( $chapter_controls_source, '<almaden-chapter-opening>' ) || false === strpos( $chapter_controls_source, 'is_chapter_opening_page' ) || false === strpos( $chapter_controls_source, 'use_first_page_config = is_chapter_opening_page or is_first_text_page_after_image or is_first_chapter_page' ) ) {
+	fwrite( STDERR, 'La cabecera y el pie de la primera página no están vinculados a la apertura real.' . PHP_EOL );
+	exit( 1 );
+}
+
+// An empty per-chapter override must inherit the configured book-level family.
+$inherited_subtitle_payload = $chapter_controls_payload;
+$inherited_subtitle_payload['settings']['font_family_content'] = 'Libertinus Serif';
+$inherited_subtitle_payload['settings']['chapter_subtitle_font_family'] = 'Cormorant Garamond';
+$inherited_subtitle_payload['chapters'][0]['subtitle_font_family'] = '';
+$inherited_subtitle_source = almaden_bookster_build_typst_document( $inherited_subtitle_payload )['source'];
+if ( false === strpos( $inherited_subtitle_source, '#text(font: "Cormorant Garamond", size: 14pt' ) ) {
+	fwrite( STDERR, 'La familia global del subtítulo no se heredó cuando el override del capítulo está vacío.' . PHP_EOL );
+	exit( 1 );
+}
 $title_position = strpos( $chapter_controls_source, 'TÍTULO DE CONTROL' );
 $prefix_position = strpos( $chapter_controls_source, 'PREFIJO 1' );
 if ( false === $title_position || false === $prefix_position || $prefix_position < $title_position ) {
@@ -385,7 +400,6 @@ $toc_visible_title_payload['chapters'][0]['toc_hide_page_numbers'] = '1';
 $toc_visible_title_payload['chapters'][0]['hide_header'] = '0';
 $toc_visible_title_payload['chapters'][0]['hide_footer'] = '0';
 $toc_visible_title_payload['chapters'][0]['toc_page_number_offset'] = '-1.2';
-$toc_visible_title_payload['chapters'][0]['toc_leader_min_width'] = '5.5';
 $toc_visible_title_payload['chapters'][0]['toc_enumerate'] = 'roman';
 $toc_visible_title_document = almaden_bookster_build_typst_document( $toc_visible_title_payload );
 if ( false === strpos( $toc_visible_title_document['source'], '#set text(font: "Outfit", size: 19.5pt, weight: 800, style: "normal", tracking: 0pt)' ) ) {
@@ -404,12 +418,12 @@ if ( false === strpos( $toc_visible_title_document['source'], '#move(dy: -1.2pt)
 	fwrite( STDERR, 'El nuevo ajuste vertical del número de página no llegó al render del Índice.' . PHP_EOL );
 	exit( 1 );
 }
-if ( false === strpos( $toc_visible_title_document['source'], 'columns: (number-width, title-width, 1fr, page-width)' ) ) {
-	fwrite( STDERR, 'El Índice no conserva las cuatro celdas de numeración, título, línea y página.' . PHP_EOL );
+if ( false === strpos( $toc_visible_title_document['source'], 'columns: (number-width, 1fr, page-width)' ) ) {
+	fwrite( STDERR, 'El Índice no conserva las celdas de numeración, contenido central y página.' . PHP_EOL );
 	exit( 1 );
 }
-if ( false === strpos( $toc_visible_title_document['source'], 'size.width - number-width - page-width - 57.75pt - 3 * toc-gutter' ) ) {
-	fwrite( STDERR, 'El ancho mínimo configurable del leader no llegó al documento Typst.' . PHP_EOL );
+if ( false === strpos( $toc_visible_title_document['source'], 'let toc-main = [#align(right)[#toc-title#h(toc-gutter)#toc-leader]]' ) ) {
+	fwrite( STDERR, 'El título y el leader no comparten el flujo de la celda central.' . PHP_EOL );
 	exit( 1 );
 }
 if ( 1 !== substr_count( $toc_visible_title_document['source'], '#let toc-number-samples = ' ) || false === strpos( $toc_visible_title_document['source'], '[I.]' ) || false === strpos( $toc_visible_title_document['source'], '[XVII.]' ) ) {
@@ -420,11 +434,23 @@ if ( false === strpos( $toc_visible_title_document['source'], 'toc-number-sample
 	fwrite( STDERR, 'La columna de numeración no usa el ancho real de su número más ancho.' . PHP_EOL );
 	exit( 1 );
 }
-if ( false === strpos( $toc_visible_title_document['source'], '#box(width: 100%, baseline: bottom)[#repeat([-], gap: 0.3em)]' ) ) {
-	fwrite( STDERR, 'La línea del Índice no ocupa su celda flexible.' . PHP_EOL );
+if ( '#repeat([.], gap: 0.2em)' !== almaden_bookster_typst_toc_leader_fill( 'dotted' ) ) {
+	fwrite( STDERR, 'El leader punteado del Índice no usa puntos tipográficos sobre la línea base del texto.' . PHP_EOL );
 	exit( 1 );
 }
-if ( false === strpos( $toc_visible_title_document['source'], 'align: (left + top, right + top, left + bottom, right + bottom)' ) ) {
+if ( false === strpos( almaden_bookster_typst_toc_leader_fill( 'solid', 0.5 ), '#line(length: 100%, stroke: 0.5pt)' ) ) {
+	fwrite( STDERR, 'El leader continuo del Índice no conserva su línea flexible.' . PHP_EOL );
+	exit( 1 );
+}
+if ( '' !== almaden_bookster_typst_toc_leader_fill( 'none' ) ) {
+	fwrite( STDERR, 'El modo sin leader del Índice todavía genera contenido visual.' . PHP_EOL );
+	exit( 1 );
+}
+if ( false === strpos( $toc_visible_title_document['source'], '#box(width: 1fr, inset: 0pt)[#repeat([-], gap: 0.3em)]' ) ) {
+	fwrite( STDERR, 'La línea del Índice no completa la última línea del título.' . PHP_EOL );
+	exit( 1 );
+}
+if ( false === strpos( $toc_visible_title_document['source'], 'align: (left + top, left + top, right + bottom)' ) ) {
 	fwrite( STDERR, 'Las celdas del Índice no conservan el número de página junto a la última línea del título.' . PHP_EOL );
 	exit( 1 );
 }
