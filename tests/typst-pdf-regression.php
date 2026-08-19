@@ -15,6 +15,16 @@ if ( ! function_exists( 'esc_url_raw' ) ) {
 
 require_once dirname( __DIR__ ) . '/includes/pdf-typst/typst-document.php';
 
+$one_cm_header_reserve = round( 1 + almaden_bookster_typst_pt_to_unit( 8, 'cm' ) + 1, 4 );
+if ( 2.2822 !== $one_cm_header_reserve || 2.2822 !== almaden_bookster_typst_running_content_margin( 0, $one_cm_header_reserve ) ) {
+	fwrite( STDERR, 'La reserva de una cabecera de 8 pt con márgenes de 1 cm no coincide con su altura física.' . PHP_EOL );
+	exit( 1 );
+}
+if ( 3.0 !== almaden_bookster_typst_running_content_margin( 3, $one_cm_header_reserve ) ) {
+	fwrite( STDERR, 'La cabecera redujo un margen de página mayor que su reserva.' . PHP_EOL );
+	exit( 1 );
+}
+
 $prefix_visibility = almaden_bookster_typst_chapter_opening_visibility(
 	array(
 		'title'       => 'Capítulo con cabecera en blanco',
@@ -220,11 +230,13 @@ $required_typography = array(
 		'#set par(justify: false, first-line-indent: 0pt, leading: 0.2em, spacing: 0pt)',
 		'Capítulo 1',
 		'#line(length: 100%, stroke: 0.35pt)',
-	'#set page(width: 14cm, height: 20cm, margin: (top: ',
-		'#align(center)[ ÍNDICE ]',
-	'header: context {',
-	'footer: context {',
-);
+		'#set page(width: 14cm, height: 20cm, margin: (top: ',
+			'#align(center)[ ÍNDICE ]',
+		'#let almaden-page-running-overlay() = context {',
+		'place(top + left, dx: horizontal_start, dy: 1cm)',
+		'place(bottom + left, dx: horizontal_start, dy: -1cm)',
+		'foreground: almaden-page-running-overlay()',
+	);
 $list_count = substr_count( $document['source'], '#list(' );
 if ( $list_count < 2 ) {
 	fwrite( STDERR, 'La sintaxis Markdown con bullets `*` no se convirtió en listas Typst.' . PHP_EOL );
@@ -240,6 +252,10 @@ foreach ( $required_typography as $required ) {
 		fwrite( STDERR, 'Falta configuración Typst: ' . $required . PHP_EOL );
 		exit( 1 );
 	}
+}
+if ( false !== strpos( $document['source'], 'header: context {' ) || false !== strpos( $document['source'], 'footer: context {' ) ) {
+	fwrite( STDERR, 'El documento volvió a usar las áreas automáticas de cabecera o pie de Typst.' . PHP_EOL );
+	exit( 1 );
 }
 
 $chapter_controls_payload = array(

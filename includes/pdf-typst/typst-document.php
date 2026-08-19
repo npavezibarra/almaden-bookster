@@ -128,7 +128,9 @@ function almaden_bookster_build_typst_document( $payload ) {
 		// las páginas posteriores siguen necesitando la misma reserva vertical.
 		$chapter_header_reserve = $header_reserve;
 		$chapter_footer_reserve = $footer_reserve;
-		$source .= '#set page(margin: (top: ' . ( $chapter_top_margin + $chapter_header_reserve ) . $unit . ', bottom: ' . ( $chapter_bottom_margin + $chapter_footer_reserve ) . $unit . ', inside: ' . $margin_inside . $unit . ', outside: ' . $margin_outside . $unit . '))' . "\n";
+		$chapter_content_margin_top = almaden_bookster_typst_running_content_margin( $chapter_top_margin, $chapter_header_reserve );
+		$chapter_content_margin_bottom = almaden_bookster_typst_running_content_margin( $chapter_bottom_margin, $chapter_footer_reserve );
+		$source .= '#set page(margin: (top: ' . $chapter_content_margin_top . $unit . ', bottom: ' . $chapter_content_margin_bottom . $unit . ', inside: ' . $margin_inside . $unit . ', outside: ' . $margin_outside . $unit . '))' . "\n";
 
 		$chapter_label_id = preg_replace( '/[^0-9A-Za-z_-]/', '', (string) ( $chapter['id'] ?? (string) ( $chapter_index + 1 ) ) );
 		$source .= '#metadata("' . almaden_bookster_typst_escape_string( $title ) . '") <almaden-chapter-start>' . "\n";
@@ -194,7 +196,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 		}
 
 		if ( $is_credits ) {
-			$source .= '#set page(margin: (top: ' . ( $credit_margin_top + $chapter_header_reserve ) . $unit . ', bottom: ' . ( $credit_margin_bottom + $chapter_footer_reserve ) . $unit . ', inside: ' . $margin_inside . $unit . ', outside: ' . $margin_outside . $unit . '))' . "\n";
+			$source .= '#set page(margin: (top: ' . almaden_bookster_typst_running_content_margin( $credit_margin_top, $chapter_header_reserve ) . $unit . ', bottom: ' . almaden_bookster_typst_running_content_margin( $credit_margin_bottom, $chapter_footer_reserve ) . $unit . ', inside: ' . $margin_inside . $unit . ', outside: ' . $margin_outside . $unit . '))' . "\n";
 		}
 
 		$chapter_number = null;
@@ -409,7 +411,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 			$content_render_options = array(
 				'hyphenation_exceptions' => $hyphenation_exceptions,
 				'asset_mode'             => $asset_mode,
-				'content_height' => max( 1, $height - $margin_top - $margin_bot - $header_reserve - $footer_reserve ), 'unit' => $unit,
+				'content_height' => max( 1, $height - $content_margin_top - $content_margin_bottom ), 'unit' => $unit,
 				'heading_styles'         => array(
 					1 => array(
 						'font_family'    => $heading1_font_family,
@@ -499,7 +501,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 			$source .= '#metadata("' . ( $is_credits ? 'credits-after' : 'chapter-after' ) . '") <almaden-intentional-blank>' . "\n";
 		}
 		if ( $is_credits ) {
-			$source .= '#set page(margin: (top: ' . ( $margin_top + $chapter_header_reserve ) . $unit . ', bottom: ' . ( $margin_bot + $chapter_footer_reserve ) . $unit . ', inside: ' . $margin_inside . $unit . ', outside: ' . $margin_outside . $unit . '))' . "\n";
+			$source .= '#set page(margin: (top: ' . almaden_bookster_typst_running_content_margin( $margin_top, $chapter_header_reserve ) . $unit . ', bottom: ' . almaden_bookster_typst_running_content_margin( $margin_bot, $chapter_footer_reserve ) . $unit . ', inside: ' . $margin_inside . $unit . ', outside: ' . $margin_outside . $unit . '))' . "\n";
 		}
 	}
 
@@ -599,8 +601,8 @@ function almaden_bookster_build_typst_document( $payload ) {
 			'height'         => $height,
 			'top'            => $margin_top,
 			'bottom'         => $margin_bot,
-			'content_top'    => $margin_top + $header_reserve,
-			'content_bottom' => $margin_bot + $footer_reserve,
+			'content_top'    => $content_margin_top,
+			'content_bottom' => $content_margin_bottom,
 			'inside'         => $margin_inside,
 			'outside'        => $margin_outside,
 			'bleed'          => $bleed,

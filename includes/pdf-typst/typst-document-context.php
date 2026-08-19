@@ -263,6 +263,8 @@ function almaden_bookster_typst_build_document_context( $payload ) {
 	$footer_reserve = $footer_has_content
 		? round( $footer_margin_top + almaden_bookster_typst_pt_to_unit( $footer_font_size, $unit ) + $footer_margin_bottom, 4 )
 		: 0;
+	$content_margin_top = almaden_bookster_typst_running_content_margin( $margin_top, $header_reserve );
+	$content_margin_bottom = almaden_bookster_typst_running_content_margin( $margin_bot, $footer_reserve );
 	$page_template_context['asset_mode'] = $asset_mode;
 	$page_template_context['preview_asset_mode'] = $asset_mode;
 	return get_defined_vars();

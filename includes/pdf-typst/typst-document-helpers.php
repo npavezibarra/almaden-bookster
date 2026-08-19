@@ -20,6 +20,10 @@ function almaden_bookster_typst_number( $settings, $key, $fallback, $min, $max )
 	return max( $min, min( $max, $value ) );
 }
 
+function almaden_bookster_typst_running_content_margin( $page_margin, $running_reserve ) {
+	return round( max( 0, (float) $page_margin, (float) $running_reserve ), 4 );
+}
+
 /**
  * Resolve a string override while treating an empty value as "inherit".
  *

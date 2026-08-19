@@ -156,11 +156,11 @@
 
                     <div class="grid grid-cols-2 gap-3 pt-1">
                         <div>
-                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Margen Superior (<span class="unit-label">cm</span>)</label>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Desde borde superior (<span class="unit-label">cm</span>)</label>
                             <input id="setting-header-margin-top" type="number" step="0.1" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                         </div>
                         <div>
-                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Margen Inferior (<span class="unit-label">cm</span>)</label>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Separación bajo cabecera (<span class="unit-label">cm</span>)</label>
                             <input id="setting-header-margin-bottom" type="number" step="0.1" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                         </div>
                     </div>
@@ -256,11 +256,11 @@
 
                     <div class="grid grid-cols-2 gap-3 pt-1">
                         <div>
-                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Margen Superior (<span class="unit-label">cm</span>)</label>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Separación sobre pie (<span class="unit-label">cm</span>)</label>
                             <input id="setting-footer-margin-top" type="number" step="0.1" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                         </div>
                         <div>
-                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Margen Inferior (<span class="unit-label">cm</span>)</label>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Hasta borde inferior (<span class="unit-label">cm</span>)</label>
                             <input id="setting-footer-margin-bottom" type="number" step="0.1" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                         </div>
                     </div>

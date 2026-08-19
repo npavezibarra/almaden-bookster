@@ -77,6 +77,9 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 	$footer_reserve = $footer_has_content
 		? round( $footer_margin_top + almaden_bookster_typst_pt_to_unit( $footer_font_size, $unit ) + $footer_margin_bottom, 4 )
 		: 0;
+	$content_margin_top = almaden_bookster_typst_running_content_margin( $margin_top, $header_reserve );
+	$content_margin_bottom = almaden_bookster_typst_running_content_margin( $margin_bot, $footer_reserve );
+	$running_width = round( max( 0.1, $width - $margin_inside - $margin_outside ), 4 );
 	$page_styles = isset( $page_styles ) && is_array( $page_styles ) ? $page_styles : array();
 	$page_style_resolvers = array(
 		'fill' => array(),
@@ -236,21 +239,28 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 	$source .= '  }' . "\n";
 	$source .= '}' . "\n\n";
 
+	$source .= '#let almaden-page-running-overlay() = context {' . "\n";
+	$source .= '  let current = here().page()' . "\n";
+	$source .= '  let horizontal_start = if calc.even(current) { ' . $margin_outside . $unit . ' } else { ' . $margin_inside . $unit . ' }' . "\n";
+	$source .= '  let header_running = almaden-resolve-running-element("' . almaden_bookster_typst_escape_string( $book_title ) . '", ' . ( $first_page_header_show ? 'true' : 'false' ) . ', "' . almaden_bookster_typst_escape_string( $first_page_header_type ) . '", "' . almaden_bookster_typst_escape_string( $first_page_header_custom ) . '", "' . almaden_bookster_typst_escape_string( $header_even_type ) . '", "' . almaden_bookster_typst_escape_string( $header_even_custom ) . '", "' . almaden_bookster_typst_escape_string( $header_odd_type ) . '", "' . almaden_bookster_typst_escape_string( $header_odd_custom ) . '", "' . almaden_bookster_typst_escape_string( $header_text_transform ) . '", "header")' . "\n";
+	$source .= '  if header_running != "" {' . "\n";
+	$source .= '    place(top + left, dx: horizontal_start, dy: ' . $header_margin_top . $unit . ')[#box(width: ' . $running_width . $unit . ')[#almaden-running-area(header_running, "header", "' . almaden_bookster_typst_escape_string( $header_align ) . '", "' . $header_font_family . '", ' . $header_font_size . 'pt, ' . $header_font_weight . ', "' . almaden_bookster_typst_escape_string( $header_font_style ) . '", ' . $header_letter_spacing . 'pt, 0pt, 0pt, ' . ( $header_hyphenate ? 'true' : 'false' ) . ')]]' . "\n";
+	$source .= '  }' . "\n";
+	$source .= '  let footer_running = almaden-resolve-running-element("' . almaden_bookster_typst_escape_string( $book_title ) . '", ' . ( $first_page_footer_show ? 'true' : 'false' ) . ', "' . almaden_bookster_typst_escape_string( $first_page_footer_type ) . '", "' . almaden_bookster_typst_escape_string( $first_page_footer_custom ) . '", "' . almaden_bookster_typst_escape_string( $footer_even_type ) . '", "' . almaden_bookster_typst_escape_string( $footer_even_custom ) . '", "' . almaden_bookster_typst_escape_string( $footer_odd_type ) . '", "' . almaden_bookster_typst_escape_string( $footer_odd_custom ) . '", "' . almaden_bookster_typst_escape_string( $footer_text_transform ) . '", "footer")' . "\n";
+	$source .= '  if footer_running != "" {' . "\n";
+	$source .= '    place(bottom + left, dx: horizontal_start, dy: -' . $footer_margin_bottom . $unit . ')[#box(width: ' . $running_width . $unit . ')[#almaden-running-area(footer_running, "footer", "' . almaden_bookster_typst_escape_string( $footer_align ) . '", "' . $footer_font_family . '", ' . $footer_font_size . 'pt, ' . $footer_font_weight . ', "' . almaden_bookster_typst_escape_string( $footer_font_style ) . '", ' . $footer_letter_spacing . 'pt, 0pt, 0pt, false)]]' . "\n";
+	$source .= '  }' . "\n";
+	$source .= '}' . "\n\n";
+
 	$source .= '#set document(title: "' . almaden_bookster_typst_escape_string( $payload['title'] ?? '' ) . '")' . "\n";
 	$source .= '#set page(width: ' . $width . $unit . ', height: ' . $height . $unit .
-		', margin: (top: ' . ( $margin_top + $header_reserve ) . $unit . ', bottom: ' . ( $margin_bot + $footer_reserve ) . $unit .
+		', margin: (top: ' . $content_margin_top . $unit . ', bottom: ' . $content_margin_bottom . $unit .
 		', inside: ' . $margin_inside . $unit . ', outside: ' . $margin_outside . $unit . '),' .
 		' fill: rgb("ffffff"),' .
 		' background: almaden-page-background(),' .
+		' foreground: almaden-page-running-overlay(),' .
 		' binding: left, bleed: ' . $bleed . $unit . ',' .
-		' header: context {' . "\n" .
-		'  let running = almaden-resolve-running-element("' . almaden_bookster_typst_escape_string( $book_title ) . '", ' . ( $first_page_header_show ? 'true' : 'false' ) . ', "' . almaden_bookster_typst_escape_string( $first_page_header_type ) . '", "' . almaden_bookster_typst_escape_string( $first_page_header_custom ) . '", "' . almaden_bookster_typst_escape_string( $header_even_type ) . '", "' . almaden_bookster_typst_escape_string( $header_even_custom ) . '", "' . almaden_bookster_typst_escape_string( $header_odd_type ) . '", "' . almaden_bookster_typst_escape_string( $header_odd_custom ) . '", "' . almaden_bookster_typst_escape_string( $header_text_transform ) . '", "header")' . "\n" .
-		'  almaden-running-area(running, "header", "' . almaden_bookster_typst_escape_string( $header_align ) . '", "' . $header_font_family . '", ' . $header_font_size . 'pt, ' . $header_font_weight . ', "' . almaden_bookster_typst_escape_string( $header_font_style ) . '", ' . $header_letter_spacing . 'pt, ' . $header_margin_top . $unit . ', ' . $header_margin_bottom . $unit . ', ' . ( $header_hyphenate ? 'true' : 'false' ) . ')' . "\n" .
-		'},' . "\n" .
-		' footer: context {' . "\n" .
-		'  let running = almaden-resolve-running-element("' . almaden_bookster_typst_escape_string( $book_title ) . '", ' . ( $first_page_footer_show ? 'true' : 'false' ) . ', "' . almaden_bookster_typst_escape_string( $first_page_footer_type ) . '", "' . almaden_bookster_typst_escape_string( $first_page_footer_custom ) . '", "' . almaden_bookster_typst_escape_string( $footer_even_type ) . '", "' . almaden_bookster_typst_escape_string( $footer_even_custom ) . '", "' . almaden_bookster_typst_escape_string( $footer_odd_type ) . '", "' . almaden_bookster_typst_escape_string( $footer_odd_custom ) . '", "' . almaden_bookster_typst_escape_string( $footer_text_transform ) . '", "footer")' . "\n" .
-		'  almaden-running-area(running, "footer", "' . almaden_bookster_typst_escape_string( $footer_align ) . '", "' . $footer_font_family . '", ' . $footer_font_size . 'pt, ' . $footer_font_weight . ', "' . almaden_bookster_typst_escape_string( $footer_font_style ) . '", ' . $footer_letter_spacing . 'pt, ' . $footer_margin_top . $unit . ', ' . $footer_margin_bottom . $unit . ', false)' . "\n" .
-		'})' . "\n";
+		')' . "\n";
 	$source .= '#set text(fill: rgb("111111"), font: "' . almaden_bookster_typst_escape_string( $font_family ) . '", size: ' .
 		$font_size . 'pt, weight: ' . $font_weight . ', lang: "' .
 		almaden_bookster_typst_escape_string( $lang ?: 'es' ) . '", hyphenate: ' . ( $hyphenate ? 'true' : 'false' ) .
