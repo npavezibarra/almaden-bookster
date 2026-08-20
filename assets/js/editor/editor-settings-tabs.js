@@ -170,6 +170,13 @@ function switchChapterSettingsInnerTab(tabId) {
     }
 }
 
+function toggleBookOpeningPositionSetting() {
+    const separateField = document.getElementById('setting-book-separate-opening-content');
+    const wrapper = document.getElementById('book-opening-position-wrapper');
+    if (!separateField || !wrapper) return;
+    wrapper.classList.toggle('hidden', !separateField.checked);
+}
+
 window.setFootnoteAlignment = function(alignment) {
     const allowed = ['left', 'center', 'right', 'justify'];
     const value = allowed.includes(String(alignment).toLowerCase()) ? String(alignment).toLowerCase() : 'left';
@@ -481,12 +488,16 @@ window.populateSettingsForm = function() {
     );
     if (document.getElementById('setting-book-separate-opening-content')) {
         document.getElementById('setting-book-separate-opening-content').checked = settings.book_separate_opening_content !== 0 && settings.book_separate_opening_content !== '0';
+        toggleBookOpeningPositionSetting();
     }
     if (document.getElementById('setting-book-chapter-flow-mode')) {
         document.getElementById('setting-book-chapter-flow-mode').value = derivedBookFlowMode;
     }
     if (document.getElementById('setting-chapter-start-parity')) {
         document.getElementById('setting-chapter-start-parity').value = derivedLegacyParity;
+    }
+    if (document.getElementById('setting-chapter-image-default')) {
+        document.getElementById('setting-chapter-image-default').value = settings.chapter_image_default === '1' || settings.chapter_image_default === 1 ? '1' : '0';
     }
 
     if (document.getElementById('setting-chapter-page-one-align')) {

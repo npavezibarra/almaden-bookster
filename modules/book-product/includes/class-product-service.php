@@ -193,6 +193,28 @@ final class Product_Service {
 		return self::state( $book_id );
 	}
 
+	public static function update_product_status( $book_id, $status ) {
+		$state = Relation_Repository::get( $book_id );
+		$target_id = absint( $state['parent_product_id'] ?? 0 );
+		if ( ! $target_id ) {
+			$target_id = absint( $state['product_id'] ?? 0 );
+		}
+		if ( ! $target_id || ! function_exists( 'wc_get_product' ) ) {
+			return new \WP_Error( 'product_required', 'Primero vincula o crea un producto.' );
+		}
+
+		$product = wc_get_product( $target_id );
+		if ( ! $product ) {
+			return new \WP_Error( 'product_not_found', 'No se encontró el producto seleccionado.' );
+		}
+
+		$status = almaden_bookster_normalize_wc_product_status( $status );
+		$product->set_status( $status );
+		$product->save();
+
+		return self::state( $book_id );
+	}
+
 	public static function add_format( $book_id, $format, $args ) {
 		$state = Relation_Repository::get( $book_id );
 		$parent_id = absint( $state['parent_product_id'] ?? 0 );

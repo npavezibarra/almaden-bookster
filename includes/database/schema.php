@@ -70,6 +70,10 @@ if ( ! function_exists( 'almaden_bookster_install_database_schema' ) ) {
 		if ( function_exists( 'almaden_bookster_create_publishers_tables' ) ) {
 			almaden_bookster_create_publishers_tables();
 		}
+
+		if ( function_exists( 'almaden_bookster_create_book_sample_chapters_table' ) ) {
+			almaden_bookster_create_book_sample_chapters_table();
+		}
 	}
 }
 

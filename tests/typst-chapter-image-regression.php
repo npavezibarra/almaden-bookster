@@ -55,6 +55,13 @@ $document = almaden_bookster_build_typst_document(
 			$chapter( 'Content box', 'page_blank' ),
 			$chapter( 'Full bleed', 'image_full_page' ),
 			$chapter( 'Ajustable', 'image_inner', 50 ),
+			array(
+				'title'                  => 'Placeholder sin imagen',
+				'content'                => 'Contenido de prueba.',
+				'chapter_image_override' => '1',
+				'chapter_image_mode'     => 'image_full_page',
+				'chapter_image_url'      => '',
+			),
 		),
 	)
 );
@@ -75,6 +82,10 @@ foreach ( $expected_fragments as $fragment ) {
 		fwrite( STDERR, "Falta geometria Typst para imagen de capitulo: {$fragment}\n" );
 		exit( 1 );
 	}
+}
+if ( false === strpos( $source, '#metadata("chapter-image-placeholder") <almaden-chapter-image-page>' ) ) {
+	fwrite( STDERR, "La politica de imagen no reserva una pagina cuando falta la imagen del capitulo.\n" );
+	exit( 1 );
 }
 if ( false !== strpos( $source, "background: {\n#" ) ) {
 	fwrite( STDERR, "El fondo de imagen reintrodujo markup (#) dentro de un bloque de codigo Typst.\n" );

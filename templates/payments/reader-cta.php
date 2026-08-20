@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<p style="margin:0; font-size:12px; text-transform:uppercase; letter-spacing:.12em; color:#6b7280;">Bookster</p>
 			<p style="margin:4px 0 0; font-size:16px; font-weight:700; color:#111827;">Lectura digital asociada a este producto</p>
 		</div>
-		<a class="button alt" href="<?php echo esc_url( $reader_url ); ?>" style="background:#111827; color:#fff; border-color:#111827;">
+		<a class="button alt" href="<?php echo esc_url( $reader_url ); ?>" style="display:inline-flex; align-items:center; justify-content:center; background:#000000; color:#fff; font-size:14px; padding:10px 20px; border-radius:6px; font-weight:500; border:1px solid #000000; letter-spacing:2px; text-decoration:none; text-transform:uppercase;">
 			<?php esc_html_e( 'LEER EBOOK', 'almaden-bookster' ); ?>
 		</a>
 	</div>

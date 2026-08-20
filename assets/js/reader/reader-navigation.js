@@ -26,6 +26,92 @@ function renderReaderChapterStatus(root, message, className, role) {
     root.replaceChildren(status);
 }
 
+function escapeReaderNavigationHtml(value) {
+	return String(value ?? '').replace(/[&<>'"]/g, (char) => ({
+		'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+	}[char]));
+}
+
+function ensureReaderPurchaseModal() {
+	let modal = document.getElementById('reader-purchase-modal');
+	if (modal) {
+		return modal;
+	}
+
+	modal = document.createElement('div');
+	modal.id = 'reader-purchase-modal';
+	modal.className = 'reader-purchase-modal hidden';
+	modal.innerHTML = `
+		<div class="reader-purchase-modal-backdrop" data-reader-purchase-close></div>
+		<div class="reader-purchase-modal-panel" role="dialog" aria-modal="true" aria-labelledby="reader-purchase-modal-title">
+			<button type="button" class="reader-purchase-modal-close" data-reader-purchase-close aria-label="Cerrar">&times;</button>
+			<div class="reader-purchase-modal-icon" aria-hidden="true">
+				<i class="fa-solid fa-lock"></i>
+			</div>
+			<p class="reader-purchase-modal-kicker">Contenido protegido</p>
+			<h2 id="reader-purchase-modal-title">Necesitas comprar este libro</h2>
+			<p class="reader-purchase-modal-copy" data-reader-purchase-copy>Este capítulo forma parte del ebook completo. Compra el libro para continuar leyendo.</p>
+			<div class="reader-purchase-modal-actions">
+				<a class="reader-purchase-modal-button" data-reader-purchase-button href="/">Comprar libro</a>
+			</div>
+		</div>`;
+	document.body.appendChild(modal);
+
+	modal.querySelectorAll('[data-reader-purchase-close]').forEach((button) => {
+		button.addEventListener('click', closeReaderPurchaseModal);
+	});
+	modal.addEventListener('click', (event) => {
+		if (event.target === modal) {
+			closeReaderPurchaseModal();
+		}
+	});
+	return modal;
+}
+
+function openReaderPurchaseModal(chapter = {}) {
+	const modal = ensureReaderPurchaseModal();
+	const purchaseUrl = bookData.purchaseUrl || bookData.returnUrl || '/';
+	const titleNode = modal.querySelector('#reader-purchase-modal-title');
+	const copyNode = modal.querySelector('[data-reader-purchase-copy]');
+	const button = modal.querySelector('[data-reader-purchase-button]');
+	if (titleNode) {
+		titleNode.hidden = true;
+	}
+	if (copyNode) {
+		copyNode.textContent = 'Este capítulo forma parte del ebook completo. Compra el libro para desbloquearlo.';
+	}
+	if (button) {
+		button.setAttribute('href', purchaseUrl);
+		button.textContent = 'Ir al producto';
+	}
+	modal.classList.remove('hidden');
+	modal.classList.add('is-open');
+	document.body.classList.add('reader-modal-open');
+}
+
+function closeReaderPurchaseModal() {
+	const modal = document.getElementById('reader-purchase-modal');
+	if (!modal) return;
+	modal.classList.add('hidden');
+	modal.classList.remove('is-open');
+	document.body.classList.remove('reader-modal-open');
+}
+
+function updateReaderChapterNavigation(index) {
+	const btnPrev = document.getElementById('btn-prev-chapter');
+	const btnNext = document.getElementById('btn-next-chapter');
+	let prevIndex = index - 1;
+	while (prevIndex >= 0 && (bookData.chapters[prevIndex].is_toc === '1' || bookData.chapters[prevIndex].is_credits === '1')) prevIndex--;
+	let nextIndex = index + 1;
+	while (nextIndex < bookData.chapters.length && (bookData.chapters[nextIndex].is_toc === '1' || bookData.chapters[nextIndex].is_credits === '1')) nextIndex++;
+	btnPrev?.classList.toggle('hidden', prevIndex < 0);
+	btnNext?.classList.toggle('hidden', nextIndex >= bookData.chapters.length);
+}
+
+function renderLockedReaderChapter(chapter, index) {
+	openReaderPurchaseModal(chapter);
+}
+
 // Reading Mode Toggle
 function toggleReadingMode(mode) {
     readingMode = mode;
@@ -186,7 +272,6 @@ function showIndexView() {
 }
 
 async function showChapterView(index) {
-    currentChapterIndex = index;
     const chapter = bookData.chapters[index];
     if (window.console && console.log) {
         console.log('[AlmadenBookster Reader] showChapterView', {
@@ -198,6 +283,13 @@ async function showChapterView(index) {
             isCredits: chapter ? chapter.is_credits : null
         });
     }
+
+	if (!chapter || chapter.locked) {
+		renderLockedReaderChapter(chapter || {}, index);
+		return;
+	}
+
+    currentChapterIndex = index;
     
     document.getElementById('almaden-view-index').classList.add('hidden');
     const viewHighlights = document.getElementById('almaden-view-highlights');
@@ -426,30 +518,7 @@ async function showChapterView(index) {
     }
 
     // Nav buttons
-    const btnPrev = document.getElementById('btn-prev-chapter');
-    const btnNext = document.getElementById('btn-next-chapter');
-    
-    let prevIndex = index - 1;
-    while (prevIndex >= 0 && (bookData.chapters[prevIndex].is_toc === '1' || bookData.chapters[prevIndex].is_credits === '1')) {
-        prevIndex--;
-    }
-
-    if (prevIndex >= 0) {
-        btnPrev.classList.remove('hidden');
-    } else {
-        btnPrev.classList.add('hidden');
-    }
-
-    let nextIndex = index + 1;
-    while (nextIndex < bookData.chapters.length && (bookData.chapters[nextIndex].is_toc === '1' || bookData.chapters[nextIndex].is_credits === '1')) {
-        nextIndex++;
-    }
-
-    if (nextIndex < bookData.chapters.length) {
-        btnNext.classList.remove('hidden');
-    } else {
-        btnNext.classList.add('hidden');
-    }
+	updateReaderChapterNavigation(index);
 
     if (window.ALMADEN_READER_QUIZZES && typeof window.ALMADEN_READER_QUIZZES.updateTakeQuizButton === 'function') {
         window.ALMADEN_READER_QUIZZES.updateTakeQuizButton(index);

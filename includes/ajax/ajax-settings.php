@@ -202,6 +202,7 @@ function almaden_bookster_save_settings_ajax() {
 		'footnote_separator_thickness' => isset( $_POST['footnote_separator_thickness'] ) ? floatval( str_replace( ',', '.', $_POST['footnote_separator_thickness'] ) ) : 0.25,
 		'footnote_separator_margin_bottom' => isset( $_POST['footnote_separator_margin_bottom'] ) ? floatval( str_replace( ',', '.', $_POST['footnote_separator_margin_bottom'] ) ) : 0.15,
 		'chapter_start_parity'       => sanitize_text_field( $_POST['chapter_start_parity'] ),
+		'chapter_image_default'     => isset( $_POST['chapter_image_default'] ) && '1' === (string) $_POST['chapter_image_default'] ? '1' : '0',
 		'parity_image_mode'          => sanitize_text_field( $_POST['parity_image_mode'] ),
 		'chapter_page_one_align'     => $page_one_alignment['combined'],
 		'chapter_page_one_vertical'  => $page_one_alignment['vertical'],

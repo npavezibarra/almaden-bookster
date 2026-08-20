@@ -148,6 +148,7 @@ function almaden_get_book_pdf_settings( $book_id ) {
 		'book_separate_opening_content' => 1,
 		'book_chapter_flow_mode'     => 'continuous',
 		'chapter_start_parity'       => 'any',
+		'chapter_image_default'     => '0',
 		'chapter_transition_blank_mode' => 'full_blank',
 		'chapter_transition_blank_text' => '...',
 		'parity_image_mode'          => 'content',

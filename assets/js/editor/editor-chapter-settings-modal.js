@@ -266,11 +266,16 @@ function openChapterSettingsModal() {
             || legacyChapterImageDefaults.chapter_image_enabled === '1'
             || !!hasLegacyChapterImage;
         document.getElementById('chapter_opening_separate_content').value = activeChapter.opening_separate_content ?? '';
-        document.getElementById('chapter_image_enabled').checked = derivedChapterImageEnabled;
+        const chapterImageOverride = activeChapter.chapter_image_override === '0' || activeChapter.chapter_image_override === '1'
+            ? activeChapter.chapter_image_override
+            : (activeChapter.chapter_image_enabled === '0' || activeChapter.chapter_image_enabled === '1' ? activeChapter.chapter_image_enabled : '');
+        document.getElementById('chapter_image_override').value = chapterImageOverride;
         document.getElementById('chapter_image_mode').value = activeChapter.chapter_image_mode || legacyChapterImageDefaults.chapter_image_mode || 'page_blank';
         document.getElementById('chapter_image_url').value = activeChapter.chapter_image_url || legacyChapterImageDefaults.chapter_image_url || '';
         document.getElementById('chapter_image_inner_width').value = activeChapter.chapter_image_inner_width || legacyChapterImageDefaults.chapter_image_inner_width || '100';
 
+        const hasSubtitleText = String(activeChapter.subtitle_text || '').trim() !== '';
+        document.getElementById('chapter_subtitle_show').checked = activeChapter.subtitle_show === '1' || (activeChapter.subtitle_show !== '0' && hasSubtitleText);
         document.getElementById('chapter_subtitle_text').value = activeChapter.subtitle_text || '';
         document.getElementById('chapter_subtitle_font_family').value = activeChapter.subtitle_font_family || '';
         if (document.getElementById('chapter_subtitle_align')) {
@@ -284,13 +289,16 @@ function openChapterSettingsModal() {
         document.getElementById('chapter_subtitle_font_style').value = activeChapter.subtitle_font_style || 'normal';
         document.getElementById('chapter_subtitle_text_transform').value = activeChapter.subtitle_text_transform || 'none';
         document.getElementById('chapter_subtitle_font_weight').value = activeChapter.subtitle_font_weight || 'normal';
-        document.getElementById('chapter_subtitle_margin_top').value = activeChapter.subtitle_margin_top || '';
-        document.getElementById('chapter_subtitle_margin_bottom').value = activeChapter.subtitle_margin_bottom || '';
+        document.getElementById('chapter_subtitle_padding_top').value = activeChapter.subtitle_padding_top || activeChapter.subtitle_margin_top || '';
+        document.getElementById('chapter_subtitle_padding_bottom').value = activeChapter.subtitle_padding_bottom || activeChapter.subtitle_margin_bottom || '';
+        document.getElementById('chapter_subtitle_padding_left').value = activeChapter.subtitle_padding_left || '';
+        document.getElementById('chapter_subtitle_padding_right').value = activeChapter.subtitle_padding_right || '';
     }
 
     toggleChapterCustomFirstPageHeader();
     toggleChapterCustomFirstPageFooter();
     toggleOpeningPageControls();
+    toggleChapterSubtitleControls();
     toggleChapterImageSettingsForChapter();
 
     modal.classList.remove('hidden');
@@ -450,13 +458,15 @@ async function saveChapterSettings() {
         activeChapter.first_page_footer_type = document.getElementById('chapter_first_page_footer_type').value;
         activeChapter.first_page_footer_custom = document.getElementById('chapter_first_page_footer_custom').value;
         activeChapter.opening_separate_content = document.getElementById('chapter_opening_separate_content').value;
-        activeChapter.chapter_image_enabled = document.getElementById('chapter_image_enabled').checked ? '1' : '0';
+        activeChapter.chapter_image_override = document.getElementById('chapter_image_override').value;
+        activeChapter.chapter_image_enabled = activeChapter.chapter_image_override;
         activeChapter.chapter_image_mode = document.getElementById('chapter_image_mode').value;
         activeChapter.chapter_image_url = document.getElementById('chapter_image_url').value;
         activeChapter.chapter_image_inner_width = document.getElementById('chapter_image_inner_width').value;
 		activeChapter.chapter_image_inner_header = '0';
 		activeChapter.chapter_image_inner_footer = '0';
 
+        activeChapter.subtitle_show = document.getElementById('chapter_subtitle_show').checked ? '1' : '0';
         activeChapter.subtitle_text = document.getElementById('chapter_subtitle_text').value;
         activeChapter.subtitle_font_family = document.getElementById('chapter_subtitle_font_family').value;
         activeChapter.subtitle_align = ['left', 'center', 'right'].includes(String(document.getElementById('chapter_subtitle_align').value || '').toLowerCase())
@@ -467,8 +477,10 @@ async function saveChapterSettings() {
         activeChapter.subtitle_font_style = document.getElementById('chapter_subtitle_font_style').value;
         activeChapter.subtitle_text_transform = document.getElementById('chapter_subtitle_text_transform').value;
         activeChapter.subtitle_font_weight = document.getElementById('chapter_subtitle_font_weight').value;
-        activeChapter.subtitle_margin_top = document.getElementById('chapter_subtitle_margin_top').value;
-        activeChapter.subtitle_margin_bottom = document.getElementById('chapter_subtitle_margin_bottom').value;
+        activeChapter.subtitle_padding_top = document.getElementById('chapter_subtitle_padding_top').value;
+        activeChapter.subtitle_padding_bottom = document.getElementById('chapter_subtitle_padding_bottom').value;
+        activeChapter.subtitle_padding_left = document.getElementById('chapter_subtitle_padding_left').value;
+        activeChapter.subtitle_padding_right = document.getElementById('chapter_subtitle_padding_right').value;
     }
 
     const btn = document.querySelector('#chapter-settings-modal button[onclick="saveChapterSettings()"]');

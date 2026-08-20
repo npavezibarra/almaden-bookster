@@ -3,10 +3,11 @@
 
     const root = document.getElementById('almaden-book-product-panel');
     const content = document.getElementById('almaden-book-product-content');
+	const sampleContent = document.getElementById('almaden-book-sample-content');
     const status = document.getElementById('almaden-book-product-status');
     const initial = document.getElementById('almaden-book-product-initial-state');
     const api = window.AlmadenBookProductAPI;
-    if (!root || !content || !status || !initial || !api) return;
+	if (!root || !content || !sampleContent || !status || !initial || !api) return;
 
     let state = JSON.parse(initial.textContent || '{}');
     let mode = 'link';
@@ -15,12 +16,17 @@
     let searchResults = [];
     let activeResult = -1;
     let searchTimer = null;
+	let activeTab = 'commerce';
 
     const formatOrder = ['both', 'physical', 'ebook'];
     const formatLabels = {
         both: 'Ambos',
         physical: 'Físico',
         ebook: 'Ebook',
+    };
+    const productStatusLabels = {
+        publish: 'Publicado',
+        draft: 'Borrador',
     };
 
     const escape = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({
@@ -113,6 +119,42 @@
         status.className = 'abp-status is-visible is-error';
         root.classList.remove('is-busy');
     };
+
+	const switchSubtab = (tab) => {
+		activeTab = tab === 'samples' ? 'samples' : 'commerce';
+		root.querySelectorAll('[data-abp-tab]').forEach((button) => {
+			const active = button.dataset.abpTab === activeTab;
+			button.classList.toggle('is-active', active);
+			button.setAttribute('aria-selected', active ? 'true' : 'false');
+		});
+		content.hidden = activeTab !== 'commerce';
+		sampleContent.hidden = activeTab !== 'samples';
+	};
+
+	const bindSampleEvents = () => {
+		root.querySelectorAll('[data-abp-tab]').forEach((button) => {
+			button.addEventListener('click', () => switchSubtab(button.dataset.abpTab));
+		});
+		sampleContent.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+			checkbox.addEventListener('change', () => {
+				const row = checkbox.closest('.abp-sample-row');
+				const badge = row?.querySelector('.abp-sample-badge');
+				if (badge) badge.textContent = checkbox.checked ? 'Muestra gratis' : 'Bloqueado';
+				row?.classList.toggle('is-selected', checkbox.checked);
+			});
+			checkbox.closest('.abp-sample-row')?.classList.toggle('is-selected', checkbox.checked);
+		});
+		sampleContent.querySelector('[data-action="save-samples"]')?.addEventListener('click', async () => {
+			const ids = Array.from(sampleContent.querySelectorAll('input[type="checkbox"]:checked')).map((input) => Number(input.value));
+			try {
+				setBusy(true, 'Guardando capítulos de muestra…');
+				await api.saveSamples(root, ids);
+				setBusy(false, 'Capítulos de muestra guardados.');
+			} catch (error) {
+				setError(error);
+			}
+		});
+	};
 
     const syncLegacyEditorState = () => {
         window.getCommerceStateFromForm = () => null;
@@ -304,6 +346,13 @@
         <div class="abp-product-summary">
             <div><small>Producto WooCommerce</small><strong>${escape(state.product?.name || '')}</strong><span>#${escape(state.product?.id || '')} · ${escape(state.product?.type || '')}</span></div>
             <div class="abp-summary-actions">
+                <div class="abp-summary-status">
+                    <label class="sr-only" for="abp-product-status">Estado del producto</label>
+                    <select id="abp-product-status" class="abp-summary-status-select">
+                        <option value="draft"${(state.product?.status || 'draft') === 'draft' ? ' selected' : ''}>Borrador</option>
+                        <option value="publish"${(state.product?.status || 'draft') === 'publish' ? ' selected' : ''}>Publicado</option>
+                    </select>
+                </div>
                 ${actionButton('edit-product', 'Editar producto', 'save', '', 'abp-icon-button')}
                 ${actionButton('unlink-product', 'Desvincular producto', 'unlink', '', 'abp-icon-button is-danger')}
             </div>
@@ -369,12 +418,15 @@
     });
 
     const render = () => {
-        if (state.linked) {
+		if (root.dataset.woocommerceActive !== '1') {
+			content.innerHTML = '<div class="abp-card abp-commerce-unavailable">WooCommerce no está activo en este sitio. La selección de capítulos de muestra continúa disponible.</div>';
+		} else if (state.linked) {
             content.innerHTML = editing ? editPanel() : linkedPanel();
         } else {
             content.innerHTML = `${modeSwitch()}<div class="abp-mode-panel">${mode === 'link' ? linkPanel() : createPanel()}</div>`;
         }
         bindEvents();
+		switchSubtab(activeTab);
     };
 
     const bindEvents = () => {
@@ -444,6 +496,11 @@
             perform('Guardando datos del producto…', () => api.update(root, data), 'Datos del producto actualizados.', { keepEditing: true });
         });
 
+        content.querySelector('#abp-product-status')?.addEventListener('change', () => {
+            const nextStatus = document.getElementById('abp-product-status')?.value || 'draft';
+            perform('Actualizando estado del producto…', () => api.updateStatus(root, nextStatus), nextStatus === 'publish' ? 'Producto publicado.' : 'Producto guardado como borrador.', { keepEditing: true });
+        });
+
         content.querySelectorAll('[data-action="add-format"]').forEach((button) => button.addEventListener('click', () => {
             const format = button.dataset.format;
             const payload = getFormatPayload(format);
@@ -476,5 +533,6 @@
     };
 
     syncLegacyEditorState();
-    render();
+	bindSampleEvents();
+	render();
 })();

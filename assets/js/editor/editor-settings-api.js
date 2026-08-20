@@ -258,6 +258,7 @@ window.savePDFSettings = function(silent = false, skipPreview = false) {
 
     data.append('chapter_page_one_align', openingPageAlignment.combined);
     data.append('chapter_page_one_vertical', openingPageAlignment.vertical);
+    data.append('chapter_image_default', getVal('setting-chapter-image-default') === '1' ? '1' : '0');
     data.append('chapter_title_font_family', getVal('setting-chapter-title-font-family'));
     data.append('chapter_title_font_size', getCleanVal('setting-chapter-title-font-size'));
     data.append('chapter_title_font_weight', getVal('setting-chapter-title-font-weight'));

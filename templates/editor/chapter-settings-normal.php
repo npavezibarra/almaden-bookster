@@ -32,16 +32,17 @@
             </select>
         </div>
 
-        <div id="chapter_image_settings_wrapper" class="space-y-3 rounded-xl border border-[var(--border-color)] bg-[var(--bg-app)] p-4 hidden">
+        <div id="chapter_image_settings_wrapper" class="space-y-3 hidden">
             <div class="flex items-center justify-between gap-4 p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
                 <div>
                     <label class="font-semibold block mb-1">Iniciar con Imagen</label>
-                    <span class="text-[10px] text-[var(--text-muted)]">Activa esta opción para mostrar una imagen al inicio del capítulo.</span>
+                    <span class="text-[10px] text-[var(--text-muted)]">Sobrescribe la regla del libro. Si está activo y no hay imagen, se reservará una página en blanco.</span>
                 </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" id="chapter_image_enabled" name="chapter_image_enabled" class="sr-only peer" onchange="toggleChapterImageSettingsForChapter()">
-                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
-                </label>
+                <select id="chapter_image_override" class="w-56 bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" onchange="toggleChapterImageSettingsForChapter()">
+                    <option value="">Usar ajuste del libro</option>
+                    <option value="1">Sí</option>
+                    <option value="0">No</option>
+                </select>
             </div>
 
             <div id="chapter_image_settings_content" class="space-y-3 hidden">
@@ -167,9 +168,23 @@
                 </label>
             </div>
 
+            </div>
+
+            <div class="flex items-center justify-between p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+                <div>
+                    <label class="font-semibold block mb-1">Subtítulo</label>
+                    <span class="text-xs text-[var(--text-muted)]">Activa el subtítulo de este capítulo y permite editar su contenido.</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="chapter_subtitle_show" class="sr-only peer" onchange="toggleChapterSubtitleControls()">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
+                </label>
+            </div>
+
+            <div id="chapter_subtitle_controls" class="space-y-4 hidden">
             <div class="grid grid-cols-1 gap-4">
                 <div>
-                    <label class="block font-semibold mb-1">Subtítulo / Metadata</label>
+                    <label class="block font-semibold mb-1">Texto del subtítulo</label>
                     <p class="text-xs text-[var(--text-muted)] mb-2">Se mostrará debajo del título del capítulo.</p>
                     <textarea id="chapter_subtitle_text" rows="2" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-[var(--text-main)] focus:outline-none focus:border-black dark:border-white" placeholder="Ej: Las memorias perdidas..."></textarea>
                 </div>
@@ -230,12 +245,22 @@
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Margen Arriba (cm)</label>
-                    <input type="number" step="0.1" id="chapter_subtitle_margin_top" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 0.5">
+                    <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Padding Arriba (cm)</label>
+                    <input type="number" step="0.1" id="chapter_subtitle_padding_top" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 0.5">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Margen Abajo (cm)</label>
-                    <input type="number" step="0.1" id="chapter_subtitle_margin_bottom" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 1.0">
+                    <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Padding Abajo (cm)</label>
+                    <input type="number" step="0.1" id="chapter_subtitle_padding_bottom" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 0.5">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Padding Izquierda (cm)</label>
+                    <input type="number" step="0.1" id="chapter_subtitle_padding_left" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 0">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Padding Derecha (cm)</label>
+                    <input type="number" step="0.1" id="chapter_subtitle_padding_right" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Ej: 0">
                 </div>
             </div>
         </div>

@@ -105,10 +105,6 @@ function almaden_bookster_woocommerce_user_has_wc_access_for_book( $book_id, $us
 			return (bool) $module_decision;
 		}
 	}
-	if ( function_exists( 'almaden_bookster_user_can_manage_book' ) && almaden_bookster_user_can_manage_book( $book_id, $user_id ) ) {
-		return true;
-	}
-
 	$relation = almaden_bookster_get_book_wc_relation( $book_id );
 	$product_ids = array_filter(
 		array(

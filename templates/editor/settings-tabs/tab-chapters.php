@@ -4,7 +4,6 @@
             <nav class="settings-inner-tabs" role="tablist" aria-label="Subtabs de capítulos">
                 <button type="button" onclick="switchChapterSettingsInnerTab('chapter-settings-inner-structure')" id="btn-chapter-settings-inner-structure" class="chapter-settings-inner-tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-black dark:border-white text-black dark:text-white">Estructura</button>
                 <button type="button" onclick="switchChapterSettingsInnerTab('chapter-settings-inner-prefix')" id="btn-chapter-settings-inner-prefix" class="chapter-settings-inner-tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-gray-300">Prefijo</button>
-                <button type="button" onclick="switchChapterSettingsInnerTab('chapter-settings-inner-opening')" id="btn-chapter-settings-inner-opening" class="chapter-settings-inner-tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-gray-300">Página 1</button>
                 <button type="button" onclick="switchChapterSettingsInnerTab('chapter-settings-inner-title')" id="btn-chapter-settings-inner-title" class="chapter-settings-inner-tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-gray-300">Título</button>
                 <button type="button" onclick="switchChapterSettingsInnerTab('chapter-settings-inner-subtitle')" id="btn-chapter-settings-inner-subtitle" class="chapter-settings-inner-tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-gray-300">Subtítulo</button>
             </nav>
@@ -17,7 +16,7 @@
                     <div>
                         <label class="block text-[9px] text-[var(--text-muted)] mb-1">Separar apertura de contenido</label>
                         <label class="relative inline-flex items-center cursor-pointer mt-1">
-                            <input type="checkbox" id="setting-book-separate-opening-content" class="sr-only peer">
+                            <input type="checkbox" id="setting-book-separate-opening-content" class="sr-only peer" onchange="toggleBookOpeningPositionSetting()">
                             <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
                         </label>
                         <p class="text-[10px] text-[var(--text-muted)] mt-1">Si está activo, la apertura editorial y el contenido se distribuyen en páginas distintas cuando el capítulo lo requiere.</p>
@@ -45,6 +44,29 @@
                         <p class="text-[10px] text-[var(--text-muted)] mt-1">Se mostrará centrado dentro de la página en blanco cuando selecciones el modo de texto intencional.</p>
                     </div>
                     <input type="hidden" id="setting-chapter-start-parity" value="any">
+                    <div class="col-span-2">
+                        <label class="block text-[9px] text-[var(--text-muted)] mb-1">Iniciar capítulos con imagen</label>
+                        <select id="setting-chapter-image-default" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                            <option value="0">No (por defecto)</option>
+                            <option value="1">Sí</option>
+                        </select>
+                        <p class="text-[10px] text-[var(--text-muted)] mt-1">Reserva una página al inicio de cada capítulo para la imagen. Si aún no se asigna, quedará en blanco. Cada capítulo puede sobrescribirla.</p>
+                    </div>
+                    <div id="book-opening-position-wrapper" class="col-span-2 hidden">
+                        <label class="block text-[9px] text-[var(--text-muted)] mb-1">Posición de apertura</label>
+                        <select id="setting-chapter-page-one-align" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                            <option value="center-center">Centro / Centro</option>
+                            <option value="center-top">Centro / Arriba</option>
+                            <option value="center-bottom">Centro / Abajo</option>
+                            <option value="right-top">Derecha / Arriba</option>
+                            <option value="right-center">Derecha / Centro</option>
+                            <option value="right-bottom">Derecha / Abajo</option>
+                            <option value="left-top">Izquierda / Arriba</option>
+                            <option value="left-center">Izquierda / Centro</option>
+                            <option value="left-bottom">Izquierda / Abajo</option>
+                        </select>
+                        <p class="text-[10px] text-[var(--text-muted)] mt-1">Define dónde se ubica la apertura en la página separada del capítulo.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -121,29 +143,6 @@
                     <div>
                         <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Let. Spacing</label>
                         <input id="setting-chapter-prefix-letter-spacing" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="chapter-settings-inner-opening" class="settings-inner-panel-card chapter-settings-inner-tab-content space-y-6 hidden">
-            <div>
-                <h4 class="text-[10px] font-bold uppercase tracking-wider text-black dark:text-white mb-2 border-b border-[var(--border-color)] pb-1">Diseño de Página 1 del Capítulo</h4>
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="col-span-2">
-                        <label class="block text-[9px] text-[var(--text-muted)] mb-1">Posición de apertura</label>
-                        <select id="setting-chapter-page-one-align" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
-                            <option value="center-center">Centro / Centro</option>
-                            <option value="center-top">Centro / Arriba</option>
-                            <option value="center-bottom">Centro / Abajo</option>
-                            <option value="right-top">Derecha / Arriba</option>
-                            <option value="right-center">Derecha / Centro</option>
-                            <option value="right-bottom">Derecha / Abajo</option>
-                            <option value="left-top">Izquierda / Arriba</option>
-                            <option value="left-center">Izquierda / Centro</option>
-                            <option value="left-bottom">Izquierda / Abajo</option>
-                        </select>
-                        <p class="text-[10px] text-[var(--text-muted)] mt-1">Alinea el bloque de apertura respecto de toda la página, dentro de los márgenes editoriales.</p>
                     </div>
                 </div>
             </div>

@@ -134,14 +134,14 @@ function almaden_bookster_handle_download_book() {
 	$all_meta_keys = array(
 		'_parity_image', '_hide_title', '_hide_header', '_hide_footer', '_hide_all_headers_footers', '_exclude_from_numbering', '_custom_running_header',
 		'_opening_block_horizontal_align', '_opening_block_vertical_align',
-		'_subtitle_text', '_subtitle_font_family', '_subtitle_align', '_subtitle_font_size', '_subtitle_letter_spacing',
-		'_subtitle_font_style', '_subtitle_text_transform', '_subtitle_font_weight', '_subtitle_margin_top', '_subtitle_margin_bottom',
+			'_subtitle_text', '_subtitle_show', '_subtitle_font_family', '_subtitle_align', '_subtitle_font_size', '_subtitle_letter_spacing',
+			'_subtitle_font_style', '_subtitle_text_transform', '_subtitle_font_weight', '_subtitle_margin_top', '_subtitle_margin_bottom', '_subtitle_padding_top', '_subtitle_padding_bottom', '_subtitle_padding_left', '_subtitle_padding_right',
 		'_drop_cap_enabled', '_disable_hyphenation',
 		// Legacy compatibility keys. They may exist in older exports but are no longer part of the active editor flow.
 		'_page_one_vertical',
 		'_start_parity', '_first_page_header_type',
 			'_first_page_header_custom', '_first_page_footer_type', '_first_page_footer_custom', '_opening_separate_content', '_chapter_blank_before', '_chapter_blank_after', '_chapter_image_mode', '_chapter_image_url', '_chapter_image_inner_width', '_chapter_image_inner_header', '_chapter_image_inner_footer', '_parity_image_mode',
-			'_chapter_image_enabled',
+			'_chapter_image_enabled', '_chapter_image_override',
 			'_parity_image_width', '_parity_image_height', '_is_toc', '_is_credits', '_credits_font_family', '_credits_align', '_credits_vertical_align',
 		'_credits_font_size', '_credits_letter_spacing', '_credits_font_weight', '_credits_hide_header', '_credits_hide_page_number', '_credits_margin_top', '_credits_margin_bottom', '_toc_font_family', '_toc_font_size',
 			'_toc_enumerate', '_toc_font_style', '_toc_font_weight', '_toc_text_transform', '_toc_letter_spacing', '_toc_line_height',

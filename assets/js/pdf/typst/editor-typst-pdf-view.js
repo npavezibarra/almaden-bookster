@@ -96,7 +96,10 @@
         const chapter = chapters.find(entry => String(entry?.id || '') === String(counterEntry.id || ''));
         if (!chapter) return '';
 
-        const imageEnabled = chapter.chapter_image_enabled === true || String(chapter.chapter_image_enabled || '') === '1';
+        const override = String(chapter.chapter_image_override ?? chapter.chapter_image_enabled ?? '');
+        const bookDefault = window.bookState?.settings?.chapter_image_default === true
+            || String(window.bookState?.settings?.chapter_image_default || '') === '1';
+        const imageEnabled = override === '1' || (override !== '0' && bookDefault);
         const imageMode = String(chapter.chapter_image_mode || '').toLowerCase();
         const imageUrl = String(chapter.chapter_image_url || '').trim();
         return imageEnabled && imageMode === 'image_full_page' ? imageUrl : '';

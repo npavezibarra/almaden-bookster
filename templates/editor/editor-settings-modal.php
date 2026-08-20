@@ -526,13 +526,7 @@
             </div>
 
             <div id="format-global-product-section" class="hidden py-4">
-                <?php if ( ! empty( $woocommerce_status['active'] ) ) : ?>
-                    <?php include plugin_dir_path( __FILE__ ) . 'settings-tabs/tab-commerce.php'; ?>
-                <?php else : ?>
-                    <div class="border border-[var(--border-color)] rounded-xl p-4 bg-[var(--bg-app)] shadow-sm text-sm text-[var(--text-muted)]">
-                        WooCommerce no está activo en este sitio. La configuración de producto se habilita cuando WooCommerce está instalado y activo.
-                    </div>
-                <?php endif; ?>
+				<?php include plugin_dir_path( __FILE__ ) . 'settings-tabs/tab-commerce.php'; ?>
             </div>
             </div>
         </div>

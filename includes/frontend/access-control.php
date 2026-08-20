@@ -11,10 +11,6 @@ function almaden_bookster_user_can_access_book( $book_id, $user_id = null ) {
 		return false;
 	}
 
-	if ( function_exists( 'almaden_bookster_user_can_manage_book' ) && almaden_bookster_user_can_manage_book( $book_id, $user_id ) ) {
-		return true;
-	}
-
 	if ( function_exists( 'almaden_bookster_user_has_wc_access_for_book' ) ) {
 		return almaden_bookster_user_has_wc_access_for_book( $book_id, $user_id );
 	}
@@ -34,4 +30,22 @@ function almaden_bookster_user_can_access_book( $book_id, $user_id = null ) {
 	}
 
 	return wc_customer_bought_product( $user->user_email, $user_id, $product_id );
+}
+
+function almaden_bookster_user_can_access_chapter( $book_id, $chapter_id, $user_id = null ) {
+	if ( almaden_bookster_user_can_access_book( $book_id, $user_id ) ) {
+		return true;
+	}
+
+	return function_exists( 'almaden_bookster_is_sample_chapter' )
+		&& almaden_bookster_is_sample_chapter( $book_id, $chapter_id );
+}
+
+function almaden_bookster_can_open_book_reader( $book_id, $user_id = null ) {
+	if ( almaden_bookster_user_can_access_book( $book_id, $user_id ) ) {
+		return true;
+	}
+
+	return function_exists( 'almaden_bookster_book_has_sample_chapters' )
+		&& almaden_bookster_book_has_sample_chapters( $book_id );
 }

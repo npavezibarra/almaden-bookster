@@ -103,6 +103,7 @@ $snapshot_cover_url = function_exists( 'almaden_bookster_get_cover_thumbnail_sna
 $reader_cover_url = ! empty( $snapshot_cover_url ) ? $snapshot_cover_url : $fallback_cover_url;
 
 $has_reader_access = function_exists( 'almaden_bookster_user_can_access_book' ) ? almaden_bookster_user_can_access_book( $book_id ) : is_user_logged_in();
+$can_open_reader = function_exists( 'almaden_bookster_can_open_book_reader' ) ? almaden_bookster_can_open_book_reader( $book_id ) : $has_reader_access;
 $book_product_id = function_exists( 'almaden_bookster_get_book_product_id' ) ? almaden_bookster_get_book_product_id( $book_id ) : 0;
 $purchase_url = function_exists( 'almaden_bookster_get_book_purchase_url' ) ? almaden_bookster_get_book_purchase_url( $book_id ) : home_url( '/' );
 $return_url = function_exists( 'almaden_bookster_get_book_return_url' ) ? almaden_bookster_get_book_return_url( $book_id ) : ( function_exists( 'almaden_bookster_get_store_page_url' ) ? almaden_bookster_get_store_page_url() : home_url( '/' ) );
@@ -112,12 +113,28 @@ if ( $has_reader_access && is_user_logged_in() && function_exists( 'almaden_book
 }
 
 $approved_quizzes = array();
-if ( is_user_logged_in() ) {
+if ( $has_reader_access && is_user_logged_in() ) {
 	$approved_quizzes = get_user_meta( get_current_user_id(), '_almaden_passed_quizzes', true );
 	if ( ! is_array( $approved_quizzes ) ) {
 		$approved_quizzes = array();
 	}
 }
+
+$sample_chapter_ids = function_exists( 'almaden_bookster_get_sample_chapter_ids' ) ? almaden_bookster_get_sample_chapter_ids( $book_id ) : array();
+$sample_chapter_map = array_fill_keys( array_map( 'absint', $sample_chapter_ids ), true );
+foreach ( $chapters as &$reader_chapter ) {
+	$is_sample = isset( $sample_chapter_map[ absint( $reader_chapter['id'] ) ] );
+	$can_read  = $has_reader_access || $is_sample;
+	$reader_chapter['is_sample'] = $is_sample;
+	$reader_chapter['locked']    = ! $can_read;
+	if ( ! $can_read ) {
+		unset( $reader_chapter['content'] );
+	}
+	if ( ! $has_reader_access ) {
+		$reader_chapter['quiz_id'] = 0;
+	}
+}
+unset( $reader_chapter );
 
 // Get the layout wide size from WordPress
 $wide_size = '1300px';
@@ -142,7 +159,7 @@ $book_data_json = wp_json_encode( array(
 	'purchaseUrl' => $purchase_url,
 	'returnUrl' => $return_url,
 	'highlights' => $book_highlights,
-	'quizProgress' => function_exists( 'almaden_bookster_get_book_quiz_progress_payload' ) ? almaden_bookster_get_book_quiz_progress_payload( $book_id ) : array(),
+	'quizProgress' => $has_reader_access && function_exists( 'almaden_bookster_get_book_quiz_progress_payload' ) ? almaden_bookster_get_book_quiz_progress_payload( $book_id ) : array(),
 	'quizFlowSettings' => function_exists( 'almaden_bookster_learni_get_quiz_flow_settings' ) ? almaden_bookster_learni_get_quiz_flow_settings( $book_id ) : array(),
 	'approvedQuizzes' => $approved_quizzes,
 ) );
@@ -200,7 +217,7 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
     <link rel="stylesheet" href="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/css/quiz-builder/quiz-builder-components.css' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/css/quiz-builder/quiz-builder-components.css' ); ?>">
     <link rel="stylesheet" href="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/css/quiz-builder/quiz-builder-modal.css' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/css/quiz-builder/quiz-builder-modal.css' ); ?>">
     <link rel="stylesheet" href="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/css/quiz-builder/quiz-builder-simulation.css' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/css/quiz-builder/quiz-builder-simulation.css' ); ?>">
-    <?php if ( $has_reader_access && function_exists( 'almaden_bookster_content_protection_render_head' ) ) { almaden_bookster_content_protection_render_head( $book_id ); } ?>
+	<?php if ( $can_open_reader && function_exists( 'almaden_bookster_content_protection_render_head' ) ) { almaden_bookster_content_protection_render_head( $book_id ); } ?>
     <style>
         /* User Requested Constraints */
         div#almaden-view-index,
@@ -213,7 +230,7 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
 </head>
 <body>
 
-    <?php if ( $has_reader_access ) : ?>
+	<?php if ( $can_open_reader ) : ?>
     <script>
         const bookData = <?php echo $book_data_json; ?>;
         const almadenAjaxUrl = "<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>";
@@ -266,7 +283,7 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
                 <button id="btn-reader-prefs" onclick="togglePrefsPanel()" class="p-2 text-gray-800 hover:bg-gray-100 rounded text-base h-9 flex items-center justify-center transition-colors font-serif font-bold mr-2" title="Preferencias de Lectura">
                     aA
                 </button>
-                <button id="btn-reader-highlights" onclick="toggleReaderHighlightsPanel()" class="p-2 text-gray-800 hover:bg-gray-100 rounded text-sm w-9 h-9 flex items-center justify-center transition-colors mr-2" title="Mis highlights">
+				<button id="btn-reader-highlights" onclick="toggleReaderHighlightsPanel()" class="<?php echo $has_reader_access ? '' : 'hidden '; ?>p-2 text-gray-800 hover:bg-gray-100 rounded text-sm w-9 h-9 flex items-center justify-center transition-colors mr-2" title="Mis highlights">
                     <i class="fa-solid fa-bookmark"></i>
                 </button>
                 <div id="reader-prefs-panel" class="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 shadow-xl rounded-lg p-4 hidden flex-col gap-4 z-50">
@@ -454,7 +471,7 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-quizzes.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-quizzes.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-progress.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-progress.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-app.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-app.js' ); ?>"></script>
-    <?php if ( function_exists( 'almaden_bookster_content_protection_render_footer' ) ) { almaden_bookster_content_protection_render_footer( $book_id ); } ?>
+	<?php if ( $can_open_reader && function_exists( 'almaden_bookster_content_protection_render_footer' ) ) { almaden_bookster_content_protection_render_footer( $book_id ); } ?>
     <?php else : ?>
         <div class="min-h-screen px-6 py-10 md:py-14" style="background-color: #f5f5f5;">
             <div class="mx-auto w-full max-w-7xl">

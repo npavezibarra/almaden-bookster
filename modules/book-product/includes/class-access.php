@@ -13,9 +13,6 @@ final class Access {
 		}
 
 		$user_id = null === $user_id ? get_current_user_id() : absint( $user_id );
-		if ( function_exists( 'almaden_bookster_user_can_manage_book' ) && almaden_bookster_user_can_manage_book( $book_id, $user_id ) ) {
-			return true;
-		}
 
 		$relation = Relation_Repository::get( $book_id );
 		$ebook_id = absint( $relation['ebook_product_id'] ?? 0 );

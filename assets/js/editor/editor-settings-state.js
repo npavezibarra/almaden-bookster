@@ -229,6 +229,7 @@ window.almadenBuildPDFSettingsState = function(ctx) {
 
         chapter_page_one_align: openingPageAlignment.combined,
         chapter_page_one_vertical: openingPageAlignment.vertical,
+        chapter_image_default: getVal('setting-chapter-image-default') === '1' ? '1' : '0',
         chapter_title_font_family: getVal('setting-chapter-title-font-family'),
         chapter_title_font_size: parseVal('setting-chapter-title-font-size', 24),
         chapter_title_font_weight: getVal('setting-chapter-title-font-weight'),

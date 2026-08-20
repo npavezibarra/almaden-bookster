@@ -150,7 +150,15 @@ function almaden_bookster_build_typst_document( $payload ) {
 			$source .= '#metadata("credits") <almaden-hide-footer>' . "\n";
 		}
 
-		$chapter_image_enabled = almaden_bookster_typst_bool( $chapter['chapter_image_enabled'] ?? false );
+		$chapter_image_override = isset( $chapter['chapter_image_override'] ) ? (string) $chapter['chapter_image_override'] : '';
+		if ( ! in_array( $chapter_image_override, array( '0', '1' ), true ) && isset( $chapter['chapter_image_enabled'] ) && in_array( (string) $chapter['chapter_image_enabled'], array( '0', '1' ), true ) ) {
+			$chapter_image_override = (string) $chapter['chapter_image_enabled'];
+		}
+		$chapter_image_enabled = almaden_bookster_typst_bool(
+			in_array( $chapter_image_override, array( '0', '1' ), true )
+				? $chapter_image_override
+				: ( $settings['chapter_image_default'] ?? '0' )
+		);
 		$chapter_image_mode = strtolower( trim( (string) ( $chapter['chapter_image_mode'] ?? 'page_blank' ) ) );
 		if ( ! in_array( $chapter_image_mode, array( 'page_blank', 'image_full_page', 'image_inner' ), true ) ) {
 			$chapter_image_mode = 'page_blank';
@@ -184,6 +192,15 @@ function almaden_bookster_build_typst_document( $payload ) {
 			if ( '' !== $image_asset ) {
 				$source .= '#align(center + horizon)[#image("' . almaden_bookster_typst_escape_string( $image_asset ) . '", width: 100%, height: 100%, fit: "contain")]' . "\n#pagebreak()\n\n";
 			}
+		} elseif ( $chapter_image_enabled ) {
+			// A global or chapter-level image policy reserves the page even when
+			// the chapter has not received its image yet. The blank page is an
+			// intentional editorial placeholder, not an omitted page.
+			$source .= '#set page(background: almaden-page-background())' . "\n";
+			$source .= '#metadata("chapter-image-placeholder") <almaden-chapter-image-page>' . "\n";
+			$source .= '#metadata("chapter-image-placeholder") <almaden-hide-header-page>' . "\n";
+			$source .= '#metadata("chapter-image-placeholder") <almaden-hide-footer-page>' . "\n";
+			$source .= "#pagebreak()\n\n";
 		}
 
 		if ( ! $is_credits ) {
@@ -302,8 +319,12 @@ function almaden_bookster_build_typst_document( $payload ) {
 			$subtitle_text_transform = strtolower( '' !== $subtitle_text_transform_source ? $subtitle_text_transform_source : (string) ( $settings['chapter_subtitle_text_transform'] ?? 'none' ) );
 			$subtitle_margin_top = almaden_bookster_typst_number( $chapter, 'subtitle_margin_top', almaden_bookster_typst_number( $settings, 'chapter_subtitle_margin_top', 0.5, 0, 20 ), 0, 20 );
 			$subtitle_margin_bottom = almaden_bookster_typst_number( $chapter, 'subtitle_margin_bottom', almaden_bookster_typst_number( $settings, 'chapter_subtitle_margin_bottom', 0.5, 0, 20 ), 0, 20 );
+			$subtitle_padding_top = almaden_bookster_typst_number( $chapter, 'subtitle_padding_top', $subtitle_margin_top, 0, 20 );
+			$subtitle_padding_bottom = almaden_bookster_typst_number( $chapter, 'subtitle_padding_bottom', $subtitle_margin_bottom, 0, 20 );
+			$subtitle_padding_left = almaden_bookster_typst_number( $chapter, 'subtitle_padding_left', 0, 0, 20 );
+			$subtitle_padding_right = almaden_bookster_typst_number( $chapter, 'subtitle_padding_right', 0, 0, 20 );
 			$subtitle_display = almaden_bookster_typst_transform_title( $subtitle_text, $subtitle_text_transform );
-			$opening_lines[] = '#block(width: 100%, breakable: false, inset: (top: ' . $subtitle_margin_top . 'cm, bottom: ' . $subtitle_margin_bottom . 'cm))[' . "\n" .
+			$opening_lines[] = '#block(width: 100%, breakable: false, inset: (top: ' . $subtitle_padding_top . 'cm, bottom: ' . $subtitle_padding_bottom . 'cm, left: ' . $subtitle_padding_left . 'cm, right: ' . $subtitle_padding_right . 'cm))[' . "\n" .
 				'#set par(justify: false, first-line-indent: 0pt)' . "\n" .
 				'#align(' . $subtitle_align . ')[#text(font: "' . almaden_bookster_typst_escape_string( $subtitle_font_family ) . '", size: ' . round( $subtitle_font_size, 3 ) . 'pt, weight: ' . $subtitle_font_weight . ', style: "' . almaden_bookster_typst_escape_string( $subtitle_font_style ) . '", tracking: ' . round( $subtitle_letter_spacing, 3 ) . 'pt)[' . almaden_bookster_typst_escape_markup( $subtitle_display ) . ']]' . "\n" .
 			']';

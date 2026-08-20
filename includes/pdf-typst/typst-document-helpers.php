@@ -424,11 +424,14 @@ function almaden_bookster_typst_chapter_opening_visibility( $chapter, $settings 
 		&& ! $is_credits
 		&& almaden_bookster_typst_bool( $settings['chapter_prefix_show'] ?? false )
 		&& '1' !== (string) ( $chapter['exclude_from_numbering'] ?? '0' );
+	$chapter_subtitle_show = isset( $chapter['subtitle_show'] ) && '' !== (string) $chapter['subtitle_show']
+		? almaden_bookster_typst_bool( $chapter['subtitle_show'] )
+		: ( ! isset( $settings['chapter_subtitle_show'] ) || almaden_bookster_typst_bool( $settings['chapter_subtitle_show'] ) );
 	$show_subtitle = ! $hide_opening
 		&& ! $is_toc
 		&& ! $is_credits
 		&& '' !== trim( (string) ( $chapter['subtitle_text'] ?? '' ) )
-		&& ( ! isset( $settings['chapter_subtitle_show'] ) || almaden_bookster_typst_bool( $settings['chapter_subtitle_show'] ) );
+		&& $chapter_subtitle_show;
 
 	return array(
 		'has_title'          => $has_title,

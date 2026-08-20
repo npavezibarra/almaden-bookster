@@ -52,3 +52,15 @@ slots Ebook y Ambos.
 Todos los endpoints requieren sesion, nonce ligado al libro, permiso para
 editar el libro y capacidad `edit_products`. Desvincular nunca elimina el
 producto ni sus variaciones.
+
+## Integracion visual en Ajustes del libro
+
+El panel se monta en `General > Producto` mediante `templates/editor/settings-tabs/tab-commerce.php`. Su jerarquia visual debe conservar este orden:
+
+1. nombre del producto WooCommerce: `22px`;
+2. encabezado de seccion Variaciones: `18px`;
+3. nombre de variacion (Ambos, Fisico o Ebook): `16px`;
+4. labels, metadatos y ayudas: `14px`;
+5. valores editables: `16px` dentro de controles de al menos `44px`.
+
+Estas reglas viven en `assets/css/book-product.css` y se refuerzan bajo `#settings-modal` para mantener la jerarquia acordada dentro de Ajustes del libro. Las tarjetas de variacion pasan a una columna en pantallas menores de `760px`.

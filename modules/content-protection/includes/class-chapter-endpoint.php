@@ -21,7 +21,7 @@ final class Chapter_Endpoint {
 	 */
 	public static function init() {
 		add_action( 'wp_ajax_' . self::ACTION, array( __CLASS__, 'handle' ) );
-		add_action( 'wp_ajax_nopriv_' . self::ACTION, array( __CLASS__, 'reject_anonymous' ) );
+		add_action( 'wp_ajax_nopriv_' . self::ACTION, array( __CLASS__, 'handle' ) );
 	}
 
 	/**
@@ -53,9 +53,6 @@ final class Chapter_Endpoint {
 			wp_send_json_error( array( 'message' => __( 'Solicitud de capítulo inválida.', 'almaden-bookster' ) ), 403 );
 		}
 
-		if ( ! is_user_logged_in() || ! function_exists( 'almaden_bookster_user_can_access_book' ) || ! almaden_bookster_user_can_access_book( $book_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'No tienes acceso a este capítulo.', 'almaden-bookster' ) ), 403 );
-		}
 		$policy = Content_Protection::get_policy( $book_id );
 		if ( empty( $policy['enabled'] ) || 'on_demand' !== ( $policy['chapter_delivery'] ?? '' ) ) {
 			wp_send_json_error( array( 'message' => __( 'La entrega protegida no está activa para este libro.', 'almaden-bookster' ) ), 404 );
@@ -71,6 +68,9 @@ final class Chapter_Endpoint {
 		$chapter        = get_post( $chapter_id );
 		if ( ! $chapter || 'book_chapter' !== $chapter->post_type || $source_book_id !== absint( $chapter->post_parent ) ) {
 			wp_send_json_error( array( 'message' => __( 'Capítulo no encontrado.', 'almaden-bookster' ) ), 404 );
+		}
+		if ( ! function_exists( 'almaden_bookster_user_can_access_chapter' ) || ! almaden_bookster_user_can_access_chapter( $book_id, $chapter_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'No tienes acceso a este capítulo.', 'almaden-bookster' ) ), 403 );
 		}
 
 		wp_send_json_success(

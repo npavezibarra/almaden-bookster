@@ -46,6 +46,7 @@ La fila está indexada por `book_id` y contiene casi toda la configuración de m
 - Footnotes.
   - `footnote_line_height`, `footnote_letter_spacing`, `footnote_entry_spacing`, `footnote_hyphenate`.
 - Inicio de capítulo.
+- Regla global para iniciar capítulos con imagen (`chapter_image_default`).
 - Ajustes de ebook.
 
 Importante: PDF impreso y ebook no van a tablas separadas. Van en la misma fila, pero con columnas distintas:

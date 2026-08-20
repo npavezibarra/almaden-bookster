@@ -136,8 +136,11 @@ graph TD
         *   `window.savePDFSettings`: Recopila todos los campos del modal de ajustes, normaliza meticulosamente las comas decimales a puntos decimales para evitar fallas en el cálculo de dimensiones CSS del compilador PDF, y realiza una llamada al endpoint `almaden_save_book_settings`.
 
 *   **[editor-settings-tabs.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-settings-tabs.js)**
-    *   **Responsabilidad**: Administra la navegación interna de pestañas del modal de configuración general (Página, Tipografía, Cabecera/Pie, Capítulos, Créditos y Plantillas) y la carga de valores en los inputs.
+    *   **Responsabilidad**: Administra la navegación por formato (`PDF`, `eBook`, `General`), las secciones principales y los subtabs de Tipografía, Cabecera/Pie y Capítulos, además de cargar valores en los inputs.
     *   **Funciones Clave**:
+        *   `switchTypographyTab`: alterna Cuerpo/Títulos y restablece Cuerpo al entrar en Tipografía.
+        *   `switchHeaderFooterTab`: alterna Cabecera/Pie de página y restablece Cabecera al entrar en la sección.
+        *   `switchChapterSettingsInnerTab`: controla Estructura, Prefijo, Título y Subtítulo.
         *   `window.populateSettingsForm`: Lee la configuración de `bookState.settings` e inyecta los valores actuales en el formulario del modal, inicializando fallbacks métricos seguros si no se encuentran valores definidos.
 
 *   **[editor-settings-fields.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-settings-fields.js)**
@@ -157,7 +160,7 @@ graph TD
         *   `creditsPopulateForm` y `creditsBindRootEvents` (en el archivo principal): Punto de entrada y orquestación del subsistema de créditos.
 
 *   **[editor-settings-templates.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-settings-templates.js)**
-    *   **Responsabilidad**: Permite a los usuarios guardar configuraciones globales actuales como `Book Templates` e importarlas rápidamente.
+    *   **Responsabilidad**: Permite guardar configuraciones globales como `Book Templates`, importarlas y alternar el subtab externo Estándar/Mis plantillas sin mezclar navegación y contenido dentro de una misma tarjeta.
     *   **Funciones Clave**:
         *   [loadBookTemplates](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-settings-templates.js#L4): Solicita presets de formato persistidos en el repositorio de `Book Templates` y los dibuja en el modal.
         *   [applyBookTemplate](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/editor-settings-templates.js#L68): Carga los valores de un book template preestablecido y simula eventos de interacción del usuario en cada input para actualizar el estado global.

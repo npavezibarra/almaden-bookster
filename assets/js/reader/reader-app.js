@@ -4,6 +4,12 @@ function getReaderChapterItemDomId(chapterId) {
     return `chapter-item-${String(chapterId ?? '').replace(/[^a-zA-Z0-9_-]/g, '-')}`;
 }
 
+function escapeReaderIndexHtml(value) {
+	return String(value ?? '').replace(/[&<>'"]/g, (char) => ({
+		'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+	}[char]));
+}
+
 function showFootnote(event, btn, htmlContent) {
     event.stopPropagation();
     
@@ -70,18 +76,51 @@ function renderIndex() {
         const item = document.createElement('div');
         item.id = getReaderChapterItemDomId(chapter.id);
         item.dataset.chapterId = String(chapter.id);
-        item.className = 'flex justify-between items-center py-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors group px-4 -mx-4 rounded-md';
-        item.onclick = () => {
-            if (typeof showChapterView === 'function') {
-                showChapterView(index);
-            }
-        };
+        item.className = 'reader-index-item flex justify-between items-center py-4 border-b border-gray-100 transition-colors group px-4 -mx-4 rounded-md';
 
-        item.innerHTML = `
-            <span class="text-gray-800 font-medium group-hover:text-black text-lg transition-colors">${chapter.title}</span>
-            <span class="text-gray-400 font-medium">${chapter.page || ''}</span>
-        `;
+		const accessLabel = chapter.locked
+			? `<button type="button" class="reader-lock-trigger reader-index-access is-locked" data-lock-title="${escapeReaderIndexHtml(chapter.title || '')}" aria-label="Comprar ${escapeReaderIndexHtml(chapter.title || 'capítulo')}">
+					<i class="fa-solid fa-lock" aria-hidden="true"></i>
+					<span class="sr-only">Comprar</span>
+				</button>`
+			: chapter.is_sample && !bookData.userCanAccess
+				? '<span class="reader-index-access is-sample reader-sample-indicator" aria-label="Muestra gratis"><i class="fa-solid fa-lock-open" aria-hidden="true"></i><span class="sr-only">Muestra gratis</span></span>'
+				: `<span class="text-gray-400 font-medium">${escapeReaderIndexHtml(chapter.page || '')}</span>`;
+		item.classList.toggle('is-locked', Boolean(chapter.locked));
+		if (!chapter.locked) {
+			item.classList.add('cursor-pointer');
+			item.setAttribute('role', 'button');
+			item.setAttribute('tabindex', '0');
+			item.addEventListener('click', () => {
+				if (typeof showChapterView === 'function') {
+					showChapterView(index);
+				}
+			});
+			item.addEventListener('keydown', (event) => {
+				if ((event.key === 'Enter' || event.key === ' ') && typeof showChapterView === 'function') {
+					event.preventDefault();
+					showChapterView(index);
+				}
+			});
+		} else {
+			item.setAttribute('aria-disabled', 'true');
+			item.classList.add('cursor-not-allowed', 'opacity-80');
+		}
+		item.innerHTML = `
+			<span class="text-gray-800 font-medium group-hover:text-black text-lg transition-colors">${escapeReaderIndexHtml(chapter.title)}</span>
+			${accessLabel}
+		`;
         listContainer.appendChild(item);
+    });
+
+    listContainer.querySelectorAll('.reader-lock-trigger').forEach((button) => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            openReaderPurchaseModal({
+                title: button.getAttribute('data-lock-title') || '',
+            });
+        });
     });
 }
 

@@ -94,6 +94,7 @@ if ( $chapter_posts ) {
 			'custom_running_header'    => get_post_meta( $cp->ID, '_custom_running_header', true ),
 			
 			'subtitle_text'            => get_post_meta( $cp->ID, '_subtitle_text', true ),
+			'subtitle_show'            => get_post_meta( $cp->ID, '_subtitle_show', true ),
 			'subtitle_font_family'     => get_post_meta( $cp->ID, '_subtitle_font_family', true ),
 			'subtitle_align'           => get_post_meta( $cp->ID, '_subtitle_align', true ),
 			'subtitle_font_size'       => get_post_meta( $cp->ID, '_subtitle_font_size', true ),
@@ -103,6 +104,10 @@ if ( $chapter_posts ) {
 			'subtitle_font_weight'     => get_post_meta( $cp->ID, '_subtitle_font_weight', true ),
 			'subtitle_margin_top'      => get_post_meta( $cp->ID, '_subtitle_margin_top', true ),
 			'subtitle_margin_bottom'   => get_post_meta( $cp->ID, '_subtitle_margin_bottom', true ),
+			'subtitle_padding_top'     => get_post_meta( $cp->ID, '_subtitle_padding_top', true ),
+			'subtitle_padding_bottom'  => get_post_meta( $cp->ID, '_subtitle_padding_bottom', true ),
+			'subtitle_padding_left'    => get_post_meta( $cp->ID, '_subtitle_padding_left', true ),
+			'subtitle_padding_right'   => get_post_meta( $cp->ID, '_subtitle_padding_right', true ),
 			
 			'drop_cap_enabled'         => get_post_meta( $cp->ID, '_drop_cap_enabled', true ),
 			'disable_hyphenation'      => get_post_meta( $cp->ID, '_disable_hyphenation', true ),
@@ -116,6 +121,7 @@ if ( $chapter_posts ) {
 			'chapter_blank_before'     => get_post_meta( $cp->ID, '_chapter_blank_before', true ),
 			'chapter_blank_after'      => get_post_meta( $cp->ID, '_chapter_blank_after', true ),
 			'chapter_image_enabled'    => get_post_meta( $cp->ID, '_chapter_image_enabled', true ),
+			'chapter_image_override'   => get_post_meta( $cp->ID, '_chapter_image_override', true ),
 			'chapter_image_mode'       => get_post_meta( $cp->ID, '_chapter_image_mode', true ),
 			'chapter_image_url'        => get_post_meta( $cp->ID, '_chapter_image_url', true ),
 			'chapter_image_inner_width' => get_post_meta( $cp->ID, '_chapter_image_inner_width', true ),
@@ -200,6 +206,7 @@ if ( empty( $saved_chapters ) ) {
 		'exclude_from_numbering'     => '0',
 		'custom_running_header'      => '',
 		'subtitle_text'              => '',
+		'subtitle_show'              => '',
 		'subtitle_font_family'       => '',
 		'subtitle_align'             => '',
 		'subtitle_font_size'         => '',
@@ -209,6 +216,10 @@ if ( empty( $saved_chapters ) ) {
 		'subtitle_font_weight'       => '',
 		'subtitle_margin_top'        => '',
 		'subtitle_margin_bottom'     => '',
+		'subtitle_padding_top'       => '',
+		'subtitle_padding_bottom'    => '',
+		'subtitle_padding_left'      => '',
+		'subtitle_padding_right'     => '',
 		'drop_cap_enabled'           => '',
 		'disable_hyphenation'        => '',
 		'start_parity'               => 'any',
@@ -221,6 +232,7 @@ if ( empty( $saved_chapters ) ) {
 		'chapter_blank_before'       => '0',
 		'chapter_blank_after'        => '0',
 		'chapter_image_enabled'      => '',
+		'chapter_image_override'     => '',
 		'chapter_image_mode'         => '',
 		'chapter_image_url'          => '',
 		'chapter_image_inner_width'   => '',
@@ -369,22 +381,23 @@ if ( ! empty( $saved_chapters ) ) {
 	) ? '1' : '0';
 
 	foreach ( $saved_chapters as &$saved_chapter ) {
-		if ( empty( $saved_chapter['chapter_image_enabled'] ) ) {
+		if ( '' === (string) $saved_chapter['chapter_image_enabled'] && '1' === $legacy_chapter_image_enabled ) {
 			$saved_chapter['chapter_image_enabled'] = $legacy_chapter_image_enabled;
+			$saved_chapter['chapter_image_override'] = $legacy_chapter_image_enabled;
 		}
-		if ( empty( $saved_chapter['chapter_image_mode'] ) ) {
+		if ( '' === (string) $saved_chapter['chapter_image_mode'] && '1' === $legacy_chapter_image_enabled ) {
 			$saved_chapter['chapter_image_mode'] = $legacy_chapter_image_mode;
 		}
-		if ( empty( $saved_chapter['chapter_image_url'] ) ) {
+		if ( '' === (string) $saved_chapter['chapter_image_url'] && '1' === $legacy_chapter_image_enabled ) {
 			$saved_chapter['chapter_image_url'] = $legacy_chapter_image_url;
 		}
-		if ( empty( $saved_chapter['chapter_image_inner_width'] ) ) {
+		if ( '' === (string) $saved_chapter['chapter_image_inner_width'] && '1' === $legacy_chapter_image_enabled ) {
 			$saved_chapter['chapter_image_inner_width'] = $legacy_chapter_image_inner_width;
 		}
-		if ( empty( $saved_chapter['chapter_image_inner_header'] ) ) {
+		if ( '' === (string) $saved_chapter['chapter_image_inner_header'] && '1' === $legacy_chapter_image_enabled ) {
 			$saved_chapter['chapter_image_inner_header'] = $legacy_chapter_image_inner_header;
 		}
-		if ( empty( $saved_chapter['chapter_image_inner_footer'] ) ) {
+		if ( '' === (string) $saved_chapter['chapter_image_inner_footer'] && '1' === $legacy_chapter_image_enabled ) {
 			$saved_chapter['chapter_image_inner_footer'] = $legacy_chapter_image_inner_footer;
 		}
 	}

@@ -34,6 +34,7 @@
         }),
         create: (root, data) => request(root, 'almaden_book_product_create', data),
         update: (root, data) => request(root, 'almaden_book_product_update', data),
+        updateStatus: (root, status) => request(root, 'almaden_book_product_update_status', { status }),
         addFormat: (root, format, price, stock = '') => request(root, 'almaden_book_product_add_format', {
             format, price, stock,
         }),
@@ -42,5 +43,8 @@
         }),
         unlinkFormat: (root, format) => request(root, 'almaden_book_product_unlink_format', { format }),
         unlinkProduct: (root) => request(root, 'almaden_book_product_unlink_product'),
+		saveSamples: (root, chapterIds) => request(root, 'almaden_book_product_save_samples', {
+			chapter_ids: JSON.stringify(chapterIds),
+		}),
     };
 })();

@@ -58,6 +58,7 @@ if ( $chapters_query->have_posts() ) {
 }
 
 $has_reader_access = function_exists( 'almaden_bookster_user_can_access_book' ) ? almaden_bookster_user_can_access_book( $book_id ) : is_user_logged_in();
+$can_open_reader = function_exists( 'almaden_bookster_can_open_book_reader' ) ? almaden_bookster_can_open_book_reader( $book_id ) : $has_reader_access;
 $purchase_url = function_exists( 'almaden_bookster_get_book_purchase_url' ) ? almaden_bookster_get_book_purchase_url( $book_id ) : home_url( '/' );
 $book_product_id = function_exists( 'almaden_bookster_get_book_product_id' ) ? almaden_bookster_get_book_product_id( $book_id ) : 0;
 $return_url = function_exists( 'almaden_bookster_get_book_return_url' ) ? almaden_bookster_get_book_return_url( $book_id ) : ( function_exists( 'almaden_bookster_get_store_page_url' ) ? almaden_bookster_get_store_page_url() : home_url( '/' ) );
@@ -69,7 +70,7 @@ if ( function_exists( 'wp_get_global_settings' ) ) {
 	}
 }
 
-if ( $has_reader_access ) {
+if ( $can_open_reader ) {
 	require_once dirname( __FILE__ ) . '/../reader/reader-app.php';
 	return;
 }

@@ -68,10 +68,10 @@
                 <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Alineación</label>
                 <input id="setting-footnote-align" type="hidden" value="left">
                 <div id="setting-footnote-align-controls" class="grid grid-cols-4 overflow-hidden rounded-lg border border-[var(--border-color)] bg-[var(--bg-sidebar)]" role="group" aria-label="Alineación de las notas">
-                    <button type="button" data-footnote-align="left" onclick="setFootnoteAlignment('left')" class="h-8 border-r border-[var(--border-color)] transition hover:bg-[var(--bg-app)]" title="Alinear a la izquierda" aria-label="Alinear a la izquierda"><i class="fa-solid fa-align-left"></i></button>
-                    <button type="button" data-footnote-align="center" onclick="setFootnoteAlignment('center')" class="h-8 border-r border-[var(--border-color)] transition hover:bg-[var(--bg-app)]" title="Centrar" aria-label="Centrar"><i class="fa-solid fa-align-center"></i></button>
-                    <button type="button" data-footnote-align="right" onclick="setFootnoteAlignment('right')" class="h-8 border-r border-[var(--border-color)] transition hover:bg-[var(--bg-app)]" title="Alinear a la derecha" aria-label="Alinear a la derecha"><i class="fa-solid fa-align-right"></i></button>
-                    <button type="button" data-footnote-align="justify" onclick="setFootnoteAlignment('justify')" class="h-8 transition hover:bg-[var(--bg-app)]" title="Justificar" aria-label="Justificar"><i class="fa-solid fa-align-justify"></i></button>
+                    <button type="button" data-footnote-align="left" onclick="setFootnoteAlignment('left')" class="h-8 border-r border-[var(--border-color)] transition hover:bg-[var(--bg-app)]" title="Alinear a la izquierda" aria-label="Alinear a la izquierda"><i class="fa-solid fa-align-left text-[14px]"></i></button>
+                    <button type="button" data-footnote-align="center" onclick="setFootnoteAlignment('center')" class="h-8 border-r border-[var(--border-color)] transition hover:bg-[var(--bg-app)]" title="Centrar" aria-label="Centrar"><i class="fa-solid fa-align-center text-[14px]"></i></button>
+                    <button type="button" data-footnote-align="right" onclick="setFootnoteAlignment('right')" class="h-8 border-r border-[var(--border-color)] transition hover:bg-[var(--bg-app)]" title="Alinear a la derecha" aria-label="Alinear a la derecha"><i class="fa-solid fa-align-right text-[14px]"></i></button>
+                    <button type="button" data-footnote-align="justify" onclick="setFootnoteAlignment('justify')" class="h-8 transition hover:bg-[var(--bg-app)]" title="Justificar" aria-label="Justificar"><i class="fa-solid fa-align-justify text-[14px]"></i></button>
                 </div>
             </div>
         </div>

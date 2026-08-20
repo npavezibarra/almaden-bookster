@@ -58,10 +58,17 @@ function toggleOpeningPageControls() {
     }
 }
 
+function toggleChapterSubtitleControls() {
+    const checkbox = document.getElementById('chapter_subtitle_show');
+    const controls = document.getElementById('chapter_subtitle_controls');
+    if (!checkbox || !controls) return;
+    controls.classList.toggle('hidden', !checkbox.checked);
+}
+
 function toggleChapterImageSettingsForChapter() {
     const wrapper = document.getElementById('chapter_image_settings_wrapper');
     const content = document.getElementById('chapter_image_settings_content');
-    const enabledField = document.getElementById('chapter_image_enabled');
+    const overrideField = document.getElementById('chapter_image_override');
     const modeWrapper = document.getElementById('chapter_image_mode_wrapper');
     const modeField = document.getElementById('chapter_image_mode');
     const uploadWrapper = document.getElementById('chapter_image_upload_wrapper');
@@ -74,7 +81,10 @@ function toggleChapterImageSettingsForChapter() {
 
     wrapper.classList.remove('hidden');
 
-    const imageEnabled = !!(enabledField && enabledField.checked);
+    const bookDefaultEnabled = typeof bookState !== 'undefined'
+        && bookState.settings
+        && (bookState.settings.chapter_image_default === '1' || bookState.settings.chapter_image_default === 1);
+    const imageEnabled = !!(overrideField && (overrideField.value === '1' || (overrideField.value === '' && bookDefaultEnabled)));
     if (content) {
         content.classList.toggle('hidden', !imageEnabled);
     }
