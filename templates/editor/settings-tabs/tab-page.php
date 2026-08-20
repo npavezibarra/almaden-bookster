@@ -1,4 +1,7 @@
 <div id="tab-page" class="setting-tab-content space-y-4">
+            <section class="settings-section-card">
+                <h4><i class="fa-solid fa-file-lines" aria-hidden="true"></i> Formato de página</h4>
+                <div class="settings-section-card-body space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">Unidad de Medida</label>
@@ -54,9 +57,14 @@
                         <input id="setting-page-height" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:ring-2 focus:ring-black focus:outline-none">
                     </div>
                 </div>
+                </div>
+            </section>
 
+            <section class="settings-section-card">
+                <h4><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i> Márgenes y área de contenido</h4>
+                <div class="settings-section-card-body space-y-5">
                 <div>
-                    <h4 class="text-[10px] font-bold uppercase tracking-wider text-black dark:text-white mb-2 border-b border-[var(--border-color)] pb-1">Márgenes Globales (Arriba / Abajo)</h4>
+                    <h5 class="settings-group-title">Márgenes superior e inferior</h5>
                     <div class="grid grid-cols-2 gap-2 mb-3">
                         <div>
                             <label class="block text-[9px] text-[var(--text-muted)] mb-1">Arriba (<span class="unit-label">cm</span>)</label>
@@ -68,7 +76,7 @@
                         </div>
                     </div>
                     
-                    <h4 class="text-[10px] font-bold uppercase tracking-wider text-black dark:text-white mb-2 border-b border-[var(--border-color)] pb-1">Márgenes de Encuadernación</h4>
+                    <h5 class="settings-group-title">Márgenes de encuadernación</h5>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-2 bg-[var(--bg-app)] p-2 rounded-lg border border-[var(--border-color)]">
                             <label class="block text-[10px] font-bold text-[var(--text-main)] text-center">Página Impar (Derecha)</label>
@@ -100,7 +108,7 @@
                 </div>
 
                 <div>
-                    <h4 class="text-[10px] font-bold uppercase tracking-wider text-black dark:text-white mb-2 border-b border-[var(--border-color)] pb-1">Padding de Contenido</h4>
+                    <h5 class="settings-group-title">Área de contenido</h5>
                     <div class="grid grid-cols-4 gap-2">
                         <div>
                             <label class="block text-[9px] text-[var(--text-muted)] mb-1">Arriba (<span class="unit-label">cm</span>)</label>
@@ -120,14 +128,18 @@
                         </div>
                     </div>
                 </div>
+                </div>
+            </section>
 
-                <div>
-                    <h4 class="text-[10px] font-bold uppercase tracking-wider text-black dark:text-white mb-2 border-b border-[var(--border-color)] pb-1">Sangría / Bleeding</h4>
+            <section class="settings-section-card">
+                <h4><i class="fa-solid fa-scissors" aria-hidden="true"></i> Sangrado</h4>
+                <div class="settings-section-card-body">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Espacio de Sangría (<span class="unit-label">cm</span>)</label>
+                            <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Espacio de sangrado (<span class="unit-label">cm</span>)</label>
                             <input id="setting-bleeding" type="number" step="0.1" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:ring-2 focus:ring-black focus:outline-none">
                         </div>
                     </div>
                 </div>
+            </section>
             </div>

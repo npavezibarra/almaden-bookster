@@ -1,30 +1,30 @@
 <?php include plugin_dir_path( __FILE__ ) . 'settings-tabs/functions.php'; ?>
 <!-- MODAL DE CONFIGURACIÓN DEL LIBRO -->
 <div id="settings-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center hidden transition-all duration-300 opacity-0 no-print">
-    <div class="bg-[var(--bg-sidebar)] border border-[var(--border-color)] text-[var(--text-main)] w-full max-w-xl rounded-2xl shadow-2xl p-6 relative transform scale-95 transition-transform duration-300">
+    <div class="settings-dialog bg-[var(--bg-sidebar)] border border-[var(--border-color)] text-[var(--text-main)] w-full max-w-xl rounded-2xl shadow-2xl p-6 relative transform scale-95 transition-transform duration-300" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
         <!-- Header Modal -->
-        <div class="flex items-center justify-between pb-3 border-b border-[var(--border-color)]">
-            <div class="flex items-center gap-6">
-                <h3 class="text-md font-bold flex items-center gap-2">
-                    <i class="fa-solid fa-sliders text-black dark:text-white"></i> Ajustes del Libro
+        <div class="settings-header flex items-center justify-between pb-3 border-b border-[var(--border-color)]">
+            <div class="settings-header-main flex items-center gap-6">
+                <h3 id="settings-modal-title" class="settings-title text-md font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-black dark:text-white" aria-hidden="true"></i> Ajustes del libro
                 </h3>
-                <div class="flex bg-[var(--bg-app)] rounded-lg p-1 border border-[var(--border-color)]">
-                    <button type="button" onclick="switchFormatTab('pdf')" id="btn-format-pdf" class="px-4 py-1 rounded-md bg-[var(--bg-sidebar)] shadow-sm border border-[var(--border-color)] text-xs font-bold text-black dark:text-white transition-colors">PDF</button>
-                    <button type="button" onclick="switchFormatTab('ebook')" id="btn-format-ebook" class="px-4 py-1 rounded-md text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">EBOOK</button>
-                    <button type="button" onclick="switchFormatTab('global')" id="btn-format-global" class="px-4 py-1 rounded-md text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">GLOBAL</button>
+                <div class="settings-format-tabs flex bg-[var(--bg-app)] rounded-lg p-1 border border-[var(--border-color)]" role="tablist" aria-label="Formato de ajustes">
+                    <button type="button" role="tab" aria-selected="true" onclick="switchFormatTab('pdf')" id="btn-format-pdf" class="px-4 py-1 rounded-md bg-[var(--bg-sidebar)] shadow-sm border border-[var(--border-color)] text-xs font-bold text-black dark:text-white transition-colors">PDF</button>
+                    <button type="button" role="tab" aria-selected="false" onclick="switchFormatTab('ebook')" id="btn-format-ebook" class="px-4 py-1 rounded-md text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">eBook</button>
+                    <button type="button" role="tab" aria-selected="false" onclick="switchFormatTab('global')" id="btn-format-global" class="px-4 py-1 rounded-md text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">General</button>
                 </div>
             </div>
-            <button onclick="toggleSettingsModal(false)" class="text-[var(--text-muted)] hover:text-[var(--text-main)] transition">
-                <i class="fa-solid fa-xmark text-lg"></i>
+            <button type="button" onclick="toggleSettingsModal(false)" class="settings-close text-[var(--text-muted)] hover:text-[var(--text-main)] transition" aria-label="Cerrar ajustes">
+                <i class="fa-solid fa-xmark text-lg" aria-hidden="true"></i>
             </button>
         </div>
 
-        <div id="format-pdf-section">
+        <div id="format-pdf-section" class="settings-format-section">
 
         <!-- Navigation Tabs -->
-        <div class="flex border-b border-[var(--border-color)] mb-4 -mx-6 px-6 overflow-x-auto gap-4 scrollbar-none">
+        <div class="settings-primary-tabs flex border-b border-[var(--border-color)] mb-4 -mx-6 px-6 overflow-x-auto gap-4 scrollbar-none" role="tablist" aria-label="Secciones de PDF">
             <button type="button" onclick="switchSettingTab('tab-templates')" class="setting-tab-btn py-2 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-templates">
-                <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Plantillas de Libro
+                Plantillas
             </button>
             <button type="button" onclick="switchSettingTab('tab-page')" class="setting-tab-btn py-2 border-b-2 border-black dark:border-white text-black dark:text-white font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-page">
                 Página
@@ -33,10 +33,10 @@
                 Tipografía
             </button>
             <button type="button" onclick="switchSettingTab('tab-header-footer')" class="setting-tab-btn py-2 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-header-footer">
-                Cabecera y Pie
+                Cabecera y pie
             </button>
             <button type="button" onclick="switchSettingTab('tab-footnotes')" class="setting-tab-btn py-2 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-footnotes">
-                Footnotes
+                Notas al pie
             </button>
             <button type="button" onclick="switchSettingTab('tab-chapters')" class="setting-tab-btn py-2 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-chapters">
                 Capítulos
@@ -44,25 +44,22 @@
         </div>
 
         <!-- Formulario Ajustes -->
-        <div class="space-y-4 max-h-[55vh] overflow-y-auto pr-1">
+        <div class="settings-scroll-region space-y-4 max-h-[55vh] overflow-y-auto pr-1">
             
             <!-- PESTAÑA: PLANTILLAS -->
             <div id="tab-templates" class="setting-tab-content space-y-5 hidden">
-                <div class="border border-[var(--border-color)] rounded-xl p-4 bg-[var(--bg-app)] space-y-3 shadow-sm">
-                    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between border-b border-[var(--border-color)] pb-2 mb-1">
-                        <h4 class="text-xs font-bold text-black dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-                            <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Plantillas de Libro
-                        </h4>
+                <nav class="settings-inner-tabs" role="tablist" aria-label="Tipos de plantillas">
+                    <button type="button" id="book-template-tab-system" data-book-template-group="system" role="tab" aria-selected="true" class="book-template-subtab header-footer-tab-btn is-active">
+                        Estándar <span id="book-template-count-system" class="ml-1 opacity-70">0</span>
+                    </button>
+                    <button type="button" id="book-template-tab-personal" data-book-template-group="personal" role="tab" aria-selected="false" class="book-template-subtab header-footer-tab-btn">
+                        Mis plantillas <span id="book-template-count-personal" class="ml-1 opacity-70">0</span>
+                    </button>
+                </nav>
 
-                        <div class="inline-flex rounded-lg border border-[var(--border-color)] bg-[var(--bg-sidebar)] p-1 self-start md:self-auto" role="tablist" aria-label="Tipos de plantillas">
-                            <button type="button" id="book-template-tab-system" data-book-template-group="system" role="tab" aria-selected="true" class="book-template-subtab rounded-md bg-black px-3 py-1.5 text-[10px] font-bold text-white transition">
-                                Estándar <span id="book-template-count-system" class="ml-1 opacity-70">0</span>
-                            </button>
-                            <button type="button" id="book-template-tab-personal" data-book-template-group="personal" role="tab" aria-selected="false" class="book-template-subtab rounded-md px-3 py-1.5 text-[10px] font-bold text-[var(--text-muted)] transition hover:text-[var(--text-main)]">
-                                Mis plantillas <span id="book-template-count-personal" class="ml-1 opacity-70">0</span>
-                            </button>
-                        </div>
-                    </div>
+                <section class="settings-section-card">
+                    <h4><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Plantillas de libro</h4>
+                    <div class="settings-section-card-body space-y-3">
                     <div id="templates-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Renderizado por JS -->
                         <div class="text-[10px] text-[var(--text-muted)] italic"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Cargando plantillas de libro...</div>
@@ -82,7 +79,8 @@
                         </div>
                         <div id="book-template-save-status" class="mt-2 text-[10px] text-[var(--text-muted)] hidden"></div>
                     </div>
-                </div>
+                    </div>
+                </section>
             </div>
 
             <!-- PESTAÑA 1: PÁGINA FÍSICA -->
@@ -93,10 +91,20 @@
 
             <!-- PESTAÑA 3: CABECERA Y PIE DE PÁGINA -->
             <div id="tab-header-footer" class="setting-tab-content space-y-5 hidden">
+                <nav class="settings-inner-tabs" role="tablist" aria-label="Ajustes de cabecera y pie">
+                    <button type="button" role="tab" aria-controls="header-footer-header-panel" id="btn-header-footer-header" class="header-footer-tab-btn is-active" onclick="switchHeaderFooterTab('header')" aria-selected="true">
+                        Cabecera
+                    </button>
+                    <button type="button" role="tab" aria-controls="header-footer-footer-panel" id="btn-header-footer-footer" class="header-footer-tab-btn" onclick="switchHeaderFooterTab('footer')" aria-selected="false">
+                        Pie de página
+                    </button>
+                </nav>
+
+                <div id="header-footer-header-panel" class="header-footer-tab-panel space-y-5" role="tabpanel" aria-labelledby="btn-header-footer-header">
                 <!-- SECCIÓN CABECERA -->
                 <div class="border border-[var(--border-color)] rounded-xl p-4 bg-[var(--bg-app)] space-y-3 shadow-sm">
                     <h4 class="text-xs font-bold text-black dark:text-white uppercase tracking-wider flex items-center gap-1.5 border-b border-[var(--border-color)] pb-2 mb-1">
-                        <i class="fa-solid fa-window-maximize text-[10px]"></i> Configuración de Cabecera
+                        <i class="fa-solid fa-window-maximize text-[10px]"></i> Configuración de cabecera
                     </h4>
                     
                     <div class="grid grid-cols-2 gap-3">
@@ -137,7 +145,7 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Letter Spacing (pt)</label>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Espaciado entre letras (pt)</label>
                             <input id="setting-header-letter-spacing" type="number" step="0.1" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                         </div>
                         <div>
@@ -151,7 +159,7 @@
 
                     <label class="flex items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--bg-app)] px-3 py-2 text-xs font-semibold text-[var(--text-main)] mt-1">
                         <input type="checkbox" id="setting-header-hyphenate" class="h-3.5 w-3.5 rounded border-[var(--border-color)] text-black focus:ring-black">
-                        <span>Hyphenate</span>
+                        <span>Separación silábica</span>
                     </label>
 
                     <div class="grid grid-cols-2 gap-3 pt-1">
@@ -198,10 +206,32 @@
                     </div>
                 </div>
 
+                <div class="settings-subsection border border-[var(--border-color)] rounded-xl p-4 bg-[var(--bg-app)] space-y-3">
+                    <h4>Cabecera en la primera página del capítulo</h4>
+                    <label class="flex items-center gap-2 rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)] px-3 py-2 font-semibold text-[var(--text-main)]">
+                        <input type="checkbox" id="setting-first-page-header-show" class="h-3.5 w-3.5 rounded border-[var(--border-color)] text-black focus:ring-black" checked>
+                        <span>Incluir cabecera</span>
+                    </label>
+                    <div>
+                        <label class="block font-semibold text-[var(--text-muted)] mb-1">Contenido de la cabecera</label>
+                        <select id="setting-first-page-header-type" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black" onchange="toggleCustomFirstPageHeader()">
+                            <option value="blank">En blanco</option>
+                            <option value="book_title">Título del libro</option>
+                            <option value="chapter_title">Título del capítulo</option>
+                            <option value="author">Autor</option>
+                            <option value="page_number">Número de página</option>
+                            <option value="custom">Texto personalizado</option>
+                        </select>
+                        <input type="text" id="setting-first-page-header-custom" class="hidden mt-2 w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Escribe aquí...">
+                    </div>
+                </div>
+                </div>
+
+                <div id="header-footer-footer-panel" class="header-footer-tab-panel space-y-5 hidden" role="tabpanel" aria-labelledby="btn-header-footer-footer">
                 <!-- SECCIÓN PIE DE PÁGINA -->
                 <div class="border border-[var(--border-color)] rounded-xl p-4 bg-[var(--bg-app)] space-y-3 shadow-sm">
                     <h4 class="text-xs font-bold text-black dark:text-white uppercase tracking-wider flex items-center gap-1.5 border-b border-[var(--border-color)] pb-2 mb-1">
-                        <i class="fa-solid fa-window-minimize text-[10px]"></i> Configuración de Pie de Página
+                        <i class="fa-solid fa-window-minimize text-[10px]"></i> Configuración de pie de página
                     </h4>
 
                     <div class="grid grid-cols-2 gap-3">
@@ -242,7 +272,7 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Letter Spacing (pt)</label>
+                            <label class="block text-[9px] font-semibold text-[var(--text-muted)] mb-1">Espaciado entre letras (pt)</label>
                             <input id="setting-footer-letter-spacing" type="number" step="0.1" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                         </div>
                         <div>
@@ -283,45 +313,25 @@
                     </div>
                 </div>
 
-                <!-- OPCIONES PRIMERA PÁGINA DEL CAPÍTULO -->
-                <div class="px-2 pt-1 border-t border-[var(--border-color)] mt-4">
-                    <label class="block text-[11px] font-bold text-[var(--text-main)] mb-3">CONTENIDO 1ª PÁG DEL CAPÍTULO</label>
-                    <div class="grid grid-cols-2 gap-3 mb-4">
-                        <label class="flex items-center gap-2 rounded-xl border border-[var(--border-color)] bg-[var(--bg-app)] px-3 py-2 text-[10px] font-semibold text-[var(--text-main)]">
-                            <input type="checkbox" id="setting-first-page-header-show" class="h-3.5 w-3.5 rounded border-[var(--border-color)] text-black focus:ring-black" checked>
-                            <span>Incluir cabecera</span>
-                        </label>
-                        <label class="flex items-center gap-2 rounded-xl border border-[var(--border-color)] bg-[var(--bg-app)] px-3 py-2 text-[10px] font-semibold text-[var(--text-main)]">
-                            <input type="checkbox" id="setting-first-page-footer-show" class="h-3.5 w-3.5 rounded border-[var(--border-color)] text-black focus:ring-black" checked>
-                            <span>Incluir pie</span>
-                        </label>
+                <div class="settings-subsection border border-[var(--border-color)] rounded-xl p-4 bg-[var(--bg-app)] space-y-3">
+                    <h4>Pie en la primera página del capítulo</h4>
+                    <label class="flex items-center gap-2 rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)] px-3 py-2 font-semibold text-[var(--text-main)]">
+                        <input type="checkbox" id="setting-first-page-footer-show" class="h-3.5 w-3.5 rounded border border-[var(--border-color)] text-black focus:ring-black" checked>
+                        <span>Incluir pie de página</span>
+                    </label>
+                    <div>
+                        <label class="block font-semibold text-[var(--text-muted)] mb-1">Contenido del pie</label>
+                        <select id="setting-first-page-footer-type" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black" onchange="toggleCustomFirstPageFooter()">
+                            <option value="blank">En blanco</option>
+                            <option value="book_title">Título del libro</option>
+                            <option value="chapter_title">Título del capítulo</option>
+                            <option value="author">Autor</option>
+                            <option value="page_number" selected>Número de página</option>
+                            <option value="custom">Texto personalizado</option>
+                        </select>
+                        <input type="text" id="setting-first-page-footer-custom" class="hidden mt-2 w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Escribe aquí...">
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Contenido Cabecera</label>
-                            <select id="setting-first-page-header-type" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black" onchange="toggleCustomFirstPageHeader()">
-                                <option value="blank">En blanco</option>
-                                <option value="book_title">Título del Libro</option>
-                                <option value="chapter_title">Título del Capítulo</option>
-                                <option value="author">Autor</option>
-                                <option value="page_number">Número de Página</option>
-                                <option value="custom">Texto Personalizado</option>
-                            </select>
-                            <input type="text" id="setting-first-page-header-custom" class="hidden mt-2 w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Escribe aquí...">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-semibold text-[var(--text-muted)] mb-1">Contenido Pie</label>
-                            <select id="setting-first-page-footer-type" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black" onchange="toggleCustomFirstPageFooter()">
-                                <option value="blank">En blanco</option>
-                                <option value="book_title">Título del Libro</option>
-                                <option value="chapter_title">Título del Capítulo</option>
-                                <option value="author">Autor</option>
-                                <option value="page_number" selected>Número de Página</option>
-                                <option value="custom">Texto Personalizado</option>
-                            </select>
-                            <input type="text" id="setting-first-page-footer-custom" class="hidden mt-2 w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder="Escribe aquí...">
-                        </div>
-                    </div>
+                </div>
                 </div>
             </div>
 
@@ -334,11 +344,11 @@
         </div> <!-- Fin de scrollable area -->
         </div> <!-- Fin de format-pdf-section -->
 
-        <div id="format-ebook-section" class="hidden">
+        <div id="format-ebook-section" class="settings-format-section hidden">
             <!-- Navigation Tabs for Ebook -->
-            <div class="flex border-b border-[var(--border-color)] mb-4 -mx-6 px-6 overflow-x-auto gap-4 scrollbar-none">
+            <div class="settings-primary-tabs flex border-b border-[var(--border-color)] mb-4 -mx-6 px-6 overflow-x-auto gap-4 scrollbar-none" role="tablist" aria-label="Secciones de eBook">
                 <button type="button" onclick="switchEbookSettingTab('tab-ebook-theme')" class="ebook-setting-tab-btn py-2 border-b-2 border-black dark:border-white text-black dark:text-white font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-ebook-theme">
-                    Theme
+                    Apariencia
                 </button>
                 <button type="button" onclick="switchEbookSettingTab('tab-ebook-typography')" class="ebook-setting-tab-btn py-2 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-ebook-typography">
                     Tipografía
@@ -348,7 +358,7 @@
                 </button>
             </div>
             
-            <div class="space-y-4 max-h-[48vh] overflow-y-auto pr-1">
+            <div class="settings-scroll-region space-y-4 max-h-[48vh] overflow-y-auto pr-1">
                 <!-- Ebook Theme Tab Content -->
                 <div id="tab-ebook-theme" class="ebook-setting-tab-content space-y-4">
                     <div class="border border-[var(--border-color)] rounded-xl p-4 bg-[var(--bg-app)] space-y-3 shadow-sm">
@@ -486,16 +496,17 @@
             </div>
         </div>
 
-        <div id="format-global-section" class="hidden">
-            <div class="flex items-center gap-2 border-b border-[var(--border-color)]">
+        <div id="format-global-section" class="settings-format-section hidden">
+            <div class="settings-primary-tabs flex items-center gap-2 border-b border-[var(--border-color)]" role="tablist" aria-label="Secciones generales">
                 <button type="button" id="btn-global-info" onclick="switchGlobalSettingsInnerTab('format-global-info-section')" class="global-setting-tab-btn px-3 py-2 text-[10px] font-semibold border-b-2 border-black text-black transition">
-                    Info Libro
+                    Información del libro
                 </button>
                 <button type="button" id="btn-global-product" onclick="switchGlobalSettingsInnerTab('format-global-product-section')" class="global-setting-tab-btn px-3 py-2 text-[10px] font-semibold border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] transition">
                     Producto
                 </button>
             </div>
 
+            <div class="settings-scroll-region settings-global-body">
             <div id="format-global-info-section" class="py-4 border-b border-[var(--border-color)]">
                 <label class="block text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Idioma base del libro</label>
                 <select id="setting-book-language" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
@@ -523,15 +534,16 @@
                     </div>
                 <?php endif; ?>
             </div>
+            </div>
         </div>
 
         <!-- Footer Modal -->
-        <div class="mt-4 flex justify-end gap-3 pt-3 border-t border-[var(--border-color)]">
+        <div class="settings-footer mt-4 flex justify-end gap-3 pt-3 border-t border-[var(--border-color)]">
             <button onclick="toggleSettingsModal(false)" class="px-4 py-2 border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-app)] text-xs font-semibold rounded-lg transition">
                 Cancelar
             </button>
             <button id="btn-save-settings" onclick="savePDFSettings()" class="px-5 py-2 bg-black hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg shadow-md hover:shadow-lg transition">
-                Guardar Cambios
+                Guardar cambios
             </button>
         </div>
     </div>

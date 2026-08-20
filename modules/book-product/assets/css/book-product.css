@@ -137,12 +137,17 @@
 .abp-product-summary > div:first-child,
 .abp-format-name { display: grid; gap: 3px; }
 .abp-selected-product small,
-.abp-product-summary small { color: var(--abp-muted); font-size: 9px; font-weight: 800; text-transform: uppercase; }
+.abp-product-summary small { color: var(--abp-muted); font-size: 12px; font-weight: 800; text-transform: uppercase; }
 .abp-selected-product strong,
-.abp-product-summary strong { font-size: 15px; }
+.abp-product-summary strong { font-size: 20px; line-height: 1.25; }
 .abp-selected-product span,
 .abp-product-summary span,
-.abp-format-name span { color: var(--abp-muted); font-size: 11px; }
+.abp-format-name span { color: var(--abp-muted); font-size: 14px; line-height: 1.4; }
+
+.abp-format-name strong {
+    font-size: 16px;
+    line-height: 1.3;
+}
 
 .abp-inline-field { margin: 14px 0; }
 .abp-inline-field label span { font-weight: 500; }
@@ -188,7 +193,32 @@
 .abp-create-slot:last-child { grid-template-columns: minmax(120px, 1fr) minmax(120px, .7fr); }
 .abp-slot-title { align-self: center; font-size: 13px; font-weight: 800; }
 .abp-slot-title input { margin-right: 7px; }
-.abp-section-label { margin: 18px 0 0; color: var(--abp-muted); font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; }
+.abp-section-label {
+    margin: 24px 0 0;
+    color: var(--abp-ink);
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.3;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+/* Jerarquía de Producto dentro del modal de ajustes. */
+#settings-modal .abp-product-summary small {
+    font-size: 14px !important;
+}
+
+#settings-modal .abp-product-summary strong {
+    font-size: 22px !important;
+}
+
+#settings-modal .abp-section-label {
+    font-size: 18px !important;
+}
+
+#settings-modal .abp-format-name strong {
+    font-size: 16px !important;
+}
 
 .abp-primary-button,
 .abp-secondary-button,

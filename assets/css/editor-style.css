@@ -381,54 +381,163 @@ body.sidebar-collapsed #sidebar-footer {
     background: #94a3b8;
 }
 
-/* Ajustes del Libro: subir 15% la jerarquía tipográfica */
+/* Sistema visual unificado para Ajustes del libro */
 #settings-modal {
-    --settings-text-scale: 1.15;
+    --settings-label-size: 14px;
+    --settings-control-size: 16px;
+    --settings-section-size: 17px;
+    padding: 16px;
 }
 
-#settings-modal .text-xs {
-    font-size: calc(0.75rem * var(--settings-text-scale)) !important;
+#settings-modal .settings-dialog {
+    display: flex;
+    flex-direction: column;
+    width: min(960px, calc(100vw - 48px));
+    max-width: none !important;
+    height: min(860px, calc(100dvh - 32px));
+    max-height: calc(100dvh - 32px);
+    overflow: hidden;
+    padding: 28px 32px;
 }
 
+#settings-modal .settings-header,
+#settings-modal .settings-footer {
+    flex: 0 0 auto;
+}
+
+#settings-modal .settings-header {
+    padding-bottom: 20px;
+}
+
+#settings-modal h3.settings-title {
+    font-size: 24px !important;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+#settings-modal .settings-title i {
+    font-size: 21px;
+}
+
+#settings-modal .settings-format-tabs {
+    min-width: 330px;
+}
+
+#settings-modal .settings-format-tabs button {
+    flex: 1 1 0;
+    min-height: 42px;
+    padding: 8px 18px;
+    font-size: 16px !important;
+    line-height: 1.2;
+}
+
+#settings-modal .settings-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    border-radius: 10px;
+}
+
+#settings-modal .settings-close:hover {
+    background: var(--bg-app);
+}
+
+#settings-modal .settings-format-section:not(.hidden) {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
+#settings-modal .settings-format-section.hidden {
+    display: none;
+}
+
+#settings-modal .settings-primary-tabs {
+    flex: 0 0 auto;
+    margin-bottom: 0;
+    gap: 24px;
+}
+
+#settings-modal .settings-primary-tabs button {
+    min-height: 52px;
+    padding-top: 13px;
+    padding-bottom: 13px;
+    font-size: 16px !important;
+    line-height: 1.25;
+}
+
+#settings-modal .settings-scroll-region {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none !important;
+    overflow-y: auto;
+    padding: 24px 10px 24px 0;
+    scrollbar-gutter: stable;
+}
+
+#settings-modal .settings-global-body {
+    padding-top: 4px;
+}
+
+#settings-modal .settings-footer {
+    min-height: 72px;
+    margin-top: 0;
+    padding-top: 16px;
+    align-items: flex-start;
+}
+
+#settings-modal .settings-footer button {
+    min-height: 48px;
+    padding: 10px 22px;
+    font-size: 15px !important;
+}
+
+/* Jerarquía tipográfica: ningún texto funcional queda bajo 14 px. */
+#settings-modal .text-\[8px\],
+#settings-modal .text-\[9px\],
+#settings-modal .text-\[10px\],
+#settings-modal .text-\[11px\],
+#settings-modal .text-\[12px\],
+#settings-modal .text-\[13px\],
+#settings-modal .text-\[14px\],
+#settings-modal .text-xs,
 #settings-modal .text-sm {
-    font-size: calc(0.875rem * var(--settings-text-scale)) !important;
+    font-size: var(--settings-label-size) !important;
 }
 
 #settings-modal .text-base,
 #settings-modal .text-md {
-    font-size: calc(1rem * var(--settings-text-scale)) !important;
+    font-size: 16px !important;
 }
 
 #settings-modal .text-lg {
-    font-size: calc(1.125rem * var(--settings-text-scale)) !important;
+    font-size: 20px !important;
 }
 
-#settings-modal .text-\[9px\] {
-    font-size: calc(9px * var(--settings-text-scale)) !important;
+#settings-modal h4 {
+    font-size: var(--settings-section-size) !important;
+    line-height: 1.3;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
 }
 
-#settings-modal .text-\[10px\] {
-    font-size: calc(10px * var(--settings-text-scale)) !important;
+#settings-modal label {
+    font-size: var(--settings-label-size) !important;
+    line-height: 1.4;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
 }
 
-#settings-modal .text-\[11px\] {
-    font-size: calc(11px * var(--settings-text-scale)) !important;
+#settings-modal p {
+    max-width: 72ch;
+    font-size: var(--settings-label-size) !important;
+    line-height: 1.55 !important;
 }
 
-#settings-modal .text-\[12px\] {
-    font-size: calc(12px * var(--settings-text-scale)) !important;
-}
-
-#settings-modal .text-\[13px\] {
-    font-size: calc(13px * var(--settings-text-scale)) !important;
-}
-
-#settings-modal .text-\[14px\] {
-    font-size: calc(14px * var(--settings-text-scale)) !important;
-}
-
-#settings-modal p,
-#settings-modal label,
 #settings-modal button,
 #settings-modal input,
 #settings-modal option,
@@ -437,8 +546,277 @@ body.sidebar-collapsed #sidebar-footer {
     line-height: 1.35;
 }
 
+#settings-modal .settings-dialog input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="hidden"]),
+#settings-modal .settings-dialog select,
+#settings-modal .settings-dialog textarea {
+    min-height: 44px;
+    padding: 9px 12px !important;
+    border-radius: 10px;
+    font-size: var(--settings-control-size) !important;
+}
+
+#settings-modal input[type="color"] {
+    width: 44px !important;
+    height: 44px !important;
+    flex: 0 0 44px;
+}
+
+#settings-modal input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+}
+
 #settings-modal input::placeholder,
 #settings-modal textarea::placeholder {
     font-size: inherit;
     line-height: inherit;
+}
+
+/* Las subsecciones usan píldoras para no competir con las pestañas principales. */
+#settings-modal .settings-inner-tabs {
+    display: inline-flex;
+    width: fit-content;
+    max-width: 100%;
+    gap: 4px;
+    overflow-x: auto;
+    padding: 4px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-app);
+}
+
+#settings-modal .header-footer-tab-btn,
+#settings-modal .chapter-settings-inner-tab-btn {
+    min-height: 40px;
+    padding: 9px 16px !important;
+    border: 0 !important;
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 15px !important;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+#settings-modal .header-footer-tab-btn.is-active,
+#settings-modal .chapter-settings-inner-tab-btn.border-black {
+    background: var(--bg-sidebar);
+    color: var(--text-main);
+    box-shadow: 0 1px 3px rgb(15 23 42 / 0.12);
+}
+
+#settings-modal .settings-inner-tabs-row {
+    margin-bottom: 20px;
+}
+
+#settings-modal .settings-inner-panel-card {
+    padding: 22px;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: var(--bg-app);
+}
+
+#settings-modal .settings-subsection {
+    box-shadow: none;
+}
+
+#settings-modal .settings-subsection h4 {
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#settings-modal .settings-section-card {
+    padding: 22px;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: var(--bg-app);
+}
+
+#settings-modal .settings-section-card > h4 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+    font-weight: 700;
+}
+
+#settings-modal .settings-section-card > h4 i {
+    width: 18px;
+    font-size: 16px;
+    text-align: center;
+}
+
+#settings-modal .settings-group-title {
+    margin: 20px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+#settings-modal .settings-section-card-body > .settings-group-title:first-child,
+#settings-modal .settings-section-card-body > div:first-child > .settings-group-title:first-child {
+    margin-top: 0;
+}
+
+#settings-modal .typography-tab-panel {
+    margin-top: 20px;
+}
+
+#settings-modal #tab-typography .grid-cols-3,
+#settings-modal #tab-typography .grid-cols-4,
+#settings-modal #tab-typography .grid-cols-5 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+}
+
+#settings-modal .settings-type-level-card {
+    padding: 18px !important;
+    border-radius: 12px;
+    background: var(--bg-sidebar);
+}
+
+#settings-modal .settings-type-level-title {
+    margin-bottom: 14px;
+    font-size: 16px !important;
+    line-height: 1.35;
+}
+
+#settings-modal .setting-tab-content > .border,
+#settings-modal .ebook-setting-tab-content > .border {
+    padding: 22px !important;
+    border-radius: 14px;
+    box-shadow: none;
+}
+
+#settings-modal .grid-cols-5,
+#settings-modal .grid-cols-6 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+}
+
+#settings-modal .grid-cols-2,
+#settings-modal .grid-cols-3,
+#settings-modal .grid-cols-4 {
+    column-gap: 16px !important;
+    row-gap: 16px !important;
+}
+
+@media (max-width: 767px) {
+    #settings-modal {
+        align-items: stretch;
+        justify-content: stretch;
+        padding: 0;
+    }
+
+    #settings-modal .settings-dialog {
+        width: 100%;
+        height: 100dvh;
+        max-height: 100dvh;
+        padding: 16px;
+        border: 0;
+        border-radius: 0;
+    }
+
+    #settings-modal .settings-header {
+        position: relative;
+        padding: 0 52px 16px 0;
+    }
+
+    #settings-modal .settings-header-main {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 14px;
+    }
+
+    #settings-modal h3.settings-title {
+        width: 100%;
+        font-size: 21px !important;
+    }
+
+    #settings-modal .settings-format-tabs {
+        width: 100%;
+        min-width: 0;
+    }
+
+    #settings-modal .settings-format-tabs button {
+        min-width: 0;
+        padding-right: 8px;
+        padding-left: 8px;
+        font-size: 14px !important;
+    }
+
+    #settings-modal .settings-close {
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+
+    #settings-modal .settings-primary-tabs {
+        margin-right: -16px;
+        margin-left: -16px;
+        padding-right: 16px;
+        padding-left: 16px;
+        gap: 20px;
+    }
+
+    #settings-modal .settings-primary-tabs button {
+        font-size: 15px !important;
+    }
+
+    #settings-modal .settings-scroll-region {
+        padding: 18px 4px 18px 0;
+        scrollbar-gutter: auto;
+    }
+
+    #settings-modal [class*="grid-cols-"] {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    #settings-modal .setting-tab-content > .border,
+    #settings-modal .ebook-setting-tab-content > .border {
+        padding: 16px !important;
+    }
+
+    #settings-modal .settings-inner-tabs {
+        width: 100%;
+    }
+
+    #settings-modal .settings-inner-panel-card {
+        padding: 16px;
+    }
+
+    #settings-modal .settings-section-card {
+        padding: 16px;
+    }
+
+    #settings-modal #tab-typography .grid-cols-2,
+    #settings-modal #tab-typography .grid-cols-3,
+    #settings-modal #tab-typography .grid-cols-4,
+    #settings-modal #tab-typography .grid-cols-5 {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    #settings-modal .settings-type-level-card {
+        padding: 16px !important;
+    }
+
+    #settings-modal .settings-footer {
+        min-height: auto;
+        gap: 8px;
+        padding-top: 12px;
+    }
+
+    #settings-modal .settings-footer button {
+        flex: 1 1 0;
+        min-width: 0;
+        padding-right: 10px;
+        padding-left: 10px;
+    }
 }

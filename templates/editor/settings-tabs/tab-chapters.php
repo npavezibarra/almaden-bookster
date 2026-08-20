@@ -1,7 +1,7 @@
 <div id="tab-chapters" class="setting-tab-content space-y-4 hidden">
-    <div class="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-sidebar)] p-4">
-        <div class="border-b border-[var(--border-color)] mb-4">
-            <nav class="-mb-px flex gap-4 overflow-x-auto" aria-label="Subtabs de capítulos">
+    <div class="settings-tab-shell">
+        <div class="settings-inner-tabs-row">
+            <nav class="settings-inner-tabs" role="tablist" aria-label="Subtabs de capítulos">
                 <button type="button" onclick="switchChapterSettingsInnerTab('chapter-settings-inner-structure')" id="btn-chapter-settings-inner-structure" class="chapter-settings-inner-tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-black dark:border-white text-black dark:text-white">Estructura</button>
                 <button type="button" onclick="switchChapterSettingsInnerTab('chapter-settings-inner-prefix')" id="btn-chapter-settings-inner-prefix" class="chapter-settings-inner-tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-gray-300">Prefijo</button>
                 <button type="button" onclick="switchChapterSettingsInnerTab('chapter-settings-inner-opening')" id="btn-chapter-settings-inner-opening" class="chapter-settings-inner-tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-gray-300">Página 1</button>
@@ -10,9 +10,9 @@
             </nav>
         </div>
 
-        <div id="chapter-settings-inner-structure" class="chapter-settings-inner-tab-content space-y-6 block">
+        <div id="chapter-settings-inner-structure" class="settings-inner-panel-card chapter-settings-inner-tab-content space-y-6 block">
             <div>
-                <h4 class="text-[10px] font-bold uppercase tracking-wider text-black dark:text-white mb-2 border-b border-[var(--border-color)] pb-1">Ajustes de Libro</h4>
+                <h4 class="text-[10px] font-bold uppercase tracking-wider text-black dark:text-white mb-2 border-b border-[var(--border-color)] pb-1">Ajustes del libro</h4>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-[9px] text-[var(--text-muted)] mb-1">Separar apertura de contenido</label>
@@ -49,7 +49,7 @@
             </div>
         </div>
 
-        <div id="chapter-settings-inner-prefix" class="chapter-settings-inner-tab-content space-y-6 hidden">
+        <div id="chapter-settings-inner-prefix" class="settings-inner-panel-card chapter-settings-inner-tab-content space-y-6 hidden">
             <div>
                 <h4 class="text-[10px] font-bold uppercase tracking-wider text-black dark:text-white mb-2 border-b border-[var(--border-color)] pb-1">Prefijo de Capítulo (Ej: Capítulo 1)</h4>
                 <div class="grid grid-cols-2 gap-3 mb-2">
@@ -126,7 +126,7 @@
             </div>
         </div>
 
-        <div id="chapter-settings-inner-opening" class="chapter-settings-inner-tab-content space-y-6 hidden">
+        <div id="chapter-settings-inner-opening" class="settings-inner-panel-card chapter-settings-inner-tab-content space-y-6 hidden">
             <div>
                 <h4 class="text-[10px] font-bold uppercase tracking-wider text-black dark:text-white mb-2 border-b border-[var(--border-color)] pb-1">Diseño de Página 1 del Capítulo</h4>
                 <div class="grid grid-cols-2 gap-2">
@@ -149,7 +149,7 @@
             </div>
         </div>
 
-        <div id="chapter-settings-inner-title" class="chapter-settings-inner-tab-content space-y-6 hidden">
+        <div id="chapter-settings-inner-title" class="settings-inner-panel-card chapter-settings-inner-tab-content space-y-6 hidden">
             <div>
                 <h4 class="text-[10px] font-bold uppercase tracking-wider text-black dark:text-white mb-2 border-b border-[var(--border-color)] pb-1">Formato del Título de Capítulo</h4>
                 <div class="grid grid-cols-2 gap-3 mb-2">
@@ -235,7 +235,7 @@
             </div>
         </div>
 
-        <div id="chapter-settings-inner-subtitle" class="chapter-settings-inner-tab-content space-y-6 hidden">
+        <div id="chapter-settings-inner-subtitle" class="settings-inner-panel-card chapter-settings-inner-tab-content space-y-6 hidden">
             <div>
                 <h4 class="text-[10px] font-bold uppercase tracking-wider text-black dark:text-white mb-2 border-b border-[var(--border-color)] pb-1">Formato del Subtítulo / Meta</h4>
                 <div class="grid grid-cols-2 gap-3 mb-2">

@@ -9,12 +9,14 @@ window.switchFormatTab = function(format) {
 
     const setActiveButton = (btn) => {
         if (!btn) return;
+        btn.setAttribute('aria-selected', 'true');
         btn.classList.add('bg-[var(--bg-sidebar)]', 'shadow-sm', 'border-[var(--border-color)]', 'text-black', 'dark:text-white', 'font-bold');
         btn.classList.remove('border-transparent', 'text-[var(--text-muted)]');
     };
 
     const setInactiveButton = (btn) => {
         if (!btn) return;
+        btn.setAttribute('aria-selected', 'false');
         btn.classList.remove('bg-[var(--bg-sidebar)]', 'shadow-sm', 'border-[var(--border-color)]', 'text-black', 'dark:text-white', 'font-bold');
         btn.classList.add('border-transparent', 'text-[var(--text-muted)]');
     };
@@ -104,6 +106,44 @@ function switchSettingTab(tabId) {
     if (tabId === 'tab-chapters' && typeof switchChapterSettingsInnerTab === 'function') {
         switchChapterSettingsInnerTab('chapter-settings-inner-structure');
     }
+
+    if (tabId === 'tab-header-footer' && typeof switchHeaderFooterTab === 'function') {
+        switchHeaderFooterTab('header');
+    }
+
+    if (tabId === 'tab-typography' && typeof switchTypographyTab === 'function') {
+        switchTypographyTab('body');
+    }
+}
+
+function switchHeaderFooterTab(tab) {
+    const isFooter = tab === 'footer';
+    const headerPanel = document.getElementById('header-footer-header-panel');
+    const footerPanel = document.getElementById('header-footer-footer-panel');
+    const headerButton = document.getElementById('btn-header-footer-header');
+    const footerButton = document.getElementById('btn-header-footer-footer');
+
+    headerPanel?.classList.toggle('hidden', isFooter);
+    footerPanel?.classList.toggle('hidden', !isFooter);
+    headerButton?.classList.toggle('is-active', !isFooter);
+    footerButton?.classList.toggle('is-active', isFooter);
+    headerButton?.setAttribute('aria-selected', isFooter ? 'false' : 'true');
+    footerButton?.setAttribute('aria-selected', isFooter ? 'true' : 'false');
+}
+
+function switchTypographyTab(tab) {
+    const showHeadings = tab === 'headings';
+    const bodyPanel = document.getElementById('typography-body-panel');
+    const headingsPanel = document.getElementById('typography-headings-panel');
+    const bodyButton = document.getElementById('btn-typography-body');
+    const headingsButton = document.getElementById('btn-typography-headings');
+
+    bodyPanel?.classList.toggle('hidden', showHeadings);
+    headingsPanel?.classList.toggle('hidden', !showHeadings);
+    bodyButton?.classList.toggle('is-active', !showHeadings);
+    headingsButton?.classList.toggle('is-active', showHeadings);
+    bodyButton?.setAttribute('aria-selected', showHeadings ? 'false' : 'true');
+    headingsButton?.setAttribute('aria-selected', showHeadings ? 'true' : 'false');
 }
 
 function switchChapterSettingsInnerTab(tabId) {

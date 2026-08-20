@@ -1,6 +1,13 @@
 <div id="tab-typography" class="setting-tab-content space-y-4 hidden">
-                <div>
-                    <h4 class="text-[10px] font-bold uppercase tracking-wider text-black dark:text-white mb-2 border-b border-[var(--border-color)] pb-1">Tipografía del Cuerpo</h4>
+                <nav class="settings-inner-tabs" role="tablist" aria-label="Tipos de tipografía">
+                    <button type="button" role="tab" aria-controls="typography-body-panel" id="btn-typography-body" class="typography-tab-btn header-footer-tab-btn is-active" onclick="switchTypographyTab('body')" aria-selected="true">Cuerpo</button>
+                    <button type="button" role="tab" aria-controls="typography-headings-panel" id="btn-typography-headings" class="typography-tab-btn header-footer-tab-btn" onclick="switchTypographyTab('headings')" aria-selected="false">Títulos</button>
+                </nav>
+
+                <div id="typography-body-panel" class="typography-tab-panel" role="tabpanel" aria-labelledby="btn-typography-body">
+                <section class="settings-section-card">
+                    <h4><i class="fa-solid fa-font" aria-hidden="true"></i> Tipografía del cuerpo</h4>
+                    <div class="settings-section-card-body space-y-4">
                     <div class="grid grid-cols-3 gap-2">
                         <div>
                             <label class="block text-[9px] text-[var(--text-muted)] mb-1">Familia de Fuente</label>
@@ -50,7 +57,7 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-[9px] text-[var(--text-muted)] mb-1">Guiones (Separación)</label>
+                            <label class="block text-[9px] text-[var(--text-muted)] mb-1">Separación silábica</label>
                             <select id="setting-content-hyphenation" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                                 <option value="1">Activado</option>
                                 <option value="0">Desactivado</option>
@@ -73,15 +80,19 @@
                         <textarea id="setting-content-hyphenation-exceptions" rows="3" placeholder="realidad, prohibición, extraordinario" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-black"></textarea>
                         <p class="mt-1 text-[10px] text-[var(--text-muted)]">Una palabra por línea o separadas por comas. Estas palabras no se partirán al final de línea.</p>
                     </div>
+                    </div>
+                </section>
                 </div>
 
-                <div>
-                    <h4 class="text-[10px] font-bold uppercase tracking-wider text-black dark:text-white mb-2 border-b border-[var(--border-color)] pb-1">Tipografía de Títulos (H1, H2, H3)</h4>
+                <div id="typography-headings-panel" class="typography-tab-panel hidden" role="tabpanel" aria-labelledby="btn-typography-headings">
+                <section class="settings-section-card">
+                    <h4><i class="fa-solid fa-heading" aria-hidden="true"></i> Tipografía de títulos</h4>
+                    <div class="settings-section-card-body">
                     
                     <div class="space-y-3">
                         <!-- H1 -->
-                        <div class="p-2 border border-[var(--border-color)] rounded-lg bg-[var(--bg-app)]">
-                            <span class="text-[9px] font-bold text-[var(--text-main)] block mb-2">Título Principal (H1)</span>
+                        <div class="settings-type-level-card p-2 border border-[var(--border-color)] rounded-lg bg-[var(--bg-app)]">
+                            <span class="settings-type-level-title text-[9px] font-bold text-[var(--text-main)] block mb-2">Título principal (H1)</span>
                             <div class="grid grid-cols-4 gap-2">
                                 <div>
                                     <label class="block text-[8px] text-[var(--text-muted)] mb-1">Familia</label>
@@ -118,8 +129,8 @@
                         </div>
 
                         <!-- H2 -->
-                        <div class="p-2 border border-[var(--border-color)] rounded-lg bg-[var(--bg-app)]">
-                            <span class="text-[9px] font-bold text-[var(--text-main)] block mb-2">Subtítulo (H2)</span>
+                        <div class="settings-type-level-card p-2 border border-[var(--border-color)] rounded-lg bg-[var(--bg-app)]">
+                            <span class="settings-type-level-title text-[9px] font-bold text-[var(--text-main)] block mb-2">Subtítulo (H2)</span>
                             <div class="grid grid-cols-4 gap-2">
                                 <div>
                                     <label class="block text-[8px] text-[var(--text-muted)] mb-1">Familia</label>
@@ -156,8 +167,8 @@
                         </div>
 
                         <!-- H3 -->
-                        <div class="p-2 border border-[var(--border-color)] rounded-lg bg-[var(--bg-app)]">
-                            <span class="text-[9px] font-bold text-[var(--text-main)] block mb-2">Tercer Nivel (H3)</span>
+                        <div class="settings-type-level-card p-2 border border-[var(--border-color)] rounded-lg bg-[var(--bg-app)]">
+                            <span class="settings-type-level-title text-[9px] font-bold text-[var(--text-main)] block mb-2">Tercer nivel (H3)</span>
                             <div class="grid grid-cols-4 gap-2">
                                 <div>
                                     <label class="block text-[8px] text-[var(--text-muted)] mb-1">Familia</label>
@@ -193,5 +204,7 @@
                             </div>
                         </div>
                     </div>
+                    </div>
+                </section>
                 </div>
             </div>

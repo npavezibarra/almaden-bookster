@@ -277,9 +277,8 @@ function switchBookTemplateGroup(group) {
     document.querySelectorAll('[data-book-template-group]').forEach((button) => {
         const active = button.dataset.bookTemplateGroup === activeBookTemplateGroup;
         button.setAttribute('aria-selected', active ? 'true' : 'false');
-        button.classList.toggle('bg-black', active);
-        button.classList.toggle('text-white', active);
-        button.classList.toggle('text-[var(--text-muted)]', !active);
+        button.classList.toggle('is-active', active);
+        button.classList.remove('bg-black', 'text-white');
     });
     renderBookTemplates(cachedBookTemplates || []);
 }
