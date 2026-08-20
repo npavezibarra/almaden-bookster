@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo Global Producto</title>
+  <style>
+    :root {
+      --bg: #f3f5f9;
+      --panel: #ffffff;
+      --panel-2: #f8fafc;
+      --line: #d8dee9;
+      --text: #101828;
+      --muted: #667085;
+      --accent: #0b5fff;
+      --accent-soft: #eaf1ff;
+      --shadow: 0 18px 50px rgba(16, 24, 40, 0.08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(11, 95, 255, 0.10), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.08), transparent 26%),
+        var(--bg);
+      min-height: 100vh;
+      padding: 28px;
+    }
+
+    .shell {
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 22px 26px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: #0f172a;
+      color: white;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+    }
+
+    .format-tabs {
+      display: inline-flex;
+      gap: 4px;
+      padding: 5px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fbfcff;
+    }
+
+    .format-tab {
+      border: 1px solid transparent;
+      background: transparent;
+      color: #64748b;
+      padding: 12px 22px;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .format-tab.active {
+      background: white;
+      border-color: #d6def0;
+      color: #0f172a;
+      box-shadow: 0 2px 7px rgba(15, 23, 42, 0.08);
+    }
+
+    .close {
+      width: 44px;
+      height: 44px;
+      border: 0;
+      background: transparent;
+      border-radius: 50%;
+      color: #64748b;
+      font-size: 32px;
+      line-height: 1;
+    }
+
+    .body {
+      padding: 0 26px 26px;
+    }
+
+    .global-nav {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 14px;
+    }
+
+    .global-tab {
+      border: 0;
+      background: transparent;
+      color: #667085;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 9px 14px;
+      border-radius: 999px;
+    }
+
+    .global-tab.active {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .panel {
+      margin-top: 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, #fff, #fbfcff);
+      padding: 22px;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #e7edf5;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+
+    .panel-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      max-width: 760px;
+    }
+
+    .subtabs {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 5px;
+      background: #f8fafc;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .subtab {
+      border: 0;
+      background: transparent;
+      color: #6b7280;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .subtab.active {
+      background: #111827;
+      color: white;
+    }
+
+    .mode-switch {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 4px 0 18px;
+    }
+
+    .mode-pill {
+      border: 1px solid #d7dfeb;
+      border-radius: 999px;
+      padding: 12px 18px;
+      background: white;
+      color: #0f172a;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      box-shadow: 0 1px 0 rgba(16, 24, 40, 0.02);
+      transition: all 160ms ease;
+    }
+
+    .mode-pill.active {
+      background: #111827;
+      color: white;
+      border-color: #111827;
+      box-shadow: 0 8px 18px rgba(17, 24, 39, 0.18);
+    }
+
+    .mode-panel {
+      display: none;
+      margin-top: 16px;
+      border: 1px solid #e5eaf2;
+      border-radius: 18px;
+      padding: 18px;
+      background: #fff;
+    }
+
+    .mode-panel.active {
+      display: block;
+      animation: slideDown 180ms ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .section {
+      border: 1px solid #e5eaf2;
+      border-radius: 18px;
+      background: white;
+      padding: 18px;
+    }
+
+    .section h3 {
+      margin: 0 0 10px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      color: #334155;
+    }
+
+    .field-label {
+      display: block;
+      margin: 16px 0 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+    }
+
+    .input,
+    .select,
+    .textarea {
+      width: 100%;
+      border: 1px solid #d7dfeb;
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fff;
+      color: #0f172a;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .help {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .chip {
+      border: 1px solid #d7dfeb;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      background: #fff;
+    }
+
+    .chip.dark {
+      background: #111827;
+      color: white;
+      border-color: #111827;
+    }
+
+    .results {
+      margin-top: 14px;
+      border: 1px solid #d7dfeb;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .result-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 16px;
+      border-top: 1px solid #e8edf4;
+      background: white;
+      font-size: 13px;
+    }
+
+    .result-item:first-child { border-top: 0; }
+
+    .result-item strong { display: block; font-size: 14px; }
+    .result-item span { color: var(--muted); display: block; margin-top: 3px; }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .btn {
+      border: 1px solid #d7dfeb;
+      border-radius: 14px;
+      padding: 12px 16px;
+      background: white;
+      font-weight: 700;
+      font-size: 13px;
+      color: #0f172a;
+    }
+
+    .btn.primary {
+      background: #111827;
+      color: white;
+      border-color: #111827;
+    }
+
+    .btn.ghost {
+      background: #f8fafc;
+    }
+
+    .btn.dark {
+      background: #0f172a;
+      color: white;
+      border-color: #0f172a;
+      padding-inline: 14px;
+    }
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      border: 1px solid #d7dfeb;
+      background: white;
+      color: #0f172a;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      flex: 0 0 auto;
+    }
+
+    .icon-btn.danger {
+      color: #be123c;
+    }
+
+    .icon-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid #d7dfeb;
+      color: #475569;
+      background: #fff;
+      width: fit-content;
+    }
+
+    .badge.accent {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: #cfe0ff;
+    }
+
+    .variant-box {
+      margin-top: 18px;
+      border: 1px solid #dce4ef;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .variant-row {
+      display: grid;
+      grid-template-columns: 1.2fr 0.6fr 0.6fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 14px 16px;
+      border-top: 1px solid #e7edf5;
+      background: white;
+      font-size: 13px;
+    }
+
+    .variant-row:first-child { border-top: 0; background: #fbfcff; }
+
+    .variant-row small {
+      color: var(--muted);
+      display: block;
+      margin-top: 4px;
+    }
+
+    .muted-note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    @media (max-width: 900px) {
+      body { padding: 14px; }
+      .header, .body { padding-left: 16px; padding-right: 16px; }
+      .layout, .row, .product-grid, .variant-row { grid-template-columns: 1fr; }
+      .panel-head { flex-direction: column; align-items: flex-start; }
+      .title { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="card">
+      <div class="header">
+        <div class="title">
+          <div class="icon">⚙</div>
+          <div>Ajustes del Libro</div>
+        </div>
+        <div class="format-tabs" aria-label="Format tabs">
+          <button class="format-tab">PDF</button>
+          <button class="format-tab">EBOOK</button>
+          <button class="format-tab active">GLOBAL</button>
+        </div>
+        <button class="close" aria-label="Cerrar">×</button>
+      </div>
+
+      <div class="body">
+        <div class="global-nav" aria-label="Global subtabs">
+          <button class="global-tab active">MAIN</button>
+          <button class="global-tab">PRODUCT</button>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>GLOBAL · PRODUCT</h2>
+              <p>Administra la relación entre el libro y WooCommerce. Puedes vincular un producto existente o crear uno nuevo como variable con variaciones para ambos, físico y ebook.</p>
+            </div>
+          </div>
+
+          <div class="mode-switch" role="tablist" aria-label="Product modes">
+            <button class="mode-pill active" data-mode="link" type="button">Link to product</button>
+            <button class="mode-pill" data-mode="create" type="button">Create product</button>
+          </div>
+
+          <div class="mode-panel active" id="mode-link-panel">
+            <div class="layout" style="margin-top: 0;">
+              <div class="section" style="grid-column: 1 / -1;">
+                <h3>Link to product</h3>
+                <label class="field-label">Search product</label>
+                <input class="input" value="Nico T..." placeholder="Busca por nombre, SKU o ID">
+
+                <div class="results">
+                  <div class="result-item">
+                    <div>
+                      <strong>Result 1</strong>
+                      <span>SKU 1201 · Producto variable</span>
+                    </div>
+                    <span class="badge accent">Seleccionar</span>
+                  </div>
+                  <div class="result-item">
+                    <div>
+                      <strong>Result 2</strong>
+                      <span>SKU 1202 · Producto simple</span>
+                    </div>
+                    <span class="badge">Seleccionar</span>
+                  </div>
+                  <div class="result-item">
+                    <div>
+                      <strong>Result 3</strong>
+                      <span>SKU 1203 · Producto variable</span>
+                    </div>
+                    <span class="badge">Seleccionar</span>
+                  </div>
+                </div>
+
+                <div class="button-row">
+                  <button class="btn primary">Link to product</button>
+                  <button class="btn ghost">Convert to variable</button>
+                </div>
+                <p class="muted-note">Si el producto existe como simple, el plugin lo convertirá a variable y añadirá la variación ebook.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mode-panel" id="mode-create-panel">
+            <div class="section">
+              <h3>Create product</h3>
+              <label class="field-label">Book title default</label>
+              <input class="input" value="Mi Novela Inédita">
+
+              <label class="field-label">Descripción</label>
+              <textarea class="textarea">Texto del producto que se mostrará en WooCommerce. Puede ser distinto para físico y ebook, pero aquí se propone como base.</textarea>
+
+              <label class="field-label">Variations</label>
+              <div class="variant-box">
+                <div class="variant-row">
+                  <div>
+                    <strong>Ambos</strong>
+                    <div class="stack">
+                      <span class="badge">Hybrid</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="field-label" style="margin:0 0 6px;">Price</label>
+                    <input class="input" id="demo-both-price" placeholder="18.990" value="18.990" inputmode="decimal">
+                  </div>
+                  <div>
+                    <label class="field-label" style="margin:0 0 6px;">Inventory</label>
+                    <input class="input" value="0" inputmode="numeric">
+                  </div>
+                  <div class="stack">
+                    <button class="icon-btn" type="button" aria-label="Guardar Ambos" title="Guardar Ambos">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v6h7V4"/><path d="M8 18h8"/><path d="M12 11v5"/></svg>
+                    </button>
+                    <button class="icon-btn danger" type="button" aria-label="Desvincular Ambos" title="Desvincular Ambos">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.59 13.41a1.99 1.99 0 0 0 2.82 0l3.18-3.18a2 2 0 0 0-2.83-2.83l-1.41 1.41"/><path d="M13.41 10.59a1.99 1.99 0 0 0-2.82 0l-3.18 3.18a2 2 0 1 0 2.83 2.83l1.41-1.41"/><path d="M3 3l18 18"/></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="variant-row">
+                  <div>
+                    <strong>Físico</strong>
+                  </div>
+                  <div>
+                    <label class="field-label" style="margin:0 0 6px;">Price</label>
+                    <input class="input" id="demo-physical-price" value="14.900" inputmode="decimal">
+                  </div>
+                  <div>
+                    <label class="field-label" style="margin:0 0 6px;">Inventory</label>
+                    <input class="input" value="12" inputmode="numeric">
+                  </div>
+                  <div class="stack">
+                    <button class="icon-btn" type="button" aria-label="Guardar Físico" title="Guardar Físico">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v6h7V4"/><path d="M8 18h8"/><path d="M12 11v5"/></svg>
+                    </button>
+                    <button class="icon-btn danger" type="button" aria-label="Desvincular Físico" title="Desvincular Físico">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.59 13.41a1.99 1.99 0 0 0 2.82 0l3.18-3.18a2 2 0 0 0-2.83-2.83l-1.41 1.41"/><path d="M13.41 10.59a1.99 1.99 0 0 0-2.82 0l-3.18 3.18a2 2 0 1 0 2.83 2.83l1.41-1.41"/><path d="M3 3l18 18"/></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="variant-row">
+                  <div>
+                    <strong>Ebook</strong>
+                  </div>
+                  <div>
+                    <label class="field-label" style="margin:0 0 6px;">Price</label>
+                    <input class="input" id="demo-ebook-price" value="8.000" inputmode="decimal">
+                  </div>
+                  <div class="stack">
+                    <span class="badge accent">Digital</span>
+                  </div>
+                  <div class="stack">
+                    <button class="icon-btn" type="button" aria-label="Guardar Ebook" title="Guardar Ebook">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v6h7V4"/><path d="M8 18h8"/><path d="M12 11v5"/></svg>
+                    </button>
+                    <button class="icon-btn danger" type="button" aria-label="Desvincular Ebook" title="Desvincular Ebook">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.59 13.41a1.99 1.99 0 0 0 2.82 0l3.18-3.18a2 2 0 0 0-2.83-2.83l-1.41 1.41"/><path d="M13.41 10.59a1.99 1.99 0 0 0-2.82 0l-3.18 3.18a2 2 0 1 0 2.83 2.83l1.41-1.41"/><path d="M3 3l18 18"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="button-row">
+                <button class="btn primary">Create variable product</button>
+                <button class="btn">Create both only</button>
+                <button class="btn">Create physical only</button>
+                <button class="btn">Create ebook only</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const modeButtons = document.querySelectorAll('.mode-pill');
+    const modePanels = {
+      link: document.getElementById('mode-link-panel'),
+      create: document.getElementById('mode-create-panel'),
+    };
+    const demoPhysicalPrice = document.getElementById('demo-physical-price');
+    const demoEbookPrice = document.getElementById('demo-ebook-price');
+    const demoBothPrice = document.getElementById('demo-both-price');
+
+    function parsePrice(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return null;
+      const separatorIndex = Math.max(raw.lastIndexOf('.'), raw.lastIndexOf(','));
+      if (separatorIndex >= 0) {
+        const decimals = raw.slice(separatorIndex + 1).replace(/[^\d]/g, '');
+        if (decimals.length > 0 && decimals.length < 3) {
+          return null;
+        }
+      }
+      const digits = raw.replace(/[^\d]/g, '');
+      return digits ? Number(digits) : null;
+    }
+
+    function suggestedBothPrice() {
+      const physical = parsePrice(demoPhysicalPrice?.value);
+      const ebook = parsePrice(demoEbookPrice?.value);
+      if (!physical || !ebook) return '24.990';
+      const discounted = Math.floor(((physical + ebook) * 0.8) / 1000) * 1000 + 990;
+      return new Intl.NumberFormat('es-CL').format(Math.max(990, discounted));
+    }
+
+    function refreshBothPrice() {
+      if (!demoBothPrice) return;
+      demoBothPrice.placeholder = suggestedBothPrice();
+    }
+
+    function setMode(mode) {
+      modeButtons.forEach((button) => {
+        const active = button.dataset.mode === mode;
+        button.classList.toggle('active', active);
+      });
+      Object.entries(modePanels).forEach(([key, panel]) => {
+        panel.classList.toggle('active', key === mode);
+      });
+    }
+
+    modeButtons.forEach((button) => {
+      button.addEventListener('click', () => setMode(button.dataset.mode));
+    });
+
+    [demoPhysicalPrice, demoEbookPrice].forEach((input) => {
+      input?.addEventListener('input', refreshBothPrice);
+    });
+
+    refreshBothPrice();
+  </script>
+</body>
+</html>

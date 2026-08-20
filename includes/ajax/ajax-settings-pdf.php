@@ -51,6 +51,7 @@ function almaden_get_book_pdf_settings( $book_id ) {
 		'ebook_font_family_headings' => 'Playfair Display',
 		'ebook_font_size_headings'   => 32.0,
 		'ebook_font_weight_headings' => 'bold',
+		'ebook_chapter_title_font_style' => 'normal',
 		'ebook_line_height_headings' => 1.3,
 		'ebook_text_align_justify'   => 0,
 		'ebook_hyphenation'          => 0,
@@ -226,7 +227,7 @@ function almaden_get_book_pdf_settings( $book_id ) {
 		if ( function_exists( 'almaden_bookster_get_book_template_payload_for_seed' ) ) {
 			$template = almaden_bookster_get_book_template_payload_for_seed( $template_key, $template_label );
 			$template_settings = ( $template && isset( $template['settings'] ) && is_array( $template['settings'] ) )
-				? $template['settings']
+				? almaden_bookster_flatten_book_template_settings( $template['settings'] )
 				: array();
 			foreach ( $template_settings as $key => $value ) {
 				if ( array_key_exists( $key, $pdf_settings ) ) {

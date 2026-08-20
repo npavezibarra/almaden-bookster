@@ -62,7 +62,7 @@ function getBookTemplatesRequestContext() {
     };
 }
 
-function buildCurrentBookTemplateSettings() {
+function buildCurrentBookTemplateFlatSettings() {
     const getVal = (id, fallback = '') => {
         const el = document.getElementById(id);
         return el ? el.value : fallback;
@@ -123,6 +123,71 @@ function buildCurrentBookTemplateSettings() {
         credits_config: creditsConfig,
         ...creditsLegacy,
     };
+}
+
+function buildCurrentPDFTemplateSettings(flatSettings) {
+    const pdf = {};
+    Object.entries(flatSettings || {}).forEach(([key, value]) => {
+        if (!key.startsWith('ebook_') && !['book_language', 'content_language', 'book_authors'].includes(key)) {
+            pdf[key] = value;
+        }
+    });
+    const currentSettings = typeof bookState !== 'undefined' && bookState?.settings ? bookState.settings : {};
+    pdf.page_templates = Array.isArray(currentSettings.page_templates) ? currentSettings.page_templates : [];
+    pdf.page_styles = Array.isArray(currentSettings.page_styles) ? currentSettings.page_styles : [];
+    return pdf;
+}
+
+function buildCurrentEbookTemplateSettings(flatSettings) {
+    return Object.fromEntries(
+        Object.entries(flatSettings || {}).filter(([key]) => key.startsWith('ebook_'))
+    );
+}
+
+function buildCurrentGlobalTemplateSettings(flatSettings) {
+    return {
+        book_language: flatSettings?.book_language || flatSettings?.content_language || 'es',
+    };
+}
+
+function buildCurrentBookTemplateSettings() {
+    const flatSettings = buildCurrentBookTemplateFlatSettings();
+    return {
+        pdf: buildCurrentPDFTemplateSettings(flatSettings),
+        ebook: buildCurrentEbookTemplateSettings(flatSettings),
+        global: buildCurrentGlobalTemplateSettings(flatSettings),
+    };
+}
+
+function normalizeBookTemplateSettings(settings) {
+    if (settings?.pdf || settings?.ebook || settings?.global) {
+        return {
+            pdf: settings.pdf && typeof settings.pdf === 'object' ? settings.pdf : {},
+            ebook: settings.ebook && typeof settings.ebook === 'object' ? settings.ebook : {},
+            global: settings.global && typeof settings.global === 'object' ? settings.global : {},
+        };
+    }
+
+    const scoped = { pdf: {}, ebook: {}, global: {} };
+    Object.entries(settings || {}).forEach(([key, value]) => {
+        if (key.startsWith('ebook_')) {
+            scoped.ebook[key] = value;
+        } else if (key === 'book_language' || key === 'content_language') {
+            scoped.global.book_language = value;
+        } else if (key !== 'book_authors') {
+            scoped.pdf[key] = value;
+        }
+    });
+    return scoped;
+}
+
+function flattenBookTemplateSettings(settings) {
+    const scoped = normalizeBookTemplateSettings(settings);
+    const flat = { ...scoped.pdf, ...scoped.ebook, ...scoped.global };
+    if (scoped.global.book_language) {
+        flat.content_language = scoped.global.book_language;
+    }
+    return flat;
 }
 
 function createBookTemplateRequestData(action) {
@@ -237,33 +302,13 @@ function createBookTemplateAction(label, className, handler, iconClass = '') {
 
 function createBookTemplateCard(template) {
     const card = document.createElement('article');
-    card.className = 'border border-[var(--border-color)] rounded-lg p-3 bg-[var(--bg-sidebar)] flex flex-col justify-between gap-3';
+    card.className = 'border border-[var(--border-color)] rounded-lg p-3 bg-[var(--bg-sidebar)] flex flex-col justify-between gap-4';
 
     const content = document.createElement('div');
     const heading = document.createElement('h5');
-    heading.className = 'text-xs font-bold text-[var(--text-main)] mb-1';
+    heading.className = 'text-xs font-bold text-[var(--text-main)]';
     heading.textContent = template.name || 'Plantilla sin nombre';
     content.appendChild(heading);
-
-    if (template.description) {
-        const description = document.createElement('p');
-        description.className = 'text-[10px] leading-4 text-[var(--text-muted)]';
-        description.textContent = template.description;
-        content.appendChild(description);
-    }
-
-    const badges = document.createElement('div');
-    badges.className = 'mt-2 flex flex-wrap gap-1';
-    const originBadge = document.createElement('span');
-    originBadge.className = 'inline-flex items-center rounded-full border border-[var(--border-color)] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[var(--text-muted)]';
-    originBadge.textContent = template.origin === 'user' ? 'Personal' : 'Bookster';
-    badges.appendChild(originBadge);
-    if (Array.isArray(template.sample_chapters) && template.sample_chapters.length) {
-        const sampleBadge = originBadge.cloneNode(false);
-        sampleBadge.textContent = 'Con muestras';
-        badges.appendChild(sampleBadge);
-    }
-    content.appendChild(badges);
     card.appendChild(content);
 
     const actions = document.createElement('div');
@@ -281,6 +326,15 @@ function createBookTemplateCard(template) {
             'text-[10px] font-semibold text-[var(--text-main)] border border-[var(--border-color)] hover:bg-[var(--bg-app)] rounded px-3 py-1.5 transition inline-flex items-center gap-1.5',
             () => updateBookTemplateFromCurrentSettings(template.id),
             'fa-solid fa-rotate'
+        ));
+    }
+
+    if (template.origin === 'user' && template.can_promote) {
+        actions.appendChild(createBookTemplateAction(
+            'Convertir a estándar',
+            'text-[10px] font-semibold text-[var(--text-main)] border border-[var(--border-color)] hover:bg-[var(--bg-app)] rounded px-3 py-1.5 transition inline-flex items-center gap-1.5',
+            () => promoteBookTemplateToStandard(template.id),
+            'fa-solid fa-star'
         ));
     }
 
@@ -351,7 +405,9 @@ function applyBookTemplate(templateId) {
         ebook_subtitle_letter_spacing: 'setting-ebook-chapter-subtitle-letter-spacing',
     };
 
-    Object.entries(template.settings).forEach(([key, value]) => {
+    const scopedSettings = normalizeBookTemplateSettings(template.settings);
+    const flatSettings = flattenBookTemplateSettings(scopedSettings);
+    Object.entries(flatSettings).forEach(([key, value]) => {
         if (value && typeof value === 'object') return;
         const fieldId = fieldOverrides[key] || `setting-${key.replace(/_/g, '-')}`;
         const field = document.getElementById(fieldId);
@@ -361,15 +417,19 @@ function applyBookTemplate(templateId) {
         } else {
             field.value = value ?? '';
         }
+        field.dispatchEvent(new Event('input', { bubbles: true }));
         field.dispatchEvent(new Event('change', { bubbles: true }));
     });
 
     if (typeof bookState !== 'undefined' && bookState) {
-        bookState.settings = { ...(bookState.settings || {}), ...template.settings };
-        if (template.settings.credits_config && typeof initCreditsForm === 'function') {
+        bookState.settings = { ...(bookState.settings || {}), ...flatSettings };
+        if (scopedSettings.pdf.credits_config && typeof initCreditsForm === 'function') {
             initCreditsForm();
         }
     }
+
+    if (typeof toggleEbookBgType === 'function') toggleEbookBgType();
+    if (typeof toggleCoverPanelBgType === 'function') toggleCoverPanelBgType();
 
     if (typeof savePDFSettings === 'function') {
         savePDFSettings();
@@ -403,7 +463,7 @@ async function promptSaveCurrentAsBookTemplate() {
 async function updateBookTemplateFromCurrentSettings(templateId) {
     const template = cachedBookTemplates?.find((item) => item.id === templateId && item.origin === 'user');
     if (!template) return;
-    if (!confirm(`¿Actualizar "${template.name}" con los ajustes actuales?\nLa versión anterior será reemplazada.`)) {
+    if (!confirm('¿Estás seguro que quieres actualizar esta plantilla?')) {
         return;
     }
 
@@ -422,6 +482,28 @@ async function updateBookTemplateFromCurrentSettings(templateId) {
     } catch (error) {
         console.error(error);
         setBookTemplateStatus(error.message || 'No se pudo actualizar la plantilla.', 'error');
+    }
+}
+
+async function promoteBookTemplateToStandard(templateId) {
+    const template = cachedBookTemplates?.find((item) => item.id === templateId && item.origin === 'user');
+    if (!template || !template.can_promote) return;
+    if (!confirm('¿Convertir esta plantilla en estándar?')) {
+        return;
+    }
+
+    setBookTemplateStatus(`Convirtiendo "${template.name}" en estándar...`, 'info');
+    try {
+        await requestBookTemplates('almaden_promote_book_template_to_standard', (data) => {
+            data.append('template_id', template.id);
+        });
+        cachedBookTemplates = null;
+        await loadBookTemplates();
+        switchBookTemplateGroup('system');
+        setBookTemplateStatus(`Plantilla "${template.name}" convertida en estándar.`, 'success');
+    } catch (error) {
+        console.error(error);
+        setBookTemplateStatus(error.message || 'No se pudo convertir la plantilla en estándar.', 'error');
     }
 }
 

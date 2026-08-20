@@ -99,6 +99,12 @@ function almaden_bookster_woocommerce_user_has_wc_access_for_book( $book_id, $us
 	if ( ! $book_id ) {
 		return false;
 	}
+	if ( function_exists( 'almaden_bookster_book_product_access_decision' ) ) {
+		$module_decision = almaden_bookster_book_product_access_decision( $book_id, $user_id );
+		if ( null !== $module_decision ) {
+			return (bool) $module_decision;
+		}
+	}
 	if ( function_exists( 'almaden_bookster_user_can_manage_book' ) && almaden_bookster_user_can_manage_book( $book_id, $user_id ) ) {
 		return true;
 	}

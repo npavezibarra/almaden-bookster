@@ -128,6 +128,7 @@ window.savePDFSettings = function(silent = false, skipPreview = false) {
     data.append('ebook_font_family_headings', getVal('setting-ebook-chapter-title-font-family') || '');
     data.append('ebook_font_size_headings', getCleanVal('setting-ebook-chapter-title-font-size'));
     data.append('ebook_font_weight_headings', getVal('setting-ebook-chapter-title-font-weight') || '');
+    data.append('ebook_chapter_title_font_style', getVal('setting-ebook-chapter-title-font-style') || 'normal');
     data.append('ebook_line_height_headings', getCleanVal('setting-ebook-chapter-title-line-height'));
     
     data.append('ebook_chapter_title_align', getCleanVal('setting-ebook-chapter-title-align'));

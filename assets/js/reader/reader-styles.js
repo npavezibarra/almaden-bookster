@@ -118,6 +118,7 @@ function generateDynamicStyles() {
             font-family: ${ffHeading} !important;
             font-size: ${baseSizeChapterTitle}px !important;
             font-weight: ${settings.ebook_font_weight_headings || 'bold'} !important;
+            font-style: ${settings.ebook_chapter_title_font_style || 'normal'} !important;
             line-height: ${settings.ebook_chapter_title_line_height !== undefined ? settings.ebook_chapter_title_line_height : baseLhChapterTitle} !important;
             text-transform: ${settings.ebook_chapter_title_text_transform || 'none'} !important;
             text-align: ${settings.ebook_chapter_title_align || 'center'} !important;
@@ -189,6 +190,7 @@ function generateDynamicStyles() {
             font-family: ${ffHeading} !important;
             font-size: ${baseSizeContentHeading}px !important;
             font-weight: ${settings.ebook_font_weight_headings || 'bold'} !important;
+            font-style: ${settings.ebook_chapter_title_font_style || 'normal'} !important;
             line-height: ${baseLhContentHeading} !important;
             color: ${readerHeadingColor} !important;
         }

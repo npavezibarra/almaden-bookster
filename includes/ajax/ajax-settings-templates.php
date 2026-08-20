@@ -143,6 +143,35 @@ function almaden_update_book_template_ajax() {
 }
 add_action( 'wp_ajax_almaden_update_book_template', 'almaden_update_book_template_ajax' );
 
+function almaden_promote_book_template_to_standard_ajax() {
+	$book_id = isset( $_POST['book_id'] ) ? absint( $_POST['book_id'] ) : 0;
+	almaden_bookster_require_book_template_access( $book_id );
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_send_json_error( 'Solo un administrador puede convertir una plantilla en estándar.', 403 );
+	}
+
+	$template_id = isset( $_POST['template_id'] ) ? sanitize_text_field( wp_unslash( $_POST['template_id'] ) ) : '';
+	$template = almaden_bookster_get_personal_book_template( $template_id );
+	if ( ! $template ) {
+		wp_send_json_error( 'No se encontró la plantilla personal solicitada.', 404 );
+	}
+
+	$template_key = 'promoted-' . absint( almaden_bookster_parse_personal_book_template_id( $template_id ) );
+	$system_template = almaden_bookster_save_system_book_template( $template, $template_key );
+	if ( is_wp_error( $system_template ) ) {
+		wp_send_json_error( $system_template->get_error_message(), 400 );
+	}
+
+	wp_send_json_success(
+		array(
+			'message'  => 'Plantilla convertida en estándar con éxito.',
+			'template' => $system_template,
+		)
+	);
+}
+add_action( 'wp_ajax_almaden_promote_book_template_to_standard', 'almaden_promote_book_template_to_standard_ajax' );
+
 function almaden_delete_book_template_ajax() {
 	$book_id = isset( $_POST['book_id'] ) ? absint( $_POST['book_id'] ) : 0;
 	almaden_bookster_require_book_template_access( $book_id );
@@ -204,6 +233,8 @@ function almaden_bookster_prepare_template_for_export( $template ) {
 		'visibility'      => 'private',
 		'source'          => 'custom',
 		'schema_version'  => $template['schema_version'] ?? ALMADEN_BOOK_TEMPLATE_SCHEMA_VERSION,
+		'source_schema_version' => $template['source_schema_version'] ?? ( $template['schema_version'] ?? ALMADEN_BOOK_TEMPLATE_SCHEMA_VERSION ),
+		'missing_scopes'  => $template['missing_scopes'] ?? array(),
 		'settings'        => $template['settings'],
 		'preview'         => $template['preview'] ?? array(),
 		'sample_chapters' => $template['sample_chapters'] ?? array(),

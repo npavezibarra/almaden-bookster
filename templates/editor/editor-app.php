@@ -41,9 +41,6 @@ if (!headers_sent()) {
             </a>
             <div class="w-0 shrink-0" aria-hidden="true"></div>
             <div class="flex items-center gap-3">
-                <div class="bg-black text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-black/30">
-                    <i class="fa-solid fa-book-open text-lg"></i>
-                </div>
                 <div>
                     <input id="book-title-input" type="text" value="Mi Novela Inédita" 
                         class="bg-transparent font-bold text-lg focus:outline-none focus:ring-2 focus:ring-black rounded px-1 w-48 md:w-64 border-b border-transparent hover:border-dashed hover:border-gray-400 transition-all" 

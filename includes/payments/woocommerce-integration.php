@@ -14,3 +14,4 @@ require_once __DIR__ . '/woocommerce-products.php';
 require_once __DIR__ . '/woocommerce-access.php';
 require_once __DIR__ . '/woocommerce-hooks.php';
 require_once __DIR__ . '/woocommerce-provider.php';
+require_once dirname( __DIR__, 2 ) . '/modules/book-product/init.php';

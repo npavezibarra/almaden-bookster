@@ -587,7 +587,9 @@ function almaden_bookster_seed_book_settings_for_book( $book_id, $template_key =
 	$template = is_array( $template_payload )
 		? $template_payload
 		: almaden_bookster_get_book_template_payload_for_seed( $template_key, $template_label );
-	$template_settings = ( $template && isset( $template['settings'] ) && is_array( $template['settings'] ) ) ? $template['settings'] : array();
+	$template_settings = ( $template && isset( $template['settings'] ) && is_array( $template['settings'] ) )
+		? almaden_bookster_flatten_book_template_settings( $template['settings'] )
+		: array();
 	$defaults = function_exists( 'almaden_get_book_pdf_settings' ) ? almaden_get_book_pdf_settings( $book_id ) : array();
 
 	$page_size_value = '';
@@ -749,6 +751,13 @@ function almaden_bookster_seed_book_settings_for_book( $book_id, $template_key =
 		update_post_meta( $book_id, '_almaden_' . $field, $value );
 	}
 
+	if ( isset( $template_settings['page_templates'] ) && function_exists( 'almaden_bookster_typst_save_page_templates' ) ) {
+		almaden_bookster_typst_save_page_templates( $book_id, wp_json_encode( $template_settings['page_templates'] ) );
+	}
+	if ( isset( $template_settings['page_styles'] ) && function_exists( 'almaden_bookster_typst_save_page_styles' ) ) {
+		almaden_bookster_typst_save_page_styles( $book_id, wp_json_encode( $template_settings['page_styles'] ) );
+	}
+
 	return $settings_row;
 }
 
@@ -883,8 +892,11 @@ function almaden_bookster_handle_create_book() {
 			wp_die( 'No se pudo aplicar la plantilla seleccionada: ' . esc_html( $seed_settings->get_error_message() ) );
 		}
 
-		$template_font = isset( $selected_template['settings']['font_family_content'] )
-			? (string) $selected_template['settings']['font_family_content']
+		$selected_template_settings = isset( $selected_template['settings'] )
+			? almaden_bookster_flatten_book_template_settings( $selected_template['settings'] )
+			: array();
+		$template_font = isset( $selected_template_settings['font_family_content'] )
+			? (string) $selected_template_settings['font_family_content']
 			: '';
 		if ( '' !== $template_font && $template_font !== (string) ( $seed_settings['font_family_content'] ?? '' ) ) {
 			wp_delete_post( $post_id, true );

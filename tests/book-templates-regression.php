@@ -34,6 +34,14 @@ try {
 	if ( empty( $system_templates ) || 'system' !== $system_templates[0]['origin'] ) {
 		almaden_template_test_fail( 'No se pudieron leer las plantillas estándar.' );
 	}
+	foreach ( array( 'pdf', 'ebook', 'global' ) as $scope ) {
+		if ( empty( $system_templates[0]['settings'][ $scope ] ) ) {
+			almaden_template_test_fail( 'La plantilla estándar no incluye el ámbito ' . $scope . '.' );
+		}
+	}
+	if ( 2 !== $system_templates[0]['schema_version'] ) {
+		almaden_template_test_fail( 'La plantilla estándar no usa el esquema v2.' );
+	}
 
 	$created = almaden_bookster_save_personal_book_template(
 		array(
@@ -41,6 +49,9 @@ try {
 			'description' => 'Se elimina al terminar la prueba.',
 			'settings'    => array(
 				'page_width'     => 14.5,
+				'ebook_bg_color' => '#f5f1e8',
+				'book_language'  => 'es',
+				'book_authors'   => 'autora@example.com',
 				'credits_config' => array(
 					'editorial' => array( 'isbn' => '00123' ),
 					'people'    => array( array( 'name' => 'Autora de prueba', 'role' => 'author' ) ),
@@ -54,8 +65,14 @@ try {
 	}
 
 	$created_id = almaden_bookster_parse_personal_book_template_id( $created['id'] );
-	if ( $created_id <= 0 || '00123' !== $created['settings']['credits_config']['editorial']['isbn'] ) {
+	if ( $created_id <= 0 || '00123' !== $created['settings']['pdf']['credits_config']['editorial']['isbn'] ) {
 		almaden_template_test_fail( 'La plantilla no conservó sus ajustes anidados.' );
+	}
+	if ( 14.5 !== $created['settings']['pdf']['page_width'] || '#f5f1e8' !== $created['settings']['ebook']['ebook_bg_color'] || 'es' !== $created['settings']['global']['book_language'] ) {
+		almaden_template_test_fail( 'La plantilla v1 no se clasificó en PDF, EBOOK y GLOBAL.' );
+	}
+	if ( isset( $created['settings']['global']['book_authors'] ) || isset( $created['settings']['pdf']['book_authors'] ) ) {
+		almaden_template_test_fail( 'La plantilla incluyó autores propios del libro.' );
 	}
 	$owner_templates = almaden_bookster_get_personal_book_templates( $owner_id );
 	if ( ! in_array( $created['id'], wp_list_pluck( $owner_templates, 'id' ), true ) ) {
@@ -75,12 +92,17 @@ try {
 	$updated = almaden_bookster_save_personal_book_template(
 		array(
 			'name'     => $created['name'],
-			'settings' => array( 'page_width' => 15.25 ),
+			'schema_version' => 2,
+			'settings' => array(
+				'pdf'    => array( 'page_width' => 15.25 ),
+				'ebook'  => array( 'ebook_bg_color' => '#ffffff' ),
+				'global' => array( 'book_language' => 'en' ),
+			),
 		),
 		$owner_id,
 		$created['id']
 	);
-	if ( is_wp_error( $updated ) || 15.25 !== $updated['settings']['page_width'] ) {
+	if ( is_wp_error( $updated ) || 15.25 !== $updated['settings']['pdf']['page_width'] || 'en' !== $updated['settings']['global']['book_language'] ) {
 		almaden_template_test_fail( 'No se pudo actualizar la plantilla personal.' );
 	}
 

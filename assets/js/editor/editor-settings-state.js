@@ -106,6 +106,7 @@ window.almadenBuildPDFSettingsState = function(ctx) {
         ebook_font_family_headings: getVal('setting-ebook-chapter-title-font-family') || '',
         ebook_font_size_headings: parseVal('setting-ebook-chapter-title-font-size', 32),
         ebook_font_weight_headings: getVal('setting-ebook-chapter-title-font-weight') || 'bold',
+        ebook_chapter_title_font_style: getVal('setting-ebook-chapter-title-font-style') || 'normal',
         ebook_line_height_headings: parseVal('setting-ebook-chapter-title-line-height', 1.3),
         ebook_chapter_title_align: getVal('setting-ebook-chapter-title-align') || 'center',
         ebook_chapter_title_text_transform: getVal('setting-ebook-chapter-title-text-transform') || 'none',

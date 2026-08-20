@@ -49,20 +49,20 @@
             <!-- PESTAÑA: PLANTILLAS -->
             <div id="tab-templates" class="setting-tab-content space-y-5 hidden">
                 <div class="border border-[var(--border-color)] rounded-xl p-4 bg-[var(--bg-app)] space-y-3 shadow-sm">
-                    <h4 class="text-xs font-bold text-black dark:text-white uppercase tracking-wider flex items-center gap-1.5 border-b border-[var(--border-color)] pb-2 mb-1">
-                        <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Plantillas de Libro
-                    </h4>
-                    <p class="text-[10px] text-[var(--text-muted)]">Aplica una configuración completa de diseño a tu libro. <strong>Al aplicar una plantilla se reemplazarán los ajustes actuales.</strong></p>
+                    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between border-b border-[var(--border-color)] pb-2 mb-1">
+                        <h4 class="text-xs font-bold text-black dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Plantillas de Libro
+                        </h4>
 
-                    <div class="inline-flex rounded-lg border border-[var(--border-color)] bg-[var(--bg-sidebar)] p-1" role="tablist" aria-label="Tipos de plantillas">
-                        <button type="button" id="book-template-tab-system" data-book-template-group="system" role="tab" aria-selected="true" class="book-template-subtab rounded-md bg-black px-3 py-1.5 text-[10px] font-bold text-white transition">
-                            Estándar <span id="book-template-count-system" class="ml-1 opacity-70">0</span>
-                        </button>
-                        <button type="button" id="book-template-tab-personal" data-book-template-group="personal" role="tab" aria-selected="false" class="book-template-subtab rounded-md px-3 py-1.5 text-[10px] font-bold text-[var(--text-muted)] transition hover:text-[var(--text-main)]">
-                            Mis plantillas <span id="book-template-count-personal" class="ml-1 opacity-70">0</span>
-                        </button>
+                        <div class="inline-flex rounded-lg border border-[var(--border-color)] bg-[var(--bg-sidebar)] p-1 self-start md:self-auto" role="tablist" aria-label="Tipos de plantillas">
+                            <button type="button" id="book-template-tab-system" data-book-template-group="system" role="tab" aria-selected="true" class="book-template-subtab rounded-md bg-black px-3 py-1.5 text-[10px] font-bold text-white transition">
+                                Estándar <span id="book-template-count-system" class="ml-1 opacity-70">0</span>
+                            </button>
+                            <button type="button" id="book-template-tab-personal" data-book-template-group="personal" role="tab" aria-selected="false" class="book-template-subtab rounded-md px-3 py-1.5 text-[10px] font-bold text-[var(--text-muted)] transition hover:text-[var(--text-main)]">
+                                Mis plantillas <span id="book-template-count-personal" class="ml-1 opacity-70">0</span>
+                            </button>
+                        </div>
                     </div>
-
                     <div id="templates-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Renderizado por JS -->
                         <div class="text-[10px] text-[var(--text-muted)] italic"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Cargando plantillas de libro...</div>
@@ -346,11 +346,6 @@
                 <button type="button" onclick="switchEbookSettingTab('tab-ebook-chapters')" class="ebook-setting-tab-btn py-2 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-ebook-chapters">
                     Capítulos
                 </button>
-                <?php if ( ! empty( $woocommerce_status['active'] ) ) : ?>
-                    <button type="button" onclick="switchEbookSettingTab('tab-ebook-commerce')" class="ebook-setting-tab-btn py-2 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] font-semibold text-xs transition focus:outline-none whitespace-nowrap" id="btn-tab-ebook-commerce">
-                        Comercio
-                    </button>
-                <?php endif; ?>
             </div>
             
             <div class="space-y-4 max-h-[48vh] overflow-y-auto pr-1">
@@ -488,15 +483,20 @@
                 <!-- Ebook Chapters Tab Content -->
                 <?php include plugin_dir_path( __FILE__ ) . 'settings-tabs/tab-ebook-chapters.php'; ?>
 
-                <!-- Ebook Commerce Tab Content -->
-                <?php if ( ! empty( $woocommerce_status['active'] ) ) : ?>
-                    <?php include plugin_dir_path( __FILE__ ) . 'settings-tabs/tab-commerce.php'; ?>
-                <?php endif; ?>
             </div>
         </div>
 
         <div id="format-global-section" class="hidden">
-            <div class="py-4 border-b border-[var(--border-color)]">
+            <div class="flex items-center gap-2 border-b border-[var(--border-color)]">
+                <button type="button" id="btn-global-info" onclick="switchGlobalSettingsInnerTab('format-global-info-section')" class="global-setting-tab-btn px-3 py-2 text-[10px] font-semibold border-b-2 border-black text-black transition">
+                    Info Libro
+                </button>
+                <button type="button" id="btn-global-product" onclick="switchGlobalSettingsInnerTab('format-global-product-section')" class="global-setting-tab-btn px-3 py-2 text-[10px] font-semibold border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] transition">
+                    Producto
+                </button>
+            </div>
+
+            <div id="format-global-info-section" class="py-4 border-b border-[var(--border-color)]">
                 <label class="block text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Idioma base del libro</label>
                 <select id="setting-book-language" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                     <option value="es">Español</option>
@@ -512,6 +512,16 @@
                 <?php $book_authors_input_value = isset( $book_authors_input_value ) ? $book_authors_input_value : ''; ?>
                 <textarea id="setting-book-authors" rows="2" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-black resize-none" placeholder="Escribe emails o usuarios separados por coma"><?php echo esc_textarea( $book_authors_input_value ); ?></textarea>
                 <p class="mt-2 text-[10px] leading-5 text-[var(--text-muted)]">Usa correos o nombres de usuario para vincular autores reales. La lista visible del libro se sigue mostrando con nombres legibles.</p>
+            </div>
+
+            <div id="format-global-product-section" class="hidden py-4">
+                <?php if ( ! empty( $woocommerce_status['active'] ) ) : ?>
+                    <?php include plugin_dir_path( __FILE__ ) . 'settings-tabs/tab-commerce.php'; ?>
+                <?php else : ?>
+                    <div class="border border-[var(--border-color)] rounded-xl p-4 bg-[var(--bg-app)] shadow-sm text-sm text-[var(--text-muted)]">
+                        WooCommerce no está activo en este sitio. La configuración de producto se habilita cuando WooCommerce está instalado y activo.
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
 

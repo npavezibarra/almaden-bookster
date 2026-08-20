@@ -243,6 +243,7 @@ function applyEbookPreviewStyles() {
             font-size: ${headingSize}px !important;
             line-height: ${lineHeightHeadings} !important;
             font-weight: ${settings.ebook_font_weight_headings || 'bold'} !important;
+            font-style: ${settings.ebook_chapter_title_font_style || 'normal'} !important;
             text-transform: ${chapterTitleTextTransform} !important;
             text-align: ${chapterTitleAlign} !important;
             hyphens: ${settings.ebook_chapter_title_hyphenate == 1 ? 'auto' : 'none'} !important;

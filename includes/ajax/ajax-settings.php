@@ -51,6 +51,10 @@ function almaden_bookster_save_settings_ajax() {
 	global $wpdb;
 	$table_name = $wpdb->prefix . 'almaden_book_settings';
 	$book_language = isset( $_POST['book_language'] ) ? sanitize_text_field( wp_unslash( $_POST['book_language'] ) ) : ( isset( $_POST['content_language'] ) ? sanitize_text_field( wp_unslash( $_POST['content_language'] ) ) : 'es' );
+	$ebook_chapter_title_font_style = isset( $_POST['ebook_chapter_title_font_style'] ) ? sanitize_text_field( wp_unslash( $_POST['ebook_chapter_title_font_style'] ) ) : 'normal';
+	if ( ! in_array( $ebook_chapter_title_font_style, array( 'normal', 'italic', 'oblique' ), true ) ) {
+		$ebook_chapter_title_font_style = 'normal';
+	}
 	$footnote_font_size = isset( $_POST['footnote_font_size'] ) ? floatval( str_replace( ',', '.', $_POST['footnote_font_size'] ) ) : 8.5;
 	$footnote_line_height_raw = isset( $_POST['footnote_line_height'] ) ? floatval( str_replace( ',', '.', $_POST['footnote_line_height'] ) ) : 11.5;
 	$footnote_entry_spacing = isset( $_POST['footnote_entry_spacing'] ) ? max( 0, min( 40, floatval( str_replace( ',', '.', $_POST['footnote_entry_spacing'] ) ) ) ) : 6.0;
@@ -102,6 +106,7 @@ function almaden_bookster_save_settings_ajax() {
 		'ebook_font_family_headings' => isset($_POST['ebook_font_family_headings']) ? sanitize_text_field($_POST['ebook_font_family_headings']) : 'Playfair Display',
 		'ebook_font_size_headings'   => isset($_POST['ebook_font_size_headings']) ? floatval(str_replace(',', '.', $_POST['ebook_font_size_headings'])) : 32.0,
 		'ebook_font_weight_headings' => isset($_POST['ebook_font_weight_headings']) ? sanitize_text_field($_POST['ebook_font_weight_headings']) : 'bold',
+		'ebook_chapter_title_font_style' => $ebook_chapter_title_font_style,
 		'ebook_line_height_headings' => isset($_POST['ebook_line_height_headings']) ? floatval(str_replace(',', '.', $_POST['ebook_line_height_headings'])) : 1.3,
 		'ebook_text_align_justify'   => isset($_POST['ebook_text_align_justify']) ? intval($_POST['ebook_text_align_justify']) : 0,
 		'ebook_hyphenation'          => isset($_POST['ebook_hyphenation']) ? intval($_POST['ebook_hyphenation']) : 0,

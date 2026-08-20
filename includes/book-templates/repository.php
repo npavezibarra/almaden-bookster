@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 const ALMADEN_BOOK_TEMPLATE_POST_TYPE = 'alm_book_template';
 const ALMADEN_BOOK_TEMPLATE_PAYLOAD_META = '_almaden_book_template_payload';
-const ALMADEN_BOOK_TEMPLATE_SCHEMA_VERSION = 1;
+const ALMADEN_BOOK_TEMPLATE_SCHEMA_VERSION = 2;
 
 function almaden_bookster_register_book_template_post_type() {
 	register_post_type(
@@ -37,6 +37,22 @@ function almaden_bookster_book_template_directories() {
 	);
 }
 
+function almaden_bookster_build_system_book_template_key( $template ) {
+	$preferred = isset( $template['id'] ) ? sanitize_title( (string) $template['id'] ) : '';
+	if ( '' !== $preferred ) {
+		return $preferred;
+	}
+
+	$name = isset( $template['name'] ) ? sanitize_title( (string) $template['name'] ) : '';
+	return '' !== $name ? $name : 'book-template';
+}
+
+function almaden_bookster_get_custom_book_template_path( $template_key ) {
+	$dirs = almaden_bookster_book_template_directories();
+	$dir = $dirs['custom'] ?? '';
+	return trailingslashit( $dir ) . sanitize_file_name( sanitize_title( (string) $template_key ) ) . '.json';
+}
+
 function almaden_bookster_sanitize_book_template_value( $value ) {
 	if ( is_array( $value ) ) {
 		$sanitized = array();
@@ -54,17 +70,90 @@ function almaden_bookster_sanitize_book_template_value( $value ) {
 	return sanitize_text_field( (string) $value );
 }
 
+function almaden_bookster_normalize_book_template_settings( $settings ) {
+	$settings = is_array( $settings ) ? almaden_bookster_sanitize_book_template_value( $settings ) : array();
+	$scopes = array( 'pdf', 'ebook', 'global' );
+	$is_scoped = false;
+	foreach ( $scopes as $scope ) {
+		if ( isset( $settings[ $scope ] ) && is_array( $settings[ $scope ] ) ) {
+			$is_scoped = true;
+			break;
+		}
+	}
+
+	if ( $is_scoped ) {
+		$normalized = array();
+		$missing_scopes = array();
+		foreach ( $scopes as $scope ) {
+			$normalized[ $scope ] = isset( $settings[ $scope ] ) && is_array( $settings[ $scope ] ) ? $settings[ $scope ] : array();
+			if ( ! isset( $settings[ $scope ] ) || ! is_array( $settings[ $scope ] ) ) {
+				$missing_scopes[] = $scope;
+			}
+		}
+		return array(
+			'settings'       => $normalized,
+			'missing_scopes' => $missing_scopes,
+		);
+	}
+
+	$normalized = array(
+		'pdf'    => array(),
+		'ebook'  => array(),
+		'global' => array(),
+	);
+	foreach ( $settings as $key => $value ) {
+		if ( 0 === strpos( $key, 'ebook_' ) ) {
+			$normalized['ebook'][ $key ] = $value;
+		} elseif ( in_array( $key, array( 'book_language', 'content_language' ), true ) ) {
+			if ( 'book_language' === $key || ! isset( $normalized['global']['book_language'] ) ) {
+				$normalized['global']['book_language'] = $value;
+			}
+		} elseif ( 'book_authors' !== $key ) {
+			$normalized['pdf'][ $key ] = $value;
+		}
+	}
+
+	$missing_scopes = array();
+	foreach ( $scopes as $scope ) {
+		if ( empty( $normalized[ $scope ] ) ) {
+			$missing_scopes[] = $scope;
+		}
+	}
+
+	return array(
+		'settings'       => $normalized,
+		'missing_scopes' => $missing_scopes,
+	);
+}
+
+function almaden_bookster_flatten_book_template_settings( $settings ) {
+	$normalized = almaden_bookster_normalize_book_template_settings( $settings );
+	$scoped = $normalized['settings'];
+	$flat = array_merge( $scoped['pdf'], $scoped['ebook'], $scoped['global'] );
+	if ( isset( $scoped['global']['book_language'] ) ) {
+		$flat['content_language'] = $scoped['global']['book_language'];
+	}
+	unset( $flat['book_authors'] );
+	return $flat;
+}
+
 function almaden_bookster_normalize_book_template_payload( $json, $source = 'builtin', $fallback_id = '' ) {
 	if ( ! is_array( $json ) ) {
 		return null;
 	}
 
 	$name = isset( $json['name'] ) ? sanitize_text_field( $json['name'] ) : '';
-	$settings = isset( $json['settings'] ) && is_array( $json['settings'] )
-		? almaden_bookster_sanitize_book_template_value( $json['settings'] )
+	$source_schema_version = isset( $json['source_schema_version'] )
+		? max( 1, absint( $json['source_schema_version'] ) )
+		: ( isset( $json['schema_version'] ) ? max( 1, absint( $json['schema_version'] ) ) : 1 );
+	$normalized_settings = almaden_bookster_normalize_book_template_settings( $json['settings'] ?? array() );
+	$settings = $normalized_settings['settings'];
+	$declared_missing_scopes = isset( $json['missing_scopes'] ) && is_array( $json['missing_scopes'] )
+		? array_values( array_intersect( array( 'pdf', 'ebook', 'global' ), array_map( 'sanitize_key', $json['missing_scopes'] ) ) )
 		: array();
+	$missing_scopes = array_values( array_unique( array_merge( $normalized_settings['missing_scopes'], $declared_missing_scopes ) ) );
 
-	if ( '' === $name || empty( $settings ) ) {
+	if ( '' === $name || ( empty( $settings['pdf'] ) && empty( $settings['ebook'] ) && empty( $settings['global'] ) ) ) {
 		return null;
 	}
 
@@ -73,7 +162,7 @@ function almaden_bookster_normalize_book_template_payload( $json, $source = 'bui
 		$template_id = sanitize_title( $name );
 	}
 
-	$origin = in_array( $source, array( 'builtin', 'legacy' ), true ) ? 'system' : 'user';
+	$origin = in_array( $source, array( 'builtin', 'legacy', 'custom' ), true ) ? 'system' : 'user';
 
 	return array(
 		'id'              => $template_id,
@@ -83,7 +172,9 @@ function almaden_bookster_normalize_book_template_payload( $json, $source = 'bui
 		'visibility'      => 'system' === $origin ? 'public' : 'private',
 		'origin'          => $origin,
 		'source'          => $source,
-		'schema_version'  => isset( $json['schema_version'] ) ? max( 1, absint( $json['schema_version'] ) ) : ALMADEN_BOOK_TEMPLATE_SCHEMA_VERSION,
+		'schema_version'  => ALMADEN_BOOK_TEMPLATE_SCHEMA_VERSION,
+		'source_schema_version' => $source_schema_version,
+		'missing_scopes'  => $missing_scopes,
 		'settings'        => $settings,
 		'preview'         => isset( $json['preview'] ) && is_array( $json['preview'] ) ? almaden_bookster_sanitize_book_template_value( $json['preview'] ) : array(),
 		'sample_chapters' => isset( $json['sample_chapters'] ) && is_array( $json['sample_chapters'] ) ? almaden_bookster_sanitize_book_template_value( $json['sample_chapters'] ) : array(),
@@ -91,14 +182,13 @@ function almaden_bookster_normalize_book_template_payload( $json, $source = 'bui
 }
 
 /**
- * Return only plugin-owned templates. The former custom directory is handled
- * exclusively by the one-time migration below.
+ * Return plugin-owned templates from the built-in, custom and legacy folders.
  */
 function almaden_bookster_collect_book_template_files() {
 	$dirs = almaden_bookster_book_template_directories();
 	$files = array();
 
-	foreach ( array( 'legacy', 'builtin' ) as $source ) {
+	foreach ( array( 'legacy', 'builtin', 'custom' ) as $source ) {
 		$dir = $dirs[ $source ] ?? '';
 		if ( ! is_dir( $dir ) ) {
 			continue;
@@ -109,7 +199,7 @@ function almaden_bookster_collect_book_template_files() {
 			$files[] = array(
 				'path'     => $path,
 				'source'   => $source,
-				'priority' => 'builtin' === $source ? 2 : 1,
+				'priority' => 'builtin' === $source ? 2 : ( 'custom' === $source ? 3 : 1 ),
 			);
 		}
 	}
@@ -182,6 +272,10 @@ function almaden_bookster_normalize_personal_book_template_post( $post ) {
 	if ( ! is_array( $payload ) ) {
 		return null;
 	}
+	$payload = almaden_bookster_normalize_book_template_payload( $payload, 'user', (string) $post->ID );
+	if ( ! $payload ) {
+		return null;
+	}
 
 	$payload['id'] = 'user:' . $post->ID;
 	$payload['name'] = $post->post_title;
@@ -191,6 +285,7 @@ function almaden_bookster_normalize_personal_book_template_post( $post ) {
 	$payload['owner_id'] = (int) $post->post_author;
 	$payload['can_update'] = (int) $post->post_author === get_current_user_id() || current_user_can( 'manage_options' );
 	$payload['can_delete'] = $payload['can_update'];
+	$payload['can_promote'] = current_user_can( 'manage_options' );
 	unset( $payload['_path'] );
 
 	return $payload;
@@ -277,6 +372,8 @@ function almaden_bookster_save_personal_book_template( $payload, $user_id, $temp
 		'source'          => 'user',
 		'visibility'      => 'private',
 		'schema_version'  => $normalized['schema_version'],
+		'source_schema_version' => $normalized['source_schema_version'],
+		'missing_scopes'  => $normalized['missing_scopes'],
 		'settings'        => $normalized['settings'],
 		'preview'         => $normalized['preview'],
 		'sample_chapters' => $normalized['sample_chapters'],
@@ -284,6 +381,64 @@ function almaden_bookster_save_personal_book_template( $payload, $user_id, $temp
 	update_post_meta( $result, ALMADEN_BOOK_TEMPLATE_PAYLOAD_META, $stored_payload );
 
 	return almaden_bookster_normalize_personal_book_template_post( $result );
+}
+
+function almaden_bookster_save_system_book_template( $payload, $template_key = '' ) {
+	$normalized = almaden_bookster_normalize_book_template_payload( $payload, 'custom', $template_key );
+	if ( ! $normalized ) {
+		return new WP_Error( 'invalid_template', __( 'La plantilla no contiene un nombre y ajustes válidos.', 'almaden-bookster' ) );
+	}
+
+	$template_key = '' !== (string) $template_key ? sanitize_title( (string) $template_key ) : almaden_bookster_build_system_book_template_key( $normalized );
+	if ( '' === $template_key ) {
+		$template_key = 'book-template';
+	}
+
+	$dirs = almaden_bookster_book_template_directories();
+	$custom_dir = $dirs['custom'] ?? '';
+	if ( '' === $custom_dir ) {
+		return new WP_Error( 'invalid_template_dir', __( 'No se pudo resolver la carpeta de plantillas estándar.', 'almaden-bookster' ) );
+	}
+
+	if ( ! is_dir( $custom_dir ) && ! wp_mkdir_p( $custom_dir ) ) {
+		return new WP_Error( 'template_dir_unavailable', __( 'No se pudo crear la carpeta de plantillas estándar.', 'almaden-bookster' ) );
+	}
+
+	$system_payload = array(
+		'id'                   => $template_key,
+		'kind'                 => 'book-template',
+		'name'                 => $normalized['name'],
+		'description'          => $normalized['description'],
+		'visibility'           => 'public',
+		'source'               => 'custom',
+		'schema_version'       => ALMADEN_BOOK_TEMPLATE_SCHEMA_VERSION,
+		'source_schema_version'=> $normalized['source_schema_version'],
+		'missing_scopes'       => $normalized['missing_scopes'],
+		'settings'             => $normalized['settings'],
+		'preview'              => $normalized['preview'],
+		'sample_chapters'      => $normalized['sample_chapters'],
+	);
+
+	$json = wp_json_encode( $system_payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+	if ( false === $json ) {
+		return new WP_Error( 'template_encode_failed', __( 'No se pudo serializar la plantilla estándar.', 'almaden-bookster' ) );
+	}
+
+	$path = almaden_bookster_get_custom_book_template_path( $template_key );
+	if ( false === file_put_contents( $path, $json . PHP_EOL, LOCK_EX ) ) {
+		return new WP_Error( 'template_write_failed', __( 'No se pudo guardar la plantilla estándar.', 'almaden-bookster' ) );
+	}
+
+	$normalized['id'] = 'system:' . $template_key;
+	$normalized['template_key'] = $template_key;
+	$normalized['origin'] = 'system';
+	$normalized['source'] = 'custom';
+	$normalized['visibility'] = 'public';
+	$normalized['can_update'] = false;
+	$normalized['can_delete'] = false;
+	$normalized['_path'] = $path;
+
+	return $normalized;
 }
 
 function almaden_bookster_get_legacy_template_migration_owner_id() {

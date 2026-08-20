@@ -35,6 +35,9 @@ window.switchFormatTab = function(format) {
         secGlobal.classList.remove('hidden');
         secPdf.classList.add('hidden');
         secEbook.classList.add('hidden');
+        if (typeof switchGlobalSettingsInnerTab === 'function') {
+            switchGlobalSettingsInnerTab('format-global-info-section');
+        }
     } else {
         setActiveButton(btnEbook);
         setInactiveButton(btnPdf);
@@ -43,6 +46,36 @@ window.switchFormatTab = function(format) {
         secEbook.classList.remove('hidden');
         secPdf.classList.add('hidden');
         secGlobal.classList.add('hidden');
+    }
+}
+
+function switchGlobalSettingsInnerTab(tabId) {
+    const tabs = [
+        { button: document.getElementById('btn-global-info'), section: document.getElementById('format-global-info-section') },
+        { button: document.getElementById('btn-global-product'), section: document.getElementById('format-global-product-section') },
+    ];
+
+    tabs.forEach(({ button, section }) => {
+        if (section) {
+            section.classList.add('hidden');
+        }
+        if (button) {
+            button.classList.remove('border-black', 'text-black', 'dark:border-white', 'dark:text-white');
+            button.classList.add('border-transparent', 'text-[var(--text-muted)]');
+        }
+    });
+
+    const target = document.getElementById(tabId);
+    if (target) {
+        target.classList.remove('hidden');
+    }
+
+    const activeBtn = tabId === 'format-global-product-section'
+        ? document.getElementById('btn-global-product')
+        : document.getElementById('btn-global-info');
+    if (activeBtn) {
+        activeBtn.classList.remove('border-transparent', 'text-[var(--text-muted)]');
+        activeBtn.classList.add('border-black', 'text-black', 'dark:border-white', 'dark:text-white');
     }
 }
 
@@ -268,6 +301,7 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-ebook-chapter-title-font-family')) document.getElementById('setting-ebook-chapter-title-font-family').value = settings.ebook_font_family_headings || 'Playfair Display';
     if (document.getElementById('setting-ebook-chapter-title-font-size')) document.getElementById('setting-ebook-chapter-title-font-size').value = settings.ebook_font_size_headings || 32.0;
     if (document.getElementById('setting-ebook-chapter-title-font-weight')) document.getElementById('setting-ebook-chapter-title-font-weight').value = settings.ebook_font_weight_headings || 'bold';
+    if (document.getElementById('setting-ebook-chapter-title-font-style')) document.getElementById('setting-ebook-chapter-title-font-style').value = settings.ebook_chapter_title_font_style || 'normal';
     if (document.getElementById('setting-ebook-chapter-title-line-height')) document.getElementById('setting-ebook-chapter-title-line-height').value = settings.ebook_line_height_headings || 1.3;
     
     if (document.getElementById('setting-ebook-chapter-title-align')) document.getElementById('setting-ebook-chapter-title-align').value = settings.ebook_chapter_title_align || 'center';
