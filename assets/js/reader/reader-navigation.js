@@ -68,25 +68,38 @@ function ensureReaderPurchaseModal() {
 	return modal;
 }
 
-function openReaderPurchaseModal(chapter = {}) {
+function openReaderPurchaseModal(options = {}) {
 	const modal = ensureReaderPurchaseModal();
 	const purchaseUrl = bookData.purchaseUrl || bookData.returnUrl || '/';
 	const titleNode = modal.querySelector('#reader-purchase-modal-title');
 	const copyNode = modal.querySelector('[data-reader-purchase-copy]');
 	const button = modal.querySelector('[data-reader-purchase-button]');
+	const isReadingToolsLock = options && options.reason === 'reading-tools';
 	if (titleNode) {
-		titleNode.hidden = true;
+		titleNode.hidden = !isReadingToolsLock;
+		if (isReadingToolsLock) {
+			titleNode.textContent = 'Desbloquea tus notas de lectura';
+		}
 	}
 	if (copyNode) {
-		copyNode.textContent = 'Este capítulo forma parte del ebook completo. Compra el libro para desbloquearlo.';
+		copyNode.textContent = isReadingToolsLock
+			? 'Compra este ebook para guardar highlights, escribir comentarios y acceder a todas las herramientas de lectura.'
+			: 'Este capítulo forma parte del ebook completo. Compra el libro para desbloquearlo.';
 	}
 	if (button) {
 		button.setAttribute('href', purchaseUrl);
-		button.textContent = 'Ir al producto';
+		button.textContent = isReadingToolsLock ? 'Comprar ebook' : 'Ir al producto';
 	}
 	modal.classList.remove('hidden');
 	modal.classList.add('is-open');
 	document.body.classList.add('reader-modal-open');
+}
+
+function openReaderReadingToolsPurchaseModal() {
+	if (typeof cancelReaderHighlight === 'function') {
+		cancelReaderHighlight();
+	}
+	openReaderPurchaseModal({ reason: 'reading-tools' });
 }
 
 function closeReaderPurchaseModal() {
@@ -517,8 +530,11 @@ async function showChapterView(index) {
         setTimeout(updateFlipButtons, 100);
     }
 
-    // Nav buttons
+	// Nav buttons
 	updateReaderChapterNavigation(index);
+	if (window.ALMADEN_READER_CHAPTER_PROGRESS && typeof window.ALMADEN_READER_CHAPTER_PROGRESS.updateToggleButton === 'function') {
+		window.ALMADEN_READER_CHAPTER_PROGRESS.updateToggleButton();
+	}
 
     if (window.ALMADEN_READER_QUIZZES && typeof window.ALMADEN_READER_QUIZZES.updateTakeQuizButton === 'function') {
         window.ALMADEN_READER_QUIZZES.updateTakeQuizButton(index);
@@ -533,6 +549,9 @@ async function showChapterView(index) {
 }
 
 function goToNextChapter() {
+	if (window.ALMADEN_READER_CHAPTER_PROGRESS && typeof window.ALMADEN_READER_CHAPTER_PROGRESS.markCurrentChapterRead === 'function') {
+		window.ALMADEN_READER_CHAPTER_PROGRESS.markCurrentChapterRead();
+	}
     let nextIndex = currentChapterIndex + 1;
     while (nextIndex < bookData.chapters.length && (bookData.chapters[nextIndex].is_toc === '1' || bookData.chapters[nextIndex].is_credits === '1')) {
         nextIndex++;

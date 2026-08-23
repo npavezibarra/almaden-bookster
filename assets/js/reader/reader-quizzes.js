@@ -53,6 +53,14 @@
                 localStorage.setItem('almaden_approved_quizzes', JSON.stringify(approvedQuizzes));
             }
         },
+        removeApprovedQuiz: (quizId) => {
+            const id = Number(quizId);
+            approvedQuizzes = approvedQuizzes.filter((item) => Number(item) !== id);
+            localStorage.setItem('almaden_approved_quizzes', JSON.stringify(approvedQuizzes));
+        },
+        openQuiz: (quizId, chapterTitle, onSuccess) => {
+            startQuizPlayer(quizId, chapterTitle, onSuccess);
+        },
         updateTakeQuizButton: (index) => updateTakeQuizButton(index)
     };
 

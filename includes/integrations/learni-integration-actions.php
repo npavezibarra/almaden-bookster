@@ -352,3 +352,35 @@ function almaden_bookster_ajax_reset_book_progress() {
 	wp_send_json_success( array( 'progress' => $result ) );
 }
 add_action( 'wp_ajax_almaden_reset_book_progress', 'almaden_bookster_ajax_reset_book_progress' );
+
+function almaden_bookster_ajax_reset_quiz_progress() {
+	if ( ! is_user_logged_in() ) {
+		wp_send_json_error( __( 'Debes iniciar sesión.', 'almaden-bookster' ) );
+	}
+
+	$book_id = isset( $_POST['book_id'] ) ? absint( $_POST['book_id'] ) : 0;
+	$quiz_id = isset( $_POST['quiz_id'] ) ? absint( $_POST['quiz_id'] ) : 0;
+	$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
+	if ( $book_id <= 0 || $quiz_id <= 0 ) {
+		wp_send_json_error( __( 'Parámetros inválidos.', 'almaden-bookster' ) );
+	}
+
+	if ( ! wp_verify_nonce( $nonce, 'almaden_book_progress_' . $book_id ) ) {
+		wp_send_json_error( __( 'Validación de seguridad fallida.', 'almaden-bookster' ) );
+	}
+
+	if ( function_exists( 'almaden_bookster_user_can_access_book' ) && ! almaden_bookster_user_can_access_book( $book_id ) ) {
+		wp_send_json_error( __( 'No tienes acceso a este libro.', 'almaden-bookster' ) );
+	}
+
+	$result = function_exists( 'almaden_bookster_reset_single_quiz_progress' )
+		? almaden_bookster_reset_single_quiz_progress( $book_id, $quiz_id )
+		: new WP_Error( 'reset_unavailable', __( 'No se pudo reiniciar el quiz.', 'almaden-bookster' ) );
+
+	if ( is_wp_error( $result ) ) {
+		wp_send_json_error( $result->get_error_message() );
+	}
+
+	wp_send_json_success( array( 'progress' => $result ) );
+}
+add_action( 'wp_ajax_almaden_reset_quiz_progress', 'almaden_bookster_ajax_reset_quiz_progress' );

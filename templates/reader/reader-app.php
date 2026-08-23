@@ -160,6 +160,8 @@ $book_data_json = wp_json_encode( array(
 	'returnUrl' => $return_url,
 	'highlights' => $book_highlights,
 	'quizProgress' => $has_reader_access && function_exists( 'almaden_bookster_get_book_quiz_progress_payload' ) ? almaden_bookster_get_book_quiz_progress_payload( $book_id ) : array(),
+	'chapterReadProgress' => $has_reader_access && is_user_logged_in() && function_exists( 'almaden_bookster_get_book_chapter_read_progress_payload' ) ? almaden_bookster_get_book_chapter_read_progress_payload( $book_id ) : array(),
+	'canTrackChapterProgress' => $has_reader_access && is_user_logged_in(),
 	'quizFlowSettings' => function_exists( 'almaden_bookster_learni_get_quiz_flow_settings' ) ? almaden_bookster_learni_get_quiz_flow_settings( $book_id ) : array(),
 	'approvedQuizzes' => $approved_quizzes,
 ) );
@@ -207,6 +209,26 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
     <link href="<?php echo esc_url($fonts_url); ?>" rel="stylesheet">
     <!-- Urbanist Font for UI -->
     <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&amp;display=block" rel="stylesheet">
+    <style>
+        .almaden-reader-icon {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 18px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+            font-feature-settings: 'liga';
+            font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
     <!-- Markdown Parser -->
     <script src="https://cdn.jsdelivr.net/npm/markdown-it@13.0.1/dist/markdown-it.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/markdown-it-footnote@3.0.3/dist/markdown-it-footnote.min.js"></script>
@@ -252,19 +274,37 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
     <!-- STATE: INDEX -->
     <div id="almaden-view-index" class="w-full h-full flex flex-col md:flex-row">
         <!-- Left Side: Cover -->
-        <div id="reader-cover-panel" class="w-full md:w-1/2 h-1/2 md:h-full flex items-center md:items-start justify-center p-8 md:p-16 lg:p-24 border-b md:border-b-0 md:border-r border-gray-200">
+        <div id="reader-cover-panel" class="w-full md:w-1/2 h-1/2 md:h-full flex items-center md:items-start justify-center px-8 py-5 md:p-16 lg:p-24 border-b md:border-b-0 md:border-r border-gray-200">
             <div id="reader-cover-wrapper" class="w-full max-w-sm" style="box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
                 <?php echo $cover_html; ?>
             </div>
         </div>
         <!-- Right Side: Chapters List -->
-        <div id="reader-index-panel" class="w-full md:w-1/2 h-1/2 md:h-full overflow-y-auto p-8 md:p-16 lg:p-24 relative">
-            <div id="reader-index-header" class="flex justify-between items-center mb-12">
-                <h2 id="reader-book-title" class="text-2xl md:text-3xl font-bold text-gray-900"><?php echo esc_html( $book_title ); ?></h2>
-                <a id="reader-btn-back" href="<?php echo esc_url( $return_url ); ?>" class="px-5 py-2 bg-transparent border border-gray-200 hover:bg-black/5 rounded-full text-sm font-semibold text-gray-700 shadow-sm transition-colors">Volver</a>
+        <div id="reader-index-panel" class="w-full md:w-1/2 h-1/2 md:h-full overflow-hidden relative flex flex-col bg-white">
+            <div id="reader-index-header" class="relative z-10 shrink-0 bg-white px-8 pt-8 pb-6 shadow-[0_8px_14px_-14px_rgba(15,23,42,0.45)] md:px-16 md:pt-16 md:pb-8 lg:px-24 lg:pt-24">
+                <div class="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-6 border border-transparent">
+                    <div class="min-w-0">
+                        <h2 id="reader-book-title" class="text-2xl md:text-3xl font-bold text-gray-900 leading-tight"><?php echo esc_html( $book_title ); ?></h2>
+                        <?php if ( ! empty( $author ) ) : ?>
+                            <p id="reader-book-author" class="mt-2 text-base md:text-lg font-normal text-gray-500 leading-tight">
+                                <?php echo esc_html( $author ); ?>
+                            </p>
+                        <?php endif; ?>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <a id="reader-btn-back" href="<?php echo esc_url( $return_url ); ?>" class="inline-flex items-center justify-center w-12 h-12 rounded-[6px] border border-gray-200 bg-white text-gray-600 shadow-sm hover:bg-gray-50 hover:text-black transition-colors" title="Volver a Bookshelf" aria-label="Volver a Bookshelf">
+                            <span class="almaden-reader-icon" aria-hidden="true">dashboard</span>
+                        </a>
+						<?php if ( $has_reader_access && is_user_logged_in() ) : ?>
+                        <button id="btn-restart-reading" type="button" onclick="restartCurrentBookReading()" class="inline-flex items-center justify-center w-12 h-12 rounded-[6px] border border-gray-200 bg-white text-gray-600 shadow-sm hover:bg-gray-50 hover:text-black transition-colors" title="Reiniciar libro" aria-label="Reiniciar libro">
+                            <span class="almaden-reader-icon" aria-hidden="true">replay</span>
+                        </button>
+						<?php endif; ?>
+                    </div>
+                </div>
             </div>
 
-            <div class="space-y-1" id="chapters-list">
+            <div class="min-h-0 flex-1 overflow-y-auto space-y-1 px-8 pb-8 md:px-16 md:pb-16 lg:px-24 lg:pb-24" id="chapters-list">
                 <!-- Chapters will be rendered here via JS -->
             </div>
         </div>
@@ -286,6 +326,11 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
 				<button id="btn-reader-highlights" onclick="toggleReaderHighlightsPanel()" class="<?php echo $has_reader_access ? '' : 'hidden '; ?>p-2 text-gray-800 hover:bg-gray-100 rounded text-sm w-9 h-9 flex items-center justify-center transition-colors mr-2" title="Mis highlights">
                     <i class="fa-solid fa-bookmark"></i>
                 </button>
+				<?php if ( $has_reader_access && is_user_logged_in() ) : ?>
+				<button id="btn-toggle-chapter-read" type="button" class="px-3 py-2 text-gray-500 hover:text-black hover:bg-gray-100 rounded-full flex items-center font-medium transition-colors mr-2" title="Marcar capítulo como leído">
+					<i class="fa-regular fa-circle-check mr-2"></i> <span>Marcar como leído</span>
+				</button>
+				<?php endif; ?>
                 <div id="reader-prefs-panel" class="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 shadow-xl rounded-lg p-4 hidden flex-col gap-4 z-50">
                     <div class="flex justify-between items-center bg-gray-100 rounded p-1">
                         <button onclick="changeFontSize(-1)" class="flex-1 py-1 text-center hover:bg-white hover:shadow-sm rounded transition-all text-sm">A-</button>
@@ -335,18 +380,24 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
                 <!-- Markdown content will be rendered here -->
             </div>
             
-            <div id="chapter-footer-nav" class="max-w-[700px] mx-auto mt-20 pt-8 pb-12 border-t border-gray-100 flex items-center justify-between">
-                <button id="btn-prev-chapter" onclick="goToPrevChapter()" class="text-gray-500 hover:text-black flex items-center hidden font-medium transition-colors">
-                    <i class="fa-solid fa-arrow-left mr-2"></i> Anterior
-                </button>
-                
-                <button id="btn-take-quiz" class="mx-auto hidden px-6 py-2.5 rounded-full bg-black hover:bg-gray-800 text-white font-semibold text-sm transition-all shadow-sm hover:shadow flex items-center gap-2">
-                    <i class="fa-solid fa-circle-question"></i> Tomar Quiz
-                </button>
-                
-                <button id="btn-next-chapter" onclick="goToNextChapter()" class="text-gray-500 hover:text-black flex items-center ml-auto hidden font-medium transition-colors">
-                    Siguiente <i class="fa-solid fa-arrow-right ml-2"></i>
-                </button>
+            <div id="chapter-footer-nav" class="max-w-[700px] mx-auto mt-20 pt-8 pb-12 border-t border-gray-100 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                <div class="flex justify-start min-h-[2.5rem]">
+                    <button id="btn-prev-chapter" onclick="goToPrevChapter()" class="text-gray-500 hover:text-black flex items-center hidden font-medium transition-colors">
+                        <i class="fa-solid fa-arrow-left mr-2"></i> Anterior
+                    </button>
+                </div>
+
+                <div class="flex justify-center min-h-[2.5rem]">
+                    <button id="btn-take-quiz" class="hidden px-6 py-2.5 rounded-full bg-black hover:bg-gray-800 text-white font-semibold text-sm transition-all shadow-sm hover:shadow flex items-center gap-2">
+                        <i class="fa-solid fa-circle-question"></i> Tomar Quiz
+                    </button>
+                </div>
+
+                <div class="flex justify-end min-h-[2.5rem]">
+                    <button id="btn-next-chapter" onclick="goToNextChapter()" class="text-gray-500 hover:text-black flex items-center hidden font-medium transition-colors">
+                        Siguiente <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
             </div>
         </main>
     </div>
@@ -470,6 +521,7 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-navigation.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-navigation.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-quizzes.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-quizzes.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-progress.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-progress.js' ); ?>"></script>
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-chapter-progress.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-chapter-progress.js' ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/js/reader/reader-app.js' ); ?>?v=<?php echo filemtime( dirname( __FILE__ ) . '/../../assets/js/reader/reader-app.js' ); ?>"></script>
 	<?php if ( $can_open_reader && function_exists( 'almaden_bookster_content_protection_render_footer' ) ) { almaden_bookster_content_protection_render_footer( $book_id ); } ?>
     <?php else : ?>

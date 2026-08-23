@@ -17,6 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once plugin_dir_path( __FILE__ ) . 'includes/frontend/pages.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/frontend/app-shell.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/frontend/shell-access.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/frontend/user-access-manager.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-pages.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-fonts.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/admin/admin-distribution.php';
@@ -357,6 +358,43 @@ function almaden_bookster_create_highlight_comments_table() {
 	}
 }
 
+function almaden_bookster_install_core_pages() {
+	$core_page_sections = array(
+		'shell_home',
+		'contractor',
+		'user_access_manager',
+		'creator',
+		'dashboard',
+		'reading_stats',
+		'course_creator',
+		'course_archive',
+		'blog_creator',
+		'authors',
+		'author',
+		'publisher',
+		'publisher_onboarding',
+		'quiz',
+		'store',
+	);
+
+	foreach ( $core_page_sections as $section_key ) {
+		if ( function_exists( 'almaden_bookster_sync_pages_for_section' ) ) {
+			almaden_bookster_sync_pages_for_section( $section_key );
+		}
+
+		if ( function_exists( 'almaden_bookster_mark_shell_page' ) ) {
+			almaden_bookster_mark_shell_page( $section_key );
+		}
+	}
+}
+
+function almaden_bookster_maybe_install_user_access_manager_page() {
+	if ( function_exists( 'almaden_bookster_get_user_access_manager_page_id' ) && ! almaden_bookster_get_user_access_manager_page_id() && function_exists( 'almaden_bookster_sync_user_access_manager_page' ) ) {
+		almaden_bookster_sync_user_access_manager_page();
+	}
+}
+add_action( 'init', 'almaden_bookster_maybe_install_user_access_manager_page', 20 );
+
 function almaden_bookster_activate_plugin() {
 	almaden_bookster_sync_book_capabilities();
 	if ( class_exists( '\AlmadenBookster\Learni\Module' ) ) {
@@ -366,6 +404,7 @@ function almaden_bookster_activate_plugin() {
 		\AlmadenBookster\Auth\Module::activate();
 	}
 	almaden_bookster_install_database_schema();
+	almaden_bookster_install_core_pages();
 	if ( function_exists( 'almaden_bookster_schedule_cover_thumbnail_backfill_cron' ) ) {
 		almaden_bookster_schedule_cover_thumbnail_backfill_cron();
 	}

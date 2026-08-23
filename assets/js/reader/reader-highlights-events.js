@@ -59,6 +59,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (saveBtn) {
         saveBtn.addEventListener('click', async () => {
+			if (!bookData.userCanAccess && almadenReaderHighlightState.toolbarMode !== 'highlight') {
+				openReaderReadingToolsPurchaseModal();
+				return;
+			}
             if (almadenReaderHighlightState.toolbarMode === 'highlight') {
                 const highlight = getReaderHighlightById(almadenReaderHighlightState.activeToolbarHighlightId);
                 if (!highlight) {
@@ -74,6 +78,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (openCommentBtn) {
         openCommentBtn.addEventListener('click', () => {
+			if (!bookData.userCanAccess && almadenReaderHighlightState.toolbarMode !== 'highlight') {
+				openReaderReadingToolsPurchaseModal();
+				return;
+			}
             if (almadenReaderHighlightState.toolbarMode === 'highlight') {
                 const highlight = getReaderHighlightById(almadenReaderHighlightState.activeToolbarHighlightId);
                 if (highlight) {

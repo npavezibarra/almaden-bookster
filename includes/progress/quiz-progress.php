@@ -300,3 +300,46 @@ function almaden_bookster_reset_book_progress( $book_id, $user_id = null ) {
 
 	return almaden_bookster_get_book_quiz_progress_payload( $book_id, $user_id );
 }
+
+function almaden_bookster_reset_single_quiz_progress( $book_id, $quiz_id, $user_id = null ) {
+	global $wpdb;
+
+	$book_id = absint( $book_id );
+	$quiz_id = absint( $quiz_id );
+	$user_id = $user_id ? absint( $user_id ) : get_current_user_id();
+	if ( $book_id <= 0 || $quiz_id <= 0 || $user_id <= 0 ) {
+		return new WP_Error( 'invalid_quiz', __( 'Quiz inválido.', 'almaden-bookster' ) );
+	}
+
+	$session_token = almaden_bookster_get_user_book_progress_session_token( $book_id, $user_id, false );
+	if ( '' === $session_token ) {
+		return almaden_bookster_get_book_quiz_progress_payload( $book_id, $user_id );
+	}
+
+	$table_name = almaden_bookster_get_quiz_attempts_table_name();
+	$wpdb->delete(
+		$table_name,
+		array(
+			'user_id' => $user_id,
+			'book_id' => $book_id,
+			'session_token' => $session_token,
+			'quiz_id' => $quiz_id,
+		),
+		array( '%d', '%d', '%s', '%d' )
+	);
+
+	$passed_quizzes = get_user_meta( $user_id, '_almaden_passed_quizzes', true );
+	if ( is_array( $passed_quizzes ) && in_array( $quiz_id, $passed_quizzes, true ) ) {
+		$passed_quizzes = array_values(
+			array_filter(
+				$passed_quizzes,
+				static function ( $item ) use ( $quiz_id ) {
+					return absint( $item ) !== $quiz_id;
+				}
+			)
+		);
+		update_user_meta( $user_id, '_almaden_passed_quizzes', $passed_quizzes );
+	}
+
+	return almaden_bookster_get_book_quiz_progress_payload( $book_id, $user_id );
+}

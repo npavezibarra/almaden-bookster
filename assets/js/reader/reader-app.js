@@ -76,16 +76,10 @@ function renderIndex() {
         const item = document.createElement('div');
         item.id = getReaderChapterItemDomId(chapter.id);
         item.dataset.chapterId = String(chapter.id);
-        item.className = 'reader-index-item flex justify-between items-center py-4 border-b border-gray-100 transition-colors group px-4 -mx-4 rounded-md';
+        item.className = 'reader-index-item grid grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-3 py-5 px-4 -mx-4 border-b border-gray-100 transition-colors group rounded-md';
 
-		const accessLabel = chapter.locked
-			? `<button type="button" class="reader-lock-trigger reader-index-access is-locked" data-lock-title="${escapeReaderIndexHtml(chapter.title || '')}" aria-label="Comprar ${escapeReaderIndexHtml(chapter.title || 'capítulo')}">
-					<i class="fa-solid fa-lock" aria-hidden="true"></i>
-					<span class="sr-only">Comprar</span>
-				</button>`
-			: chapter.is_sample && !bookData.userCanAccess
-				? '<span class="reader-index-access is-sample reader-sample-indicator" aria-label="Muestra gratis"><i class="fa-solid fa-lock-open" aria-hidden="true"></i><span class="sr-only">Muestra gratis</span></span>'
-				: `<span class="text-gray-400 font-medium">${escapeReaderIndexHtml(chapter.page || '')}</span>`;
+		const chapterProgress = window.ALMADEN_READER_CHAPTER_PROGRESS;
+		const isRead = chapterProgress && typeof chapterProgress.isChapterRead === 'function' && chapterProgress.isChapterRead(chapter.id);
 		item.classList.toggle('is-locked', Boolean(chapter.locked));
 		if (!chapter.locked) {
 			item.classList.add('cursor-pointer');
@@ -106,9 +100,21 @@ function renderIndex() {
 			item.setAttribute('aria-disabled', 'true');
 			item.classList.add('cursor-not-allowed', 'opacity-80');
 		}
+
+        const chapterNumber = escapeReaderIndexHtml(chapter.page || (index + 1));
+        const statusLabel = isRead
+            ? '<span class="reader-index-read-status inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500 text-white flex-shrink-0" aria-label="Leído" title="Leído"><i class="fa-solid fa-check text-[11px] leading-none"></i></span>'
+            : '<span class="reader-index-read-status inline-flex items-center justify-center w-5 h-5 rounded-full bg-transparent flex-shrink-0" aria-hidden="true"></span>';
+        const lockLabel = chapter.locked
+            ? `<button type="button" class="reader-lock-trigger reader-index-access is-locked ml-auto" data-lock-title="${escapeReaderIndexHtml(chapter.title || '')}" aria-label="Comprar ${escapeReaderIndexHtml(chapter.title || 'capítulo')}">
+					<i class="fa-solid fa-lock" aria-hidden="true"></i>
+					<span class="sr-only">Comprar</span>
+				</button>`
+			: statusLabel;
 		item.innerHTML = `
-			<span class="text-gray-800 font-medium group-hover:text-black text-lg transition-colors">${escapeReaderIndexHtml(chapter.title)}</span>
-			${accessLabel}
+			<div class="text-gray-400 font-normal text-[18px] leading-none">${chapterNumber}</div>
+			<div class="min-w-0 text-gray-700 group-hover:text-black text-[18px] leading-none font-normal truncate">${escapeReaderIndexHtml(chapter.title)}</div>
+			${chapter.locked ? lockLabel : statusLabel}
 		`;
         listContainer.appendChild(item);
     });
@@ -126,3 +132,7 @@ function renderIndex() {
 
 // Initialize
 renderIndex();
+
+window.addEventListener('almaden:chapter-read-status-updated', () => {
+	renderIndex();
+});

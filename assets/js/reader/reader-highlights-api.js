@@ -51,6 +51,10 @@ async function loadReaderHighlightComments(highlight, forceRefresh = false) {
 }
 
 async function submitReaderHighlightComposer() {
+	if (!bookData.userCanAccess) {
+		openReaderReadingToolsPurchaseModal();
+		return;
+	}
     const input = getReaderHighlightComposerInput();
     const commentText = input ? input.value.trim() : '';
     if (!commentText) {
@@ -65,6 +69,10 @@ async function saveReaderHighlight() {
 }
 
 async function saveReaderHighlightCore(commentText = '') {
+	if (!bookData.userCanAccess) {
+		openReaderReadingToolsPurchaseModal();
+		return;
+	}
     const root = getReaderChapterRoot();
     const bookId = getReaderBookId();
     const chapterId = getReaderCurrentChapterId();

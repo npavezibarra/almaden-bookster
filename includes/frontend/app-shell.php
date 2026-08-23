@@ -47,11 +47,21 @@ if ( ! function_exists( 'almaden_bookster_render_shared_nav' ) ) {
 	function almaden_bookster_render_shared_nav( $active_nav_key = '' ) {
 		$active_nav_key = sanitize_key( (string) $active_nav_key );
 		$nav_items = function_exists( 'almaden_bookster_get_shared_nav_items' ) ? almaden_bookster_get_shared_nav_items() : array();
+		$contractor_company_name = function_exists( 'almaden_bookster_get_contractor_company_name' ) ? trim( (string) almaden_bookster_get_contractor_company_name() ) : '';
+		$contractor_logo_url = function_exists( 'almaden_bookster_get_contractor_logo_url' ) ? trim( (string) almaden_bookster_get_contractor_logo_url() ) : '';
+		$brand_label = '' !== $contractor_company_name ? $contractor_company_name : 'almaden';
 		$current_user = function_exists( 'wp_get_current_user' ) ? wp_get_current_user() : null;
 		$is_logged_in = function_exists( 'is_user_logged_in' ) ? is_user_logged_in() : false;
 		$current_user_name = '';
 		$current_user_avatar = '';
 		$logout_url = '';
+		$contractor_logo_width = function_exists( 'almaden_bookster_get_contractor_logo_width' ) ? absint( almaden_bookster_get_contractor_logo_width() ) : 160;
+		if ( $contractor_logo_width < 40 ) {
+			$contractor_logo_width = 40;
+		}
+		if ( $contractor_logo_width > 300 ) {
+			$contractor_logo_width = 300;
+		}
 		$user_menu_items = array();
 
 		if ( function_exists( 'almaden_bookster_get_dashboard_page_url' ) ) {
@@ -129,8 +139,15 @@ if ( ! function_exists( 'almaden_bookster_render_shared_nav' ) ) {
 					<div class="flex items-center">
 						<div class="flex-shrink-0 flex items-center text-black">
 							<?php $shell_home_url = function_exists( 'almaden_bookster_get_shell_home_page_url' ) ? almaden_bookster_get_shell_home_page_url() : home_url( '/' ); ?>
-							<a href="<?php echo esc_url( $shell_home_url ); ?>" class="text-2xl tracking-tight urbanist-almaden-logo transition hover:opacity-80">
-								almaden
+							<a href="<?php echo esc_url( $shell_home_url ); ?>" class="inline-flex items-center gap-3 transition hover:opacity-80">
+								<?php if ( '' !== $contractor_logo_url ) : ?>
+									<img src="<?php echo esc_url( $contractor_logo_url ); ?>" alt="<?php echo esc_attr( $brand_label ); ?>" class="h-9 w-auto object-contain object-left" style="width: <?php echo esc_attr( (string) $contractor_logo_width ); ?>px; max-width: <?php echo esc_attr( (string) $contractor_logo_width ); ?>px;" />
+									<?php if ( '' !== trim( (string) $contractor_company_name ) ) : ?>
+										<span class="hidden text-xl font-semibold tracking-tight text-black md:inline-flex"><?php echo esc_html( $brand_label ); ?></span>
+									<?php endif; ?>
+								<?php else : ?>
+									<span class="text-2xl tracking-tight urbanist-almaden-logo"><?php echo esc_html( $brand_label ); ?></span>
+								<?php endif; ?>
 							</a>
 						</div>
 						<div class="hidden items-center sm:ml-8 sm:flex sm:space-x-6">
@@ -293,6 +310,146 @@ if ( ! function_exists( 'almaden_bookster_render_user_menu_script' ) ) {
 		<?php
 	}
 }
+
+if ( ! function_exists( 'almaden_bookster_render_access_preview_switcher' ) ) {
+	function almaden_bookster_render_access_preview_switcher() {
+		if ( ! function_exists( 'almaden_bookster_user_can_use_access_preview' ) || ! almaden_bookster_user_can_use_access_preview() ) {
+			return '';
+		}
+
+		$roles = function_exists( 'almaden_bookster_get_access_preview_roles' ) ? almaden_bookster_get_access_preview_roles() : array(
+			'administrator' => 'Administrador',
+			'editor'        => 'Editor',
+			'author'        => 'Autor',
+			'customer'      => 'Cliente',
+			'subscriber'    => 'Suscriptor',
+		);
+		$current_role = function_exists( 'almaden_bookster_get_access_preview_role' ) ? almaden_bookster_get_access_preview_role() : 'administrator';
+		if ( '' === $current_role || ! isset( $roles[ $current_role ] ) ) {
+			$current_role = 'administrator';
+		}
+		$current_label = isset( $roles[ $current_role ] ) ? $roles[ $current_role ] : 'Administrador';
+
+		ob_start();
+		?>
+		<div class="fixed bottom-4 left-1/2 z-[80] -translate-x-1/2">
+			<div class="relative" data-almaden-access-preview-root>
+				<button
+					type="button"
+					data-almaden-access-preview-button
+					aria-haspopup="true"
+					aria-expanded="false"
+					class="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-900 shadow-[0_12px_40px_rgba(15,23,42,0.12)] transition hover:border-slate-300 hover:bg-slate-50"
+				>
+					<span class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Vista</span>
+					<span data-almaden-access-preview-label class="text-sm font-semibold text-slate-900"><?php echo esc_html( $current_label ); ?></span>
+					<svg class="h-4 w-4 text-slate-500 transition-transform duration-200" data-almaden-access-preview-caret viewBox="0 0 20 20" fill="none" aria-hidden="true">
+						<path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+					</svg>
+				</button>
+				<div
+					data-almaden-access-preview-menu
+					class="invisible absolute left-1/2 bottom-full z-50 mb-3 w-72 -translate-x-1/2 translate-y-2 rounded-[1.5rem] border border-slate-200 bg-white p-2 opacity-0 shadow-[0_18px_50px_rgba(15,23,42,0.18)] transition-all duration-200"
+				>
+					<p class="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Simular rol</p>
+					<?php foreach ( $roles as $role_key => $role_label ) : ?>
+						<?php $is_selected = $current_role === $role_key; ?>
+						<button
+							type="button"
+							data-almaden-access-preview-role="<?php echo esc_attr( $role_key ); ?>"
+							class="flex w-full items-center justify-between rounded-[1.1rem] px-4 py-3 text-left text-sm font-semibold transition <?php echo $is_selected ? 'bg-slate-900 text-white' : 'text-slate-900 hover:bg-slate-50'; ?>"
+						>
+							<span><?php echo esc_html( $role_label ); ?></span>
+							<?php if ( $is_selected ) : ?>
+								<span class="text-[11px] font-semibold uppercase tracking-[0.22em]">Activo</span>
+							<?php endif; ?>
+						</button>
+					<?php endforeach; ?>
+				</div>
+			</div>
+		</div>
+		<?php
+		return (string) ob_get_clean();
+	}
+}
+
+if ( ! function_exists( 'almaden_bookster_render_access_preview_script' ) ) {
+	function almaden_bookster_render_access_preview_script() {
+		if ( ! function_exists( 'almaden_bookster_user_can_use_access_preview' ) || ! almaden_bookster_user_can_use_access_preview() ) {
+			return;
+		}
+		?>
+		<script>
+			(function () {
+				const root = document.querySelector('[data-almaden-access-preview-root]');
+				if (!root) return;
+
+				const button = root.querySelector('[data-almaden-access-preview-button]');
+				const menu = root.querySelector('[data-almaden-access-preview-menu]');
+				const label = root.querySelector('[data-almaden-access-preview-label]');
+				const caret = root.querySelector('[data-almaden-access-preview-caret]');
+				const options = root.querySelectorAll('[data-almaden-access-preview-role]');
+				const cookieName = 'almaden_bookster_preview_role';
+
+				function setCookie(value) {
+					document.cookie = cookieName + '=' + encodeURIComponent(value) + '; path=/; max-age=' + (60 * 60 * 24 * 30) + '; samesite=lax';
+				}
+
+				function closeMenu() {
+					menu.classList.add('invisible', 'opacity-0', 'translate-y-2');
+					menu.classList.remove('visible', 'opacity-100', 'translate-y-0');
+					button.setAttribute('aria-expanded', 'false');
+					if (caret) caret.style.transform = 'rotate(0deg)';
+				}
+
+				function openMenu() {
+					menu.classList.remove('invisible', 'opacity-0', 'translate-y-2');
+					menu.classList.add('visible', 'opacity-100', 'translate-y-0');
+					button.setAttribute('aria-expanded', 'true');
+					if (caret) caret.style.transform = 'rotate(180deg)';
+				}
+
+				button.addEventListener('click', function (event) {
+					event.stopPropagation();
+					const isOpen = button.getAttribute('aria-expanded') === 'true';
+					if (isOpen) {
+						closeMenu();
+					} else {
+						openMenu();
+					}
+				});
+
+				options.forEach(function (option) {
+					option.addEventListener('click', function (event) {
+						event.stopPropagation();
+						const role = option.getAttribute('data-almaden-access-preview-role') || 'administrator';
+						if (label) {
+							const labelNode = option.querySelector('span');
+							label.textContent = labelNode ? labelNode.textContent : role;
+						}
+						setCookie(role);
+						window.location.reload();
+					});
+				});
+
+				document.addEventListener('click', closeMenu);
+				document.addEventListener('keydown', function (event) {
+					if (event.key === 'Escape') closeMenu();
+				});
+			})();
+		</script>
+		<?php
+	}
+}
+
+if ( ! function_exists( 'almaden_bookster_render_access_preview_footer' ) ) {
+	function almaden_bookster_render_access_preview_footer() {
+		echo almaden_bookster_render_access_preview_switcher(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		almaden_bookster_render_access_preview_script();
+	}
+}
+
+add_action( 'wp_footer', 'almaden_bookster_render_access_preview_footer', 999 );
 
 if ( ! function_exists( 'almaden_bookster_render_app_shell_start' ) ) {
 	function almaden_bookster_render_app_shell_start( $args = array() ) {

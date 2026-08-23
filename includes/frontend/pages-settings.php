@@ -12,6 +12,12 @@ function almaden_bookster_get_pages_settings_defaults() {
 		'shell_home_slug'    => 'almaden-home',
 		'shell_home_title'   => 'Almaden App',
 		'shell_home_menu_enabled' => 0,
+		'contractor_page_id' => 0,
+		'contractor_slug'    => 'contractor',
+		'contractor_title'   => 'Contractor',
+		'user_access_manager_page_id' => 0,
+		'user_access_manager_slug'    => 'user-access',
+		'user_access_manager_title'   => 'User Access',
 		'dashboard_page_id' => 0,
 		'dashboard_slug'    => 'dashboard',
 		'dashboard_title'   => 'Dashboard',
@@ -48,6 +54,95 @@ function almaden_bookster_get_pages_settings() {
 	return wp_parse_args( $saved_settings, almaden_bookster_get_pages_settings_defaults() );
 }
 
+function almaden_bookster_get_custom_pages_settings() {
+	$saved_settings = get_option( 'almaden_bookster_custom_pages_settings', array() );
+
+	if ( ! is_array( $saved_settings ) ) {
+		return array();
+	}
+
+	$custom_pages = array();
+	foreach ( $saved_settings as $item ) {
+		if ( ! is_array( $item ) ) {
+			continue;
+		}
+
+		$slot_key = isset( $item['slot_key'] ) ? sanitize_key( (string) $item['slot_key'] ) : '';
+		if ( '' === $slot_key ) {
+			continue;
+		}
+
+		$custom_pages[] = array(
+			'slot_key'   => $slot_key,
+			'page_id'    => isset( $item['page_id'] ) ? absint( $item['page_id'] ) : 0,
+			'title'      => isset( $item['title'] ) ? sanitize_text_field( wp_unslash( $item['title'] ) ) : '',
+			'slug'       => isset( $item['slug'] ) ? sanitize_title( wp_unslash( $item['slug'] ) ) : '',
+			'page_type'  => isset( $item['page_type'] ) ? ( 'regular' === sanitize_key( (string) $item['page_type'] ) ? 'regular' : 'shell' ) : 'shell',
+			'admin_only' => ! empty( $item['admin_only'] ) ? 1 : 0,
+		);
+	}
+
+	return $custom_pages;
+}
+
+function almaden_bookster_get_custom_page_settings_by_slot( $slot_key ) {
+	$slot_key = sanitize_key( (string) $slot_key );
+
+	foreach ( almaden_bookster_get_custom_pages_settings() as $item ) {
+		if ( isset( $item['slot_key'] ) && $slot_key === (string) $item['slot_key'] ) {
+			return $item;
+		}
+	}
+
+	return array();
+}
+
+function almaden_bookster_sanitize_custom_pages_settings( $raw_pages ) {
+	if ( ! is_array( $raw_pages ) ) {
+		return array();
+	}
+
+	$custom_pages = array();
+	foreach ( $raw_pages as $raw_key => $raw_page ) {
+		if ( ! is_array( $raw_page ) ) {
+			continue;
+		}
+
+		$slot_key = isset( $raw_page['slot_key'] ) ? sanitize_key( (string) wp_unslash( $raw_page['slot_key'] ) ) : sanitize_key( (string) $raw_key );
+		if ( '' === $slot_key ) {
+			continue;
+		}
+
+		$title = isset( $raw_page['title'] ) ? sanitize_text_field( wp_unslash( $raw_page['title'] ) ) : '';
+		$slug  = isset( $raw_page['slug'] ) ? sanitize_title( wp_unslash( $raw_page['slug'] ) ) : '';
+		$page_type = isset( $raw_page['page_type'] ) ? sanitize_key( (string) wp_unslash( $raw_page['page_type'] ) ) : 'shell';
+		if ( ! in_array( $page_type, array( 'shell', 'regular' ), true ) ) {
+			$page_type = 'shell';
+		}
+
+		$custom_pages[] = array(
+			'slot_key'   => $slot_key,
+			'page_id'    => isset( $raw_page['page_id'] ) ? absint( $raw_page['page_id'] ) : 0,
+			'title'      => $title,
+			'slug'       => $slug,
+			'page_type'  => $page_type,
+			'admin_only' => ! empty( $raw_page['admin_only'] ) ? 1 : 0,
+		);
+	}
+
+	return $custom_pages;
+}
+
+function almaden_bookster_get_custom_page_url( $slug ) {
+	$slug = trim( (string) $slug, '/' );
+
+	if ( '' === $slug ) {
+		return '';
+	}
+
+	return home_url( '/' . $slug . '/' );
+}
+
 function almaden_bookster_sanitize_pages_settings( $raw_settings ) {
 	$defaults = almaden_bookster_get_pages_settings_defaults();
 	$current_settings = almaden_bookster_get_pages_settings();
@@ -56,6 +151,10 @@ function almaden_bookster_sanitize_pages_settings( $raw_settings ) {
 	$shell_home_slug  = isset( $raw_settings['shell_home_slug'] ) ? sanitize_title( wp_unslash( $raw_settings['shell_home_slug'] ) ) : ( isset( $current_settings['shell_home_slug'] ) && '' !== $current_settings['shell_home_slug'] ? $current_settings['shell_home_slug'] : $defaults['shell_home_slug'] );
 	$shell_home_title = isset( $raw_settings['shell_home_title'] ) ? sanitize_text_field( wp_unslash( $raw_settings['shell_home_title'] ) ) : ( isset( $current_settings['shell_home_title'] ) && '' !== $current_settings['shell_home_title'] ? $current_settings['shell_home_title'] : $defaults['shell_home_title'] );
 	$shell_home_menu_enabled = ! empty( $raw_settings['shell_home_menu_enabled'] ) ? 1 : 0;
+	$contractor_slug  = isset( $raw_settings['contractor_slug'] ) ? sanitize_title( wp_unslash( $raw_settings['contractor_slug'] ) ) : ( isset( $current_settings['contractor_slug'] ) && '' !== $current_settings['contractor_slug'] ? $current_settings['contractor_slug'] : $defaults['contractor_slug'] );
+	$contractor_title = isset( $raw_settings['contractor_title'] ) ? sanitize_text_field( wp_unslash( $raw_settings['contractor_title'] ) ) : ( isset( $current_settings['contractor_title'] ) && '' !== $current_settings['contractor_title'] ? $current_settings['contractor_title'] : $defaults['contractor_title'] );
+	$user_access_manager_slug = isset( $raw_settings['user_access_manager_slug'] ) ? sanitize_title( wp_unslash( $raw_settings['user_access_manager_slug'] ) ) : ( isset( $current_settings['user_access_manager_slug'] ) && '' !== $current_settings['user_access_manager_slug'] ? $current_settings['user_access_manager_slug'] : $defaults['user_access_manager_slug'] );
+	$user_access_manager_title = isset( $raw_settings['user_access_manager_title'] ) ? sanitize_text_field( wp_unslash( $raw_settings['user_access_manager_title'] ) ) : ( isset( $current_settings['user_access_manager_title'] ) && '' !== $current_settings['user_access_manager_title'] ? $current_settings['user_access_manager_title'] : $defaults['user_access_manager_title'] );
 	$dashboard_slug  = isset( $raw_settings['dashboard_slug'] ) ? sanitize_title( wp_unslash( $raw_settings['dashboard_slug'] ) ) : ( isset( $current_settings['dashboard_slug'] ) && '' !== $current_settings['dashboard_slug'] ? $current_settings['dashboard_slug'] : $defaults['dashboard_slug'] );
 	$dashboard_title = isset( $raw_settings['dashboard_title'] ) ? sanitize_text_field( wp_unslash( $raw_settings['dashboard_title'] ) ) : ( isset( $current_settings['dashboard_title'] ) && '' !== $current_settings['dashboard_title'] ? $current_settings['dashboard_title'] : $defaults['dashboard_title'] );
 	$reading_stats_slug  = isset( $raw_settings['reading_stats_slug'] ) ? sanitize_title( wp_unslash( $raw_settings['reading_stats_slug'] ) ) : ( isset( $current_settings['reading_stats_slug'] ) && '' !== $current_settings['reading_stats_slug'] ? $current_settings['reading_stats_slug'] : $defaults['reading_stats_slug'] );
@@ -88,6 +187,16 @@ function almaden_bookster_sanitize_pages_settings( $raw_settings ) {
 	if ( '' === $shell_home_title ) {
 		$shell_home_title = $defaults['shell_home_title'];
 	}
+
+	if ( '' === $contractor_slug ) {
+		$contractor_slug = $defaults['contractor_slug'];
+	}
+
+	if ( '' === $contractor_title ) {
+		$contractor_title = $defaults['contractor_title'];
+	}
+	if ( '' === $user_access_manager_slug ) { $user_access_manager_slug = $defaults['user_access_manager_slug']; }
+	if ( '' === $user_access_manager_title ) { $user_access_manager_title = $defaults['user_access_manager_title']; }
 
 	if ( '' === $course_creator_slug ) {
 		$course_creator_slug = $defaults['course_creator_slug'];
@@ -149,6 +258,12 @@ function almaden_bookster_sanitize_pages_settings( $raw_settings ) {
 		'shell_home_slug'    => $shell_home_slug,
 		'shell_home_title'   => $shell_home_title,
 		'shell_home_menu_enabled' => $shell_home_menu_enabled,
+		'contractor_page_id' => isset( $raw_settings['contractor_page_id'] ) ? absint( $raw_settings['contractor_page_id'] ) : ( isset( $current_settings['contractor_page_id'] ) ? absint( $current_settings['contractor_page_id'] ) : 0 ),
+		'contractor_slug'    => $contractor_slug,
+		'contractor_title'   => $contractor_title,
+		'user_access_manager_page_id' => isset( $raw_settings['user_access_manager_page_id'] ) ? absint( $raw_settings['user_access_manager_page_id'] ) : ( isset( $current_settings['user_access_manager_page_id'] ) ? absint( $current_settings['user_access_manager_page_id'] ) : 0 ),
+		'user_access_manager_slug'    => $user_access_manager_slug,
+		'user_access_manager_title'   => $user_access_manager_title,
 		'dashboard_page_id' => isset( $raw_settings['dashboard_page_id'] ) ? absint( $raw_settings['dashboard_page_id'] ) : ( isset( $current_settings['dashboard_page_id'] ) ? absint( $current_settings['dashboard_page_id'] ) : 0 ),
 		'dashboard_slug'    => $dashboard_slug,
 		'dashboard_title'   => $dashboard_title,
@@ -218,6 +333,52 @@ function almaden_bookster_get_shell_home_slug() {
 function almaden_bookster_get_shell_home_title() {
 	$settings = almaden_bookster_get_pages_settings();
 	return isset( $settings['shell_home_title'] ) && '' !== $settings['shell_home_title'] ? $settings['shell_home_title'] : 'Almaden App';
+}
+
+function almaden_bookster_get_contractor_page_id() {
+	$settings = almaden_bookster_get_pages_settings();
+	return isset( $settings['contractor_page_id'] ) ? absint( $settings['contractor_page_id'] ) : 0;
+}
+
+function almaden_bookster_get_contractor_slug() {
+	$settings = almaden_bookster_get_pages_settings();
+	return isset( $settings['contractor_slug'] ) && '' !== $settings['contractor_slug'] ? $settings['contractor_slug'] : 'contractor';
+}
+
+function almaden_bookster_get_contractor_title() {
+	$settings = almaden_bookster_get_pages_settings();
+	return isset( $settings['contractor_title'] ) && '' !== $settings['contractor_title'] ? $settings['contractor_title'] : 'Contractor';
+}
+
+function almaden_bookster_get_contractor_page_url( $query_args = array() ) {
+	$slug = trim( almaden_bookster_get_contractor_slug(), '/' );
+	$url  = home_url( '/' . $slug . '/' );
+
+	if ( empty( $query_args ) ) {
+		return $url;
+	}
+
+	return add_query_arg( $query_args, $url );
+}
+
+function almaden_bookster_get_user_access_manager_page_id() {
+	$settings = almaden_bookster_get_pages_settings();
+	return isset( $settings['user_access_manager_page_id'] ) ? absint( $settings['user_access_manager_page_id'] ) : 0;
+}
+
+function almaden_bookster_get_user_access_manager_slug() {
+	$settings = almaden_bookster_get_pages_settings();
+	return ! empty( $settings['user_access_manager_slug'] ) ? sanitize_title( $settings['user_access_manager_slug'] ) : 'user-access';
+}
+
+function almaden_bookster_get_user_access_manager_title() {
+	$settings = almaden_bookster_get_pages_settings();
+	return ! empty( $settings['user_access_manager_title'] ) ? (string) $settings['user_access_manager_title'] : 'User Access';
+}
+
+function almaden_bookster_get_user_access_manager_page_url( $query_args = array() ) {
+	$url = home_url( '/' . trim( almaden_bookster_get_user_access_manager_slug(), '/' ) . '/' );
+	return empty( $query_args ) ? $url : add_query_arg( $query_args, $url );
 }
 
 function almaden_bookster_get_dashboard_slug() {
@@ -328,6 +489,103 @@ function almaden_bookster_get_store_title() {
 function almaden_bookster_get_bookshelf_title() {
 	return almaden_bookster_get_store_title();
 }
+
+function almaden_bookster_get_contractor_settings_defaults() {
+	return array(
+		'company_name' => 'almaden',
+		'logo_id'      => 0,
+		'logo_width'   => 160,
+	);
+}
+
+function almaden_bookster_get_contractor_settings() {
+	$saved_settings = get_option( 'almaden_bookster_contractor_settings', array() );
+	if ( ! is_array( $saved_settings ) ) {
+		$saved_settings = array();
+	}
+
+	return wp_parse_args( $saved_settings, almaden_bookster_get_contractor_settings_defaults() );
+}
+
+function almaden_bookster_sanitize_contractor_settings( $raw_settings ) {
+	$defaults = almaden_bookster_get_contractor_settings_defaults();
+	$current_settings = almaden_bookster_get_contractor_settings();
+	$company_name = isset( $raw_settings['company_name'] )
+		? sanitize_text_field( wp_unslash( $raw_settings['company_name'] ) )
+		: ( isset( $current_settings['company_name'] ) ? $current_settings['company_name'] : $defaults['company_name'] );
+	$logo_width = isset( $raw_settings['logo_width'] )
+		? absint( $raw_settings['logo_width'] )
+		: ( isset( $current_settings['logo_width'] ) ? absint( $current_settings['logo_width'] ) : (int) $defaults['logo_width'] );
+	if ( $logo_width < 40 ) {
+		$logo_width = 40;
+	}
+	if ( $logo_width > 300 ) {
+		$logo_width = 300;
+	}
+
+	return array(
+		'company_name' => $company_name,
+		'logo_id'      => isset( $raw_settings['logo_id'] ) ? absint( $raw_settings['logo_id'] ) : ( isset( $current_settings['logo_id'] ) ? absint( $current_settings['logo_id'] ) : 0 ),
+		'logo_width'   => $logo_width,
+	);
+}
+
+function almaden_bookster_get_contractor_company_name() {
+	$settings = almaden_bookster_get_contractor_settings();
+	return isset( $settings['company_name'] ) ? (string) $settings['company_name'] : '';
+}
+
+function almaden_bookster_get_contractor_logo_id() {
+	$settings = almaden_bookster_get_contractor_settings();
+	return isset( $settings['logo_id'] ) ? absint( $settings['logo_id'] ) : 0;
+}
+
+function almaden_bookster_get_contractor_logo_url() {
+	$logo_id = almaden_bookster_get_contractor_logo_id();
+	if ( $logo_id <= 0 ) {
+		return '';
+	}
+
+	return function_exists( 'wp_get_attachment_image_url' ) ? (string) wp_get_attachment_image_url( $logo_id, 'full' ) : '';
+}
+
+function almaden_bookster_get_contractor_logo_width() {
+	$settings = almaden_bookster_get_contractor_settings();
+	$width = isset( $settings['logo_width'] ) ? absint( $settings['logo_width'] ) : 0;
+	if ( $width < 40 ) {
+		$width = 40;
+	}
+	if ( $width > 300 ) {
+		$width = 300;
+	}
+
+	return $width;
+}
+
+function almaden_bookster_handle_contractor_settings_save() {
+	if ( ! function_exists( 'almaden_bookster_user_can_manage_books' ) || ! almaden_bookster_user_can_manage_books() ) {
+		wp_die( 'Permisos insuficientes.' );
+	}
+
+	if ( ! isset( $_POST['almaden_contractor_nonce'] ) || ! wp_verify_nonce( $_POST['almaden_contractor_nonce'], 'almaden_bookster_contractor_settings' ) ) {
+		wp_die( 'Validación de seguridad fallida.' );
+	}
+
+	$settings = almaden_bookster_sanitize_contractor_settings(
+		array(
+			'company_name' => isset( $_POST['company_name'] ) ? wp_unslash( $_POST['company_name'] ) : '',
+			'logo_id'      => isset( $_POST['logo_id'] ) ? absint( $_POST['logo_id'] ) : 0,
+			'logo_width'   => isset( $_POST['logo_width'] ) ? absint( $_POST['logo_width'] ) : 0,
+		)
+	);
+
+	update_option( 'almaden_bookster_contractor_settings', $settings );
+
+	$redirect_url = function_exists( 'almaden_bookster_get_contractor_page_url' ) ? almaden_bookster_get_contractor_page_url( array( 'settings-updated' => '1' ) ) : admin_url( 'admin.php' );
+	wp_safe_redirect( $redirect_url );
+	exit;
+}
+add_action( 'admin_post_almaden_bookster_save_contractor_settings', 'almaden_bookster_handle_contractor_settings_save' );
 
 function almaden_bookster_get_store_menu_label() {
 	$settings = almaden_bookster_get_pages_settings();

@@ -125,20 +125,6 @@ if ( ! function_exists( 'almaden_bookster_get_shell_access_denied_copy' ) ) {
 	function almaden_bookster_get_shell_access_denied_copy( $page_key ) {
 		$page_key = sanitize_key( (string) $page_key );
 
-	if ( function_exists( 'almaden_bookster_is_page_admin_only' ) && almaden_bookster_is_page_admin_only( $page_key ) ) {
-		if ( 'authors' === $page_key ) {
-			return array(
-				'message'    => 'Esta página no está habilitada para ti.',
-				'submessage' => 'Solo el admin desarrollador puede verla mientras este switch esté activo.',
-			);
-		}
-
-		return array(
-			'message'    => 'Esta página está reservada al admin desarrollador.',
-			'submessage' => 'No aparecerá en el shell ni en el navbar para usuarios que no sean administradores.',
-		);
-		}
-
 		return array(
 			'message'    => 'No tienes permisos para acceder a esta página.',
 			'submessage' => 'Esta sección pertenece al shell interno del plugin.',

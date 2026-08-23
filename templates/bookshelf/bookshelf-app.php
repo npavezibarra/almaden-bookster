@@ -7,7 +7,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once dirname( __FILE__ ) . '/../../includes/helpers/cover-thumbnail.php';
 
 $bookshelf_cache_version = function_exists( 'almaden_bookster_get_bookshelf_cache_version' ) ? almaden_bookster_get_bookshelf_cache_version() : 1;
-$bookshelf_catalog_cache_key = 'almaden_bookster_bookshelf_catalog_' . $bookshelf_cache_version;
+// Bump the catalog cache namespace whenever the rendered filter markup changes.
+$bookshelf_catalog_cache_key = 'almaden_bookster_bookshelf_catalog_v2_' . $bookshelf_cache_version;
 $bookshelf_catalog_markup = get_transient( $bookshelf_catalog_cache_key );
 
 if ( false === $bookshelf_catalog_markup ) {
@@ -34,18 +35,7 @@ if ( false === $bookshelf_catalog_markup ) {
 		almaden_bookster_prime_cover_settings_cache( $book_ids );
 	}
 
-	$catalog_categories = array();
 	if ( $published_books->have_posts() ) {
-		while ( $published_books->have_posts() ) {
-			$published_books->the_post();
-			$terms = get_the_terms( get_the_ID(), 'category' );
-			if ( ! is_wp_error( $terms ) && is_array( $terms ) ) {
-				foreach ( $terms as $term ) {
-					$catalog_categories[ $term->slug ] = $term->name;
-				}
-			}
-		}
-		wp_reset_postdata();
 		$published_books->rewind_posts();
 	}
 
@@ -55,16 +45,9 @@ if ( false === $bookshelf_catalog_markup ) {
 		<div id="bookshelf-catalog-header-copy" class="flex flex-col gap-2">
 			<p id="bookshelf-catalog-eyebrow" class="text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-400">Ebook Store</p>
 			<h1 id="bookshelf-catalog-title" class="text-xl md:text-2xl font-bold text-gray-900">Explora los ebooks publicados</h1>
-			<p id="bookshelf-catalog-description" class="text-sm text-gray-600 max-w-2xl">Busca por título, autor o categoría.</p>
 		</div>
 		<div id="bookshelf-catalog-filters" class="almaden-catalog-filters mt-3">
 			<input type="search" id="almaden-catalog-search" placeholder="Buscar por título o autor...">
-			<select id="almaden-catalog-category">
-				<option value="">Todas las categorías</option>
-				<?php foreach ( $catalog_categories as $category_slug => $category_name ) : ?>
-					<option value="<?php echo esc_attr( $category_slug ); ?>"><?php echo esc_html( $category_name ); ?></option>
-				<?php endforeach; ?>
-			</select>
 		</div>
 	</div>
 	<?php if ( $published_books->have_posts() ) : ?>
@@ -72,15 +55,8 @@ if ( false === $bookshelf_catalog_markup ) {
 			<?php while ( $published_books->have_posts() ) : $published_books->the_post();
 				$cover_thumbnail_html = almaden_get_cover_thumbnail_html( get_the_ID() );
 				$author = function_exists( 'almaden_bookster_get_book_author_display_label' ) ? almaden_bookster_get_book_author_display_label( get_the_ID(), get_post_meta( get_the_ID(), '_almaden_book_author', true ) ) : get_post_meta( get_the_ID(), '_almaden_book_author', true );
-				$terms = get_the_terms( get_the_ID(), 'category' );
-				$term_slugs = array();
-				if ( ! is_wp_error( $terms ) && is_array( $terms ) ) {
-					foreach ( $terms as $term ) {
-						$term_slugs[] = $term->slug;
-					}
-				}
 				?>
-				<a id="bookshelf-book-<?php echo esc_attr( get_the_ID() ); ?>" href="<?php echo esc_url( get_permalink() ); ?>" class="almaden-book-card" aria-label="<?php echo esc_attr( get_the_title() ); ?>" data-book-id="<?php echo esc_attr( get_the_ID() ); ?>" data-book-title="<?php echo esc_attr( strtolower( get_the_title() ) ); ?>" data-book-author="<?php echo esc_attr( strtolower( $author ) ); ?>" data-book-categories="<?php echo esc_attr( implode( ' ', $term_slugs ) ); ?>">
+				<a id="bookshelf-book-<?php echo esc_attr( get_the_ID() ); ?>" href="<?php echo esc_url( get_permalink() ); ?>" class="almaden-book-card" aria-label="<?php echo esc_attr( get_the_title() ); ?>" data-book-id="<?php echo esc_attr( get_the_ID() ); ?>" data-book-title="<?php echo esc_attr( strtolower( get_the_title() ) ); ?>" data-book-author="<?php echo esc_attr( strtolower( $author ) ); ?>">
 					<div id="bookshelf-book-cover-<?php echo esc_attr( get_the_ID() ); ?>" class="almaden-book-cover-wrap">
 						<?php if ( ! empty( $cover_thumbnail_html ) ) : ?>
 							<?php echo str_replace('border-b', '', $cover_thumbnail_html); ?>
@@ -103,29 +79,24 @@ if ( false === $bookshelf_catalog_markup ) {
 			<p id="bookshelf-empty-state-description">Los ebooks que marques como publicados aparecerán aquí.</p>
 		</div>
 	<?php endif; ?>
-	<script>
+		<script>
 		(function () {
 			const searchInput = document.getElementById('almaden-catalog-search');
-			const categorySelect = document.getElementById('almaden-catalog-category');
 			const cards = Array.from(document.querySelectorAll('.almaden-book-card'));
-			if (!searchInput || !categorySelect || !cards.length) return;
+			if (!searchInput || !cards.length) return;
 
 			function applyFilters() {
 				const query = searchInput.value.trim().toLowerCase();
-				const category = categorySelect.value.trim().toLowerCase();
 
 				cards.forEach(card => {
 					const title = (card.dataset.bookTitle || '');
 					const author = (card.dataset.bookAuthor || '');
-					const categories = (card.dataset.bookCategories || '');
 					const matchesQuery = !query || title.includes(query) || author.includes(query);
-					const matchesCategory = !category || categories.includes(category);
-					card.style.display = (matchesQuery && matchesCategory) ? '' : 'none';
+					card.style.display = matchesQuery ? '' : 'none';
 				});
 			}
 
 			searchInput.addEventListener('input', applyFilters);
-			categorySelect.addEventListener('change', applyFilters);
 		})();
 
 		function scaleThumbnails() {
@@ -277,24 +248,24 @@ if ( class_exists( '\AlmadenBookster\Auth\AuthOrchestrator' ) ) {
 		}
 		.almaden-catalog-filters {
 			display: grid;
-			grid-template-columns: 1fr;
+			grid-template-columns: minmax(0, 500px);
 			gap: 0.5rem;
 			margin: 0;
+			max-width: 500px;
 		}
-		.almaden-catalog-filters input,
-		.almaden-catalog-filters select {
+		.almaden-catalog-filters input {
 			width: 100%;
-			border: 1px solid #d1d5db;
-			border-radius: 1rem;
-			padding: 0.65rem 0.9rem;
-			background: #fff;
+			border: 0;
+			border-bottom: 1px solid #d1d5db;
+			border-radius: 0;
+			padding: 0.65rem 0;
+			background: transparent;
 			font-size: 0.95rem;
 		}
-		.almaden-catalog-filters input:focus,
-		.almaden-catalog-filters select:focus {
+		.almaden-catalog-filters input:focus {
 			outline: none;
-			border-color: #111827;
-			box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
+			border-bottom-color: #111827;
+			box-shadow: none;
 		}
 		.cover-thumbnail-wrapper {
 			width: 100%;
@@ -338,11 +309,6 @@ if ( class_exists( '\AlmadenBookster\Auth\AuthOrchestrator' ) ) {
 			font-weight: 500;
 			color: #64748b;
 			margin: 0;
-		}
-		@media (min-width: 768px) {
-			.almaden-catalog-filters {
-				grid-template-columns: minmax(0, 1fr) 180px;
-			}
 		}
 		.almaden-empty-state {
 			text-align: center;

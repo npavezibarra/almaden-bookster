@@ -23,6 +23,41 @@ function almaden_bookster_load_shell_home() {
 }
 add_action( 'template_redirect', 'almaden_bookster_load_shell_home', 5 );
 
+function almaden_bookster_load_contractor() {
+	if ( ! is_page( function_exists( 'almaden_bookster_get_contractor_slug' ) ? almaden_bookster_get_contractor_slug() : 'contractor' ) || ! is_main_query() ) {
+		return;
+	}
+
+	show_admin_bar( false );
+	if ( function_exists( 'almaden_bookster_maybe_render_shell_page_access' ) && ! almaden_bookster_maybe_render_shell_page_access( 'contractor' ) ) {
+		return;
+	}
+
+	if ( function_exists( 'wp_enqueue_media' ) ) {
+		wp_enqueue_media();
+	}
+
+	$template_path = dirname( __FILE__ ) . '/../templates/shell/contractor-app.php';
+	if ( file_exists( $template_path ) ) {
+		require_once $template_path;
+		exit;
+	}
+
+	wp_die( 'Plantilla de contractor no encontrada.' );
+}
+add_action( 'template_redirect', 'almaden_bookster_load_contractor', 5 );
+
+function almaden_bookster_load_user_access_manager() {
+	if ( ! is_page( almaden_bookster_get_user_access_manager_slug() ) || ! is_main_query() ) { return; }
+	show_admin_bar( false );
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+	if ( function_exists( 'almaden_bookster_maybe_render_shell_page_access' ) && ! almaden_bookster_maybe_render_shell_page_access( 'user_access_manager' ) ) { return; }
+	$template_path = dirname( __FILE__ ) . '/../templates/shell/user-access-manager-app.php';
+	if ( file_exists( $template_path ) ) { require_once $template_path; exit; }
+	wp_die( 'Plantilla de User Access no encontrada.' );
+}
+add_action( 'template_redirect', 'almaden_bookster_load_user_access_manager', 5 );
+
 function almaden_bookster_load_quiz_builder() {
 	$quiz_slug = function_exists( 'almaden_bookster_get_quiz_page_slug' ) ? almaden_bookster_get_quiz_page_slug() : 'almaden-book-quiz';
 	if ( ! is_page( $quiz_slug ) || ! is_main_query() ) {

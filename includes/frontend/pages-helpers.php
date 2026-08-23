@@ -15,6 +15,7 @@ if ( ! function_exists( 'almaden_bookster_get_frontend_page_access_mode' ) ) {
 
 		$access_map = array(
 			'shell_home'     => 'private',
+			'contractor'     => 'private',
 			'dashboard'      => 'private',
 			'reading_stats'  => 'private',
 			'authors'        => 'public',
@@ -31,23 +32,114 @@ if ( ! function_exists( 'almaden_bookster_get_frontend_page_access_mode' ) ) {
 	}
 }
 
+if ( ! function_exists( 'almaden_bookster_get_current_user_roles' ) ) {
+	function almaden_bookster_get_current_user_roles() {
+		if ( ! function_exists( 'wp_get_current_user' ) ) {
+			return array();
+		}
+
+		$user = wp_get_current_user();
+		if ( ! $user || empty( $user->ID ) ) {
+			return array();
+		}
+
+		$roles = isset( $user->roles ) && is_array( $user->roles ) ? $user->roles : array();
+
+		return array_values(
+			array_filter(
+				array_map(
+					static function( $role_key ) {
+						return sanitize_key( (string) $role_key );
+					},
+					$roles
+				)
+			)
+		);
+	}
+}
+
+if ( ! function_exists( 'almaden_bookster_user_can_use_access_preview' ) ) {
+	function almaden_bookster_user_can_use_access_preview() {
+		return function_exists( 'current_user_can' ) && current_user_can( 'manage_options' );
+	}
+}
+
+if ( ! function_exists( 'almaden_bookster_get_access_preview_role' ) ) {
+	function almaden_bookster_get_access_preview_role() {
+		if ( ! function_exists( 'almaden_bookster_user_can_use_access_preview' ) || ! almaden_bookster_user_can_use_access_preview() ) {
+			return '';
+		}
+
+		$allowed_roles = function_exists( 'almaden_bookster_get_access_preview_roles' ) ? array_keys( almaden_bookster_get_access_preview_roles() ) : array( 'administrator', 'editor', 'author', 'customer', 'subscriber' );
+		$requested_role = '';
+
+		if ( isset( $_COOKIE['almaden_bookster_preview_role'] ) ) {
+			$requested_role = sanitize_key( (string) wp_unslash( $_COOKIE['almaden_bookster_preview_role'] ) );
+		} elseif ( isset( $_GET['almaden_preview_role'] ) ) {
+			$requested_role = sanitize_key( (string) wp_unslash( $_GET['almaden_preview_role'] ) );
+		}
+
+		if ( '' === $requested_role || ! in_array( $requested_role, $allowed_roles, true ) ) {
+			return 'administrator';
+		}
+
+		return $requested_role;
+	}
+}
+
+if ( ! function_exists( 'almaden_bookster_user_can_access_frontend_page_for_role' ) ) {
+	function almaden_bookster_user_can_access_frontend_page_for_role( $page_key, $role_key ) {
+		$page_key = sanitize_key( (string) $page_key );
+		$role_key = sanitize_key( (string) $role_key );
+		$mode     = function_exists( 'almaden_bookster_get_frontend_page_access_mode' ) ? almaden_bookster_get_frontend_page_access_mode( $page_key ) : 'private';
+		$allowed_roles = function_exists( 'almaden_bookster_get_page_allowed_roles' ) ? almaden_bookster_get_page_allowed_roles( $page_key ) : array();
+
+		if ( '' === $page_key ) {
+			return true;
+		}
+
+		if ( '' === $role_key ) {
+			return 'public' === $mode;
+		}
+
+		if ( ! empty( $allowed_roles ) ) {
+			return in_array( $role_key, $allowed_roles, true );
+		}
+
+		switch ( $page_key ) {
+			case 'course_archive':
+			case 'reading_stats':
+				return true;
+			default:
+				return false;
+		}
+	}
+}
+
 if ( ! function_exists( 'almaden_bookster_user_can_access_frontend_page' ) ) {
 	function almaden_bookster_user_can_access_frontend_page( $page_key, $user_id = null ) {
 		$page_key = sanitize_key( (string) $page_key );
 		$mode     = almaden_bookster_get_frontend_page_access_mode( $page_key );
-		$is_admin_only = function_exists( 'almaden_bookster_is_page_admin_only' ) && almaden_bookster_is_page_admin_only( $page_key );
 
-		if ( $is_admin_only ) {
-			$user_id = $user_id ? absint( $user_id ) : get_current_user_id();
-			if ( $user_id <= 0 ) {
-				return false;
+		if ( null === $user_id && function_exists( 'almaden_bookster_get_access_preview_role' ) ) {
+			$preview_role = almaden_bookster_get_access_preview_role();
+			if ( '' !== $preview_role ) {
+				return function_exists( 'almaden_bookster_user_can_access_frontend_page_for_role' ) ? almaden_bookster_user_can_access_frontend_page_for_role( $page_key, $preview_role ) : true;
 			}
-
-			$user = get_user_by( 'id', $user_id );
-			return $user && function_exists( 'user_can' ) ? user_can( $user, 'manage_options' ) : current_user_can( 'manage_options' );
 		}
 
-		if ( 'public' === $mode ) {
+		if ( null === $user_id ) {
+			$user_roles = function_exists( 'almaden_bookster_get_current_user_roles' ) ? almaden_bookster_get_current_user_roles() : array();
+			if ( ! empty( $user_roles ) ) {
+				foreach ( $user_roles as $role_key ) {
+					if ( function_exists( 'almaden_bookster_user_can_access_frontend_page_for_role' ) && almaden_bookster_user_can_access_frontend_page_for_role( $page_key, $role_key ) ) {
+						return true;
+					}
+				}
+			}
+		}
+
+		if ( 'public' === $mode && ( null === $user_id || (int) $user_id <= 0 ) ) {
 			return true;
 		}
 
@@ -61,25 +153,18 @@ if ( ! function_exists( 'almaden_bookster_user_can_access_frontend_page' ) ) {
 			return false;
 		}
 
-		$can_manage_options = function_exists( 'user_can' ) ? user_can( $user, 'manage_options' ) : current_user_can( 'manage_options' );
-
-		switch ( $page_key ) {
-			case 'creator':
-				$can_manage_books = function_exists( 'user_can' ) ? user_can( $user, 'almaden_manage_books' ) : current_user_can( 'almaden_manage_books' );
-				return $can_manage_books || $can_manage_options;
-			case 'course_creator':
-				$can_manage_courses = function_exists( 'user_can' ) ? ( user_can( $user, 'manage_almaden_learni' ) || user_can( $user, 'edit_posts' ) ) : ( current_user_can( 'manage_almaden_learni' ) || current_user_can( 'edit_posts' ) );
-				return $can_manage_options || $can_manage_courses;
-			case 'course_archive':
-				return true;
-			case 'blog_creator':
-				$can_edit_posts = function_exists( 'user_can' ) ? user_can( $user, 'edit_posts' ) : current_user_can( 'edit_posts' );
-				return $can_manage_options || $can_edit_posts;
-			case 'reading_stats':
-				return true;
-			default:
-				return $can_manage_options;
+		$user_roles = isset( $user->roles ) && is_array( $user->roles ) ? array_values( array_filter( array_map( 'sanitize_key', $user->roles ) ) ) : array();
+		if ( empty( $user_roles ) ) {
+			return 'public' === $mode;
 		}
+
+		foreach ( $user_roles as $role_key ) {
+			if ( function_exists( 'almaden_bookster_user_can_access_frontend_page_for_role' ) && almaden_bookster_user_can_access_frontend_page_for_role( $page_key, $role_key ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
 

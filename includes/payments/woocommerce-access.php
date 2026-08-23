@@ -33,26 +33,21 @@ function almaden_bookster_get_book_return_url( $book_id, $context = array() ) {
 		return $explicit_return;
 	}
 
-	$settings = function_exists( 'almaden_bookster_get_distribution_settings' ) ? almaden_bookster_get_distribution_settings() : array();
-	$policy = sanitize_key( (string) ( $settings['return_url_policy'] ?? 'product_or_fallback' ) );
+	$bookshelf_url = function_exists( 'almaden_bookster_get_bookshelf_page_url' ) ? almaden_bookster_get_bookshelf_page_url() : '';
+	if ( ! $bookshelf_url && function_exists( 'almaden_bookster_get_store_page_url' ) ) {
+		$bookshelf_url = almaden_bookster_get_store_page_url();
+	}
+	if ( $bookshelf_url ) {
+		return $bookshelf_url;
+	}
+
 	$relation = almaden_bookster_get_book_wc_relation( $book_id );
 	$product_id = absint( $relation['parent_product_id'] ?? 0 );
 	if ( ! $product_id ) {
 		$product_id = absint( $relation['product_id'] ?? 0 );
 	}
 
-	$product_url = $product_id > 0 ? get_permalink( $product_id ) : '';
-	$store_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : '';
-	if ( empty( $store_url ) && function_exists( 'almaden_bookster_get_store_page_url' ) ) {
-		$store_url = almaden_bookster_get_store_page_url();
-	}
-	$store_url = $store_url ? $store_url : home_url( '/' );
-
-	if ( ! in_array( $policy, array( 'bookshelf_or_fallback', 'store_root' ), true ) && $product_url ) {
-		return $product_url;
-	}
-
-	return $store_url;
+	return $product_id > 0 ? get_permalink( $product_id ) : home_url( '/' );
 }
 
 function almaden_bookster_get_explicit_return_url( $context ) {

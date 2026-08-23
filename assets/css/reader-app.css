@@ -14,6 +14,33 @@ body, html {
     overflow: hidden;
     position: relative;
 }
+
+@media (max-width: 767px) {
+	#reader-cover-panel {
+		height: auto !important;
+		min-height: 0 !important;
+		padding-top: 40px;
+		padding-bottom: 41px;
+	}
+	#reader-cover-wrapper {
+		width: min(100%, 420px);
+		max-width: calc(100vw - 40px);
+		margin-left: auto;
+		margin-right: auto;
+	}
+	.cover-thumbnail-wrapper {
+		width: 100%;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	.cover-thumbnail-wrapper img {
+		display: block;
+		width: 100% !important;
+		height: auto !important;
+		max-width: 100% !important;
+		object-fit: contain !important;
+	}
+}
 .cover-spread-container {
     position: absolute;
     top: 0;

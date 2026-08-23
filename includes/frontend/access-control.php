@@ -10,6 +10,9 @@ function almaden_bookster_user_can_access_book( $book_id, $user_id = null ) {
 	if ( ! $book_id ) {
 		return false;
 	}
+	if ( function_exists( 'almaden_bookster_user_has_manual_book_access' ) && almaden_bookster_user_has_manual_book_access( $book_id, $user_id ) ) {
+		return true;
+	}
 
 	if ( function_exists( 'almaden_bookster_user_has_wc_access_for_book' ) ) {
 		return almaden_bookster_user_has_wc_access_for_book( $book_id, $user_id );

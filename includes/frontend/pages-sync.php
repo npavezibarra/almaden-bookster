@@ -119,6 +119,85 @@ function almaden_bookster_sync_shell_home_page() {
 	}
 }
 
+function almaden_bookster_sync_contractor_page() {
+	$settings = almaden_bookster_get_pages_settings();
+	$slug     = almaden_bookster_get_contractor_slug();
+	$title    = almaden_bookster_get_contractor_title();
+	$page_id  = isset( $settings['contractor_page_id'] ) ? absint( $settings['contractor_page_id'] ) : 0;
+	$page     = $page_id > 0 ? get_post( $page_id ) : null;
+
+	if ( $page && 'page' !== $page->post_type ) {
+		$page = null;
+	}
+
+	if ( ! $page ) {
+		$page = get_page_by_path( $slug, OBJECT, 'page' );
+	}
+
+	if ( ! $page ) {
+		$new_page_id = wp_insert_post(
+			array(
+				'post_title'   => $title,
+				'post_name'    => $slug,
+				'post_status'  => 'publish',
+				'post_type'    => 'page',
+				'post_content' => '<!-- El contenido de esta página es generado dinámicamente por el plugin AlmadenBookster -->',
+			)
+		);
+
+		if ( ! is_wp_error( $new_page_id ) && $new_page_id ) {
+			$settings['contractor_page_id'] = absint( $new_page_id );
+			$settings['contractor_slug']    = $slug;
+			$settings['contractor_title']   = $title;
+			update_option( 'almaden_bookster_pages_settings', $settings );
+		}
+
+		return;
+	}
+
+	$updates = array( 'ID' => $page->ID );
+
+	if ( $page->post_name !== $slug ) {
+		$updates['post_name'] = $slug;
+	}
+
+	if ( $page->post_title !== $title ) {
+		$updates['post_title'] = $title;
+	}
+
+	if ( count( $updates ) > 1 ) {
+		wp_update_post( $updates );
+	}
+
+	if ( $page_id !== (int) $page->ID ) {
+		$settings['contractor_page_id'] = (int) $page->ID;
+		$settings['contractor_slug']    = $slug;
+		$settings['contractor_title']   = $title;
+		update_option( 'almaden_bookster_pages_settings', $settings );
+	}
+}
+
+function almaden_bookster_sync_user_access_manager_page() {
+	$settings = almaden_bookster_get_pages_settings();
+	$slug = almaden_bookster_get_user_access_manager_slug();
+	$title = almaden_bookster_get_user_access_manager_title();
+	$page_id = isset( $settings['user_access_manager_page_id'] ) ? absint( $settings['user_access_manager_page_id'] ) : 0;
+	$page = $page_id > 0 ? get_post( $page_id ) : null;
+	if ( $page && 'page' !== $page->post_type ) { $page = null; }
+	if ( ! $page ) { $page = get_page_by_path( $slug, OBJECT, 'page' ); }
+	if ( ! $page ) {
+		$new_page_id = wp_insert_post( array( 'post_title' => $title, 'post_name' => $slug, 'post_status' => 'publish', 'post_type' => 'page', 'post_content' => '<!-- Contenido generado por AlmadenBookster. -->' ) );
+		if ( ! is_wp_error( $new_page_id ) && $new_page_id ) { $settings['user_access_manager_page_id'] = absint( $new_page_id ); update_option( 'almaden_bookster_pages_settings', $settings ); update_post_meta( $new_page_id, '_almaden_bookster_shell_page', 'user_access_manager' ); }
+		return;
+	}
+	$updates = array( 'ID' => $page->ID );
+	if ( $page->post_name !== $slug ) { $updates['post_name'] = $slug; }
+	if ( $page->post_title !== $title ) { $updates['post_title'] = $title; }
+	if ( count( $updates ) > 1 ) { wp_update_post( $updates ); }
+	update_post_meta( $page->ID, '_almaden_bookster_shell_page', 'user_access_manager' );
+	if ( $page_id !== (int) $page->ID ) { $settings['user_access_manager_page_id'] = (int) $page->ID; update_option( 'almaden_bookster_pages_settings', $settings ); }
+}
+
 function almaden_bookster_sync_dashboard_page() {
 	$settings = almaden_bookster_get_pages_settings();
 	$slug     = almaden_bookster_get_dashboard_slug();

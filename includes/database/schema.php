@@ -63,6 +63,10 @@ if ( ! function_exists( 'almaden_bookster_install_database_schema' ) ) {
 			almaden_bookster_create_quiz_progress_tables();
 		}
 
+		if ( function_exists( 'almaden_bookster_create_chapter_progress_table' ) ) {
+			almaden_bookster_create_chapter_progress_table();
+		}
+
 		if ( function_exists( 'almaden_bookster_create_fonts_table' ) ) {
 			almaden_bookster_create_fonts_table();
 		}

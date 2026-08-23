@@ -38,6 +38,20 @@ Las nuevas páginas frontend del plugin no deben construirse como páginas gené
 - Si la página necesita navegación propia, define los links explícitamente en el wrapper o en el shell compartido, no en el tema.
 - Si aparece HTML repetido entre varias pantallas, extrae primero un helper o shell común antes de duplicar.
 
+### Instalación obligatoria de páginas Almaden Shell
+
+Cada vez que una instrucción solicite crear una nueva página de **Almaden Shell**, esa página debe incorporarse también al proceso de instalación y activación del plugin. No basta con crear el wrapper, la ruta o el template: hay que registrarla como página canónica del sistema para que se cree automáticamente al activar AlmadenBookster en una instalación nueva.
+
+La implementación debe cumplir lo siguiente:
+
+1. Añadir la configuración predeterminada de la página, incluyendo su título, slug y referencia de `page_id`.
+2. Crear o actualizar su función de sincronización para generar la página de WordPress con el contenido dinámico del plugin.
+3. Incluirla en la rutina de instalación de páginas principales ejecutada por `register_activation_hook`.
+4. Marcarla como página perteneciente al Almaden Shell para que las reglas de navegación, visibilidad y menús la reconozcan.
+5. Mantener separadas las páginas personalizadas creadas desde el administrador: estas no deben convertirse en páginas canónicas ni instalarse automáticamente en otros sitios.
+
+Si el título o el slug de una página Shell son editables, esos valores deben conservarse como configuración del sitio, pero la página y su funcionalidad base deben seguir siendo instaladas por el plugin.
+
 ### Ejemplo de arquitectura esperada
 
 - `includes/frontend/app-shell.php`: estructura común de navegación y documento.
