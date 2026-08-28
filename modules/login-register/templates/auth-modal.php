@@ -9,6 +9,16 @@ if (!defined('ABSPATH')) {
 
 $auto_open = !empty($auto_open);
 $is_spanish = strpos(get_locale(), 'es') === 0;
+$contractor_company_name = function_exists( 'almaden_bookster_get_contractor_company_name' ) ? trim( (string) almaden_bookster_get_contractor_company_name() ) : '';
+$contractor_logo_url = function_exists( 'almaden_bookster_get_contractor_logo_url' ) ? trim( (string) almaden_bookster_get_contractor_logo_url() ) : '';
+$contractor_logo_width = function_exists( 'almaden_bookster_get_contractor_logo_width' ) ? absint( almaden_bookster_get_contractor_logo_width() ) : 160;
+if ( $contractor_logo_width < 40 ) {
+    $contractor_logo_width = 40;
+}
+if ( $contractor_logo_width > 300 ) {
+    $contractor_logo_width = 300;
+}
+$brand_label = '' !== $contractor_company_name ? $contractor_company_name : 'almaden';
 
 $labels = [
     'welcome' => $is_spanish ? 'Bienvenido de nuevo' : 'Welcome back',
@@ -48,7 +58,16 @@ $register_url = \AlmadenBookster\Auth\Utilities\AuthUtils::build_modal_url('regi
         <div class="pl-auth-shell">
             <p class="pl-auth-eyebrow"><?php echo esc_html__('Almaden Bookster', 'almaden-bookster'); ?></p>
             <div class="pl-auth-logo" data-pl-auth-logo>
-                <span class="pl-auth-logo__text"><?php echo esc_html__('Almaden Bookster', 'almaden-bookster'); ?></span>
+                <?php if ( '' !== $contractor_logo_url ) : ?>
+                    <img
+                        src="<?php echo esc_url( $contractor_logo_url ); ?>"
+                        alt="<?php echo esc_attr( $brand_label ); ?>"
+                        class="pl-auth-logo__image"
+                        style="width: <?php echo esc_attr( (string) $contractor_logo_width ); ?>px; max-width: <?php echo esc_attr( (string) $contractor_logo_width ); ?>px;"
+                    />
+                <?php else : ?>
+                    <span class="urbanist-almaden-logo pl-auth-logo__wordmark"><?php echo esc_html( $brand_label ); ?></span>
+                <?php endif; ?>
             </div>
             <h2 class="pl-auth-title" data-pl-auth-title><?php echo esc_html($view === 'register' ? $labels['register_title'] : $labels['welcome']); ?></h2>
             <p class="pl-auth-copy" data-pl-auth-copy><?php echo esc_html($view === 'register' ? $labels['register_copy'] : $labels['login_copy']); ?></p>

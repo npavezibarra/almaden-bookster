@@ -314,11 +314,11 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
     <div id="almaden-view-chapter" class="w-full h-full flex flex-col hidden">
         <!-- Sticky Top Navigation -->
         <header id="chapter-navbar" class="w-full h-16 border-b border-gray-100 flex items-center justify-between px-6 backdrop-blur sticky top-0 z-50 transition-colors" style="background-color: inherit;">
-            <button onclick="showIndexView()" class="flex items-center text-gray-500 hover:text-black transition-colors font-medium" title="Índice">
+            <button id="chapter-navbar-index-btn" onclick="showIndexView()" class="flex items-center text-gray-500 hover:text-black transition-colors font-medium" title="Índice">
                 <i class="fa-solid fa-list-ul mr-2 text-sm"></i>
             </button>
             <h3 class="text-sm font-semibold text-gray-800 truncate px-4 absolute left-1/2 transform -translate-x-1/2 opacity-0 transition-opacity duration-300" id="chapter-nav-title">Chapter Title</h3>
-            <div class="flex items-center space-x-1 relative">
+            <div id="chapter-navbar-controls" class="flex items-center space-x-1 relative">
                 <!-- Preferences Button & Panel -->
                 <button id="btn-reader-prefs" onclick="togglePrefsPanel()" class="p-2 text-gray-800 hover:bg-gray-100 rounded text-base h-9 flex items-center justify-center transition-colors font-serif font-bold mr-2" title="Preferencias de Lectura">
                     aA
@@ -378,26 +378,6 @@ $book_language = function_exists( 'almaden_bookster_get_book_language_from_setti
             </button>
             <div id="chapter-content" class="prose" data-almaden-protected-content="ebook">
                 <!-- Markdown content will be rendered here -->
-            </div>
-            
-            <div id="chapter-footer-nav" class="max-w-[700px] mx-auto mt-20 pt-8 pb-12 border-t border-gray-100 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                <div class="flex justify-start min-h-[2.5rem]">
-                    <button id="btn-prev-chapter" onclick="goToPrevChapter()" class="text-gray-500 hover:text-black flex items-center hidden font-medium transition-colors">
-                        <i class="fa-solid fa-arrow-left mr-2"></i> Anterior
-                    </button>
-                </div>
-
-                <div class="flex justify-center min-h-[2.5rem]">
-                    <button id="btn-take-quiz" class="hidden px-6 py-2.5 rounded-full bg-black hover:bg-gray-800 text-white font-semibold text-sm transition-all shadow-sm hover:shadow flex items-center gap-2">
-                        <i class="fa-solid fa-circle-question"></i> Tomar Quiz
-                    </button>
-                </div>
-
-                <div class="flex justify-end min-h-[2.5rem]">
-                    <button id="btn-next-chapter" onclick="goToNextChapter()" class="text-gray-500 hover:text-black flex items-center hidden font-medium transition-colors">
-                        Siguiente <i class="fa-solid fa-arrow-right ml-2"></i>
-                    </button>
-                </div>
             </div>
         </main>
     </div>

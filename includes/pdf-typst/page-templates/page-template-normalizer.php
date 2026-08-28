@@ -69,21 +69,6 @@ function almaden_bookster_typst_normalize_page_templates( $value ) {
 		}
 	);
 
-	$seen_flow_ids = array();
-	foreach ( $normalized as &$template ) {
-		$flow_id = (string) ( $template['anchor']['flow_id'] ?? '' );
-		if ( '' === $flow_id ) {
-			continue;
-		}
-		if ( isset( $seen_flow_ids[ $flow_id ] ) ) {
-			$template['anchor'] = array( 'flow_id' => '' );
-			$template['resolved_page'] = (int) ( $template['page_number'] ?? $template['resolved_page'] ?? 0 );
-			continue;
-		}
-		$seen_flow_ids[ $flow_id ] = true;
-	}
-	unset( $template );
-
 	usort(
 		$normalized,
 		static function ( $left, $right ) {

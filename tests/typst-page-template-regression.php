@@ -130,12 +130,12 @@ if ( 'almaden-flow-1' !== ( $duplicate_templates[0]['anchor']['flow_id'] ?? '' )
 	fwrite( STDERR, "La primera plantilla duplicada debería conservar su ancla original.\n" );
 	exit( 1 );
 }
-if ( '' !== ( $duplicate_templates[1]['anchor']['flow_id'] ?? 'x' ) ) {
-	fwrite( STDERR, "La plantilla duplicada siguiente debería perder el ancla repetida.\n" );
+if ( 'almaden-flow-1' !== ( $duplicate_templates[1]['anchor']['flow_id'] ?? '' ) ) {
+	fwrite( STDERR, "Dos plantillas consecutivas deberían poder compartir el ancla del texto diferido.\n" );
 	exit( 1 );
 }
-if ( 3 !== (int) ( $duplicate_templates[1]['resolved_page'] ?? 0 ) ) {
-	fwrite( STDERR, "La plantilla duplicada siguiente debería volver a su página base.\n" );
+if ( 5 !== (int) ( $duplicate_templates[1]['resolved_page'] ?? 0 ) ) {
+	fwrite( STDERR, "La segunda plantilla apilada perdió su página resuelta.\n" );
 	exit( 1 );
 }
 
@@ -197,14 +197,27 @@ $cleanup_results = array(
 	),
 );
 $cleaned_templates = almaden_bookster_typst_reconcile_page_template_results( 771, $cleanup_results );
-if ( 1 !== count( $cleaned_templates ) || 'page-2-one-column-one-image' !== ( $cleaned_templates[0]['instance_id'] ?? '' ) ) {
-	fwrite( STDERR, "La reconciliación no limpió los registros legacy duplicados como se esperaba.\n" );
+if ( 2 !== count( $cleaned_templates ) || in_array( 'page-4-one-column-one-image', array_column( $cleaned_templates, 'instance_id' ), true ) ) {
+	fwrite( STDERR, "La reconciliación no limpió el registro legacy sin ancla como se esperaba.\n" );
 	exit( 1 );
 }
 
 $registry = almaden_bookster_typst_page_template_registry();
 if ( empty( $registry['inner-full-page'] ) ) {
 	fwrite( STDERR, "El registry no expuso la nueva plantilla Inner Full Page.\n" );
+	exit( 1 );
+}
+if ( 'upper-bottom-split' !== almaden_bookster_typst_page_template_layout_mode(
+	array( 'template_id' => 'upper-image-bottom-text-split' )
+) ) {
+	fwrite( STDERR, "El preset superior/inferior se degradó al layout split básico.\n" );
+	exit( 1 );
+}
+$upper_template = array_merge( $template, array( 'template_id' => 'upper-image-bottom-text-split' ) );
+$upper_probe = array( 'cut' => array( 'block_id' => 'almaden-flow-2', 'word_count' => 2 ) );
+$upper_result = almaden_bookster_typst_apply_page_template_flow( $source, $context, $flow_map, $upper_template, $upper_probe );
+if ( false === strpos( $upper_result, '#grid(columns: (2.15fr, 0.95fr)' ) || 1 !== substr_count( $upper_result, 'Primer bloque que ocupa la columna derecha.' ) ) {
+	fwrite( STDERR, "El preset superior/inferior perdió su layout o duplicó el texto diferido.\n" );
 	exit( 1 );
 }
 
@@ -402,6 +415,56 @@ if ( ! preg_match( '/<almaden-transition-2>.*?#pagebreak\(to: "odd"\).*?#box\(wi
 	exit( 1 );
 }
 file_put_contents( sys_get_temp_dir() . '/almaden-typst-page-template-transition.typ', $transition_result );
+
+$blank_source = <<<'TYPST'
+#let almaden-page-styled(kind, body) = body
+#set page(width: 20cm, height: 12cm, margin: 1cm, columns: 2)
+#par[Texto del capítulo anterior.]
+#pagebreak()
+#metadata("chapter-after") <almaden-intentional-blank>
+#metadata("almaden-blank-after-1-1") <almaden-blank-after-1-1>
+#pagebreak()
+#metadata("almaden-blank-after-1-2") <almaden-blank-after-1-2>
+#pagebreak()
+#par[Texto del capítulo siguiente.]
+TYPST;
+$blank_composed = almaden_bookster_typst_compose_page_templates(
+	$blank_source,
+	array( 'templates' => array( $full_template ) )
+);
+if ( 2 !== substr_count( $blank_composed, 'kind: "blank"' ) ) {
+	fwrite( STDERR, "El mapa físico no expuso cada página de relleno con identidad propia.\n" );
+	exit( 1 );
+}
+$first_blank_template = array_merge(
+	$full_template,
+	array(
+		'id' => 'tpl-blank-first',
+		'instance_id' => 'tpl-blank-first',
+		'page_number' => 2,
+		'anchor' => array( 'flow_id' => 'almaden-blank-after-1-1' ),
+	)
+);
+$blank_flow_map = array(
+	array( 'id' => 'almaden-flow-1', 'page' => 1, 'x' => 10, 'y' => 10 ),
+	array( 'id' => 'almaden-blank-after-1-1', 'page' => 2, 'x' => 0, 'y' => 0, 'kind' => 'blank' ),
+	array( 'id' => 'almaden-blank-after-1-2', 'page' => 3, 'x' => 0, 'y' => 0, 'kind' => 'blank' ),
+	array( 'id' => 'almaden-flow-2', 'page' => 4, 'x' => 10, 'y' => 10 ),
+);
+$blank_result = almaden_bookster_typst_apply_page_template_flow(
+	$blank_composed,
+	$context,
+	$blank_flow_map,
+	$first_blank_template
+);
+if ( false === strpos( $blank_result, 'almaden-template-slot-tpl-blank-first-image-1' ) ) {
+	fwrite( STDERR, "La plantilla no se dibujó en la página de relleno.\n" );
+	exit( 1 );
+}
+if ( 1 !== substr_count( $blank_result, 'Texto del capítulo anterior.' ) || 1 !== substr_count( $blank_result, 'Texto del capítulo siguiente.' ) ) {
+	fwrite( STDERR, "Aplicar una plantilla al relleno alteró el flujo de los capítulos vecinos.\n" );
+	exit( 1 );
+}
 
 // A second template must target the reflowed right-column content, not erase
 // the first page template or reuse its source blocks.

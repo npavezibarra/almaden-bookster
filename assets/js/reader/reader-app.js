@@ -26,9 +26,22 @@ function showFootnote(event, btn, htmlContent) {
     const rect = btn.getBoundingClientRect();
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
     const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
+    const isMobileFootnote = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+
+    if (isMobileFootnote) {
+        popup.style.width = '90vw';
+        popup.style.maxWidth = '90vw';
+        popup.style.left = '50%';
+        popup.style.right = 'auto';
+    } else {
+        popup.style.width = '';
+        popup.style.maxWidth = '';
+        popup.style.right = '';
+        popup.style.left = (rect.left + scrollLeft + (rect.width / 2)) + 'px';
+    }
     
     popup.style.top = (rect.top + scrollTop) + 'px';
-    popup.style.left = (rect.left + scrollLeft + (rect.width / 2)) + 'px';
+    popup.style.boxSizing = 'border-box';
     
     // Animate in
     requestAnimationFrame(() => {

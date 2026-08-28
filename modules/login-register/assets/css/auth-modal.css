@@ -91,28 +91,25 @@
 
         .pl-auth-logo {
             display: none;
-            justify-content: flex-start;
-            margin: 0 0 26px;
-        }
-
-        .pl-auth-logo__text {
-            display: inline-flex;
             align-items: center;
-            min-height: 44px;
-            padding: 10px 14px;
-            border: 1px solid #111827;
-            border-radius: 999px;
-            color: #111827;
-            font-size: 0.78rem;
-            font-weight: 800;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
+            justify-content: flex-start;
+            margin: 0 0 24px;
         }
 
-        .pl-auth-logo img {
-            width: 160px;
-            height: auto;
+        .pl-auth-logo__wordmark {
+            color: #000000;
+            line-height: 1;
+        }
+
+        .pl-auth-logo__image {
             display: block;
+            height: auto;
+            object-fit: contain;
+            object-position: left center;
+        }
+
+        .pl-auth-logo .urbanist-almaden-logo {
+            font-size: 34px !important;
         }
 
 	    .pl-auth-title {

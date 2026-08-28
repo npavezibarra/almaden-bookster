@@ -59,11 +59,11 @@
     function getAnchorForPage(pageNumber) {
         const target = Number(pageNumber) || 0;
         const rows = (Array.isArray(window.almadenPageTemplateFlowMap) ? window.almadenPageTemplateFlowMap : [])
-            .filter(row => Number(row?.page) === target && /^almaden-(?:flow|transition)-\d+$/.test(String(row?.id || '')))
+            .filter(row => Number(row?.page) === target && /^almaden-(?:flow-\d+|transition-\d+|blank-[a-z0-9-]+)$/.test(String(row?.id || '')))
             .sort((left, right) => {
-                const leftTransition = left?.kind === 'transition' || String(left?.id || '').startsWith('almaden-transition-');
-                const rightTransition = right?.kind === 'transition' || String(right?.id || '').startsWith('almaden-transition-');
-                if (leftTransition !== rightTransition) return leftTransition ? -1 : 1;
+                const leftReserved = ['transition', 'blank'].includes(left?.kind);
+                const rightReserved = ['transition', 'blank'].includes(right?.kind);
+                if (leftReserved !== rightReserved) return leftReserved ? -1 : 1;
                 const leftOrder = Number(String(left.id).match(/\d+$/)?.[0]) || Number.MAX_SAFE_INTEGER;
                 const rightOrder = Number(String(right.id).match(/\d+$/)?.[0]) || Number.MAX_SAFE_INTEGER;
                 return leftOrder - rightOrder;

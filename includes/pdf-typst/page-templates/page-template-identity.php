@@ -32,7 +32,7 @@ function almaden_bookster_typst_page_template_instance_id( $entry, $template_id,
 function almaden_bookster_typst_page_template_normalize_anchor( $value ) {
 	$value = is_array( $value ) ? $value : array();
 	$flow_id = strtolower( preg_replace( '/[^A-Za-z0-9_-]/', '', (string) ( $value['flow_id'] ?? '' ) ) );
-	if ( ! preg_match( '/^almaden-(?:flow|transition)-[0-9]+$/', $flow_id ) ) {
+	if ( ! preg_match( '/^almaden-(?:flow-[0-9]+|transition-[0-9]+|blank-[a-z0-9-]+)$/', $flow_id ) ) {
 		$flow_id = '';
 	}
 
@@ -63,10 +63,10 @@ function almaden_bookster_typst_page_template_first_row_on_page( $flow_map, $pag
 		return is_array( $row ) && (int) ( $row['page'] ?? 0 ) === (int) $page_number;
 	} ) );
 	usort( $rows, static function ( $left, $right ) {
-		$left_transition = 'transition' === (string) ( $left['kind'] ?? '' ) || 0 === strpos( (string) ( $left['id'] ?? '' ), 'almaden-transition-' );
-		$right_transition = 'transition' === (string) ( $right['kind'] ?? '' ) || 0 === strpos( (string) ( $right['id'] ?? '' ), 'almaden-transition-' );
-		if ( $left_transition !== $right_transition ) {
-			return $left_transition ? -1 : 1;
+		$left_reserved = in_array( (string) ( $left['kind'] ?? '' ), array( 'transition', 'blank' ), true );
+		$right_reserved = in_array( (string) ( $right['kind'] ?? '' ), array( 'transition', 'blank' ), true );
+		if ( $left_reserved !== $right_reserved ) {
+			return $left_reserved ? -1 : 1;
 		}
 		return almaden_bookster_typst_page_template_flow_order( $left['id'] ?? '' )
 			<=> almaden_bookster_typst_page_template_flow_order( $right['id'] ?? '' );
@@ -77,7 +77,9 @@ function almaden_bookster_typst_page_template_first_row_on_page( $flow_map, $pag
 function almaden_bookster_typst_page_template_transition_row_on_page( $flow_map, $page_number ) {
 	foreach ( (array) $flow_map as $row ) {
 		if ( is_array( $row ) && (int) ( $row['page'] ?? 0 ) === (int) $page_number
-			&& ( 'transition' === (string) ( $row['kind'] ?? '' ) || 0 === strpos( (string) ( $row['id'] ?? '' ), 'almaden-transition-' ) ) ) {
+			&& ( in_array( (string) ( $row['kind'] ?? '' ), array( 'transition', 'blank' ), true )
+				|| 0 === strpos( (string) ( $row['id'] ?? '' ), 'almaden-transition-' )
+				|| 0 === strpos( (string) ( $row['id'] ?? '' ), 'almaden-blank-' ) ) ) {
 			return $row;
 		}
 	}

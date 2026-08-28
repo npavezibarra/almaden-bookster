@@ -59,8 +59,10 @@ Cada entrada representa una instancia editorial estable con:
 - `slots[]`
 
 Las páginas blancas que `Iniciar izquierda` agrega entre capítulos usan un
-ancla `almaden-transition-N`. Son páginas físicas seleccionables y admiten los
-mismos presets, pero su plantilla no toma texto de las páginas vecinas.
+ancla `almaden-transition-N`. Los rellenos configurados antes/después de un
+capítulo y los placeholders de imagen usan `almaden-blank-*`. Son páginas
+físicas seleccionables y admiten los mismos presets, pero su plantilla no toma
+texto de las páginas vecinas.
 
 Cada slot puede tener:
 

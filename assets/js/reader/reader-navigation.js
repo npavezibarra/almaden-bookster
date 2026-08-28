@@ -3,6 +3,68 @@
 let currentChapterIndex = -1;
 let readingMode = 'scroll'; // 'scroll' or 'flip'
 let currentFlipPage = 0;
+const chapterNavbarMobileQuery = window.matchMedia ? window.matchMedia('(max-width: 767px)') : null;
+let chapterNavbarLastScrollTop = 0;
+let chapterNavbarMobileMode = 'title';
+
+function isReaderChapterNavbarMobile() {
+	return !!chapterNavbarMobileQuery && chapterNavbarMobileQuery.matches;
+}
+
+function clearReaderChapterNavbarMobileState() {
+	const navbar = document.getElementById('chapter-navbar');
+	if (!navbar) return;
+	navbar.classList.remove('chapter-navbar-mobile-title-mode', 'chapter-navbar-mobile-controls-mode');
+}
+
+function setReaderChapterNavbarMobileMode(mode) {
+	const navbar = document.getElementById('chapter-navbar');
+	if (!navbar) return;
+
+	if (!isReaderChapterNavbarMobile()) {
+		clearReaderChapterNavbarMobileState();
+		return;
+	}
+
+	const nextMode = mode === 'controls' ? 'controls' : 'title';
+	chapterNavbarMobileMode = nextMode;
+	navbar.classList.toggle('chapter-navbar-mobile-title-mode', nextMode === 'title');
+	navbar.classList.toggle('chapter-navbar-mobile-controls-mode', nextMode === 'controls');
+}
+
+function resetReaderChapterNavbarMobileMode() {
+	chapterNavbarLastScrollTop = 0;
+	setReaderChapterNavbarMobileMode('title');
+}
+
+if (chapterNavbarMobileQuery) {
+	const syncReaderChapterNavbarOnViewportChange = () => {
+		const scrollArea = document.getElementById('almaden-chapter-scroll-area');
+		const currentScrollTop = scrollArea ? scrollArea.scrollTop || 0 : 0;
+		chapterNavbarLastScrollTop = currentScrollTop;
+		if (isReaderChapterNavbarMobile()) {
+			setReaderChapterNavbarMobileMode('title');
+		} else {
+			clearReaderChapterNavbarMobileState();
+			const navTitle = document.getElementById('chapter-nav-title');
+			if (navTitle) {
+				if (currentScrollTop > 200) {
+					navTitle.classList.remove('opacity-0');
+					navTitle.classList.add('opacity-100');
+				} else {
+					navTitle.classList.remove('opacity-100');
+					navTitle.classList.add('opacity-0');
+				}
+			}
+		}
+	};
+
+	if (typeof chapterNavbarMobileQuery.addEventListener === 'function') {
+		chapterNavbarMobileQuery.addEventListener('change', syncReaderChapterNavbarOnViewportChange);
+	} else if (typeof chapterNavbarMobileQuery.addListener === 'function') {
+		chapterNavbarMobileQuery.addListener(syncReaderChapterNavbarOnViewportChange);
+	}
+}
 
 function normalizeReaderChapterImages(html) {
     if (!html) return html;
@@ -125,6 +187,25 @@ function renderLockedReaderChapter(chapter, index) {
 	openReaderPurchaseModal(chapter);
 }
 
+function getReaderChapterFooterNavHtml() {
+    return `
+        <div id="chapter-footer-nav" class="not-prose max-w-[700px] mx-auto mt-20 pt-8 pb-12 border-t border-gray-100 flex items-center justify-between gap-3 font-sans">
+            <button id="btn-prev-chapter" onclick="goToPrevChapter()" class="hidden w-12 h-12 rounded-full border border-gray-200 text-gray-500 hover:text-black hover:bg-gray-50 flex items-center justify-center transition-colors flex-shrink-0" aria-label="Anterior" title="Anterior">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+
+            <div class="flex-1 flex justify-center min-h-[2.5rem]">
+                <button id="btn-take-quiz" class="hidden px-6 py-2.5 rounded-full bg-black hover:bg-gray-800 text-white font-semibold text-sm transition-all shadow-sm hover:shadow flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-circle-question"></i> Tomar Quiz
+                </button>
+            </div>
+
+            <button id="btn-next-chapter" onclick="goToNextChapter()" class="hidden w-12 h-12 rounded-full border border-gray-200 text-gray-500 hover:text-black hover:bg-gray-50 flex items-center justify-center transition-colors flex-shrink-0" aria-label="Siguiente" title="Siguiente">
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>`;
+}
+
 // Reading Mode Toggle
 function toggleReadingMode(mode) {
     readingMode = mode;
@@ -132,7 +213,6 @@ function toggleReadingMode(mode) {
     const flipBtn = document.getElementById('btn-mode-flip');
     const viewChapter = document.getElementById('almaden-view-chapter');
     const chapterContent = document.getElementById('chapter-content');
-    const footerNav = document.getElementById('chapter-footer-nav');
     
     // Reset transforms
     currentFlipPage = 0;
@@ -149,10 +229,12 @@ function toggleReadingMode(mode) {
         }
         
         if (viewChapter) viewChapter.classList.add('mode-flip');
-        if (footerNav) footerNav.classList.add('hidden'); // hide scroll footer nav
         
         // Need a tiny delay for CSS layout to calculate columns
         setTimeout(updateFlipButtons, 100);
+        if (typeof refreshReaderHighlightsForCurrentChapter === 'function') {
+            window.setTimeout(() => refreshReaderHighlightsForCurrentChapter(), 80);
+        }
     } else {
         if (scrollBtn) {
             scrollBtn.classList.replace('text-gray-400', 'text-gray-800');
@@ -164,11 +246,13 @@ function toggleReadingMode(mode) {
         }
         
         if (viewChapter) viewChapter.classList.remove('mode-flip');
-        if (footerNav) footerNav.classList.remove('hidden');
         const btnPrev = document.getElementById('btn-flip-prev');
         const btnNext = document.getElementById('btn-flip-next');
         if (btnPrev) btnPrev.classList.add('hidden');
         if (btnNext) btnNext.classList.add('hidden');
+        if (typeof refreshReaderHighlightsForCurrentChapter === 'function') {
+            window.setTimeout(() => refreshReaderHighlightsForCurrentChapter(), 80);
+        }
     }
 }
 
@@ -245,15 +329,28 @@ window.addEventListener('resize', () => {
 
 const scrollArea = document.getElementById('almaden-chapter-scroll-area');
 if (scrollArea) {
+    chapterNavbarLastScrollTop = scrollArea.scrollTop || 0;
     scrollArea.addEventListener('scroll', function() {
-        const navTitle = document.getElementById('chapter-nav-title');
-        if (navTitle) {
-            if (this.scrollTop > 200) {
-                navTitle.classList.remove('opacity-0');
-                navTitle.classList.add('opacity-100');
-            } else {
-                navTitle.classList.remove('opacity-100');
-                navTitle.classList.add('opacity-0');
+        const currentScrollTop = this.scrollTop || 0;
+        if (isReaderChapterNavbarMobile()) {
+            if (currentScrollTop <= 16) {
+                setReaderChapterNavbarMobileMode('title');
+            } else if (currentScrollTop > chapterNavbarLastScrollTop) {
+                setReaderChapterNavbarMobileMode('title');
+            } else if (currentScrollTop < chapterNavbarLastScrollTop) {
+                setReaderChapterNavbarMobileMode('controls');
+            }
+            chapterNavbarLastScrollTop = currentScrollTop;
+        } else {
+            const navTitle = document.getElementById('chapter-nav-title');
+            if (navTitle) {
+                if (currentScrollTop > 200) {
+                    navTitle.classList.remove('opacity-0');
+                    navTitle.classList.add('opacity-100');
+                } else {
+                    navTitle.classList.remove('opacity-100');
+                    navTitle.classList.add('opacity-0');
+                }
             }
         }
         
@@ -470,7 +567,7 @@ async function showChapterView(index) {
         finalHtml = finalHtml.replace(/<p>/, '<p class="drop-cap">');
     }
     
-    document.getElementById('chapter-content').innerHTML = finalHtml;
+    document.getElementById('chapter-content').innerHTML = finalHtml + getReaderChapterFooterNavHtml();
     
     // Post-process footnotes to create interactive popups
     const footnotesSection = document.querySelector('#chapter-content .footnotes');
@@ -524,6 +621,7 @@ async function showChapterView(index) {
     const navTitle = document.getElementById('chapter-nav-title');
     navTitle.classList.remove('opacity-100');
     navTitle.classList.add('opacity-0');
+    resetReaderChapterNavbarMobileMode();
     currentFlipPage = 0;
     document.getElementById('chapter-content').style.transform = 'translateX(0)';
     if (readingMode === 'flip') {

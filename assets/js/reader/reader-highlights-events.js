@@ -2,6 +2,37 @@ document.addEventListener('selectionchange', () => {
     window.setTimeout(captureReaderSelection, 0);
 });
 
+let lastReaderHighlightToolbarTouchAt = 0;
+
+function bindReaderHighlightToolbarAction(button, handler) {
+    if (!button || typeof handler !== 'function') {
+        return;
+    }
+
+    const invoke = (event) => {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        handler(event);
+    };
+
+    button.addEventListener('touchend', (event) => {
+        lastReaderHighlightToolbarTouchAt = Date.now();
+        invoke(event);
+    }, { passive: false });
+
+    button.addEventListener('click', (event) => {
+        if (Date.now() - lastReaderHighlightToolbarTouchAt < 700) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+        }
+
+        invoke(event);
+    });
+}
+
 document.addEventListener('mouseup', () => {
     window.setTimeout(captureReaderSelection, 0);
 });
@@ -58,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const composerCancelBtn = document.getElementById('btn-cancel-comment-composer');
 
     if (saveBtn) {
-        saveBtn.addEventListener('click', async () => {
+        bindReaderHighlightToolbarAction(saveBtn, async () => {
 			if (!bookData.userCanAccess && almadenReaderHighlightState.toolbarMode !== 'highlight') {
 				openReaderReadingToolsPurchaseModal();
 				return;
@@ -77,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (openCommentBtn) {
-        openCommentBtn.addEventListener('click', () => {
+        bindReaderHighlightToolbarAction(openCommentBtn, () => {
 			if (!bookData.userCanAccess && almadenReaderHighlightState.toolbarMode !== 'highlight') {
 				openReaderReadingToolsPurchaseModal();
 				return;
@@ -95,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (cancelBtn) {
-        cancelBtn.addEventListener('click', () => {
+        bindReaderHighlightToolbarAction(cancelBtn, () => {
             if (almadenReaderHighlightState.toolbarMode === 'highlight') {
                 closeReaderHighlightToolbar();
                 return;

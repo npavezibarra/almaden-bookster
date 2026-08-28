@@ -198,6 +198,20 @@ function applyReaderHighlightsToCurrentChapter() {
     }
 }
 
+function refreshReaderHighlightsForCurrentChapter() {
+    if (typeof applyReaderHighlightsToCurrentChapter !== 'function') {
+        return;
+    }
+
+    window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+            window.setTimeout(() => {
+                applyReaderHighlightsToCurrentChapter();
+            }, 0);
+        });
+    });
+}
+
 function flashReaderHighlight(element) {
     if (!element) return;
     element.classList.add('is-focus');

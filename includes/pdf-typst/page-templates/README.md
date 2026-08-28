@@ -76,8 +76,10 @@ estructura ni sus slots.
     lo que debe continuar en páginas posteriores.
 
 - `page-template-transition.php`
-  - Expone como destinos las páginas blancas creadas por `Iniciar izquierda`.
-  - Las identifica con un ancla estable `almaden-transition-N`.
+  - Expone como destinos las páginas blancas creadas por `Iniciar izquierda`,
+    los rellenos antes/después de capítulo y los placeholders de imagen.
+  - Las identifica con anclas estables `almaden-transition-N` o
+    `almaden-blank-*`.
   - Inserta la plantilla sin consumir texto del capítulo anterior o siguiente.
   - Conserva el salto `pagebreak(to: "even")`, por lo que no cambia la paridad.
 
@@ -124,11 +126,17 @@ El arreglo persistido en `_almaden_page_templates` termina en algo así:
 - `anchor.flow_id` une la instancia al contenido del manuscrito.
 - En una página blanca de paridad, `anchor.flow_id` usa
   `almaden-transition-N` en lugar de un bloque `almaden-flow-N`.
+- En un relleno intencional, `anchor.flow_id` usa `almaden-blank-*`; cada hoja
+  mantiene una identidad distinta incluso cuando hay varios rellenos seguidos.
+- **Anclaje en páginas de paridad/transición:** Dado que los marcadores de transición (`<almaden-transition-N>`) se insertan a nivel raíz en el código Typst (y no dentro de un flujo de texto), Typst los evalúa en la coordenada absoluta de la página física (`x: 0pt, y: 0pt`). Por ende, el algoritmo de validación de inicio de página (`at-page-start` en `page-template-transition.php`) acepta explícitamente `break-pos.x == 0pt` en vez de buscar que coincida exactamente con el margen interno o externo. Sin esta concesión, las plantillas aplicadas a páginas de relleno fallarían con el error `no_rows_for_legacy_page`.
 - `resolved_page` es un resultado de compilación y puede cambiar libremente.
 - `page_number` queda como compatibilidad y punto inicial para migrar registros
   antiguos sin ancla.
 - El compilador procesa por orden de ancla y vuelve a consultar el flujo tras
   cada plantilla, recolocando las siguientes después de cada reflujo.
+- Varias plantillas full-image pueden compartir el mismo `almaden-flow-N`.
+  Se procesan por página resuelta para apilarse antes del mismo texto, de modo
+  que el capítulo comienza solo después de todas ellas.
 - Al eliminar una instancia desaparece el registro completo con sus slots. El
   panel de imágenes solo muestra resultados con `applied: true`.
 

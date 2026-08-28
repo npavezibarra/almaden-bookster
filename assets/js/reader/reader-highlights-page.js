@@ -335,11 +335,31 @@ async function loadReaderHighlightsPageFeed() {
     }
 }
 
+function setReaderHighlightsPageChrome(isActive) {
+    const html = document.documentElement;
+    const body = document.body;
+    if (!html || !body) return;
+
+    if (isActive) {
+        html.style.setProperty('background-color', '#ffffff', 'important');
+        html.style.setProperty('background-image', 'none', 'important');
+        body.style.setProperty('background-color', '#ffffff', 'important');
+        body.style.setProperty('background-image', 'none', 'important');
+        return;
+    }
+
+    html.style.removeProperty('background-color');
+    html.style.removeProperty('background-image');
+    body.style.removeProperty('background-color');
+    body.style.removeProperty('background-image');
+}
+
 function showReaderHighlightsPage() {
     if (typeof currentChapterIndex === 'number' && currentChapterIndex >= 0) {
         almadenReaderHighlightsPageState.returnChapterIndex = currentChapterIndex;
     }
 
+    setReaderHighlightsPageChrome(true);
     closeReaderHighlightsPanel();
     const indexView = document.getElementById('almaden-view-index');
     const chapterView = document.getElementById('almaden-view-chapter');
@@ -353,6 +373,7 @@ function showReaderHighlightsPage() {
 }
 
 function closeReaderHighlightsPage() {
+    setReaderHighlightsPageChrome(false);
     const returnIndex = almadenReaderHighlightsPageState.returnChapterIndex;
     if (returnIndex >= 0 && typeof showChapterView === 'function') {
         showChapterView(returnIndex);

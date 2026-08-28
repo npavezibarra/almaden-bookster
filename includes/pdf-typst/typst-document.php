@@ -198,6 +198,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 			// intentional editorial placeholder, not an omitted page.
 			$source .= '#set page(background: almaden-page-background())' . "\n";
 			$source .= '#metadata("chapter-image-placeholder") <almaden-chapter-image-page>' . "\n";
+			$source .= '#metadata("almaden-blank-image-' . (int) $rendered . '") <almaden-blank-image-' . (int) $rendered . '>' . "\n";
 			$source .= '#metadata("chapter-image-placeholder") <almaden-hide-header-page>' . "\n";
 			$source .= '#metadata("chapter-image-placeholder") <almaden-hide-footer-page>' . "\n";
 			$source .= "#pagebreak()\n\n";
@@ -520,6 +521,8 @@ function almaden_bookster_build_typst_document( $payload ) {
 		for ( $blank_index = 0; $blank_index < $blank_after; ++$blank_index ) {
 			$source .= "\n#pagebreak()\n";
 			$source .= '#metadata("' . ( $is_credits ? 'credits-after' : 'chapter-after' ) . '") <almaden-intentional-blank>' . "\n";
+			$blank_id = 'almaden-blank-after-' . (int) $rendered . '-' . ( $blank_index + 1 );
+			$source .= '#metadata("' . $blank_id . '") <' . $blank_id . '>' . "\n";
 		}
 		if ( $is_credits ) {
 			$source .= '#set page(margin: (top: ' . almaden_bookster_typst_running_content_margin( $margin_top, $chapter_header_reserve ) . $unit . ', bottom: ' . almaden_bookster_typst_running_content_margin( $margin_bot, $chapter_footer_reserve ) . $unit . ', inside: ' . $margin_inside . $unit . ', outside: ' . $margin_outside . $unit . '))' . "\n";
@@ -570,6 +573,9 @@ function almaden_bookster_build_typst_document( $payload ) {
 			$inline_font_assets
 		)
 	);
+	$page_template_context['content_top'] = $content_margin_top;
+	$page_template_context['margin_inside'] = $margin_inside;
+	$page_template_context['margin_outside'] = $margin_outside;
 	$source = almaden_bookster_typst_compose_page_templates( $source, $page_template_context, $assets );
 	$source = almaden_bookster_typst_append_chapter_counter_report( $source, $chapters );
 

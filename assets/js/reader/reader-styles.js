@@ -255,7 +255,7 @@ function generateDynamicStyles() {
             background-color: ${userPrefs.theme === 'black' ? '#333' : (userPrefs.theme === 'beige' ? '#e8e6d9' : '#f3f4f6')} !important;
         }
         
-        #btn-reader-prefs, #btn-mode-scroll, #btn-mode-flip, #chapter-nav-title {
+        #chapter-navbar-index-btn, #btn-reader-prefs, #btn-mode-scroll, #btn-mode-flip, #chapter-nav-title {
             color: ${readerHeadingColor} !important;
         }
 

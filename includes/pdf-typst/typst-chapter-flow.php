@@ -50,7 +50,9 @@ function almaden_bookster_typst_chapter_start_breaks( $settings, $rendered, $bla
 		$source .= "\n#pagebreak()\n\n";
 	}
 	for ( $blank_index = 0; $blank_index < $blank_before; ++$blank_index ) {
+		$blank_id = 'almaden-blank-before-' . ( (int) $rendered + 1 ) . '-' . ( $blank_index + 1 );
 		$source .= '#metadata("' . ( $is_credits ? 'credits-before' : 'chapter-before' ) . '") <almaden-intentional-blank>' . "\n";
+		$source .= '#metadata("' . $blank_id . '") <' . $blank_id . '>' . "\n";
 		if ( ! $uses_left_flow || $blank_index + 1 < $blank_before ) {
 			$source .= "#pagebreak()\n\n";
 		}
