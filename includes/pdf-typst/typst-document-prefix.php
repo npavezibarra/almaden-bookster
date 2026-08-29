@@ -152,8 +152,9 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 	$source .= '  else if kind == "opening" { ' . $page_style_opening_expr . ' }' . "\n";
 	$source .= '  else { ' . $page_style_content_expr . ' }' . "\n";
 	$source .= '}' . "\n\n";
+	$source .= '#let almaden-bleed = ' . $bleed . $unit . "\n\n";
 	$source .= '#let almaden-page-background() = context {' . "\n";
-	$source .= '  rect(width: 100%, height: 100%, fill: almaden-page-style-color("fill"))' . "\n";
+	$source .= '  rect(width: 100%, height: 100%, outset: almaden-bleed, stroke: none, fill: almaden-page-style-color("fill"))' . "\n";
 	$source .= ( 'intentional_text' === $transition_blank_mode && '' !== $transition_blank_text
 		? '  if almaden-is-chapter-transition-page() { place(center + horizon)[#text(fill: rgb("111111"))[' . almaden_bookster_typst_escape_markup( $transition_blank_text ) . ']] }' . "\n"
 		: '' ) ;

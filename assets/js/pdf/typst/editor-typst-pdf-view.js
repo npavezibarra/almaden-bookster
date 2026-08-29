@@ -105,6 +105,53 @@
         return imageEnabled && imageMode === 'image_full_page' ? imageUrl : '';
     }
 
+    function normalizeHexColor(value, fallback = '#ffffff') {
+        const raw = String(value || '').trim().toLowerCase();
+        return /^#(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/.test(raw) ? raw : fallback;
+    }
+
+    function getPageStyleForPage(pageNumber) {
+        const target = Number(pageNumber) || 0;
+        if (target < 1) return null;
+
+        const direct = window.almadenPageStyleState?.getStyleForPage?.(target);
+        if (direct) return direct;
+
+        const styles = Array.isArray(window.bookState?.settings?.page_styles)
+            ? window.bookState.settings.page_styles
+            : [];
+        return styles.find(style => Number(style?.resolved_page || style?.page_number) === target) || null;
+    }
+
+    function getPageStyleBackdrop(pageNumber) {
+        const style = getPageStyleForPage(pageNumber);
+        const background = style?.style?.background || {};
+        const type = String(background.type || 'color').toLowerCase();
+
+        if (type === 'gradient') {
+            const gradient = background.gradient || {};
+            const stops = Array.isArray(gradient.stops) ? gradient.stops : [];
+            const stopA = normalizeHexColor(stops[0]?.color, '#ffffff');
+            const stopB = normalizeHexColor(stops[1]?.color, '#f3f4f6');
+            const angle = Number.isFinite(Number(gradient.angle)) ? Math.max(0, Math.min(360, Number(gradient.angle))) : 135;
+            return {
+                backgroundImage: `linear-gradient(${angle}deg, ${stopA} 0%, ${stopB} 100%)`,
+                backgroundColor: stopA
+            };
+        }
+
+        if (type === 'image') {
+            const overlay = background.overlay || {};
+            return {
+                backgroundColor: normalizeHexColor(overlay.color, '#ffffff')
+            };
+        }
+
+        return {
+            backgroundColor: normalizeHexColor(background.color, '#ffffff')
+        };
+    }
+
     function updateBleedGuides(root = document.getElementById('pdf-scroller')) {
         if (!root) return;
 
@@ -132,6 +179,7 @@
             const pageNumber = Number.parseInt(shell.dataset.pageNumber, 10);
             const isOddPage = pageNumber % 2 === 1;
             const imageUrl = getFullBleedChapterImageUrl(pageNumber);
+            const backdropPaint = getPageStyleBackdrop(pageNumber);
             const backdrop = document.createElement('div');
             backdrop.dataset.bleedGuideBackdrop = '1';
             backdrop.className = 'pointer-events-none absolute box-border z-0';
@@ -140,7 +188,13 @@
             backdrop.style.bottom = `-${bleedPx}px`;
             backdrop.style.left = isOddPage ? '0' : `-${bleedPx}px`;
             backdrop.style.overflow = 'hidden';
-            backdrop.style.backgroundColor = '#ffffff';
+            if (backdropPaint.backgroundImage) {
+                backdrop.style.backgroundImage = backdropPaint.backgroundImage;
+                backdrop.style.backgroundSize = 'cover';
+                backdrop.style.backgroundPosition = 'center center';
+                backdrop.style.backgroundRepeat = 'no-repeat';
+            }
+            backdrop.style.backgroundColor = backdropPaint.backgroundColor || '#ffffff';
             shell.insertBefore(backdrop, shell.firstChild);
 
             const canvas = shell.querySelector('canvas');

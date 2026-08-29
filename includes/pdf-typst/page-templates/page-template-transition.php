@@ -40,14 +40,19 @@ function almaden_bookster_typst_page_template_transition_report_entries( $source
 	$inside = round( max( 0, (float) ( $context['margin_inside'] ?? 0 ) ), 4 ) . $unit;
 	$outside = round( max( 0, (float) ( $context['margin_outside'] ?? 0 ) ), 4 ) . $unit;
 	$entries = array();
-	foreach ( almaden_bookster_typst_page_template_transition_ids( $source ) as $transition_id ) {
-		$selector = '<' . $transition_id . '>';
-		$page_expression = 'if query(' . $selector . ').len() > 0 {' .
-			' let break-mark = query(' . $selector . ').first();' .
+
+	$get_position_logic = static function ( $selector ) use ( $inside, $outside, $content_top ) {
+		return ' let break-mark = query(' . $selector . ').first();' .
 			' let break-page = break-mark.location().page();' .
 			' let break-pos = break-mark.location().position();' .
 			' let page-start-x = if calc.odd(break-page) { ' . $inside . ' } else { ' . $outside . ' };' .
-			' let at-page-start = break-pos.y <= ' . $content_top . ' + 0.5pt and (calc.abs(break-pos.x - page-start-x) <= 0.5pt or break-pos.x == 0pt);' .
+			' let at-page-start = break-pos.y <= ' . $content_top . ' + 0.5pt and (calc.abs(break-pos.x - page-start-x) <= 0.5pt or break-pos.x == 0pt);';
+	};
+
+	foreach ( almaden_bookster_typst_page_template_transition_ids( $source ) as $transition_id ) {
+		$selector = '<' . $transition_id . '>';
+		$page_expression = 'if query(' . $selector . ').len() > 0 {' .
+			$get_position_logic( $selector ) .
 			' let starts = query(<almaden-chapter-start>);' .
 			' if break-page == 1 and starts.any(mark => mark.location().page() == 2) { 1 }' .
 			' else if starts.any(mark => mark.location().page() == break-page + 2) { break-page + 1 }' .
@@ -60,11 +65,7 @@ function almaden_bookster_typst_page_template_transition_report_entries( $source
 	foreach ( almaden_bookster_typst_page_template_blank_ids( $source ) as $blank_id ) {
 		$selector = '<' . $blank_id . '>';
 		$page_expression = 'if query(' . $selector . ').len() > 0 {' .
-			' let break-mark = query(' . $selector . ').first();' .
-			' let break-page = break-mark.location().page();' .
-			' let break-pos = break-mark.location().position();' .
-			' let page-start-x = if calc.odd(break-page) { ' . $inside . ' } else { ' . $outside . ' };' .
-			' let at-page-start = break-pos.y <= ' . $content_top . ' + 0.5pt and (calc.abs(break-pos.x - page-start-x) <= 0.5pt or break-pos.x == 0pt);' .
+			$get_position_logic( $selector ) .
 			' if at-page-start { break-page } else { break-page + 1 }' .
 		'} else { none }';
 		$marker_page_expression = 'if query(' . $selector . ').len() > 0 { query(' . $selector . ').first().location().page() } else { none }';
