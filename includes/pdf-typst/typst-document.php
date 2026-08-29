@@ -18,19 +18,32 @@ function almaden_bookster_typst_chapter_image_length_literal( $value, $unit ) {
 	return round( max( 0, (float) $value ), 4 ) . $unit;
 }
 
-function almaden_bookster_typst_chapter_image_background_source( $image_asset, $chapter_image_mode, $page_width_with_bleed, $unit, $chapter_image_inner_width ) {
+function almaden_bookster_typst_chapter_image_background_source( $image_asset, $chapter_image_mode, $page_width_with_bleed, $page_height_with_bleed, $bleed, $unit, $chapter_image_inner_width ) {
 	$image_asset = trim( (string) $image_asset );
 	if ( '' === $image_asset ) {
 		return '';
 	}
 
 	$page_width_with_bleed = max( 0, (float) $page_width_with_bleed );
+	$page_height_with_bleed = max( 0, (float) $page_height_with_bleed );
+	$bleed = max( 0, (float) $bleed );
 	$chapter_image_inner_width = max( 10, min( 100, (float) $chapter_image_inner_width ) );
 	$background = '#place(top + left)[#almaden-page-background()]';
 
 	if ( 'image_full_page' === $chapter_image_mode ) {
-		return 'box(width: 100%, height: 100%)[' . $background
-			. '#place(center + horizon)[#image("' . almaden_bookster_typst_escape_string( $image_asset ) . '", width: 100%)]]';
+		// A per-page style image is the authoritative full-bleed surface. Do not
+		// stack the chapter image over it: that second trim-sized layer is what
+		// exposes white strips at the right and bottom edges.
+		return 'context {'
+			. ' let current = here().page();'
+			. ' if almaden-page-style-image-pages.contains(current) {'
+			. ' almaden-page-background()'
+			. ' } else {'
+			. ' box(width: 100%, height: 100%)['
+			. '#place(top + left)[#image("' . almaden_bookster_typst_escape_string( $image_asset ) . '", width: 100%, height: 100%, fit: "cover")]'
+			. ']'
+			. ' }'
+			. ' }';
 	}
 
 	$target_width = 'image_inner' === $chapter_image_mode
@@ -130,7 +143,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 		$chapter_footer_reserve = $footer_reserve;
 		$chapter_content_margin_top = almaden_bookster_typst_running_content_margin( $chapter_top_margin, $chapter_header_reserve );
 		$chapter_content_margin_bottom = almaden_bookster_typst_running_content_margin( $chapter_bottom_margin, $chapter_footer_reserve );
-		$source .= '#set page(margin: (top: ' . $chapter_content_margin_top . $unit . ', bottom: ' . $chapter_content_margin_bottom . $unit . ', inside: ' . $margin_inside . $unit . ', outside: ' . $margin_outside . $unit . '))' . "\n";
+		$source .= '#set page(margin: (top: ' . round( $chapter_content_margin_top + $bleed, 4 ) . $unit . ', bottom: ' . round( $chapter_content_margin_bottom + $bleed, 4 ) . $unit . ', inside: ' . round( $margin_inside + $bleed, 4 ) . $unit . ', outside: ' . round( $margin_outside + $bleed, 4 ) . $unit . '))' . "\n";
 
 		$chapter_label_id = preg_replace( '/[^0-9A-Za-z_-]/', '', (string) ( $chapter['id'] ?? (string) ( $chapter_index + 1 ) ) );
 		$source .= '#metadata("' . almaden_bookster_typst_escape_string( $title ) . '") <almaden-chapter-start>' . "\n";
@@ -172,11 +185,14 @@ function almaden_bookster_build_typst_document( $payload ) {
 			$image_asset = almaden_bookster_typst_register_upload( $chapter_image_url, $assets, $image_asset_mode );
 			if ( '' !== $image_asset ) {
 				$page_width_with_bleed = max( 0.1, $width + ( 2 * $bleed ) );
+				$page_height_with_bleed = max( 0.1, $height + ( 2 * $bleed ) );
 				$source .= '#set page(background: {' . "\n";
 				$source .= almaden_bookster_typst_chapter_image_background_source(
-					$image_asset,
-					$chapter_image_mode,
+						$image_asset,
+						$chapter_image_mode,
 						$page_width_with_bleed,
+						$page_height_with_bleed,
+						$bleed,
 						$unit,
 						$chapter_image_inner_width
 					) . "\n";
@@ -214,7 +230,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 		}
 
 		if ( $is_credits ) {
-			$source .= '#set page(margin: (top: ' . almaden_bookster_typst_running_content_margin( $credit_margin_top, $chapter_header_reserve ) . $unit . ', bottom: ' . almaden_bookster_typst_running_content_margin( $credit_margin_bottom, $chapter_footer_reserve ) . $unit . ', inside: ' . $margin_inside . $unit . ', outside: ' . $margin_outside . $unit . '))' . "\n";
+			$source .= '#set page(margin: (top: ' . round( almaden_bookster_typst_running_content_margin( $credit_margin_top, $chapter_header_reserve ) + $bleed, 4 ) . $unit . ', bottom: ' . round( almaden_bookster_typst_running_content_margin( $credit_margin_bottom, $chapter_footer_reserve ) + $bleed, 4 ) . $unit . ', inside: ' . round( $margin_inside + $bleed, 4 ) . $unit . ', outside: ' . round( $margin_outside + $bleed, 4 ) . $unit . '))' . "\n";
 		}
 
 		$chapter_number = null;
@@ -525,7 +541,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 			$source .= '#metadata("' . $blank_id . '") <' . $blank_id . '>' . "\n";
 		}
 		if ( $is_credits ) {
-			$source .= '#set page(margin: (top: ' . almaden_bookster_typst_running_content_margin( $margin_top, $chapter_header_reserve ) . $unit . ', bottom: ' . almaden_bookster_typst_running_content_margin( $margin_bot, $chapter_footer_reserve ) . $unit . ', inside: ' . $margin_inside . $unit . ', outside: ' . $margin_outside . $unit . '))' . "\n";
+			$source .= '#set page(margin: (top: ' . round( almaden_bookster_typst_running_content_margin( $margin_top, $chapter_header_reserve ) + $bleed, 4 ) . $unit . ', bottom: ' . round( almaden_bookster_typst_running_content_margin( $margin_bot, $chapter_footer_reserve ) + $bleed, 4 ) . $unit . ', inside: ' . round( $margin_inside + $bleed, 4 ) . $unit . ', outside: ' . round( $margin_outside + $bleed, 4 ) . $unit . '))' . "\n";
 		}
 	}
 
@@ -626,6 +642,8 @@ function almaden_bookster_build_typst_document( $payload ) {
 			'unit'           => $unit,
 			'width'          => $width,
 			'height'         => $height,
+			'physical_width' => round( $width + ( 2 * $bleed ), 4 ),
+			'physical_height'=> round( $height + ( 2 * $bleed ), 4 ),
 			'top'            => $margin_top,
 			'bottom'         => $margin_bot,
 			'content_top'    => $content_margin_top,

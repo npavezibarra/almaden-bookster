@@ -235,7 +235,9 @@
             pendingCompilePromise = null;
             pendingCompileSignature = null;
             clearPendingPromise(0);
-            return compileTypstPreview({ compilePayload });
+            // Explicit editor actions (styles/templates) must reflect the
+            // current renderer, not a browser PDF compiled by older code.
+            return compileTypstPreview({ forceRecompile: true, bypassPersistentCache: true });
         }
 
         if (compileTimer && pendingCompileSignature === compileSignature && pendingCompilePromise) {

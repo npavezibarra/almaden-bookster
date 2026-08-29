@@ -10,6 +10,7 @@ if ( ! defined( 'ABSPATH' ) && ! defined( 'ALMADEN_TYPST_TESTING' ) ) {
 }
 
 require_once __DIR__ . '/typst-compiler-assets.php';
+require_once __DIR__ . '/typst-pdf-boxes.php';
 
 function almaden_bookster_find_typst_binary() {
 	$candidates = array();
@@ -335,6 +336,11 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 		);
 		almaden_bookster_typst_remove_tree( $temp_dir );
 		return is_wp_error( $result ) ? $result : new WP_Error( 'typst_no_pdf', 'Typst no produjo un archivo PDF.' );
+	}
+	$print_boxes = almaden_bookster_typst_apply_print_boxes( $output, $document['geometry'] ?? array() );
+	if ( is_wp_error( $print_boxes ) ) {
+		almaden_bookster_typst_remove_tree( $temp_dir );
+		return $print_boxes;
 	}
 
 	$GLOBALS['almaden_bookster_typst_image_blocks'] = array_values( array_filter(

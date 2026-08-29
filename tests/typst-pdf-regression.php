@@ -206,7 +206,8 @@ if ( false !== strpos( $document['source'], 'fill: context' ) ) {
 }
 $required_typography = array(
 		'background: almaden-page-background()',
-		'rect(width: 100%, height: 100%, fill: almaden-page-style-color("fill"))',
+		'#let almaden-page-background() = context {',
+		'rect(width: 100%, height: 100%, stroke: none, fill: rgb("ffffff"))',
 		'#set text(fill: rgb("111111"), font: "Libertinus Serif", size: 12pt, weight: 500, lang: "es", hyphenate: true',
 		'#line(length: 100%, stroke: 0.35pt)',
 		'#set par(justify: true, leading: 0.2em, spacing: 4pt, first-line-indent: 0pt)',
@@ -230,11 +231,11 @@ $required_typography = array(
 		'#set par(justify: false, first-line-indent: 0pt, leading: 0.2em, spacing: 0pt)',
 		'Capítulo 1',
 		'#line(length: 100%, stroke: 0.35pt)',
-		'#set page(width: 14cm, height: 20cm, margin: (top: ',
+		'#set page(width: 14.6cm, height: 20.6cm, margin: (top: ',
 			'#align(center)[ ÍNDICE ]',
 		'#let almaden-page-running-overlay() = context {',
-		'place(top + left, dx: horizontal_start, dy: 1cm)',
-		'place(bottom + left, dx: horizontal_start, dy: -1cm)',
+		'place(top + left, dx: horizontal_start, dy: 1.3cm)',
+		'place(bottom + left, dx: horizontal_start, dy: -1.3cm)',
 		'foreground: almaden-page-running-overlay()',
 	);
 $list_count = substr_count( $document['source'], '#list(' );
@@ -323,7 +324,7 @@ $chapter_control_fragments = array(
 	'#block(width: 100%, breakable: false)',
 	'#align(center)[#text(font: "Libertinus Serif", size: 18pt, weight: 800, style: "italic", tracking: 2.5pt)[PREFIJO 1]]',
 	'#align(center)[\*\*\*]',
-	'#block(width: 100%, breakable: false, inset: (top: 0.2cm, bottom: 0.4cm))',
+	'#block(width: 100%, breakable: false, inset: (top: 0.2cm, bottom: 0.4cm, left: 0cm, right: 0cm))',
 	'#align(left)[#text(font: "Libertinus Serif", size: 14pt, weight: 500, style: "italic", tracking: 0.8pt)[SUBTÍTULO DE CONTROL]]',
 );
 foreach ( $chapter_control_fragments as $fragment ) {

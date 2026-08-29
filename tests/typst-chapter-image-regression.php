@@ -16,6 +16,7 @@ function wp_upload_dir() {
 }
 
 function esc_url_raw( $value ) { return trim( (string) $value ); }
+function sanitize_text_field( $value ) { return trim( preg_replace( '/[\r\n\t]+/', ' ', strip_tags( (string) $value ) ) ); }
 function trailingslashit( $value ) { return rtrim( $value, '/\\' ) . '/'; }
 function wp_generate_uuid4() { return uniqid( 'chapter-', true ); }
 function wp_mkdir_p( $path ) { return is_dir( $path ) || mkdir( $path, 0777, true ); }
@@ -24,8 +25,10 @@ class WP_Error {
 	public function __construct( public $code, public $message ) {}
 }
 
+require_once dirname( __DIR__ ) . '/includes/pdf-typst/page-styles/bootstrap.php';
 require_once dirname( __DIR__ ) . '/includes/pdf-typst/typst-document.php';
 require_once dirname( __DIR__ ) . '/includes/pdf-typst/typst-compiler-assets.php';
+require_once dirname( __DIR__ ) . '/includes/pdf-typst/typst-pdf-boxes.php';
 
 $chapter_image = 'http://almaden.local/wp-content/uploads/chapter.png';
 $chapter = static function ( $title, $mode, $width = 100 ) use ( $chapter_image ) {
@@ -45,11 +48,27 @@ $document = almaden_bookster_build_typst_document(
 		'title'    => 'Regresion de imagen de capitulo',
 		'settings' => array(
 			'unit'                      => 'cm',
-			'bleed'                     => 0.3,
+			'bleeding'                  => 0.3,
 			'font_family_content'       => 'Libertinus Serif',
 			'chapter_title_font_family' => 'Libertinus Serif',
 			'header_font_family'        => 'Libertinus Serif',
 			'footer_font_family'        => 'Libertinus Serif',
+			'page_styles'               => array(
+				array(
+					'page_number'   => 2,
+					'resolved_page' => 2,
+					'style'         => array(
+						'background' => array(
+							'type'    => 'image',
+							'image'   => array( 'url' => $chapter_image ),
+							'overlay' => array(
+								'color'   => '#000000',
+								'opacity' => 0.1,
+							),
+						),
+					),
+				),
+			),
 		),
 		'chapters' => array(
 			$chapter( 'Content box', 'page_blank' ),
@@ -70,12 +89,16 @@ $source = $document['source'];
 $expected_fragments = array(
 	'background: {',
 	'almaden-page-background()',
-	'box(width: 100%, height: 100%)[#place(top + left)[#almaden-page-background()]#place(center + horizon)',
-	'width: 100%)]]',
+	'#let almaden-page-style-image-pages = (2,)',
+	'if almaden-page-style-image-pages.contains(current) { almaden-page-background() } else {',
+	'box(width: 100%, height: 100%)[#place(top + left)[#image(',
+	'width: 100%, height: 100%, fit: "cover")]',
 	'<almaden-chapter-image-page>',
 	'<almaden-hide-header-page>',
 	'<almaden-hide-footer-page>',
 	'#set page(background: almaden-page-background())',
+	'#set page(width: 21.6cm, height: 30.3cm,',
+	'binding: left, bleed: 0pt,',
 );
 foreach ( $expected_fragments as $fragment ) {
 	if ( false === strpos( $source, $fragment ) ) {
@@ -95,12 +118,20 @@ if ( preg_match( '/#metadata\("[^"]*"\) <almaden-hide-header>/', $source ) || pr
 	fwrite( STDERR, "Las banderas de ocultacion siguen afectando todo el capitulo en vez de solo la primera pagina de texto.\n" );
 	exit( 1 );
 }
-$full_bleed_source = almaden_bookster_typst_chapter_image_background_source( 'assets/chapter.png', 'image_full_page', 10.4, 'cm', 50 );
-if ( false !== strpos( $full_bleed_source, 'fit: "cover"' ) || false === strpos( $full_bleed_source, 'width: 100%)]]' ) || false === strpos( $full_bleed_source, '#image("assets/chapter.png", width: 100%)' ) ) {
-	fwrite( STDERR, "El modo full bleed sigue recortando lados o fijando altura en vez de respetar el ancho real.\n" );
+if ( false !== strpos( $source, 'dx: -almaden-bleed' ) || false !== strpos( $source, 'outset: almaden-bleed' ) ) {
+	fwrite( STDERR, "El fondo todavía desplaza o expande contenido dentro del recorte nativo de Typst.\n" );
 	exit( 1 );
 }
-$adjustable_source = almaden_bookster_typst_chapter_image_background_source( 'assets/chapter.png', 'image_inner', 10.4, 'cm', 50 );
+$full_bleed_source = almaden_bookster_typst_chapter_image_background_source( 'assets/chapter.png', 'image_full_page', 10.4, 20.4, 0.2, 'cm', 50 );
+if ( false === strpos( $full_bleed_source, 'width: 100%, height: 100%, fit: "cover"' ) || false === strpos( $full_bleed_source, 'almaden-page-style-image-pages.contains(current)' ) ) {
+	fwrite( STDERR, "El modo full bleed no prioriza la superficie única del estilo por página.\n" );
+	exit( 1 );
+}
+if ( false !== strpos( $full_bleed_source, '#almaden-page-image-overlay()' ) ) {
+	fwrite( STDERR, "El modo full bleed todavía duplica el overlay del fondo por página.\n" );
+	exit( 1 );
+}
+$adjustable_source = almaden_bookster_typst_chapter_image_background_source( 'assets/chapter.png', 'image_inner', 10.4, 20.4, 0.2, 'cm', 50 );
 if ( false === strpos( $adjustable_source, 'width: 5.2cm' ) || false !== strpos( $adjustable_source, 'fit: "cover"' ) ) {
 	fwrite( STDERR, "El modo ajustable no usa el ancho total incluyendo bleed.\n" );
 	exit( 1 );
@@ -116,6 +147,24 @@ exec( $command, $diagnostics, $status );
 if ( 0 !== $status || ! is_file( $compile_dir . '/book.pdf' ) ) {
 	fwrite( STDERR, "Typst no compilo los tres modos de imagen:\n" . implode( "\n", $diagnostics ) . "\n" );
 	exit( 1 );
+}
+$print_boxes = almaden_bookster_typst_apply_print_boxes( $compile_dir . '/book.pdf', $document['geometry'] );
+if ( $print_boxes instanceof WP_Error ) {
+	fwrite( STDERR, "No se pudieron declarar las cajas de imprenta: {$print_boxes->code}: {$print_boxes->message}\n" );
+	exit( 1 );
+}
+$box_output = array();
+$box_status = 0;
+exec( 'pdfinfo -f 2 -l 2 -box ' . escapeshellarg( $compile_dir . '/book.pdf' ) . ' 2>&1', $box_output, $box_status );
+$box_text = implode( "\n", $box_output );
+if ( 0 !== $box_status || false === strpos( $box_text, 'Page    2 TrimBox:' ) || false === strpos( $box_text, 'Page    2 BleedBox:' ) ) {
+	fwrite( STDERR, "El PDF final no conserva TrimBox y BleedBox verificables.\n{$box_text}\n" );
+	exit( 1 );
+}
+
+if ( '1' === getenv( 'ALMADEN_KEEP_PDF_TEST' ) ) {
+	echo "PDF de regresion: {$compile_dir}/book.pdf\n";
+	exit( 0 );
 }
 
 unlink( $compile_dir . '/book.pdf' );

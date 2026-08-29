@@ -14,16 +14,19 @@
     }
 
     function horizontalBounds(pageNumber, geometry) {
-        const width = Math.max(number(geometry.width), 1);
+        const bleed = Math.max(number(geometry.bleed), 0);
+        const width = Math.max(number(geometry.physical_width) || number(geometry.width) + (2 * bleed), 1);
         const odd = pageNumber % 2 === 1;
-        const left = number(odd ? geometry.inside : geometry.outside);
-        const right = number(odd ? geometry.outside : geometry.inside);
+        const left = bleed + number(odd ? geometry.inside : geometry.outside);
+        const right = bleed + number(odd ? geometry.outside : geometry.inside);
         return { left: left / width * 100, width: (width - left - right) / width * 100 };
     }
 
     function createOverlay(report, shell, geometry) {
         const page = Number.parseInt(report.page, 10);
-        const pageHeightPt = Math.max(unitToPoints(geometry.height, geometry.unit), 1);
+        const physicalHeight = number(geometry.physical_height)
+            || number(geometry.height) + (2 * Math.max(number(geometry.bleed), 0));
+        const pageHeightPt = Math.max(unitToPoints(physicalHeight, geometry.unit), 1);
         const topPt = Math.max(0, number(report.y));
         const bottomPt = Math.max(topPt + 8, number(report.bottom));
         const horizontal = horizontalBounds(page, geometry);

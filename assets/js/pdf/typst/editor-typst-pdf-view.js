@@ -51,6 +51,7 @@
         const bottom = Number.parseFloat(g.content_bottom ?? g.bottom);
         const inside = Number.parseFloat(g.inside);
         const outside = Number.parseFloat(g.outside);
+        const bleed = Math.max(0, Number.parseFloat(g.bleed) || 0);
 
         if (![width, height, top, bottom, inside, outside].every(Number.isFinite) || width <= 0 || height <= 0) {
             return null;
@@ -59,12 +60,14 @@
         const oddPage = pageNumber % 2 === 1;
         const left = oddPage ? inside : outside;
         const right = oddPage ? outside : inside;
+        const physicalWidth = Number.parseFloat(g.physical_width) || width + (2 * bleed);
+        const physicalHeight = Number.parseFloat(g.physical_height) || height + (2 * bleed);
 
         return {
-            top: `${(top / height) * 100}%`,
-            right: `${(right / width) * 100}%`,
-            bottom: `${(bottom / height) * 100}%`,
-            left: `${(left / width) * 100}%`
+            top: `${((top + bleed) / physicalHeight) * 100}%`,
+            right: `${((right + bleed) / physicalWidth) * 100}%`,
+            bottom: `${((bottom + bleed) / physicalHeight) * 100}%`,
+            left: `${((left + bleed) / physicalWidth) * 100}%`
         };
     }
 
@@ -80,93 +83,18 @@
             return null;
         }
 
-        const pxPerUnit = Math.min(shellWidth / width, shellHeight / height);
+        const physicalWidth = Number.parseFloat(g.physical_width) || width + (2 * bleed);
+        const physicalHeight = Number.parseFloat(g.physical_height) || height + (2 * bleed);
+        const pxPerUnit = Math.min(shellWidth / physicalWidth, shellHeight / physicalHeight);
         const bleedPx = bleed * pxPerUnit;
         return bleedPx > 0 ? bleedPx : null;
-    }
-
-    function getFullBleedChapterImageUrl(pageNumber) {
-        const counterChapters = window.bookState?.pdfPreview?.universalCounter?.chapters;
-        const chapters = window.bookState?.chapters;
-        if (!Array.isArray(counterChapters) || !Array.isArray(chapters)) return '';
-
-        const counterEntry = counterChapters.find(entry => Number(entry?.startPage || 0) === pageNumber);
-        if (!counterEntry) return '';
-
-        const chapter = chapters.find(entry => String(entry?.id || '') === String(counterEntry.id || ''));
-        if (!chapter) return '';
-
-        const override = String(chapter.chapter_image_override ?? chapter.chapter_image_enabled ?? '');
-        const bookDefault = window.bookState?.settings?.chapter_image_default === true
-            || String(window.bookState?.settings?.chapter_image_default || '') === '1';
-        const imageEnabled = override === '1' || (override !== '0' && bookDefault);
-        const imageMode = String(chapter.chapter_image_mode || '').toLowerCase();
-        const imageUrl = String(chapter.chapter_image_url || '').trim();
-        return imageEnabled && imageMode === 'image_full_page' ? imageUrl : '';
-    }
-
-    function normalizeHexColor(value, fallback = '#ffffff') {
-        const raw = String(value || '').trim().toLowerCase();
-        return /^#(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/.test(raw) ? raw : fallback;
-    }
-
-    function getPageStyleForPage(pageNumber) {
-        const target = Number(pageNumber) || 0;
-        if (target < 1) return null;
-
-        const direct = window.almadenPageStyleState?.getStyleForPage?.(target);
-        if (direct) return direct;
-
-        const styles = Array.isArray(window.bookState?.settings?.page_styles)
-            ? window.bookState.settings.page_styles
-            : [];
-        return styles.find(style => Number(style?.resolved_page || style?.page_number) === target) || null;
-    }
-
-    function getPageStyleBackdrop(pageNumber) {
-        const style = getPageStyleForPage(pageNumber);
-        const background = style?.style?.background || {};
-        const type = String(background.type || 'color').toLowerCase();
-
-        if (type === 'gradient') {
-            const gradient = background.gradient || {};
-            const stops = Array.isArray(gradient.stops) ? gradient.stops : [];
-            const stopA = normalizeHexColor(stops[0]?.color, '#ffffff');
-            const stopB = normalizeHexColor(stops[1]?.color, '#f3f4f6');
-            const angle = Number.isFinite(Number(gradient.angle)) ? Math.max(0, Math.min(360, Number(gradient.angle))) : 135;
-            return {
-                backgroundImage: `linear-gradient(${angle}deg, ${stopA} 0%, ${stopB} 100%)`,
-                backgroundColor: stopA
-            };
-        }
-
-        if (type === 'image') {
-            const overlay = background.overlay || {};
-            return {
-                backgroundColor: normalizeHexColor(overlay.color, '#ffffff')
-            };
-        }
-
-        return {
-            backgroundColor: normalizeHexColor(background.color, '#ffffff')
-        };
     }
 
     function updateBleedGuides(root = document.getElementById('pdf-scroller')) {
         if (!root) return;
 
-        root.querySelectorAll('[data-bleed-guide-backdrop]').forEach(overlay => overlay.remove());
         root.querySelectorAll('[data-bleed-guide-trim]').forEach(overlay => overlay.remove());
         root.querySelectorAll('[data-bleed-guide-page-limit]').forEach(overlay => overlay.remove());
-        root.querySelectorAll('[data-bleed-guide-image]').forEach(overlay => overlay.remove());
-        root.querySelectorAll('canvas[data-bleed-source-hidden="1"]').forEach(canvas => {
-            canvas.style.visibility = canvas.dataset.bleedOriginalVisibility || '';
-            delete canvas.dataset.bleedOriginalVisibility;
-            delete canvas.dataset.bleedSourceHidden;
-        });
-        root.querySelectorAll('[data-page-number]').forEach(shell => {
-            shell.style.overflow = 'visible';
-        });
 
         const g = shared.currentGeometry || {};
         const bleed = Number.parseFloat(g.bleed);
@@ -177,80 +105,26 @@
             if (!bleedPx) return;
 
             const pageNumber = Number.parseInt(shell.dataset.pageNumber, 10);
-            const isOddPage = pageNumber % 2 === 1;
-            const imageUrl = getFullBleedChapterImageUrl(pageNumber);
-            const backdropPaint = getPageStyleBackdrop(pageNumber);
-            const backdrop = document.createElement('div');
-            backdrop.dataset.bleedGuideBackdrop = '1';
-            backdrop.className = 'pointer-events-none absolute box-border z-0';
-            backdrop.style.top = `-${bleedPx}px`;
-            backdrop.style.right = isOddPage ? `-${bleedPx}px` : '0';
-            backdrop.style.bottom = `-${bleedPx}px`;
-            backdrop.style.left = isOddPage ? '0' : `-${bleedPx}px`;
-            backdrop.style.overflow = 'hidden';
-            if (backdropPaint.backgroundImage) {
-                backdrop.style.backgroundImage = backdropPaint.backgroundImage;
-                backdrop.style.backgroundSize = 'cover';
-                backdrop.style.backgroundPosition = 'center center';
-                backdrop.style.backgroundRepeat = 'no-repeat';
-            }
-            backdrop.style.backgroundColor = backdropPaint.backgroundColor || '#ffffff';
-            shell.insertBefore(backdrop, shell.firstChild);
-
             const canvas = shell.querySelector('canvas');
             if (canvas) {
                 canvas.style.position = 'relative';
-                canvas.style.zIndex = '1';
-            }
-
-            if (imageUrl) {
-                const imageLayer = document.createElement('img');
-                imageLayer.dataset.bleedGuideImage = '1';
-                imageLayer.alt = '';
-                imageLayer.draggable = false;
-                imageLayer.className = 'pointer-events-none absolute z-10 block';
-                imageLayer.style.top = `-${bleedPx}px`;
-                imageLayer.style.left = isOddPage ? '0' : `-${bleedPx}px`;
-                imageLayer.style.width = `calc(100% + ${bleedPx}px)`;
-                imageLayer.style.height = `calc(100% + ${bleedPx * 2}px)`;
-                imageLayer.style.maxWidth = 'none';
-                imageLayer.style.maxHeight = 'none';
-                imageLayer.style.objectFit = 'cover';
-                imageLayer.style.objectPosition = 'center center';
-                imageLayer.style.opacity = '0';
-                imageLayer.addEventListener('load', () => {
-                    if (!imageLayer.isConnected || !shell.contains(imageLayer)) return;
-                    if (canvas) {
-                        canvas.dataset.bleedOriginalVisibility = canvas.style.visibility || '';
-                        canvas.dataset.bleedSourceHidden = '1';
-                        canvas.style.visibility = 'hidden';
-                    }
-                    imageLayer.style.opacity = '1';
-                }, { once: true });
-                imageLayer.addEventListener('error', () => imageLayer.remove(), { once: true });
-                shell.appendChild(imageLayer);
-                imageLayer.src = imageUrl;
+                canvas.style.zIndex = '0';
             }
 
             const trimFrame = document.createElement('div');
             trimFrame.dataset.bleedGuideTrim = '1';
             trimFrame.className = 'pointer-events-none absolute box-border z-20';
-            trimFrame.style.top = `-${bleedPx}px`;
-            trimFrame.style.bottom = `-${bleedPx}px`;
-            trimFrame.style.left = isOddPage ? '0px' : `-${bleedPx}px`;
-            trimFrame.style.right = isOddPage ? `-${bleedPx}px` : '0px';
-            trimFrame.style.borderTop = '2px dotted rgba(34, 197, 94, 0.78)';
-            trimFrame.style.borderBottom = '2px dotted rgba(34, 197, 94, 0.78)';
-            trimFrame.style.borderLeft = isOddPage ? '0' : '2px dotted rgba(34, 197, 94, 0.78)';
-            trimFrame.style.borderRight = isOddPage ? '2px dotted rgba(34, 197, 94, 0.78)' : '0';
+            trimFrame.style.inset = `${bleedPx}px`;
+            trimFrame.style.border = '1px solid rgba(34, 197, 94, 0.78)';
+            trimFrame.title = `Límite de corte de la página ${pageNumber}`;
             shell.appendChild(trimFrame);
 
             const pageLimit = document.createElement('div');
             pageLimit.dataset.bleedGuidePageLimit = '1';
             pageLimit.className = 'pointer-events-none absolute box-border z-20';
             pageLimit.style.inset = '0';
-            pageLimit.style.border = '1px solid rgba(34, 197, 94, 0.78)';
-            pageLimit.title = `Límite de corte de la página ${pageNumber}`;
+            pageLimit.style.border = '2px dotted rgba(34, 197, 94, 0.78)';
+            pageLimit.title = `Límite exterior del sangrado de la página ${pageNumber}`;
             shell.appendChild(pageLimit);
         });
     }
@@ -387,6 +261,18 @@
         canvas.height = Math.floor(viewport.height * outputScale);
         canvas.style.width = `${Math.floor(viewport.width)}px`;
         canvas.style.height = `${Math.floor(viewport.height)}px`;
+
+        // A document can contain pages with a different MediaBox (for example
+        // a chapter image page with bleed). The shell used to keep the size of
+        // page one, leaving its white background visible at the right/bottom
+        // of a smaller canvas. Match the shell to this page before adding the
+        // bleed preview layers.
+        const shell = canvas.parentElement;
+        if (shell?.dataset?.pageNumber) {
+            shell.style.width = canvas.style.width;
+            shell.style.minHeight = canvas.style.height;
+            shell.style.height = canvas.style.height;
+        }
 
         const transform = outputScale !== 1
             ? [outputScale, 0, 0, outputScale, 0, 0]

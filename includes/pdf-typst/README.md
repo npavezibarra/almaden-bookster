@@ -106,6 +106,22 @@ de la página correcta sin romper el reflujo del libro.
 - Si una página tiene plantilla pero no estilo, Typst cae en los colores por
   defecto.
 
+### Sangrado y fondos a página completa
+
+Tuvimos un problema con páginas que usan imagen de fondo o estilos de página
+completos: Typst recortaba el `page(background:)` al `TrimBox`, así que el PDF
+seguía mostrando una franja blanca en el borde derecho y en la parte inferior,
+aunque el fondo pareciera cubrir toda la página en el preview.
+
+La solución fue cambiar el flujo para que el documento se componga en tamaño
+físico completo, es decir `trim + bleed`, y luego escribir `TrimBox` y
+`BleedBox` explícitos en el PDF final. Con eso:
+
+- una sola imagen/fondo cubre realmente toda el área imprimible;
+- el overlay y los colores de texto se aplican sobre la misma superficie;
+- no se duplica el fondo entre una capa "de bleed" y otra capa interna;
+- el preview del editor refleja la misma geometría que se exporta para imprenta.
+
 ### Archivos de referencia
 
 - `includes/pdf-typst/page-templates/README.md`

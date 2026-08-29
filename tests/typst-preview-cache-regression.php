@@ -15,8 +15,17 @@ function wp_mkdir_p( $path ) { return is_dir( $path ) || mkdir( $path, 0777, tru
 require_once dirname( __DIR__ ) . '/includes/ajax/ajax-typst-pdf.php';
 
 $client_state_source = file_get_contents( dirname( __DIR__ ) . '/assets/js/pdf/typst/editor-typst-pdf-state.js' );
-if ( false === strpos( $client_state_source, "const PREVIEW_CACHE_VERSION = 'v11';" ) ) {
-	fwrite( STDERR, "La caché persistente del navegador no fue invalidada para el nuevo renderer del Índice.\n" );
+$client_view_source = file_get_contents( dirname( __DIR__ ) . '/assets/js/pdf/typst/editor-typst-pdf-view.js' );
+if ( false === strpos( $client_state_source, "const PREVIEW_CACHE_VERSION = 'v16';" ) ) {
+	fwrite( STDERR, "La caché persistente del navegador no fue invalidada para la composición de fondo a sangre.\n" );
+	exit( 1 );
+}
+if ( false !== strpos( $client_view_source, 'getFullBleedChapterImageUrl' ) || false !== strpos( $client_view_source, 'dataBleedGuideImage' ) ) {
+	fwrite( STDERR, "El visor vuelve a crear una segunda imagen artificial para simular el sangrado.\n" );
+	exit( 1 );
+}
+if ( false === strpos( $client_view_source, 'trimFrame.style.inset = `${bleedPx}px`;' ) ) {
+	fwrite( STDERR, "El visor no dibuja el TrimBox dentro de la página física.\n" );
 	exit( 1 );
 }
 

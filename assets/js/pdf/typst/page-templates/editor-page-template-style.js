@@ -314,7 +314,7 @@
         window.bookState.settings.page_styles = previousStyles;
         await persistStyles();
         if (typeof window.compilePDFPreview === 'function') {
-            await window.compilePDFPreview(true);
+            await window.compilePDFPreview(true, 'pdf-scroller', true);
         }
     }
 
@@ -357,7 +357,7 @@
         }
 
         if (typeof window.compilePDFPreview === 'function') {
-            await window.compilePDFPreview(true);
+            await window.compilePDFPreview(true, 'pdf-scroller', true);
         }
         if (typeof window.showToast === 'function') {
             window.showToast(`Estilo guardado en la página ${selectedPageNumber}.`, 'fa-solid fa-paintbrush');
@@ -391,7 +391,7 @@
         }
 
         if (typeof window.compilePDFPreview === 'function') {
-            await window.compilePDFPreview(true);
+            await window.compilePDFPreview(true, 'pdf-scroller', true);
         }
         if (typeof window.showToast === 'function') {
             window.showToast(`Estilo quitado de la página ${selectedPageNumber}.`, 'fa-solid fa-droplet-slash');
