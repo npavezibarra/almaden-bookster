@@ -589,7 +589,7 @@ if ( ! function_exists( 'almaden_bookster_render_app_shell_start' ) ) {
 		body.almaden-app-body #almaden-app-nav,
 		body.almaden-app-body #almaden-app-nav *,
 		body.almaden-app-body .almaden-app-content-shell,
-		body.almaden-app-body .almaden-app-content-shell *,
+		body.almaden-app-body .almaden-app-content-shell :where(*):not(.cover-thumbnail-wrapper):not(.cover-thumbnail-wrapper *):not(.cover-spread-container):not(.cover-spread-container *):not(.ebook-page-content):not(.ebook-page-content *):not(#ebook-page):not(#ebook-page *):not(#reader-content):not(#reader-content *):not([data-almaden-book-font]):not([data-almaden-book-font] *),
 		body.almaden-app-body button,
 		body.almaden-app-body input,
 		body.almaden-app-body select,

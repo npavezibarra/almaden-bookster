@@ -171,10 +171,6 @@ if ( class_exists( '\AlmadenBookster\Auth\AuthOrchestrator' ) ) {
     <link rel="stylesheet" href="<?php echo esc_url( almaden_bookster_get_bundled_fonts_stylesheet_url() ); ?>">
     <?php endif; ?>
     <link href="<?php echo esc_url( almaden_get_thumbnail_fonts_url() ); ?>" rel="stylesheet">
-    <!-- Urbanist Font for UI -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <!-- Font Awesome Icons para UI -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -340,6 +336,13 @@ if ( class_exists( '\AlmadenBookster\Auth\AuthOrchestrator' ) ) {
         html {
             margin-top: 0 !important;
         }
+        body.almaden-app-body,
+        body.almaden-app-body #almaden-app-nav,
+        body.almaden-app-body #almaden-app-nav *,
+        body.almaden-app-body .almaden-app-content-shell,
+        body.almaden-app-body .almaden-app-content-shell :where(*):not(.cover-thumbnail-wrapper):not(.cover-thumbnail-wrapper *):not(.cover-spread-container):not(.cover-spread-container *):not(.ebook-page-content):not(.ebook-page-content *):not(#ebook-page):not(#ebook-page *):not(#reader-content):not(#reader-content *):not([data-almaden-book-font]):not([data-almaden-book-font] *) {
+            font-family: "Urbanist", sans-serif !important;
+        }
         #bookshelf-main.almaden-app-content-shell {
             max-width: none;
             padding-left: 0;
@@ -359,7 +362,7 @@ if ( class_exists( '\AlmadenBookster\Auth\AuthOrchestrator' ) ) {
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col theme-light">
+<body class="almaden-app-body min-h-screen flex flex-col theme-light">
 
     <?php echo almaden_bookster_render_shared_nav( 'store' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
