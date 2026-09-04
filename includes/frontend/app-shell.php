@@ -529,9 +529,9 @@ if ( ! function_exists( 'almaden_bookster_render_app_shell_start' ) ) {
 		};
 	</script>
 	<script src="https://cdn.tailwindcss.com"></script>
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&amp;display=swap" rel="stylesheet">
+	<?php if ( function_exists( 'almaden_bookster_get_bundled_fonts_stylesheet_url' ) ) : ?>
+		<link rel="stylesheet" href="<?php echo esc_url( almaden_bookster_get_bundled_fonts_stylesheet_url() ); ?>">
+	<?php endif; ?>
 	<?php if ( ! empty( $args['extra_head_html'] ) ) : ?>
 		<?php echo $args['extra_head_html']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 	<?php endif; ?>
@@ -581,6 +581,14 @@ if ( ! function_exists( 'almaden_bookster_render_app_shell_start' ) ) {
 		#almaden-app-nav-inner {
 			padding-left: 2rem;
 			padding-right: 2rem;
+		}
+		/* Keep the application UI independent from the active WordPress theme. */
+		#almaden-app-body,
+		#almaden-app-body button,
+		#almaden-app-body input,
+		#almaden-app-body select,
+		#almaden-app-body textarea {
+			font-family: "Urbanist", sans-serif;
 		}
 		:root {
 			--almaden-app-max-width: 80rem;

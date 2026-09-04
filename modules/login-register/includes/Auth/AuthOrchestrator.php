@@ -77,7 +77,12 @@ final class AuthOrchestrator
         $is_spanish = strpos(get_locale(), 'es') === 0;
 
         // Auth modal assets should be available on all frontend app pages.
-        wp_enqueue_style('pl-auth-poppins', 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap', [], null);
+        wp_enqueue_style(
+            'pl-auth-poppins',
+            function_exists('almaden_bookster_get_bundled_fonts_stylesheet_url') ? almaden_bookster_get_bundled_fonts_stylesheet_url() : '',
+            [],
+            filemtime(ALMADEN_BOOKSTER_AUTH_PATH . '../../assets/fonts/bundled/bundled-fonts.css')
+        );
         wp_enqueue_style(
             'pl-auth-material-symbols-warning',
             'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=warning',
@@ -116,8 +121,6 @@ final class AuthOrchestrator
 
         // Login success toast (only when requested)
         if (is_user_logged_in() && $this->should_show_login_success_notice()) {
-            wp_enqueue_style('pl-auth-poppins', 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap', [], null);
-
             wp_enqueue_style(
                 'pl-auth-login-notice-css',
                 ALMADEN_BOOKSTER_AUTH_URL . 'assets/css/login-notice.css',

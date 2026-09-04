@@ -91,6 +91,14 @@ function almaden_bookster_fonts_page_render() {
 	$api_key         = get_option( 'almaden_google_fonts_api_key', '' );
 	$bundled_fonts   = function_exists( 'almaden_bookster_get_bundled_fonts_list' ) ? almaden_bookster_get_bundled_fonts_list() : array();
 	$installed_fonts = almaden_bookster_get_installed_fonts_list();
+	$installed_fonts = array_values(
+		array_filter(
+			$installed_fonts,
+			static function( $font ) {
+				return ! function_exists( 'almaden_bookster_is_bundled_font' ) || ! almaden_bookster_is_bundled_font( $font['family'] ?? '' );
+			}
+		)
+	);
 
 	$gdrive_client_email = get_option( 'bookcraft_gdrive_client_email', '' );
 	$gdrive_has_private_key = get_option( 'bookcraft_gdrive_private_key' ) ? true : false;

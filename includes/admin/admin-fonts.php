@@ -92,6 +92,20 @@ function almaden_bookster_get_bundled_fonts_list() {
 			'subsets'  => 'latin,latin-ext',
 			'source'   => 'bundled',
 		),
+		array(
+			'family'   => 'Urbanist',
+			'category' => 'sans-serif',
+			'variants' => 'regular,500,600,700,800,italic',
+			'subsets'  => 'latin,latin-ext',
+			'source'   => 'bundled',
+		),
+		array(
+			'family'   => 'Poppins',
+			'category' => 'sans-serif',
+			'variants' => '300,regular,500,600',
+			'subsets'  => 'latin,latin-ext',
+			'source'   => 'bundled',
+		),
 	);
 }
 
@@ -230,15 +244,8 @@ function almaden_bookster_get_available_fonts_list() {
 		}
 
 		if ( isset( $fonts[ $family ] ) ) {
-			$fonts[ $family ] = array_merge(
-				$fonts[ $family ],
-				array(
-					'category' => isset( $font['category'] ) && '' !== trim( (string) $font['category'] ) ? sanitize_text_field( (string) $font['category'] ) : ( $fonts[ $family ]['category'] ?? 'serif' ),
-					'variants' => isset( $font['variants'] ) && '' !== trim( (string) $font['variants'] ) ? sanitize_text_field( (string) $font['variants'] ) : ( $fonts[ $family ]['variants'] ?? '' ),
-					'subsets'  => isset( $font['subsets'] ) && '' !== trim( (string) $font['subsets'] ) ? sanitize_text_field( (string) $font['subsets'] ) : ( $fonts[ $family ]['subsets'] ?? '' ),
-					'source'   => 'installed',
-				)
-			);
+			// Bundled assets are authoritative and must never fall back to the CDN.
+			continue;
 		} else {
 			$fonts[ $family ] = array_merge(
 				$font,
