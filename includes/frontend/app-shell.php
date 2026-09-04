@@ -477,6 +477,8 @@ if ( ! function_exists( 'almaden_bookster_render_app_shell_start' ) ) {
 			$body_class = preg_split( '/\s+/', trim( (string) $body_class ) );
 		}
 		$body_class = array_filter( array_map( 'sanitize_html_class', (array) $body_class ) );
+		$body_class[] = 'almaden-app-body';
+		$body_class = array_values( array_unique( $body_class ) );
 
 		$active_nav_key = sanitize_key( (string) $args['active_nav_key'] );
 
@@ -583,11 +585,11 @@ if ( ! function_exists( 'almaden_bookster_render_app_shell_start' ) ) {
 			padding-right: 2rem;
 		}
 		/* Keep the application UI independent from the active WordPress theme. */
-		#almaden-app-body,
-		#almaden-app-body button,
-		#almaden-app-body input,
-		#almaden-app-body select,
-		#almaden-app-body textarea {
+		body.almaden-app-body,
+		body.almaden-app-body button,
+		body.almaden-app-body input,
+		body.almaden-app-body select,
+		body.almaden-app-body textarea {
 			font-family: "Urbanist", sans-serif;
 		}
 		:root {
