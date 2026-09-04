@@ -13,20 +13,99 @@ require_once __DIR__ . '/typst-compiler-assets.php';
 require_once __DIR__ . '/typst-pdf-boxes.php';
 require_once __DIR__ . '/page-templates/bootstrap.php';
 
-function almaden_bookster_find_typst_binary() {
+function almaden_bookster_typst_runtime_key() {
+	$family = strtolower( (string) PHP_OS_FAMILY );
+	$machine = strtolower( (string) php_uname( 'm' ) );
+
+	if ( in_array( $machine, array( 'arm64', 'aarch64' ), true ) ) {
+		$arch = 'arm64';
+	} elseif ( in_array( $machine, array( 'x86_64', 'amd64' ), true ) ) {
+		$arch = 'x64';
+	} else {
+		$arch = preg_replace( '/[^a-z0-9_-]/', '', $machine );
+	}
+
+	if ( 'darwin' === $family ) {
+		$os = 'darwin';
+	} elseif ( 'linux' === $family ) {
+		$os = 'linux';
+	} elseif ( 'windows' === $family ) {
+		$os = 'windows';
+	} else {
+		$os = preg_replace( '/[^a-z0-9_-]/', '', $family );
+	}
+
+	return trim( $os . '-' . $arch, '-' );
+}
+
+function almaden_bookster_typst_binary_candidates() {
+	$runtime_dir = dirname( __DIR__, 2 ) . '/runtime/typst';
+	$binary_name = 'windows' === strtolower( (string) PHP_OS_FAMILY ) ? 'typst.exe' : 'typst';
 	$candidates = array();
+
 	if ( defined( 'ALMADEN_BOOKSTER_TYPST_BINARY' ) ) {
 		$candidates[] = ALMADEN_BOOKSTER_TYPST_BINARY;
 	}
-	$candidates[] = dirname( __DIR__, 2 ) . '/runtime/typst/typst';
+
+	$env_binary = getenv( 'ALMADEN_BOOKSTER_TYPST_BINARY' );
+	if ( is_string( $env_binary ) && '' !== trim( $env_binary ) ) {
+		$candidates[] = $env_binary;
+	}
+
+	$runtime_key = almaden_bookster_typst_runtime_key();
+	if ( '' !== $runtime_key ) {
+		$candidates[] = $runtime_dir . '/' . $runtime_key . '/' . $binary_name;
+	}
+
+	$candidates[] = $runtime_dir . '/' . $binary_name;
+
+	return array_values( array_unique( array_filter( $candidates, 'is_string' ) ) );
+}
+
+function almaden_bookster_typst_missing_message( $candidates ) {
+	$existing = array_values( array_filter(
+		$candidates,
+		static function ( $candidate ) {
+			return is_string( $candidate ) && is_file( $candidate );
+		}
+	) );
+
+	if ( ! empty( $existing ) ) {
+		return 'Typst existe en el runtime de Almaden Bookster, pero PHP no puede ejecutarlo o no corresponde a esta plataforma (' . almaden_bookster_typst_runtime_key() . '). Revisa permisos de ejecución o instala el binario correcto en: ' . implode( ', ', $existing ) . '.';
+	}
+
+	return 'Typst no está instalado en el runtime de Almaden Bookster para esta plataforma (' . almaden_bookster_typst_runtime_key() . '). Incluye el binario en runtime/typst/' . almaden_bookster_typst_runtime_key() . '/typst o define ALMADEN_BOOKSTER_TYPST_BINARY con la ruta absoluta al ejecutable.';
+}
+
+function almaden_bookster_typst_binary_is_usable( $candidate ) {
+	if ( ! is_string( $candidate ) || ! is_file( $candidate ) || ! is_executable( $candidate ) ) {
+		return false;
+	}
+
+	if ( ! function_exists( 'almaden_bookster_run_process' ) ) {
+		return true;
+	}
+
+	$stdout = '';
+	$stderr = '';
+	$result = almaden_bookster_run_process( array( $candidate, '--version' ), $stdout, $stderr, 5 );
+	if ( function_exists( 'is_wp_error' ) && is_wp_error( $result ) ) {
+		return false;
+	}
+
+	return false !== stripos( $stdout . $stderr, 'typst' );
+}
+
+function almaden_bookster_find_typst_binary() {
+	$candidates = almaden_bookster_typst_binary_candidates();
 
 	foreach ( $candidates as $candidate ) {
-		if ( is_string( $candidate ) && is_file( $candidate ) && is_executable( $candidate ) ) {
+		if ( almaden_bookster_typst_binary_is_usable( $candidate ) ) {
 			return $candidate;
 		}
 	}
 	$found = trim( (string) shell_exec( 'command -v typst 2>/dev/null' ) );
-	return is_file( $found ) && is_executable( $found ) ? $found : '';
+	return almaden_bookster_typst_binary_is_usable( $found ) ? $found : '';
 }
 
 function almaden_bookster_typst_find_pdftotext_binary() {
@@ -124,7 +203,7 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 	}
 	$binary = almaden_bookster_find_typst_binary();
 	if ( '' === $binary ) {
-		return new WP_Error( 'typst_missing', 'Typst no está instalado en el runtime de Almaden Bookster.' );
+		return new WP_Error( 'typst_missing', almaden_bookster_typst_missing_message( almaden_bookster_typst_binary_candidates() ) );
 	}
 
 	$temp_dir = trailingslashit( sys_get_temp_dir() ) . 'almaden-typst-' . wp_generate_uuid4();

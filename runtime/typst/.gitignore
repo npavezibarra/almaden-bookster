@@ -1,2 +1,6 @@
 *
 !.gitignore
+!/typst
+!/*/
+!/*/typst
+!/*/typst.exe

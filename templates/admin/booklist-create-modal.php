@@ -9,7 +9,7 @@ $creation_template_name = ( $creation_template && ! empty( $creation_template['n
     ? sanitize_text_field( $creation_template['name'] )
     : 'Literat';
 ?>
-    <div id="create-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="create-book-modal-title" role="dialog" aria-modal="true">
+    <div id="create-modal" class="fixed inset-0 z-50 hidden" aria-label="Crear libro" role="dialog" aria-modal="true">
         <div class="fixed inset-0 bg-slate-950/45 backdrop-blur-sm" aria-hidden="true" data-create-modal-backdrop></div>
 
         <div class="fixed inset-0 z-10 overflow-y-auto">
@@ -43,29 +43,19 @@ $creation_template_name = ( $creation_template && ! empty( $creation_template['n
                             <?php wp_nonce_field( 'almaden_create_book_nonce', 'almaden_nonce' ); ?>
 
                             <section id="wizard-step-1" class="wizard-step space-y-6">
-                                <div>
-                                    <h4 class="text-xl font-semibold tracking-tight text-slate-900">Información básica</h4>
-                                    <p class="mt-2 text-sm text-slate-500">Comencemos con los datos principales de tu obra.</p>
-                                </div>
-
                                 <div class="space-y-5">
                                     <div>
-                                        <label for="book_title" class="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Título del libro</label>
-                                        <input type="text" name="book_title" id="book_title" required placeholder="Ej. El Sueño Eterno" class="mt-2 block w-full border-0 border-b border-slate-300 bg-transparent px-0 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-black focus:ring-0">
+                                        <label for="book_title" class="sr-only">Título del libro</label>
+                                        <input type="text" name="book_title" id="book_title" required placeholder="Título del libro" class="block w-full rounded-none border-0 border-b border-slate-300 bg-transparent px-0 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-black focus:ring-0">
                                     </div>
                                     <div>
-                                        <label for="book_author" class="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Nombre del autor</label>
-                                        <input type="text" name="book_author" id="book_author" required placeholder="Ej. Ana Pérez" class="mt-2 block w-full border-0 border-b border-slate-300 bg-transparent px-0 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-black focus:ring-0">
+                                        <label for="book_author" class="sr-only">Nombre del autor</label>
+                                        <input type="text" name="book_author" id="book_author" required placeholder="Nombre del autor" class="block w-full rounded-none border-0 border-b border-slate-300 bg-transparent px-0 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-black focus:ring-0">
                                     </div>
                                 </div>
                             </section>
 
                             <section id="wizard-step-2" class="wizard-step hidden space-y-6">
-                                <div>
-                                    <h4 class="text-xl font-semibold tracking-tight text-slate-900">Tamaño del libro</h4>
-                                    <p class="mt-2 text-sm text-slate-500">Selecciona el formato físico ideal para tu publicación.</p>
-                                </div>
-
                                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                     <label data-size-card class="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-900 hover:bg-slate-50">
                                         <input type="radio" name="almaden_book_size" value="novela" class="hidden size-radio" checked>
@@ -106,41 +96,35 @@ $creation_template_name = ( $creation_template && ! empty( $creation_template['n
                             </section>
 
                             <section id="wizard-step-custom" class="wizard-step hidden space-y-6">
-                                <div>
-                                    <h4 class="text-xl font-semibold tracking-tight text-slate-900">Dimensiones personalizadas</h4>
-                                    <p class="mt-2 text-sm text-slate-500">Define el ancho, alto y los márgenes internos de tu libro.</p>
-                                </div>
-
                                 <div id="custom-dimensions-container" class="hidden space-y-6">
                                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                         <div>
-                                            <label for="almaden_custom_width" class="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Ancho (cm)</label>
-                                            <input type="number" step="0.1" min="10" max="50" name="almaden_custom_width" id="almaden_custom_width" value="14.8" class="mt-2 block w-full border-0 border-b border-slate-300 bg-transparent px-0 py-3 text-sm text-slate-900 outline-none transition focus:border-black focus:ring-0">
+                                            <label for="almaden_custom_width" class="sr-only">Ancho (cm)</label>
+                                            <input type="number" step="0.1" min="10" max="50" name="almaden_custom_width" id="almaden_custom_width" value="14.8" placeholder="Ancho (cm)" class="block w-full rounded-none border-0 border-b border-slate-300 bg-transparent px-0 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-black focus:ring-0">
                                         </div>
                                         <div>
-                                            <label for="almaden_custom_height" class="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Alto (cm)</label>
-                                            <input type="number" step="0.1" min="10" max="50" name="almaden_custom_height" id="almaden_custom_height" value="21.0" class="mt-2 block w-full border-0 border-b border-slate-300 bg-transparent px-0 py-3 text-sm text-slate-900 outline-none transition focus:border-black focus:ring-0">
+                                            <label for="almaden_custom_height" class="sr-only">Alto (cm)</label>
+                                            <input type="number" step="0.1" min="10" max="50" name="almaden_custom_height" id="almaden_custom_height" value="21.0" placeholder="Alto (cm)" class="block w-full rounded-none border-0 border-b border-slate-300 bg-transparent px-0 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-black focus:ring-0">
                                         </div>
                                     </div>
 
                                     <div>
-                                        <h5 class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Márgenes internos (cm)</h5>
-                                        <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                                        <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
                                             <div>
-                                                <label for="almaden_custom_margin_top" class="block text-[11px] font-medium text-slate-500">Superior</label>
-                                                <input type="number" step="0.1" min="0.5" max="5" name="almaden_custom_margin_top" id="almaden_custom_margin_top" value="2.0" class="mt-1 block w-full border-0 border-b border-slate-300 bg-transparent px-0 py-2.5 text-sm text-slate-900 outline-none transition focus:border-black focus:ring-0">
+                                                <label for="almaden_custom_margin_top" class="sr-only">Margen superior (cm)</label>
+                                                <input type="number" step="0.1" min="0.5" max="5" name="almaden_custom_margin_top" id="almaden_custom_margin_top" value="2.0" placeholder="Superior (cm)" class="block w-full rounded-none border-0 border-b border-slate-300 bg-transparent px-0 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-black focus:ring-0">
                                             </div>
                                             <div>
-                                                <label for="almaden_custom_margin_bottom" class="block text-[11px] font-medium text-slate-500">Inferior</label>
-                                                <input type="number" step="0.1" min="0.5" max="5" name="almaden_custom_margin_bottom" id="almaden_custom_margin_bottom" value="2.0" class="mt-1 block w-full border-0 border-b border-slate-300 bg-transparent px-0 py-2.5 text-sm text-slate-900 outline-none transition focus:border-black focus:ring-0">
+                                                <label for="almaden_custom_margin_bottom" class="sr-only">Margen inferior (cm)</label>
+                                                <input type="number" step="0.1" min="0.5" max="5" name="almaden_custom_margin_bottom" id="almaden_custom_margin_bottom" value="2.0" placeholder="Inferior (cm)" class="block w-full rounded-none border-0 border-b border-slate-300 bg-transparent px-0 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-black focus:ring-0">
                                             </div>
                                             <div>
-                                                <label for="almaden_custom_margin_outer" class="block text-[11px] font-medium text-slate-500">Exterior</label>
-                                                <input type="number" step="0.1" min="0.5" max="5" name="almaden_custom_margin_outer" id="almaden_custom_margin_outer" value="1.8" class="mt-1 block w-full border-0 border-b border-slate-300 bg-transparent px-0 py-2.5 text-sm text-slate-900 outline-none transition focus:border-black focus:ring-0">
+                                                <label for="almaden_custom_margin_outer" class="sr-only">Margen exterior (cm)</label>
+                                                <input type="number" step="0.1" min="0.5" max="5" name="almaden_custom_margin_outer" id="almaden_custom_margin_outer" value="1.8" placeholder="Exterior (cm)" class="block w-full rounded-none border-0 border-b border-slate-300 bg-transparent px-0 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-black focus:ring-0">
                                             </div>
                                             <div>
-                                                <label for="almaden_custom_margin_inner" class="block text-[11px] font-medium text-slate-500">Interior</label>
-                                                <input type="number" step="0.1" min="0.5" max="5" name="almaden_custom_margin_inner" id="almaden_custom_margin_inner" value="2.5" class="mt-1 block w-full border-0 border-b border-slate-300 bg-transparent px-0 py-2.5 text-sm text-slate-900 outline-none transition focus:border-black focus:ring-0">
+                                                <label for="almaden_custom_margin_inner" class="sr-only">Margen interior (cm)</label>
+                                                <input type="number" step="0.1" min="0.5" max="5" name="almaden_custom_margin_inner" id="almaden_custom_margin_inner" value="2.5" placeholder="Interior (cm)" class="block w-full rounded-none border-0 border-b border-slate-300 bg-transparent px-0 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-black focus:ring-0">
                                             </div>
                                         </div>
                                     </div>
@@ -148,11 +132,6 @@ $creation_template_name = ( $creation_template && ! empty( $creation_template['n
                             </section>
 
                             <section id="wizard-step-templates" class="wizard-step hidden space-y-6">
-                                <div>
-                                    <h4 class="text-xl font-semibold tracking-tight text-slate-900">Plantilla de páginas</h4>
-                                    <p class="mt-2 text-sm text-slate-500">Elige el estilo tipográfico para el interior de tu libro.</p>
-                                </div>
-
                                 <div id="template-preview-main" class="hidden w-full" aria-hidden="true">
                                     <!-- Vista preliminar deshabilitada temporalmente. -->
                                 </div>
