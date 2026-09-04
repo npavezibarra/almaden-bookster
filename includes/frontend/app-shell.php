@@ -586,11 +586,15 @@ if ( ! function_exists( 'almaden_bookster_render_app_shell_start' ) ) {
 		}
 		/* Keep the application UI independent from the active WordPress theme. */
 		body.almaden-app-body,
+		body.almaden-app-body #almaden-app-nav,
+		body.almaden-app-body #almaden-app-nav *,
+		body.almaden-app-body .almaden-app-content-shell,
+		body.almaden-app-body .almaden-app-content-shell *,
 		body.almaden-app-body button,
 		body.almaden-app-body input,
 		body.almaden-app-body select,
 		body.almaden-app-body textarea {
-			font-family: "Urbanist", sans-serif;
+			font-family: "Urbanist", sans-serif !important;
 		}
 		:root {
 			--almaden-app-max-width: 80rem;
