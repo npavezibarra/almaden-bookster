@@ -35,9 +35,30 @@ if ( 1 !== count( $normalized ) ) {
 }
 
 $text_colors = $normalized[0]['style']['text_colors'] ?? array();
-foreach ( array( 'content', 'header', 'footer', 'opening' ) as $kind ) {
+foreach ( array( 'content', 'header', 'footer', 'opening', 'opening_prefix', 'opening_title', 'opening_subtitle' ) as $kind ) {
 	if ( '#111111' !== ( $text_colors[ $kind ] ?? null ) ) {
 		fwrite( STDERR, "El color de texto por defecto no se restauró para {$kind}.\n" );
+		exit( 1 );
+	}
+}
+
+$legacy_normalized = almaden_bookster_typst_page_style_normalize(
+	array(
+		array(
+			'page_number' => 5,
+			'style'       => array(
+				'text_colors' => array(
+					'opening' => '#7a3028',
+				),
+			),
+		),
+	)
+);
+
+$legacy_text_colors = $legacy_normalized[0]['style']['text_colors'] ?? array();
+foreach ( array( 'opening', 'opening_prefix', 'opening_title', 'opening_subtitle' ) as $kind ) {
+	if ( '#7a3028' !== ( $legacy_text_colors[ $kind ] ?? null ) ) {
+		fwrite( STDERR, "El color legado de la apertura no se propagó a {$kind}.\n" );
 		exit( 1 );
 	}
 }

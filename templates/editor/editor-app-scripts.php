@@ -50,6 +50,7 @@
         window.almadenPageTemplateRegistry = <?php echo wp_json_encode( function_exists( 'almaden_bookster_typst_page_template_registry' ) ? almaden_bookster_typst_page_template_registry() : array() ); ?>;
     </script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/typst/page-templates/editor-page-template-state.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/typst/page-templates/editor-image-setter-data.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/typst/page-templates/editor-page-template-images.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/typst/page-templates/editor-page-template-options.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/typst/page-templates/editor-page-template-selector.js?v=' . time(), __FILE__ ) ); ?>"></script>
@@ -57,6 +58,7 @@
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/typst/editor-typst-pdf-state.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/typst/editor-typst-pdf-view.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/typst/editor-typst-image-overlays.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/typst/editor-typst-response.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/typst/editor-typst-pdf.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/typst/editor-typst-preview-experience.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/pdf/typst/editor-typst-provisional-text.js?v=' . time(), __FILE__ ) ); ?>"></script>

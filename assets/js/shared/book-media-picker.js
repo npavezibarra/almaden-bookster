@@ -174,7 +174,8 @@ window.AlmadenBooksterMediaPicker = window.AlmadenBooksterMediaPicker || (functi
 
         empty.classList.add('hidden');
         preview.classList.remove('hidden');
-        image.src = item.previewUrl || item.originalUrl || item.url || '';
+        image.src = item.previewUrl || '';
+        image.classList.toggle('hidden', !item.previewUrl);
         image.alt = item.title || 'Imagen';
         title.textContent = item.title || 'Imagen';
         meta.textContent = `${item.width || '?'} x ${item.height || '?'} px`;
@@ -200,7 +201,7 @@ window.AlmadenBooksterMediaPicker = window.AlmadenBooksterMediaPicker || (functi
         empty.classList.add('hidden');
         grid.innerHTML = items.map((item) => {
             const active = state.selectedItem && Number(state.selectedItem.id) === Number(item.id);
-            const src = item.previewUrl || item.originalUrl || item.url || '';
+            const src = item.previewUrl || '';
             return `
                 <button type="button" data-book-media-item="${escapeHtml(item.id)}" class="group overflow-hidden rounded-3xl border ${active ? 'border-black ring-2 ring-black/10' : 'border-slate-200'} bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                     <div class="aspect-square bg-slate-100">

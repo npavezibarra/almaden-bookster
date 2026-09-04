@@ -52,6 +52,9 @@ function almaden_bookster_typst_page_style_default_text_colors() {
 		'header' => '#111111',
 		'footer' => '#111111',
 		'opening' => '#111111',
+		'opening_prefix' => '#111111',
+		'opening_title' => '#111111',
+		'opening_subtitle' => '#111111',
 	);
 }
 
@@ -131,6 +134,23 @@ function almaden_bookster_typst_page_style_instance_id( $entry, $page_number ) {
 	return 'sty-' . substr( hash( 'sha256', (string) $fingerprint ), 0, 20 );
 }
 
+function almaden_bookster_typst_page_style_is_dark( $color ) {
+	$color = trim( (string) $color, '#' );
+	if ( 3 === strlen( $color ) ) {
+		$r = hexdec( str_repeat( substr( $color, 0, 1 ), 2 ) );
+		$g = hexdec( str_repeat( substr( $color, 1, 1 ), 2 ) );
+		$b = hexdec( str_repeat( substr( $color, 2, 1 ), 2 ) );
+	} elseif ( 6 === strlen( $color ) ) {
+		$r = hexdec( substr( $color, 0, 2 ) );
+		$g = hexdec( substr( $color, 2, 2 ) );
+		$b = hexdec( substr( $color, 4, 2 ) );
+	} else {
+		return false;
+	}
+	$luminance = ( 0.299 * $r + 0.587 * $g + 0.114 * $b ) / 255;
+	return $luminance < 0.5;
+}
+
 function almaden_bookster_typst_page_style_normalize( $value ) {
 	if ( is_string( $value ) && '' !== trim( $value ) ) {
 		$decoded = json_decode( $value, true );
@@ -143,7 +163,7 @@ function almaden_bookster_typst_page_style_normalize( $value ) {
 
 	$normalized = array();
 	$seen_instances = array();
-	$text_defaults = almaden_bookster_typst_page_style_default_text_colors();
+	$base_text_defaults = almaden_bookster_typst_page_style_default_text_colors();
 	foreach ( $value as $entry ) {
 		if ( ! is_array( $entry ) ) {
 			continue;
@@ -165,9 +185,22 @@ function almaden_bookster_typst_page_style_normalize( $value ) {
 		$resolved_page = isset( $entry['resolved_page'] ) && is_numeric( $entry['resolved_page'] )
 			? max( 1, (int) $entry['resolved_page'] )
 			: $page_number;
+
+		$background = almaden_bookster_typst_page_style_normalize_background( $entry['style']['background'] ?? array() );
+		$text_defaults = $base_text_defaults;
+		if ( almaden_bookster_typst_page_style_is_dark( $background['color'] ) ) {
+			foreach ( $text_defaults as $k => $v ) {
+				$text_defaults[ $k ] = '#ffffff';
+			}
+		}
+
 		$text_colors = isset( $entry['style']['text_colors'] ) && is_array( $entry['style']['text_colors'] )
 			? $entry['style']['text_colors']
 			: array();
+		$opening_legacy = almaden_bookster_typst_page_style_normalize_color( $text_colors['opening'] ?? $text_defaults['opening'], $text_defaults['opening'] );
+		$opening_prefix = almaden_bookster_typst_page_style_normalize_color( $text_colors['opening_prefix'] ?? $opening_legacy, $opening_legacy );
+		$opening_title = almaden_bookster_typst_page_style_normalize_color( $text_colors['opening_title'] ?? $opening_legacy, $opening_legacy );
+		$opening_subtitle = almaden_bookster_typst_page_style_normalize_color( $text_colors['opening_subtitle'] ?? $opening_legacy, $opening_legacy );
 
 		$normalized[] = array(
 			'id' => $instance_id,
@@ -183,7 +216,10 @@ function almaden_bookster_typst_page_style_normalize( $value ) {
 						'content' => almaden_bookster_typst_page_style_normalize_color( $text_colors['content'] ?? $text_defaults['content'], $text_defaults['content'] ),
 						'header' => almaden_bookster_typst_page_style_normalize_color( $text_colors['header'] ?? $text_defaults['header'], $text_defaults['header'] ),
 						'footer' => almaden_bookster_typst_page_style_normalize_color( $text_colors['footer'] ?? $text_defaults['footer'], $text_defaults['footer'] ),
-						'opening' => almaden_bookster_typst_page_style_normalize_color( $text_colors['opening'] ?? $text_defaults['opening'], $text_defaults['opening'] ),
+						'opening' => $opening_title,
+						'opening_prefix' => $opening_prefix,
+						'opening_title' => $opening_title,
+						'opening_subtitle' => $opening_subtitle,
 					),
 				),
 			);

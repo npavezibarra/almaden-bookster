@@ -293,7 +293,13 @@ function almaden_bookster_build_typst_document( $payload ) {
 				),
 				$prefix_template
 			);
-			$opening_lines[] = almaden_bookster_typst_render_chapter_prefix( $prefix_text, $prefix_style, $prefix_align, $prefix_ornament ?? 'none' );
+			$opening_lines[] = almaden_bookster_typst_render_chapter_prefix(
+				$prefix_text,
+				$prefix_style,
+				$prefix_align,
+				$prefix_ornament ?? 'none',
+				'opening_prefix'
+			);
 		}
 
 		if ( $show_title ) {
@@ -301,7 +307,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 			$title_leading = round( max( 0, $title_line_height - 1 ), 4 );
 			$opening_lines[] = '#block(width: 100%, breakable: false, inset: (top: ' . $title_padding_top . 'cm, bottom: ' . $title_padding_bottom . 'cm, left: ' . $title_padding_left . 'cm, right: ' . $title_padding_right . 'cm))[' . "\n" .
 				'#set par(justify: false, first-line-indent: 0pt, leading: ' . $title_leading . 'em, spacing: 0pt)' . "\n" .
-				'#align(' . $opening_line_alignment . ')[#heading(level: 1, outlined: true)[#text(font: "' . almaden_bookster_typst_escape_string( $title_font_family ) . '", size: ' . $title_size . 'pt, weight: ' . $title_font_weight . ', style: "' . almaden_bookster_typst_escape_string( $title_font_style ) . '", tracking: ' . $title_letter_spacing . 'pt, hyphenate: ' . ( $chapter_title_hyphenate ? 'true' : 'false' ) . ')[' . almaden_bookster_typst_escape_markup( $display_title ) . ']]]' . "\n" .
+				'#align(' . $opening_line_alignment . ')[#heading(level: 1, outlined: true)[#almaden-page-colored("opening_title", fill => text(fill: fill, font: "' . almaden_bookster_typst_escape_string( $title_font_family ) . '", size: ' . $title_size . 'pt, weight: ' . $title_font_weight . ', style: "' . almaden_bookster_typst_escape_string( $title_font_style ) . '", tracking: ' . $title_letter_spacing . 'pt, hyphenate: ' . ( $chapter_title_hyphenate ? 'true' : 'false' ) . ')[' . almaden_bookster_typst_escape_markup( $display_title ) . '])]]' . "\n" .
 			']';
 		}
 
@@ -315,7 +321,13 @@ function almaden_bookster_build_typst_document( $payload ) {
 				),
 				$prefix_template
 			);
-			$opening_lines[] = almaden_bookster_typst_render_chapter_prefix( $prefix_text, $prefix_style, $prefix_align, $prefix_ornament ?? 'none' );
+				$opening_lines[] = almaden_bookster_typst_render_chapter_prefix(
+					$prefix_text,
+					$prefix_style,
+					$prefix_align,
+					$prefix_ornament ?? 'none',
+					'opening_prefix'
+				);
 		}
 
 		if ( $show_subtitle ) {
@@ -343,7 +355,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 			$subtitle_display = almaden_bookster_typst_transform_title( $subtitle_text, $subtitle_text_transform );
 			$opening_lines[] = '#block(width: 100%, breakable: false, inset: (top: ' . $subtitle_padding_top . 'cm, bottom: ' . $subtitle_padding_bottom . 'cm, left: ' . $subtitle_padding_left . 'cm, right: ' . $subtitle_padding_right . 'cm))[' . "\n" .
 				'#set par(justify: false, first-line-indent: 0pt)' . "\n" .
-				'#align(' . $subtitle_align . ')[#text(font: "' . almaden_bookster_typst_escape_string( $subtitle_font_family ) . '", size: ' . round( $subtitle_font_size, 3 ) . 'pt, weight: ' . $subtitle_font_weight . ', style: "' . almaden_bookster_typst_escape_string( $subtitle_font_style ) . '", tracking: ' . round( $subtitle_letter_spacing, 3 ) . 'pt)[' . almaden_bookster_typst_escape_markup( $subtitle_display ) . ']]' . "\n" .
+				'#align(' . $subtitle_align . ')[#almaden-page-colored("opening_subtitle", fill => text(fill: fill, font: "' . almaden_bookster_typst_escape_string( $subtitle_font_family ) . '", size: ' . round( $subtitle_font_size, 3 ) . 'pt, weight: ' . $subtitle_font_weight . ', style: "' . almaden_bookster_typst_escape_string( $subtitle_font_style ) . '", tracking: ' . round( $subtitle_letter_spacing, 3 ) . 'pt)[' . almaden_bookster_typst_escape_markup( $subtitle_display ) . '])]' . "\n" .
 			']';
 		}
 
@@ -352,18 +364,20 @@ function almaden_bookster_build_typst_document( $payload ) {
 			// the actual opening, which can come after a dedicated image page.
 			$source .= '#metadata("' . almaden_bookster_typst_escape_string( $title ) . '") <almaden-chapter-opening>' . "\n";
 			if ( $separate_opening ) {
+				$source .= '#almaden-with-text-zone("opening")[' . "\n";
 				$source .= '#almaden-page-styled("opening")[' . "\n";
 				$source .= '#box(width: 100%, height: 100%)[' . "\n";
 				$source .= '#place(' . $opening_place_alignment . ')[' . "\n";
 				$source .= '#block(breakable: false)[' . "\n";
 				$source .= implode( "\n#v(3mm)\n", $opening_lines ) . "\n";
-				$source .= "]\n]\n]\n]\n#pagebreak()\n\n";
+				$source .= "]\n]\n]\n]\n]\n#pagebreak()\n\n";
 			} else {
+				$source .= '#almaden-with-text-zone("opening")[' . "\n";
 				$source .= '#almaden-page-styled("opening")[' . "\n";
 				$source .= ( $show_title ? '#v(10mm)' : '#v(4mm)' ) . "\n";
 				$source .= implode( "\n#v(3mm)\n", $opening_lines ) . "\n";
 				$source .= "\n";
-				$source .= "]\n";
+				$source .= "]\n]\n";
 			}
 		}
 
@@ -456,21 +470,30 @@ function almaden_bookster_build_typst_document( $payload ) {
 						'font_size'      => $heading1_font_size,
 						'font_weight'    => $heading1_font_weight,
 						'font_style'     => $heading1_font_style,
-						'letter_spacing' => 0,
+						'line_height'    => $heading1_line_height,
+						'align'          => $heading1_align,
+						'letter_spacing' => $heading1_letter_spacing,
+						'hyphenate'      => $heading1_hyphenate,
 					),
 					2 => array(
 						'font_family'    => $heading2_font_family,
 						'font_size'      => $heading2_font_size,
 						'font_weight'    => $heading2_font_weight,
 						'font_style'     => $heading2_font_style,
-						'letter_spacing' => 0,
+						'line_height'    => $heading2_line_height,
+						'align'          => $heading2_align,
+						'letter_spacing' => $heading2_letter_spacing,
+						'hyphenate'      => $heading2_hyphenate,
 					),
 					3 => array(
 						'font_family'    => $heading3_font_family,
 						'font_size'      => $heading3_font_size,
 						'font_weight'    => $heading3_font_weight,
 						'font_style'     => $heading3_font_style,
-						'letter_spacing' => 0,
+						'line_height'    => $heading3_line_height,
+						'align'          => $heading3_align,
+						'letter_spacing' => $heading3_letter_spacing,
+						'hyphenate'      => $heading3_hyphenate,
 					),
 				),
 			);
@@ -598,6 +621,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 	return array(
 		'source'        => $source,
 		'page_templates' => $page_template_context['templates'],
+		'page_styles'   => $page_styles,
 		'page_template_context' => $page_template_context,
 		'semantic_text' => implode( ' ', $plain_parts ),
 		'semantic_extras' => $plain_extras,
@@ -610,21 +634,30 @@ function almaden_bookster_build_typst_document( $payload ) {
 				'font_size'      => $heading1_font_size,
 				'font_weight'    => $heading1_font_weight,
 				'font_style'     => $heading1_font_style,
-				'letter_spacing' => 0,
+				'line_height'    => $heading1_line_height,
+				'align'          => $heading1_align,
+				'letter_spacing' => $heading1_letter_spacing,
+				'hyphenate'      => $heading1_hyphenate,
 			),
 			2 => array(
 				'font_family'    => $heading2_font_family,
 				'font_size'      => $heading2_font_size,
 				'font_weight'    => $heading2_font_weight,
 				'font_style'     => $heading2_font_style,
-				'letter_spacing' => 0,
+				'line_height'    => $heading2_line_height,
+				'align'          => $heading2_align,
+				'letter_spacing' => $heading2_letter_spacing,
+				'hyphenate'      => $heading2_hyphenate,
 			),
 			3 => array(
 				'font_family'    => $heading3_font_family,
 				'font_size'      => $heading3_font_size,
 				'font_weight'    => $heading3_font_weight,
 				'font_style'     => $heading3_font_style,
-				'letter_spacing' => 0,
+				'line_height'    => $heading3_line_height,
+				'align'          => $heading3_align,
+				'letter_spacing' => $heading3_letter_spacing,
+				'hyphenate'      => $heading3_hyphenate,
 			),
 		),
 		'typography'    => array(

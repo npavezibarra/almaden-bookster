@@ -14,9 +14,10 @@ if ( ! is_file( $experience ) ) {
 } else {
 	$source = file_get_contents( $experience );
 	$required_fragments = array(
-		'const QUIET_DELAY_MS = 700',
+		'const QUIET_DELAY_MS = 1000',
 		'const ACTION_DELAY_MS = 0',
-		'const MAX_WAIT_MS = 1800',
+		'const MAX_WAIT_MS = 3000',
+		'let activeCompilePromise = null',
 		"layer.id = 'typst-preview-continuity-layer'",
 		'continuity.scroller.replaceChildren(...continuity.originalNodes)',
 		'window.compilePDFPreview = compileWithContinuity',

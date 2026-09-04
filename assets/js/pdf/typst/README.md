@@ -162,6 +162,12 @@ de continuidad hasta que PDF.js termina de pintar la nueva revisión.
   - Orquestador del preview y punto de entrada público.
   - Expone `compilePDFPreview`, `triggerPrint` y `window.almadenTypstPdf`.
   - Coordina el estado compartido con los módulos auxiliares.
+  - Separa el JSON inicial del sobre y entrega a PDF.js únicamente los bytes
+    que comienzan con `%PDF-`.
+
+- [`editor-typst-response.js`](./editor-typst-response.js)
+  - Valida y decodifica el sobre binario de metadatos + PDF.
+  - Rechaza longitudes inválidas o respuestas cuya sección PDF no tenga firma.
 
 - [`editor-typst-pdf-state.js`](./editor-typst-pdf-state.js)
   - Normalización de payload, firma de caché y contador universal.

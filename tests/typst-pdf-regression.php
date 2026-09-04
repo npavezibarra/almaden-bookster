@@ -62,6 +62,30 @@ $payload = array(
 		'font_family_content'    => 'Libertinus Serif',
 		'font_weight_content'    => '500',
 		'line_height_content'    => 1.2,
+		'font_family_h1'         => 'Outfit',
+		'font_size_h1'           => 21,
+		'font_weight_h1'         => '800',
+		'font_style_h1'          => 'normal',
+		'line_height_h1'         => 1.5,
+		'text_align_h1'          => 'right',
+		'letter_spacing_h1'      => 1.2,
+		'hyphenate_h1'           => 1,
+		'font_family_h2'         => 'Inter Tight',
+		'font_size_h2'           => 15,
+		'font_weight_h2'         => '700',
+		'font_style_h2'          => 'italic',
+		'line_height_h2'         => 1.25,
+		'text_align_h2'          => 'center',
+		'letter_spacing_h2'      => 0.4,
+		'hyphenate_h2'           => 0,
+		'font_family_h3'         => 'Libertinus Serif',
+		'font_size_h3'           => 13,
+		'font_weight_h3'         => '500',
+		'font_style_h3'          => 'normal',
+		'line_height_h3'         => 1.1,
+		'text_align_h3'          => 'left',
+		'letter_spacing_h3'      => -0.1,
+		'hyphenate_h3'           => 0,
 		'content_text_align'     => 'justify',
 		'content_text_align_last' => 'left',
 		'content_hyphenation'    => '1',
@@ -96,6 +120,9 @@ $payload = array(
 						'header'  => '#315c47',
 						'footer'  => '#315c47',
 						'opening' => '#7a3028',
+						'opening_prefix' => '#e49595',
+						'opening_title' => '#fefefe',
+						'opening_subtitle' => '#19a7a0',
 					),
 				),
 			),
@@ -127,6 +154,7 @@ $payload = array(
 			array(
 				'title'   => 'Introducción',
 				'content' => "La **inteligencia artificial** está transformando el trabajo.\n\n" .
+					"# Encabezado de prueba\n\n## Subencabezado de prueba\n\n### Bajada de prueba\n\n" .
 					"A medida que estas herramientas se vuelven más accesibles, surge un nuevo desafío.\n\n" .
 				$problem_paragraph . "\n\n" . $problem_paragraph .
 					"\n\nTexto con nota[^1] y <foreign lang=\"en\">a complete foreign sentence</foreign>.\n\n" .
@@ -205,6 +233,9 @@ if ( false !== strpos( $document['source'], 'fill: context' ) ) {
 	exit( 1 );
 }
 $required_typography = array(
+		'else if kind == "opening_prefix" { if current == 1 { rgb("#e49595") }',
+		'else if kind == "opening_title" { if current == 1 { rgb("#fefefe") }',
+		'else if kind == "opening_subtitle" { if current == 1 { rgb("#19a7a0") }',
 		'background: almaden-page-background()',
 		'#let almaden-page-background() = context {',
 		'rect(width: 100%, height: 100%, stroke: none, fill: rgb("ffffff"))',
@@ -212,6 +243,9 @@ $required_typography = array(
 		'#line(length: 100%, stroke: 0.35pt)',
 		'#set par(justify: true, leading: 0.2em, spacing: 4pt, first-line-indent: 0pt)',
 		'#align(left)[',
+		'#set par(justify: false, first-line-indent: 0pt, leading: 0.5em)' . "\n" . '#align(right)[#heading(level: 1)[#almaden-page-colored("content", fill => text(fill: fill, font: "Outfit", size: 21pt, weight: 800, style: "normal", tracking: 1.2pt, hyphenate: true)[Encabezado de prueba])]]',
+		'#set par(justify: false, first-line-indent: 0pt, leading: 0.25em)' . "\n" . '#align(center)[#heading(level: 2)[#almaden-page-colored("content", fill => text(fill: fill, font: "Inter Tight", size: 15pt, weight: 700, style: "italic", tracking: 0.4pt, hyphenate: false)[Subencabezado de prueba])]]',
+		'#set par(justify: false, first-line-indent: 0pt, leading: 0.1em)' . "\n" . '#align(left)[#heading(level: 3)[#almaden-page-colored("content", fill => text(fill: fill, font: "Libertinus Serif", size: 13pt, weight: 500, style: "normal", tracking: -0.1pt, hyphenate: false)[Bajada de prueba])]]',
 		'#text(hyphenate: false)[tecnología]',
 		'#let almaden-current-chapter-title() = context {',
 		'#metadata("Índice") <almaden-chapter-start>',
@@ -225,8 +259,8 @@ $required_typography = array(
 		'#let almaden-is-chapter-transition-page() = {',
 		'#set text(font: "Outfit", size: 19.5pt, weight: 800, style: "normal", tracking: 0pt)',
 		'#set text(font: "Inter Tight", size: 10.5pt, weight: 700, style: "italic", tracking: 0.3pt)',
-		'#align(right)[#text(font: "Inter Tight", size: 16pt, weight: 700, style: "italic", tracking: 5pt)',
-		'#text(font: "Inter Tight", size: 16pt, weight: 700, style: "italic", tracking: 5pt)',
+		'#align(right)[#almaden-page-colored("opening_prefix", fill => text(fill: fill, font:',
+		'#almaden-page-colored("opening_prefix", fill => text(fill: fill, font:',
 		'#block(width: 100%, breakable: false, inset: (top: 0cm, bottom: 1.5cm, left: 0cm, right: 0cm))',
 		'#set par(justify: false, first-line-indent: 0pt, leading: 0.2em, spacing: 0pt)',
 		'Capítulo 1',
@@ -320,12 +354,12 @@ $chapter_control_fragments = array(
 	'#place(right + bottom)',
 	'#block(width: 100%, breakable: false, inset: (top: 0.4cm, bottom: 0.6cm, left: 0.7cm, right: 0.8cm))',
 	'#set par(justify: false, first-line-indent: 0pt, leading: 0.4em, spacing: 0pt)',
-	'#align(right)[#heading(level: 1, outlined: true)[#text(font: "Libertinus Serif", size: 32pt, weight: 600, style: "italic", tracking: 1.5pt, hyphenate: true)[TÍTULO DE CONTROL]]]',
+		'#align(right)[#heading(level: 1, outlined: true)[#almaden-page-colored("opening_title", fill => text(fill: fill, font: "Libertinus Serif", size: 32pt, weight: 600, style: "italic", tracking: 1.5pt, hyphenate: true)[TÍTULO DE CONTROL])]]',
 	'#block(width: 100%, breakable: false)',
-	'#align(center)[#text(font: "Libertinus Serif", size: 18pt, weight: 800, style: "italic", tracking: 2.5pt)[PREFIJO 1]]',
+	'#align(center)[#almaden-page-colored("opening_prefix", fill => text(fill: fill, font:',
 	'#align(center)[\*\*\*]',
 	'#block(width: 100%, breakable: false, inset: (top: 0.2cm, bottom: 0.4cm, left: 0cm, right: 0cm))',
-	'#align(left)[#text(font: "Libertinus Serif", size: 14pt, weight: 500, style: "italic", tracking: 0.8pt)[SUBTÍTULO DE CONTROL]]',
+		'#align(left)[#almaden-page-colored("opening_subtitle", fill => text(fill: fill, font: "Libertinus Serif", size: 14pt, weight: 500, style: "italic", tracking: 0.8pt)[SUBTÍTULO DE CONTROL])]',
 );
 foreach ( $chapter_control_fragments as $fragment ) {
 	if ( false === strpos( $chapter_controls_source, $fragment ) ) {
@@ -344,10 +378,10 @@ $inherited_subtitle_payload['settings']['font_family_content'] = 'Libertinus Ser
 $inherited_subtitle_payload['settings']['chapter_subtitle_font_family'] = 'Cormorant Garamond';
 $inherited_subtitle_payload['chapters'][0]['subtitle_font_family'] = '';
 $inherited_subtitle_source = almaden_bookster_build_typst_document( $inherited_subtitle_payload )['source'];
-if ( false === strpos( $inherited_subtitle_source, '#text(font: "Cormorant Garamond", size: 14pt' ) ) {
-	fwrite( STDERR, 'La familia global del subtítulo no se heredó cuando el override del capítulo está vacío.' . PHP_EOL );
-	exit( 1 );
-}
+if ( false === strpos( $inherited_subtitle_source, '#almaden-page-colored("opening_subtitle", fill => text(fill: fill, font: "Cormorant Garamond", size: 14pt' ) ) {
+		fwrite( STDERR, 'La familia global del subtítulo no se heredó cuando el override del capítulo está vacío.' . PHP_EOL );
+		exit( 1 );
+	}
 $title_position = strpos( $chapter_controls_source, 'TÍTULO DE CONTROL' );
 $prefix_position = strpos( $chapter_controls_source, 'PREFIJO 1' );
 if ( false === $title_position || false === $prefix_position || $prefix_position < $title_position ) {

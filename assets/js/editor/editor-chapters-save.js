@@ -1,6 +1,39 @@
 // assets/js/editor/editor-chapters-save.js
 
 let saveTimeout = null;
+let activeSavePromise = null;
+let pendingSaveBatch = null;
+
+function runPendingSave() {
+    if (activeSavePromise || !pendingSaveBatch) return;
+    const batch = pendingSaveBatch;
+    pendingSaveBatch = null;
+    clearTimeout(saveTimeout);
+    saveTimeout = null;
+
+    activeSavePromise = Promise.resolve(batch.task()).catch(() => false);
+    activeSavePromise.then(result => batch.resolvers.forEach(resolve => resolve(result))).finally(() => {
+        activeSavePromise = null;
+        if (pendingSaveBatch) runPendingSave();
+    });
+}
+
+function scheduleSerializedSave(task, delay) {
+    const promise = new Promise(resolve => {
+        if (!pendingSaveBatch) {
+            pendingSaveBatch = { task, resolvers: [resolve] };
+        } else {
+            pendingSaveBatch.task = task;
+            pendingSaveBatch.resolvers.push(resolve);
+        }
+    });
+
+    clearTimeout(saveTimeout);
+    if (!activeSavePromise) {
+        saveTimeout = setTimeout(runPendingSave, Math.max(0, delay));
+    }
+    return promise;
+}
 
 async function calculateAllPagesBackground() {
     let dummyScroller = document.getElementById('dummy-pdf-scroller');
@@ -35,12 +68,12 @@ async function calculateAllPagesBackground() {
 function saveStateToLocalStorage(immediate = false) {
     const statusIndicator = document.getElementById('save-status');
 
-    if (statusIndicator && !immediate && !saveTimeout) {
-        statusIndicator.innerHTML = '<i class="fa-solid fa-pen text-xs mr-1"></i> Editando...';
+    if (statusIndicator && !immediate) {
+        statusIndicator.innerHTML = activeSavePromise
+            ? '<i class="fa-solid fa-clock text-xs mr-1"></i> Cambios pendientes'
+            : '<i class="fa-solid fa-pen text-xs mr-1"></i> Editando...';
         statusIndicator.className = 'flex items-center gap-1 font-semibold text-slate-500';
     }
-
-    clearTimeout(saveTimeout);
 
     window.calculateAllPagesBackground = calculateAllPagesBackground;
 
@@ -55,7 +88,7 @@ function saveStateToLocalStorage(immediate = false) {
         const saveWatchdog = setTimeout(() => {
             if (saveCompleted) return;
             if (statusIndicator) {
-                statusIndicator.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-xs mr-1"></i> Guardado pendiente';
+                statusIndicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs mr-1"></i> Guardando en segundo plano...';
                 statusIndicator.className = 'flex items-center gap-1 font-semibold text-amber-600';
             }
         }, 10000);
@@ -236,19 +269,6 @@ function saveStateToLocalStorage(immediate = false) {
                 data.append('credits_config', JSON.stringify(creditsConfig));
             }
 
-            if (creditsConfig && typeof window.saveCreditsConfig === 'function') {
-                try {
-                    const creditsSavePromise = window.saveCreditsConfig(creditsConfig);
-                    if (creditsSavePromise && typeof creditsSavePromise.catch === 'function') {
-                        creditsSavePromise.catch((error) => {
-                            console.warn('No se pudo sincronizar la configuracion de creditos antes del guardado general:', error);
-                        });
-                    }
-                } catch (error) {
-                    console.warn('No se pudo disparar la sincronizacion de creditos antes del guardado general:', error);
-                }
-            }
-
             const commerceState = typeof window.getCommerceStateFromForm === 'function'
                 ? window.getCommerceStateFromForm()
                 : (bookState.commerce || null);
@@ -261,23 +281,20 @@ function saveStateToLocalStorage(immediate = false) {
                 }
             }
 
-            const saveAbortController = typeof AbortController !== 'undefined' ? new AbortController() : null;
-            const saveTimeoutId = saveAbortController
-                ? setTimeout(() => {
-                    try {
-                        saveAbortController.abort();
-                    } catch (error) {
-                        // Ignore abort failures.
-                    }
-                }, 30000)
-                : null;
-
             const response = await fetch(bookState.ajaxUrl, {
                 method: 'POST',
-                body: data,
-                signal: saveAbortController ? saveAbortController.signal : undefined
+                body: data
             });
-            const res = await response.json();
+            const responseText = await response.text();
+            let res = null;
+            try {
+                res = JSON.parse(responseText);
+            } catch (error) {
+                throw new Error(`Respuesta de guardado inválida (HTTP ${response.status}).`);
+            }
+            if (!response.ok) {
+                throw new Error(res?.data?.message || `El servidor respondió HTTP ${response.status}.`);
+            }
             if (res.success) {
                 const isLatestVisualRevision = saveRevision === (window.visualEditorRevision || 0);
                 if (isLatestVisualRevision) {
@@ -301,7 +318,13 @@ function saveStateToLocalStorage(immediate = false) {
                         if (serverCh.old_id) {
                             const localCh = bookState.chapters.find(c => c.id === serverCh.old_id);
                             if (localCh) {
+                                const currentContent = localCh.content;
+                                const currentTitle = localCh.title;
                                 Object.assign(localCh, serverCh);
+                                if (!isLatestVisualRevision) {
+                                    localCh.content = currentContent;
+                                    localCh.title = currentTitle;
+                                }
                                 localCh.id = serverCh.id;
                                 if (bookState.activeChapterId === serverCh.old_id) {
                                     bookState.activeChapterId = serverCh.id;
@@ -312,7 +335,13 @@ function saveStateToLocalStorage(immediate = false) {
                         } else {
                             const localCh = bookState.chapters.find(c => c.id === serverCh.id);
                             if (localCh) {
+                                const currentContent = localCh.content;
+                                const currentTitle = localCh.title;
                                 Object.assign(localCh, serverCh);
+                                if (!isLatestVisualRevision) {
+                                    localCh.content = currentContent;
+                                    localCh.title = currentTitle;
+                                }
                                 stateChanged = true;
                             }
                         }
@@ -321,9 +350,11 @@ function saveStateToLocalStorage(immediate = false) {
                         renderSidebar();
                     }
                 }
-                bookState.chapters.forEach(chapter => {
-                    chapter._lastSavedContent = String(chapter.content || '');
-                });
+                if (isLatestVisualRevision) {
+                    bookState.chapters.forEach(chapter => {
+                        chapter._lastSavedContent = String(chapter.content || '');
+                    });
+                }
             } else {
                 if (statusIndicator) {
                     statusIndicator.innerHTML = '<i class="fa-solid fa-circle-exclamation text-xs mr-1"></i> Error';
@@ -337,31 +368,31 @@ function saveStateToLocalStorage(immediate = false) {
             saveCompleted = true;
             return !!res.success;
         } catch (err) {
-            console.error(err);
+            console.error('No se pudo guardar el libro.', err);
             if (statusIndicator) {
-                statusIndicator.innerHTML = '<i class="fa-solid fa-wifi text-xs mr-1"></i> Error red';
+                const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
+                statusIndicator.innerHTML = offline
+                    ? '<i class="fa-solid fa-wifi text-xs mr-1"></i> Sin conexión'
+                    : '<i class="fa-solid fa-server text-xs mr-1"></i> Servidor ocupado';
                 statusIndicator.className = 'flex items-center gap-1 font-semibold text-rose-600';
+            }
+            if (typeof showToast === 'function') {
+                showToast('No se pudo confirmar el guardado. Tus cambios siguen en el editor.', 'fa-solid fa-circle-exclamation');
             }
             return false;
         } finally {
             saveCompleted = true;
             clearTimeout(saveWatchdog);
-            if (typeof saveTimeoutId !== 'undefined' && saveTimeoutId) {
-                clearTimeout(saveTimeoutId);
-            }
         }
     };
 
-    if (immediate) {
-        return executeSave();
-    }
-
-    const autosaveDelay = (bookState && bookState.viewMode === 'split') ? 1200 : 15000;
-    return new Promise((resolve) => {
-        saveTimeout = setTimeout(() => {
-            executeSave().then(resolve).catch(() => resolve(false));
-        }, autosaveDelay);
-    });
+    const autosaveDelay = immediate ? 0 : 6000;
+    return scheduleSerializedSave(executeSave, autosaveDelay);
 }
 
 window.saveStateToLocalStorage = saveStateToLocalStorage;
+window.almadenBookSaveCoordinator = {
+    schedule: scheduleSerializedSave,
+    isSaving: () => !!activeSavePromise,
+    hasPending: () => !!pendingSaveBatch
+};

@@ -89,7 +89,7 @@ Los datos persistidos viven en `_almaden_page_styles` y se guardan en
 
 El prefijo Typst define dos helpers que usan los estilos:
 
-- `almaden-page-style-color(kind)`: resuelve el paint de página para `fill`
+- `almaden-page-style-color(kind, current)`: resuelve un color concreto para la página ya conocida; los bloques contextuales le entregan `here().page()` antes de usarlo en `fill`.
   y el color de texto para `content`, `header`, `footer` u `opening`.
 - `almaden-page-styled(kind, body)`: aplica ese color al bloque recibido.
 
@@ -275,6 +275,10 @@ Funciones principales:
   generado y compara el texto extraído con el contenido esperado.
 - `almaden_bookster_typst_is_subsequence()`: valida que el texto compilado
   conserve la secuencia semántica esperada.
+- La medición secuencial de plantillas se delega a
+  `page-templates/page-template-compiler.php`.
+- Los planes ya medidos se reutilizan hasta la siguiente ancla; editar un
+  capítulo posterior no vuelve a medir las plantillas anteriores.
 
 ### `../ajax/ajax-typst-pdf.php`
 
@@ -284,12 +288,9 @@ Responsabilidad: endpoint autenticado para el preview Typst.
 - Limpia el payload antes de compilar.
 - Reinyecta `page_templates` persistidas desde `_almaden_page_templates`.
 - Adjunta `coverSettings` y `cover_settings`.
-- Devuelve headers útiles para depuración:
-  - `X-Almaden-PDF-Geometry`
-  - `X-Almaden-Page-Flow`
-  - `X-Almaden-Page-Template-Results`
-  - `X-Almaden-Typst-Opening-Debug`
-  - `X-Almaden-PDF-Integrity`
+- Devuelve un sobre binario con JSON de metadatos seguido del PDF. El tamaño
+  del JSON viaja en `X-Almaden-Metadata-Length`, evitando headers gigantes en
+  libros con muchos marcadores y plantillas.
 
 ## Datos que vale la pena respetar
 
@@ -303,9 +304,9 @@ Responsabilidad: endpoint autenticado para el preview Typst.
   nunca se exporten assets livianos.
 - `bookState.pdfPreview` es el contenedor serializable del estado de preview
   que usará la próxima fase para decidir modo, assets y contador universal.
-  El backend ahora devuelve `X-Almaden-Universal-Counter` con los inicios de
-  capítulo; el navegador lo combina con `pdfDocument.numPages` para obtener
-  rangos globales reales.
+  El backend incluye el contador universal en los metadatos del sobre; el
+  navegador lo combina con `pdfDocument.numPages` para obtener rangos globales
+  reales.
 - Cada plantilla tiene un `instance_id` estable y un `anchor.flow_id`; la
   página física se recalcula y se devuelve como `resolved_page`.
 - Cada slot debe conservar un `id` estable para que el panel de imágenes pueda

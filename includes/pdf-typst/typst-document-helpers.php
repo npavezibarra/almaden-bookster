@@ -448,7 +448,7 @@ function almaden_bookster_typst_chapter_prefix_ornament( $ornament ) {
 	return in_array( $ornament, array( 'none', 'line_below', 'line_above_below', 'asterisks' ), true ) ? $ornament : 'none';
 }
 
-function almaden_bookster_typst_render_chapter_prefix( $prefix_text, $style, $alignment, $ornament = 'none' ) {
+function almaden_bookster_typst_render_chapter_prefix( $prefix_text, $style, $alignment, $ornament = 'none', $style_kind = '' ) {
 	$style = is_array( $style ) ? $style : array();
 	$alignment = in_array( $alignment, array( 'left', 'center', 'right' ), true ) ? $alignment : 'center';
 	$ornament = almaden_bookster_typst_chapter_prefix_ornament( $ornament );
@@ -460,7 +460,13 @@ function almaden_bookster_typst_render_chapter_prefix( $prefix_text, $style, $al
 		$font_style = 'normal';
 	}
 	$tracking = isset( $style['letter_spacing'] ) && is_numeric( $style['letter_spacing'] ) ? round( max( -20, min( 20, (float) $style['letter_spacing'] ) ), 3 ) : 0;
-	$body = '#text(font: "' . almaden_bookster_typst_escape_string( $font_family ) . '", size: ' . round( $font_size, 3 ) . 'pt, weight: ' . $font_weight . ', style: "' . almaden_bookster_typst_escape_string( $font_style ) . '", tracking: ' . $tracking . 'pt)[' . almaden_bookster_typst_escape_markup( $prefix_text ) . ']';
+	$style_kind = trim( (string) $style_kind );
+	$font_text = 'font: "' . almaden_bookster_typst_escape_string( $font_family ) . '", size: ' . round( $font_size, 3 ) . 'pt, weight: ' . $font_weight . ', style: "' . almaden_bookster_typst_escape_string( $font_style ) . '", tracking: ' . $tracking . 'pt';
+	$body = '#text(' . $font_text . ')[' . almaden_bookster_typst_escape_markup( $prefix_text ) . ']';
+	if ( '' !== $style_kind ) {
+		$style_kind = almaden_bookster_typst_escape_string( $style_kind );
+		$body = '#almaden-page-colored("' . $style_kind . '", fill => text(fill: fill, ' . $font_text . ')[' . almaden_bookster_typst_escape_markup( $prefix_text ) . '])';
+	}
 	$parts = array();
 
 	if ( 'line_above_below' === $ornament ) {

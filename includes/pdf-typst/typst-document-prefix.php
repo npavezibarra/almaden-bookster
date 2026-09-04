@@ -117,6 +117,9 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 		'header' => array(),
 		'footer' => array(),
 		'opening' => array(),
+		'opening_prefix' => array(),
+		'opening_title' => array(),
+		'opening_subtitle' => array(),
 	);
 	foreach ( $page_styles as $page_style ) {
 		$page_style = is_array( $page_style ) ? $page_style : array();
@@ -152,8 +155,17 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 			'page' => $page_number,
 			'expr' => $background_content,
 		);
-		foreach ( array( 'content', 'header', 'footer', 'opening' ) as $kind ) {
+		$opening_fallback = isset( $text_colors['opening'] ) ? (string) $text_colors['opening'] : '#111111';
+		foreach ( array( 'content', 'header', 'footer', 'opening', 'opening_prefix', 'opening_title', 'opening_subtitle' ) as $kind ) {
+			$raw_color = isset( $text_colors[ $kind ] ) ? (string) $text_colors[ $kind ] : '';
+			if ( '' === trim( $raw_color ) && 0 === strpos( $kind, 'opening' ) ) {
+				$raw_color = $opening_fallback;
+			}
+			if ( '' === trim( $raw_color ) && 'opening' === $kind ) {
+				$raw_color = $opening_fallback;
+			}
 			$color = isset( $text_colors[ $kind ] ) ? (string) $text_colors[ $kind ] : '#111111';
+			$color = '' !== trim( $raw_color ) ? $raw_color : $color;
 			$color = strtolower( trim( ltrim( $color, '#' ) ) );
 			if ( ! preg_match( '/^(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/', $color ) ) {
 				$color = '111111';
@@ -178,6 +190,9 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 	$page_style_header_expr = $page_style_build_expression( $page_style_resolvers['header'], almaden_bookster_typst_page_style_color_literal( '#111111', '#111111' ) );
 	$page_style_footer_expr = $page_style_build_expression( $page_style_resolvers['footer'], almaden_bookster_typst_page_style_color_literal( '#111111', '#111111' ) );
 	$page_style_opening_expr = $page_style_build_expression( $page_style_resolvers['opening'], almaden_bookster_typst_page_style_color_literal( '#111111', '#111111' ) );
+	$page_style_opening_prefix_expr = $page_style_build_expression( $page_style_resolvers['opening_prefix'], almaden_bookster_typst_page_style_color_literal( '#111111', '#111111' ) );
+	$page_style_opening_title_expr = $page_style_build_expression( $page_style_resolvers['opening_title'], almaden_bookster_typst_page_style_color_literal( '#111111', '#111111' ) );
+	$page_style_opening_subtitle_expr = $page_style_build_expression( $page_style_resolvers['opening_subtitle'], almaden_bookster_typst_page_style_color_literal( '#111111', '#111111' ) );
 	$page_style_image_pages = array_values( array_unique( array_map( 'intval', $page_style_image_pages ) ) );
 	$page_style_image_pages_expr = empty( $page_style_image_pages )
 		? '()'
@@ -194,15 +209,28 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 	$source .= '  let break_before = current > 1 and breaks.any(mark => mark.location().page() == current - 1)' . "\n";
 	$source .= '  starts_next and (break_before or (current == 1 and break_here))' . "\n";
 	$source .= '}' . "\n\n";
-	$source .= '#let almaden-page-style-color(kind) = {' . "\n";
-	$source .= '  let current = here().page()' . "\n";
-	$source .= '  let force_white = almaden-is-chapter-transition-page() and almaden-chapter-transition-mode != "blank_with_header_footer"' . "\n";
-	$source .= '  if kind == "fill" and force_white { rgb("ffffff") }' . "\n";
-	$source .= '  else if kind == "fill" { ' . $page_style_fill_expr . ' }' . "\n";
+	// Keep the color resolver value-only: Typst does not allow a contextual
+	// content expression as `text.fill`. Contextual callers resolve `here()`
+	// first and then pass the page number into this function.
+	$source .= '#let almaden-page-style-color(kind, current) = {' . "\n";
+	$source .= '  if kind == "fill" { ' . $page_style_fill_expr . ' }' . "\n";
 	$source .= '  else if kind == "header" { ' . $page_style_header_expr . ' }' . "\n";
 	$source .= '  else if kind == "footer" { ' . $page_style_footer_expr . ' }' . "\n";
 	$source .= '  else if kind == "opening" { ' . $page_style_opening_expr . ' }' . "\n";
+	$source .= '  else if kind == "opening_prefix" { ' . $page_style_opening_prefix_expr . ' }' . "\n";
+	$source .= '  else if kind == "opening_title" { ' . $page_style_opening_title_expr . ' }' . "\n";
+	$source .= '  else if kind == "opening_subtitle" { ' . $page_style_opening_subtitle_expr . ' }' . "\n";
 	$source .= '  else { ' . $page_style_content_expr . ' }' . "\n";
+	$source .= '}' . "\n\n";
+	$source .= '#let almaden-page-colored(kind, body) = context {' . "\n";
+	$source .= '  let current = here().page()' . "\n";
+	$source .= '  body(almaden-page-style-color(kind, current))' . "\n";
+	$source .= '}' . "\n\n";
+	$source .= '#let almaden-text-zone = state("almaden-text-zone", "content")' . "\n";
+	$source .= '#let almaden-with-text-zone(kind, body) = {' . "\n";
+	$source .= '  almaden-text-zone.update(kind)' . "\n";
+	$source .= '  body' . "\n";
+	$source .= '  almaden-text-zone.update("content")' . "\n";
 	$source .= '}' . "\n\n";
 	$source .= '#let almaden-bleed = ' . $bleed . $unit . "\n\n";
 	$source .= '#let almaden-page-style-image-pages = ' . $page_style_image_pages_expr . "\n\n";
@@ -214,7 +242,8 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 		: '' ) ;
 	$source .= '}' . "\n\n";
 	$source .= '#let almaden-page-styled(kind, body) = context {' . "\n";
-	$source .= '  set text(fill: almaden-page-style-color(kind))' . "\n";
+	$source .= '  let current = here().page()' . "\n";
+	$source .= '  set text(fill: almaden-page-style-color(kind, current))' . "\n";
 	$source .= '  body' . "\n";
 	$source .= '}' . "\n\n";
 
@@ -279,7 +308,7 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 	$source .= '    } else {' . "\n";
 	$source .= '      box_align' . "\n";
 	$source .= '    }' . "\n";
-	$source .= '    let running_fill = almaden-page-style-color(running_area)' . "\n";
+	$source .= '    let running_fill = almaden-page-style-color(running_area, current)' . "\n";
 	$source .= '    box(width: 100%, inset: (top: margin_top, bottom: margin_bottom))[' . "\n";
 	$source .= '      #set text(fill: running_fill, font: font_family, size: font_size, weight: font_weight, style: font_style, tracking: letter_spacing, hyphenate: hyphenate)' . "\n";
 	$source .= '      #set par(justify: false, leading: 1em, spacing: 0pt)' . "\n";
@@ -322,6 +351,9 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 		', top-edge: 0.8em, bottom-edge: -0.2em)' . "\n";
 	$source .= '#set par(justify: ' . ( $justify ? 'true' : 'false' ) . ', leading: ' . $leading_em .
 		'em, spacing: ' . $paragraph_gap . 'pt, first-line-indent: ' . $paragraph_indent . 'pt)' . "\n";
+	$source .= '#show par: it => context { if almaden-text-zone.get() == "opening" { it } else { almaden-page-styled("content", it) } }' . "\n";
+	$source .= '#show list: it => context { if almaden-text-zone.get() == "opening" { it } else { almaden-page-styled("content", it) } }' . "\n";
+	$source .= '#show enum: it => context { if almaden-text-zone.get() == "opening" { it } else { almaden-page-styled("content", it) } }' . "\n";
 	$source .= '#set heading(numbering: none)' . "\n\n";
 	$source .= '#set super(typographic: false, size: ' . round( max( 0.1, $footnote_call_scale ), 3 ) . 'em, baseline: -' . round( max( 0, $footnote_call_raise ), 3 ) . 'em)' . "\n";
 	if ( 'page' === $footnote_mode ) {

@@ -25,6 +25,9 @@ Cada estilo normalizado guarda estos bloques:
   - `header`
   - `footer`
   - `opening`
+  - `opening_prefix`
+  - `opening_title`
+  - `opening_subtitle`
 
 ## Archivos y responsabilidades
 
@@ -81,11 +84,18 @@ La colección persistida termina con una forma parecida a esta:
       "content": "#111111",
       "header": "#111111",
       "footer": "#111111",
-      "opening": "#111111"
+      "opening": "#111111",
+      "opening_prefix": "#111111",
+      "opening_title": "#111111",
+      "opening_subtitle": "#111111"
     }
   }
 }
 ```
+
+`opening` se conserva como alias de compatibilidad para estilos antiguos y se
+usa como valor de respaldo cuando todavía no existen las tres variantes
+específicas de la apertura.
 
 ## Flujo interno
 

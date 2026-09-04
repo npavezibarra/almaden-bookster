@@ -17,13 +17,9 @@ function almaden_bookster_get_book_media_picker_attachment_payload( $attachment_
 	$original_url = function_exists( 'almaden_bookster_get_book_image_original_url_from_attachment' )
 		? almaden_bookster_get_book_image_original_url_from_attachment( $attachment_id )
 		: wp_get_attachment_url( $attachment_id );
-	$preview_url = '';
-	if ( function_exists( 'almaden_bookster_get_book_image_preview_path' ) && function_exists( 'almaden_bookster_get_book_image_preview_url_from_path' ) ) {
-		$preview_path = almaden_bookster_get_book_image_preview_path( $attachment_id );
-		if ( $preview_path && file_exists( $preview_path ) ) {
-			$preview_url = almaden_bookster_get_book_image_preview_url_from_path( $preview_path );
-		}
-	}
+	$preview_url = function_exists( 'almaden_bookster_get_book_image_preview_url_from_attachment' )
+		? almaden_bookster_get_book_image_preview_url_from_attachment( $attachment_id )
+		: '';
 
 	$metadata = wp_get_attachment_metadata( $attachment_id );
 	$file_path = get_attached_file( $attachment_id );

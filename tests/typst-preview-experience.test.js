@@ -7,8 +7,15 @@ global.addEventListener = () => {};
 global.bookState = { pdfPreview: {} };
 
 let compileCalls = 0;
+let activeCompiles = 0;
+let maxActiveCompiles = 0;
+let compileBlocker = null;
 global.compilePDFPreview = async () => {
     compileCalls += 1;
+    activeCompiles += 1;
+    maxActiveCompiles = Math.max(maxActiveCompiles, activeCompiles);
+    if (compileBlocker) await compileBlocker;
+    activeCompiles -= 1;
     return 1;
 };
 global.almadenTypstPdf = { hasCurrentPreview: () => false };
@@ -27,8 +34,8 @@ async function run() {
 
     assert.deepEqual(results, [1, 1, 1]);
     assert.equal(compileCalls, 1, 'Rapid edits must coalesce into one compile.');
-    assert.ok(queuedDuration >= 650, 'Text changes must wait for a quiet period.');
-    assert.ok(queuedDuration < 1800, 'The quiet compile must respect max wait.');
+    assert.ok(queuedDuration >= 950, 'Text changes must wait for a quiet period.');
+    assert.ok(queuedDuration < 3000, 'The quiet compile must respect max wait.');
 
     const immediateAt = performance.now();
     const immediateResult = await global.compilePDFPreview(true, 'pdf-scroller', true);
@@ -37,9 +44,9 @@ async function run() {
     assert.ok(performance.now() - immediateAt < 200, 'Forced refresh must not debounce.');
     assert.equal(global.bookState.pdfPreview.lastResponsiveness.applied, true);
     assert.deepEqual(global.almadenTypstPreviewExperience.delays, {
-        quiet: 700,
+        quiet: 1000,
         action: 0,
-        maxWait: 1800
+        maxWait: 3000
     });
 
     const actionAt = performance.now();
@@ -47,6 +54,21 @@ async function run() {
     assert.equal(actionResult, 1);
     assert.equal(compileCalls, 3, 'Toolbar actions must compile through the immediate path.');
     assert.ok(performance.now() - actionAt < 200, 'Toolbar actions must not wait for a debounce.');
+
+    let releaseCompile;
+    compileBlocker = new Promise(resolve => {
+        releaseCompile = resolve;
+    });
+    const firstSlowCompile = global.compilePDFPreview(true, 'pdf-scroller', true);
+    await new Promise(resolve => setTimeout(resolve, 20));
+    const trailingCompile = global.compilePDFPreview(true, 'pdf-scroller', true);
+    await new Promise(resolve => setTimeout(resolve, 20));
+    assert.equal(compileCalls, 4, 'A second compile must wait while the first one is active.');
+    releaseCompile();
+    await Promise.all([firstSlowCompile, trailingCompile]);
+    compileBlocker = null;
+    assert.equal(compileCalls, 5, 'The latest queued revision must compile after the active one.');
+    assert.equal(maxActiveCompiles, 1, 'Typst compiles must never overlap.');
 
     console.log('Typst preview experience behavior checks passed.');
 }

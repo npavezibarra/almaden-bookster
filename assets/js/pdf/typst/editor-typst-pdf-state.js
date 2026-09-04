@@ -18,7 +18,7 @@
     const PREVIEW_CACHE_STORE = 'compiled-previews';
     // Bump whenever server-side pagination or running-header/footer semantics
     // change; the persistent key otherwise reuses a PDF compiled by old code.
-    const PREVIEW_CACHE_VERSION = 'v16';
+    const PREVIEW_CACHE_VERSION = 'v19';
     const PREVIEW_CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
     function getZoomFactor() {
@@ -436,6 +436,8 @@
             openingDebug: window.almadenTypstOpeningDebug || [],
             pageFlowMap: window.almadenPageTemplateFlowMap || [],
             pageTemplateResults: window.almadenPageTemplateResults || [],
+            pageTemplateAssetDiagnostics: window.almadenPageTemplateAssetDiagnostics || [],
+            pageTemplateAssetAudit: window.almadenPageTemplateAssetAudit || null,
             universalCounter: shared.pendingUniversalCounter || getUniversalCounter() || null,
             imageBlocks: shared.imageBlocks || []
         };
@@ -446,6 +448,10 @@
         window.almadenTypstOpeningDebug = metadata.openingDebug || [];
         window.almadenPageTemplateFlowMap = metadata.pageFlowMap || [];
         window.almadenPageTemplateResults = metadata.pageTemplateResults || [];
+        window.almadenPageTemplateAssetDiagnostics = Array.isArray(metadata.pageTemplateAssetDiagnostics)
+            ? metadata.pageTemplateAssetDiagnostics
+            : [];
+        window.almadenPageTemplateAssetAudit = metadata.pageTemplateAssetAudit || null;
         shared.pendingUniversalCounter = metadata.universalCounter || null;
         shared.imageBlocks = Array.isArray(metadata.imageBlocks) ? metadata.imageBlocks : [];
         rebuildUniversalCounter();

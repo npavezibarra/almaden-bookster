@@ -1,15 +1,17 @@
-// Slot image manager for Typst page templates.
+// Central Image Setter for image slots created by Typst page templates.
 (function () {
-    let modalBound = false;
-    let mediaFrame = null;
+    'use strict';
 
-    function getTemplates() {
-        return window.almadenPageTemplateState?.getTemplates?.() || [];
-    }
-
-    function normalizeId(value) {
-        return String(value || '').toLowerCase().replace(/[^a-z0-9_-]/g, '');
-    }
+    const state = {
+        bound: false,
+        filter: 'missing',
+        collapsed: new Set(),
+        initializedChapters: false,
+        pendingChanges: 0,
+        compiling: false,
+        saveFailed: false,
+        saveQueue: Promise.resolve()
+    };
 
     function escapeHtml(value) {
         return String(value || '')
@@ -20,90 +22,59 @@
             .replace(/'/g, '&#039;');
     }
 
-    function getTemplateDefinition(templateId) {
-        const registry = window.almadenPageTemplateRegistry || {};
-        return registry[normalizeId(templateId)] || null;
+    function getIndex() {
+        return window.almadenImageSetterData?.buildIndex?.() || {
+            chapters: [], rows: [], totals: { slots: 0, assigned: 0, missing: 0 }
+        };
     }
 
-    function getTemplateLabel(templateId) {
-        const definition = getTemplateDefinition(templateId);
-        return definition?.label || templateId || 'Plantilla';
+    function getTemplates() {
+        return window.almadenPageTemplateState?.getTemplates?.() || [];
     }
 
-    function makeSlotAnchor(instanceId, slotId) {
-        return `almaden-template-slot-${normalizeId(instanceId)}-${normalizeId(slotId)}`;
+    function findSlot(instanceId, slotId) {
+        const normalize = window.almadenPageTemplateState?.normalizeId || (value => String(value || ''));
+        const template = getTemplates().find(entry => (
+            window.almadenPageTemplateState.getInstanceId(entry) === normalize(instanceId)
+        ));
+        const slot = (template?.slots || []).find(entry => normalize(entry?.id) === normalize(slotId));
+        return template && slot ? { template, slot } : null;
     }
 
-    function getAllSlots() {
-        const templates = window.almadenPageTemplateState?.getAppliedTemplates?.() || getTemplates();
-        return templates.flatMap(template => {
-            const slots = Array.isArray(template?.slots) ? template.slots : [];
-            const instanceId = window.almadenPageTemplateState.getInstanceId(template);
-            return slots.map(slot => ({
-                page_number: window.almadenPageTemplateState.getResolvedPage(template),
-                template_id: template?.template_id || '',
-                template_label: getTemplateLabel(template?.template_id || ''),
-                instance_id: instanceId,
-                slot_id: slot?.id || '',
-                slot_label: slot?.label || slot?.id || 'Slot',
-                slot_kind: slot?.kind || 'image',
-                attachment_id: Number(slot?.attachment_id) || 0,
-                url: slot?.preview_url || slot?.url || slot?.original_url || '',
-                anchor_id: makeSlotAnchor(instanceId, slot?.id || '')
-            }));
-        });
+    function showToast(message, icon = 'fa-solid fa-image') {
+        if (typeof window.showToast === 'function') window.showToast(message, icon);
     }
 
-    function getSlotPreview(slot) {
-        return slot.url || '';
+    function ensureToolbarButton() {
+        let button = document.getElementById('image-setter-action');
+        if (button) return button;
+        const controls = document.getElementById('pdf-text-bounds-toggle')?.parentElement;
+        if (!controls) return null;
+
+        button = document.createElement('button');
+        button.id = 'image-setter-action';
+        button.type = 'button';
+        button.className = 'inline-flex h-7 items-center gap-1.5 rounded-md border border-[var(--border-color)] bg-[var(--bg-app)] px-2.5 text-[10px] font-bold text-[var(--text-main)] transition hover:border-amber-400 hover:bg-amber-50';
+        button.title = 'Asignar imágenes a las plantillas del libro';
+        button.innerHTML = `
+            <i class="fa-solid fa-images" aria-hidden="true"></i>
+            <span>SET IMAGES</span>
+            <span data-image-setter-toolbar-count class="min-w-4 rounded bg-amber-100 px-1 text-center text-[9px] text-amber-800">0</span>
+            <span data-image-setter-toolbar-pending class="hidden h-1.5 w-1.5 rounded-full bg-amber-500" aria-label="Cambios pendientes"></span>
+        `;
+        button.addEventListener('click', openModal);
+        controls.appendChild(button);
+        return button;
     }
 
-    function renderRows() {
-        const list = document.getElementById('page-template-images-list');
-        if (!list) return;
-
-        const slots = getAllSlots();
-        if (!slots.length) {
-            list.innerHTML = `
-                <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
-                    No hay rectángulos configurados todavía.
-                </div>
-            `;
-            return;
-        }
-
-        list.innerHTML = slots.map(slot => {
-            const preview = getSlotPreview(slot);
-            return `
-                <div class="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-                    <div class="min-w-0">
-                        <p class="text-xs font-bold uppercase tracking-[0.18em] text-amber-600">Página ${escapeHtml(slot.page_number)}</p>
-                        <p class="mt-1 text-base font-extrabold text-slate-900">${escapeHtml(slot.slot_label)}</p>
-                        <p class="mt-1 font-mono text-[11px] text-slate-500 break-all">${escapeHtml(slot.anchor_id)}</p>
-                        <p class="mt-1 text-xs text-slate-500">Plantilla: ${escapeHtml(slot.template_label)}</p>
-                    </div>
-                    <div class="flex flex-col items-start gap-2 sm:items-end">
-                        <div class="flex items-center gap-3">
-                            <div class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
-                                ${preview ? `<img src="${escapeHtml(preview)}" alt="" class="h-full w-full object-cover">` : '<span class="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">Vacío</span>'}
-                            </div>
-                            <div class="text-right">
-                                <p class="text-[11px] font-semibold text-slate-500">${escapeHtml(slot.slot_kind)}</p>
-                                <p class="text-[11px] text-slate-500">ID: ${escapeHtml(slot.slot_id)}</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button type="button" class="rounded-lg bg-black px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-neutral-800" data-page-template-slot-upload data-instance-id="${slot.instance_id}" data-slot-id="${slot.slot_id}">
-                                Upload Image
-                            </button>
-                            <button type="button" class="rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50" data-page-template-slot-clear data-instance-id="${slot.instance_id}" data-slot-id="${slot.slot_id}">
-                                Quitar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
+    function updateToolbar() {
+        const button = ensureToolbarButton();
+        if (!button) return;
+        const totals = getIndex().totals;
+        const count = button.querySelector('[data-image-setter-toolbar-count]');
+        if (count) count.textContent = String(totals.missing);
+        button.querySelector('[data-image-setter-toolbar-pending]')?.classList.toggle('hidden', state.pendingChanges < 1);
+        button.setAttribute('aria-label', `Asignar imágenes. ${totals.missing} pendientes`);
     }
 
     function ensureModal() {
@@ -112,200 +83,366 @@
 
         modal = document.createElement('div');
         modal.id = 'page-template-images-modal';
-        modal.className = 'fixed inset-0 z-[60] hidden items-center justify-center bg-slate-950/55 p-4 opacity-0 backdrop-blur-sm transition-opacity duration-200';
+        modal.className = 'fixed inset-0 z-[60] hidden items-center justify-center bg-slate-950/55 p-3 opacity-0 backdrop-blur-sm transition-opacity duration-150';
         modal.setAttribute('aria-hidden', 'true');
         modal.innerHTML = `
-            <div data-page-template-images-dialog class="flex h-[80vh] w-full max-w-4xl scale-95 flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl transition-transform duration-200">
-                <div class="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
-                    <div>
-                        <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-600">Imágenes de plantillas</p>
-                        <h3 class="mt-1 text-xl font-extrabold tracking-tight text-slate-900">Slots con imagen</h3>
+            <div data-image-setter-dialog role="dialog" aria-modal="true" aria-labelledby="image-setter-title" class="flex h-[88vh] w-full max-w-6xl scale-95 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl transition-transform duration-150">
+                <header class="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4">
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-600">Image Setter</p>
+                        <h3 id="image-setter-title" class="mt-1 text-lg font-extrabold text-slate-900">Asignar imágenes</h3>
+                        <p data-image-setter-summary class="mt-1 text-xs text-slate-500"></p>
                     </div>
-                    <button type="button" data-page-template-images-close class="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900" aria-label="Cerrar">
+                    <button type="button" data-image-setter-close class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900" aria-label="Cerrar y actualizar PDF" title="Cerrar">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
+                </header>
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-5 py-3">
+                    <div class="flex items-center rounded-md border border-slate-200 bg-white p-0.5 text-xs font-semibold" role="group" aria-label="Filtrar imágenes">
+                        <button type="button" data-image-setter-filter="missing" class="rounded-sm px-3 py-1.5">Pendientes</button>
+                        <button type="button" data-image-setter-filter="all" class="rounded-sm px-3 py-1.5">Todas</button>
+                        <button type="button" data-image-setter-filter="assigned" class="rounded-sm px-3 py-1.5">Asignadas</button>
+                    </div>
+                    <p class="text-[11px] text-slate-500">Preview ligero; el original se conserva para imprenta.</p>
                 </div>
-                <div class="flex-1 overflow-y-auto bg-slate-50 p-6">
-                    <div id="page-template-images-list" class="space-y-3"></div>
-                </div>
-                <div class="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
-                    <button type="button" data-page-template-images-close class="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-200">Cerrar</button>
-                </div>
+                <div id="page-template-images-list" class="flex-1 overflow-y-auto bg-white"></div>
+                <footer class="flex items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-5 py-3">
+                    <p data-image-setter-status class="min-w-0 truncate text-xs text-slate-500">Sin cambios pendientes.</p>
+                    <div class="flex shrink-0 items-center gap-2">
+                        <button type="button" data-image-setter-close class="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100">Cerrar</button>
+                        <button type="button" data-image-setter-apply class="rounded-md bg-black px-3 py-2 text-xs font-semibold text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40">
+                            <i class="fa-solid fa-rotate mr-1.5"></i>Actualizar PDF
+                        </button>
+                    </div>
+                </footer>
             </div>
         `;
         document.body.appendChild(modal);
         return modal;
     }
 
-    function closeModal() {
-        const modal = document.getElementById('page-template-images-modal');
-        const dialog = modal?.querySelector('[data-page-template-images-dialog]');
-        if (!modal || !dialog) return;
+    function renderRatio(row) {
+        const width = Math.max(12, Math.min(64, Math.round(row.ratio.value * 36)));
+        const label = `${row.ratio.width}:${row.ratio.height}`;
+        return `<span class="block h-9 max-w-full border border-amber-700 bg-amber-400" style="width:${width}px" title="Proporción ${label}" aria-label="Proporción ${label}"></span>`;
+    }
+
+    function renderRow(row) {
+        const preview = row.previewUrl
+            ? `<img src="${escapeHtml(row.previewUrl)}" alt="" loading="lazy" decoding="async" class="h-12 w-12 object-cover">`
+            : row.assigned
+                ? '<i class="fa-solid fa-image text-slate-400" title="Imagen asignada sin preview"></i>'
+                : '<span class="text-[9px] font-bold uppercase text-slate-400">Vacío</span>';
+        const actionLabel = row.configured ? 'Reemplazar' : 'Subir';
+        const statusLabel = row.assigned
+            ? ''
+            : row.configured
+                ? 'No disponible para PDF'
+                : 'Sin imagen';
+        return `
+            <div class="grid min-h-[72px] grid-cols-[52px_minmax(0,1fr)_60px_42px] items-center gap-3 border-t border-slate-100 px-5 py-2.5 sm:grid-cols-[56px_minmax(0,1fr)_72px_76px_126px]" data-image-setter-row="${escapeHtml(row.key)}">
+                <div class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-slate-50">${preview}</div>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-2">
+                        <span class="h-2 w-2 shrink-0 rounded-full ${row.assigned ? 'bg-emerald-500' : 'bg-amber-500'}"></span>
+                        <p class="truncate text-sm font-bold text-slate-900">${escapeHtml(row.slotLabel)}</p>
+                    </div>
+                    <p class="mt-1 truncate text-[11px] ${row.assigned ? 'text-slate-500' : 'text-amber-700'}">${escapeHtml(row.templateLabel)}${statusLabel ? ` · ${escapeHtml(statusLabel)}` : ''}</p>
+                </div>
+                <button type="button" data-image-setter-page="${row.pageNumber}" class="justify-self-start rounded-md px-2 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100" title="Ir a la página ${row.pageNumber}">Pág. ${row.pageNumber || '?'}</button>
+                <div class="flex justify-center">${renderRatio(row)}</div>
+                <div class="col-span-4 flex justify-end gap-1.5 sm:col-span-1">
+                    <button type="button" data-image-setter-upload data-instance-id="${escapeHtml(row.instanceId)}" data-slot-id="${escapeHtml(row.slotId)}" class="inline-flex h-8 items-center gap-1.5 rounded-md bg-black px-2.5 text-[11px] font-semibold text-white hover:bg-neutral-800">
+                        <i class="fa-solid fa-upload"></i><span>${actionLabel}</span>
+                    </button>
+                    <button type="button" data-image-setter-clear data-instance-id="${escapeHtml(row.instanceId)}" data-slot-id="${escapeHtml(row.slotId)}" class="${row.configured ? 'inline-flex' : 'hidden'} h-8 w-8 items-center justify-center rounded-md border border-rose-200 text-rose-600 hover:bg-rose-50" aria-label="Quitar imagen" title="Quitar imagen">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderChapter(chapter) {
+        const rows = window.almadenImageSetterData.filterRows(chapter.rows, state.filter);
+        if (state.filter !== 'all' && !rows.length) return '';
+        const assigned = chapter.rows.filter(row => row.assigned).length;
+        const collapsed = state.collapsed.has(chapter.key);
+        return `
+            <section data-image-setter-chapter-section="${escapeHtml(chapter.key)}" class="border-b border-slate-200">
+                <button type="button" data-image-setter-chapter="${escapeHtml(chapter.key)}" class="flex w-full items-center justify-between gap-4 bg-slate-50 px-5 py-3 text-left hover:bg-slate-100" aria-expanded="${collapsed ? 'false' : 'true'}">
+                    <span class="min-w-0">
+                        <span class="block truncate text-sm font-extrabold text-slate-900">${escapeHtml(chapter.title)}</span>
+                        <span class="mt-0.5 block text-[11px] text-slate-500">${assigned}/${chapter.rows.length} asignadas</span>
+                    </span>
+                    <i class="fa-solid fa-chevron-${collapsed ? 'down' : 'up'} text-xs text-slate-400"></i>
+                </button>
+                <div class="${collapsed ? 'hidden' : ''}">${rows.map(renderRow).join('')}</div>
+            </section>
+        `;
+    }
+
+    function updatePendingStatus() {
+        const modal = ensureModal();
+        const status = modal.querySelector('[data-image-setter-status]');
+        const apply = modal.querySelector('[data-image-setter-apply]');
+        if (status) {
+            status.textContent = state.compiling
+                ? 'Actualizando composición Typst...'
+                : state.saveFailed
+                    ? 'No se pudieron guardar los cambios.'
+                    : state.pendingChanges
+                        ? `${state.pendingChanges} cambio${state.pendingChanges === 1 ? '' : 's'} pendiente${state.pendingChanges === 1 ? '' : 's'} de actualizar.`
+                        : 'Sin cambios pendientes.';
+        }
+        if (apply) {
+            apply.disabled = state.compiling || state.pendingChanges < 1 || state.saveFailed;
+            apply.innerHTML = state.compiling
+                ? '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i>Actualizando...'
+                : '<i class="fa-solid fa-rotate mr-1.5"></i>Actualizar PDF';
+        }
+    }
+
+    function render() {
+        const modal = ensureModal();
+        const index = getIndex();
+        if (!state.initializedChapters) {
+            index.chapters.filter(chapter => !chapter.rows.some(row => !row.assigned)).forEach(chapter => state.collapsed.add(chapter.key));
+            state.initializedChapters = true;
+        }
+        const summary = modal.querySelector('[data-image-setter-summary]');
+        if (summary) summary.textContent = `${index.totals.slots} espacios · ${index.totals.assigned} asignados · ${index.totals.missing} pendientes`;
+        modal.querySelectorAll('[data-image-setter-filter]').forEach(button => {
+            const active = button.dataset.imageSetterFilter === state.filter;
+            button.classList.toggle('bg-black', active);
+            button.classList.toggle('text-white', active);
+            button.classList.toggle('text-slate-600', !active);
+            button.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        const list = modal.querySelector('#page-template-images-list');
+        if (list) {
+            const content = index.chapters.map(renderChapter).join('');
+            list.innerHTML = content || '<div class="p-8 text-center text-sm text-slate-500">No hay espacios de imagen para este filtro.</div>';
+        }
+        updatePendingStatus();
+        updateToolbar();
+    }
+
+    function queueSave(message) {
+        state.pendingChanges += 1;
+        state.saveFailed = false;
+        render();
+        state.saveQueue = state.saveQueue.catch(() => false).then(async () => {
+            const saved = typeof window.savePDFSettings === 'function'
+                ? await window.savePDFSettings(true, true)
+                : true;
+            if (!saved) {
+                state.saveFailed = true;
+                updatePendingStatus();
+                throw new Error('No se pudieron guardar los cambios del Image Setter.');
+            }
+            showToast(message);
+            return true;
+        });
+        return state.saveQueue;
+    }
+
+    function recordAssignmentTrace(event, target, row) {
+        const template = target?.template || {};
+        const slot = target?.slot || {};
+        const trace = Array.isArray(window.almadenPageTemplateAssignmentTrace)
+            ? window.almadenPageTemplateAssignmentTrace
+            : [];
+        trace.push({
+            timestamp: new Date().toISOString(),
+            event,
+            instanceId: String(template.instance_id || template.id || ''),
+            slotId: String(slot.id || ''),
+            authoredPage: Number(template.page_number || 0),
+            resolvedPage: Number(row?.pageNumber || template.resolved_page || 0),
+            attachmentId: Number(slot.attachment_id || 0),
+            url: String(slot.url || ''),
+            originalUrl: String(slot.original_url || ''),
+            previewUrl: String(slot.preview_url || '')
+        });
+        window.almadenPageTemplateAssignmentTrace = trace.slice(-50);
+    }
+
+    async function applyPendingChanges() {
+        if (state.compiling) return false;
+        try {
+            await state.saveQueue;
+            if (state.saveFailed || state.pendingChanges < 1) return !state.saveFailed;
+            state.compiling = true;
+            updatePendingStatus();
+            if (typeof window.compilePDFPreview === 'function') await window.compilePDFPreview(true);
+            state.pendingChanges = 0;
+            state.compiling = false;
+            render();
+            showToast('PDF actualizado con las imágenes asignadas.', 'fa-solid fa-circle-check');
+            return true;
+        } catch (error) {
+            state.compiling = false;
+            state.saveFailed = true;
+            updatePendingStatus();
+            showToast(error?.message || 'No se pudo actualizar el PDF.', 'fa-solid fa-circle-exclamation');
+            return false;
+        }
+    }
+
+    async function assignImage(instanceId, slotId, row) {
+        const target = findSlot(instanceId, slotId);
+        if (!target) return;
+        if (!window.AlmadenBooksterMediaPicker || !window.bookState?.bookId) {
+            showToast('El selector de imágenes no está disponible.', 'fa-solid fa-circle-exclamation');
+            return;
+        }
+        try {
+            const attachment = await window.AlmadenBooksterMediaPicker.open({
+                bookId: window.bookState.bookId,
+                ajaxUrl: window.bookState.ajaxUrl,
+                nonce: window.bookState.mediaPickerNonce,
+                title: `Asignar imagen a ${row?.slotLabel || target.slot.id}`,
+                buttonText: 'Usar esta imagen'
+            });
+            if (!attachment) return;
+            const originalUrl = attachment.originalUrl || attachment.originalImageURL || attachment.url || '';
+            const previewUrl = attachment.previewUrl || '';
+            target.slot.attachment_id = Number(attachment.id) || 0;
+            target.slot.url = originalUrl || previewUrl;
+            target.slot.original_url = originalUrl || target.slot.url;
+            target.slot.preview_url = previewUrl;
+            window.almadenPageTemplateAssetDiagnostics = [];
+            recordAssignmentTrace('assigned', target, row);
+            window.bookState.settings.page_templates = getTemplates();
+            queueSave(`Imagen asignada a ${row?.slotLabel || target.slot.id}.`);
+        } catch (error) {
+            showToast(error?.message || 'No se pudo seleccionar la imagen.', 'fa-solid fa-circle-exclamation');
+        }
+    }
+
+    function clearImage(instanceId, slotId) {
+        const target = findSlot(instanceId, slotId);
+        if (!target) return;
+        target.slot.attachment_id = 0;
+        target.slot.url = '';
+        target.slot.original_url = '';
+        target.slot.preview_url = '';
+        window.almadenPageTemplateAssetDiagnostics = [];
+        recordAssignmentTrace('cleared', target, getRows().find(row => row.instanceId === instanceId && row.slotId === slotId));
+        window.bookState.settings.page_templates = getTemplates();
+        queueSave(`Imagen quitada de ${target.slot.label || target.slot.id}.`);
+    }
+
+    function hideModal() {
+        const modal = ensureModal();
+        const dialog = modal.querySelector('[data-image-setter-dialog]');
         modal.classList.add('opacity-0');
-        dialog.classList.remove('scale-100');
-        dialog.classList.add('scale-95');
+        dialog?.classList.remove('scale-100');
+        dialog?.classList.add('scale-95');
         window.setTimeout(() => {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
             modal.setAttribute('aria-hidden', 'true');
-        }, 180);
+        }, 150);
     }
 
-    function openMediaUploader(rowData) {
-        const applySelection = (attachment) => {
-            if (!attachment) return;
-            const templates = getTemplates();
-            const templateIndex = templates.findIndex(template => (
-                window.almadenPageTemplateState.getInstanceId(template) === normalizeId(rowData.instance_id)
-            ));
-            if (templateIndex < 0) return;
-
-            const slot = (templates[templateIndex].slots || []).find(entry => normalizeId(entry?.id) === normalizeId(rowData.slot_id));
-            if (!slot) return;
-
-            const originalUrl = attachment.originalUrl || attachment.originalImageURL || attachment.url || '';
-            const previewUrl = attachment.previewUrl || attachment.sizes?.medium?.url || attachment.sizes?.thumbnail?.url || originalUrl;
-            slot.attachment_id = Number(attachment.id) || 0;
-            slot.url = originalUrl || previewUrl || '';
-            slot.original_url = originalUrl || slot.url;
-            slot.preview_url = previewUrl || slot.url;
-            window.bookState.settings.page_templates = templates;
-
-            saveAndRefresh(`Imagen asignada a ${rowData.slot_id}.`);
-        };
-
-        if (window.AlmadenBooksterMediaPicker && bookState && bookState.bookId && bookState.mediaPickerNonce) {
-            window.AlmadenBooksterMediaPicker.open({
-                bookId: bookState.bookId,
-                ajaxUrl: bookState.ajaxUrl,
-                nonce: bookState.mediaPickerNonce,
-                title: `Asignar imagen a ${rowData.slot_label}`,
-                buttonText: 'Usar esta imagen'
-            }).then(applySelection).catch(() => {});
-            return;
-        }
-
-        if (typeof wp === 'undefined' || !wp.media) {
-            if (typeof window.showToast === 'function') {
-                window.showToast('La biblioteca multimedia no está disponible.', 'fa-solid fa-circle-exclamation');
-            }
-            return;
-        }
-
-        window.bookState = window.bookState || {};
-        window.bookState.settings = window.bookState.settings || {};
-
-        if (mediaFrame) {
-            mediaFrame.off('select');
-        } else {
-            mediaFrame = wp.media({
-                title: `Asignar imagen a ${rowData.slot_label}`,
-                button: { text: 'Usar esta imagen' },
-                multiple: false,
-                library: { type: 'image' }
-            });
-        }
-
-        mediaFrame.on('select', function () {
-            const attachment = mediaFrame.state().get('selection').first().toJSON();
-            applySelection(attachment);
-        });
-
-        mediaFrame.open();
-    }
-
-    function clearSlotImage(rowData) {
-        window.bookState = window.bookState || {};
-        window.bookState.settings = window.bookState.settings || {};
-        const templates = getTemplates();
-        const templateIndex = templates.findIndex(template => (
-            window.almadenPageTemplateState.getInstanceId(template) === normalizeId(rowData.instance_id)
-        ));
-        if (templateIndex < 0) return;
-
-        const slot = (templates[templateIndex].slots || []).find(entry => normalizeId(entry?.id) === normalizeId(rowData.slot_id));
-        if (!slot) return;
-
-        slot.attachment_id = 0;
-        slot.url = '';
-        slot.original_url = '';
-        slot.preview_url = '';
-        window.bookState.settings.page_templates = templates;
-
-        saveAndRefresh(`Imagen quitada de ${rowData.slot_id}.`);
-    }
-
-    async function saveAndRefresh(message) {
-        const saved = typeof window.savePDFSettings === 'function'
-            ? await window.savePDFSettings(true, true)
-            : true;
-        if (!saved) {
-            if (typeof window.showToast === 'function') {
-                window.showToast('No se pudieron guardar los cambios del slot.', 'fa-solid fa-circle-exclamation');
-            }
-            return;
-        }
-
-        renderRows();
-        if (typeof window.compilePDFPreview === 'function') {
-            await window.compilePDFPreview(true);
-        }
-        if (message && typeof window.showToast === 'function') {
-            window.showToast(message, 'fa-solid fa-image');
-        }
+    async function closeModal() {
+        if (state.compiling) return;
+        if (state.pendingChanges && !(await applyPendingChanges())) return;
+        hideModal();
     }
 
     function openModal() {
         const modal = ensureModal();
-        const dialog = modal?.querySelector('[data-page-template-images-dialog]');
-        if (!modal || !dialog) return;
-
-        renderRows();
+        render();
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         modal.setAttribute('aria-hidden', 'false');
         requestAnimationFrame(() => {
             modal.classList.remove('opacity-0');
-            dialog.classList.remove('scale-95');
-            dialog.classList.add('scale-100');
+            modal.querySelector('[data-image-setter-dialog]')?.classList.replace('scale-95', 'scale-100');
         });
+    }
+
+    function scrollToPage(pageNumber) {
+        const findPage = () => document.querySelector(`#pdf-scroller [data-page-number="${Number(pageNumber)}"]`);
+        const scroll = (attempt = 0) => {
+            const page = findPage();
+            if (page) {
+                page.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+            if (attempt < 12) window.setTimeout(() => scroll(attempt + 1), 120);
+        };
+        if (!findPage() && typeof window.setPdfPreviewMode === 'function') window.setPdfPreviewMode('full');
+        scroll();
+    }
+
+    async function navigateToPage(pageNumber) {
+        if (state.pendingChanges && !(await applyPendingChanges())) return;
+        hideModal();
+        scrollToPage(pageNumber);
     }
 
     function bind() {
-        if (modalBound) return;
-        modalBound = true;
+        if (state.bound) return;
+        state.bound = true;
         const modal = ensureModal();
+        ensureToolbarButton();
+        updateToolbar();
         modal.addEventListener('click', event => {
-            if (event.target === modal || event.target.closest('[data-page-template-images-close]')) {
+            if (event.target === modal || event.target.closest('[data-image-setter-close]')) {
                 closeModal();
                 return;
             }
-
-            const uploadBtn = event.target.closest('[data-page-template-slot-upload]');
-            if (uploadBtn) {
-                openMediaUploader({
-                    instance_id: uploadBtn.dataset.instanceId,
-                    slot_id: uploadBtn.dataset.slotId,
-                    slot_label: uploadBtn.closest('div')?.querySelector('.text-base')?.textContent || uploadBtn.dataset.slotId
-                });
+            const filter = event.target.closest('[data-image-setter-filter]');
+            if (filter) {
+                state.filter = filter.dataset.imageSetterFilter || 'missing';
+                render();
                 return;
             }
-
-            const clearBtn = event.target.closest('[data-page-template-slot-clear]');
-            if (clearBtn) {
-                clearSlotImage({
-                    instance_id: clearBtn.dataset.instanceId,
-                    slot_id: clearBtn.dataset.slotId
-                });
+            const chapter = event.target.closest('[data-image-setter-chapter]');
+            if (chapter) {
+                const key = chapter.dataset.imageSetterChapter;
+                state.collapsed.has(key) ? state.collapsed.delete(key) : state.collapsed.add(key);
+                render();
+                return;
             }
+            const page = event.target.closest('[data-image-setter-page]');
+            if (page) {
+                navigateToPage(page.dataset.imageSetterPage);
+                return;
+            }
+            const upload = event.target.closest('[data-image-setter-upload]');
+            if (upload) {
+                const row = getIndex().rows.find(entry => entry.instanceId === upload.dataset.instanceId && entry.slotId === upload.dataset.slotId);
+                assignImage(upload.dataset.instanceId, upload.dataset.slotId, row);
+                return;
+            }
+            const clear = event.target.closest('[data-image-setter-clear]');
+            if (clear) {
+                clearImage(clear.dataset.instanceId, clear.dataset.slotId);
+                return;
+            }
+            if (event.target.closest('[data-image-setter-apply]')) applyPendingChanges();
         });
-
         document.addEventListener('keydown', event => {
-            if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
-                closeModal();
-            }
+            if (event.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
         });
     }
 
-    window.almadenPageTemplateImagesUI = { bind, openModal, closeModal, refresh: renderRows };
+    window.almadenPageTemplateImagesUI = {
+        bind,
+        openModal,
+        closeModal,
+        refresh: render,
+        applyPendingChanges
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bind, { once: true });
+    } else {
+        bind();
+    }
 })();

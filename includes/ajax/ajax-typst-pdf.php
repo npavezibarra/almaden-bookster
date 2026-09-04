@@ -14,6 +14,29 @@ require_once dirname( __DIR__ ) . '/pdf-typst/typst-compiler.php';
 
 add_action( 'wp_ajax_almaden_compile_typst_pdf', 'almaden_bookster_ajax_compile_typst_pdf' );
 
+if ( ! defined( 'ALMADEN_BOOKSTER_TYPST_PREVIEW_RENDERER_VERSION' ) ) {
+	define( 'ALMADEN_BOOKSTER_TYPST_PREVIEW_RENDERER_VERSION', '11' );
+}
+
+/**
+ * Replace layout collections from the editor with their persisted versions.
+ *
+ * Page templates and page styles are saved before preview compilation. Reading
+ * both collections here keeps the compiler on one authoritative snapshot and
+ * prevents stale browser state from producing a different PDF.
+ */
+function almaden_bookster_typst_hydrate_persisted_layout_settings( $book_id, $settings ) {
+	$settings = is_array( $settings ) ? $settings : array();
+	if ( function_exists( 'almaden_bookster_typst_get_page_templates' ) ) {
+		$settings['page_templates'] = almaden_bookster_typst_get_page_templates( $book_id );
+	}
+	if ( function_exists( 'almaden_bookster_typst_get_page_styles' ) ) {
+		$settings['page_styles'] = almaden_bookster_typst_get_page_styles( $book_id );
+	}
+
+	return $settings;
+}
+
 /**
  * Cache compiled previews by their complete Typst input and asset freshness.
  * The system temp directory keeps these private binary accelerators outside the
@@ -21,9 +44,10 @@ add_action( 'wp_ajax_almaden_compile_typst_pdf', 'almaden_bookster_ajax_compile_
  */
 function almaden_bookster_typst_preview_cache_key( $document ) {
 	$parts = array(
-		'almaden-typst-preview-v5',
+		'almaden-typst-preview-v' . ALMADEN_BOOKSTER_TYPST_PREVIEW_RENDERER_VERSION,
 		(string) ( $document['source'] ?? '' ),
 		wp_json_encode( $document['page_templates'] ?? array() ),
+		wp_json_encode( $document['page_styles'] ?? array() ),
 	);
 	$paths = array_merge(
 		array_values( (array) ( $document['assets'] ?? array() ) ),
@@ -93,7 +117,7 @@ function almaden_bookster_typst_preview_cache_write( $book_id, $cache_key, $pdf,
 		return $pdf_written && $meta_written;
 	}
 	usort( $entries, static function ( $left, $right ) {
-		return filemtime( $right ) <=> filemtime( $left );
+		return ( is_file( $right ) ? (int) @filemtime( $right ) : 0 ) <=> ( is_file( $left ) ? (int) @filemtime( $left ) : 0 );
 	} );
 	foreach ( array_slice( $entries, 12 ) as $stale_pdf ) {
 		@unlink( $stale_pdf );
@@ -105,8 +129,11 @@ function almaden_bookster_typst_preview_cache_write( $book_id, $cache_key, $pdf,
 
 function almaden_bookster_typst_preview_metadata() {
 	return array(
+		'renderer_version'      => ALMADEN_BOOKSTER_TYPST_PREVIEW_RENDERER_VERSION,
 		'page_flow'             => $GLOBALS['almaden_bookster_typst_page_flow_map'] ?? array(),
 		'page_template_results' => $GLOBALS['almaden_bookster_typst_page_template_results'] ?? array(),
+		'page_template_asset_diagnostics' => $GLOBALS['almaden_bookster_typst_page_template_asset_diagnostics'] ?? array(),
+		'page_template_asset_audit' => $GLOBALS['almaden_bookster_typst_page_template_asset_audit'] ?? array(),
 		'universal_counter'     => $GLOBALS['almaden_bookster_typst_universal_counter'] ?? null,
 		'image_blocks'          => $GLOBALS['almaden_bookster_typst_image_blocks'] ?? array(),
 		'opening_debug'         => $GLOBALS['almaden_bookster_typst_opening_debug'] ?? null,
@@ -117,6 +144,8 @@ function almaden_bookster_typst_preview_metadata() {
 function almaden_bookster_typst_restore_preview_metadata( $meta ) {
 	$GLOBALS['almaden_bookster_typst_page_flow_map']         = $meta['page_flow'] ?? array();
 	$GLOBALS['almaden_bookster_typst_page_template_results'] = $meta['page_template_results'] ?? array();
+	$GLOBALS['almaden_bookster_typst_page_template_asset_diagnostics'] = $meta['page_template_asset_diagnostics'] ?? array();
+	$GLOBALS['almaden_bookster_typst_page_template_asset_audit'] = $meta['page_template_asset_audit'] ?? array();
 	$GLOBALS['almaden_bookster_typst_universal_counter']     = $meta['universal_counter'] ?? null;
 	$GLOBALS['almaden_bookster_typst_image_blocks']          = $meta['image_blocks'] ?? array();
 	$GLOBALS['almaden_bookster_typst_opening_debug']         = $meta['opening_debug'] ?? null;
@@ -124,36 +153,21 @@ function almaden_bookster_typst_restore_preview_metadata( $meta ) {
 }
 
 function almaden_bookster_send_typst_preview_pdf( $book_id, $document, $pdf, $cache_status ) {
+	$metadata = almaden_bookster_typst_preview_metadata();
+	$metadata['geometry'] = $document['geometry'] ?? array();
+	$metadata['typography'] = $document['typography'] ?? array();
+	$metadata_json = wp_json_encode( $metadata );
+	if ( false === $metadata_json ) {
+		$metadata_json = '{}';
+	}
 	nocache_headers();
-	header( 'Content-Type: application/pdf' );
+	header( 'Content-Type: application/vnd.almaden.typst-preview' );
 	header( 'Content-Disposition: inline; filename="almaden-book-' . absint( $book_id ) . '.pdf"' );
-	header( 'Content-Length: ' . strlen( $pdf ) );
+	header( 'Content-Length: ' . ( strlen( $metadata_json ) + strlen( $pdf ) ) );
 	header( 'X-Almaden-Typst-Cache: ' . $cache_status );
 	header( 'X-Almaden-Source-Hash: ' . $document['source_hash'] );
-	header( 'X-Almaden-PDF-Geometry: ' . rawurlencode( wp_json_encode( $document['geometry'] ) ) );
-	header( 'X-Almaden-PDF-Typography: ' . rawurlencode( wp_json_encode( $document['typography'] ) ) );
-	if ( ! empty( $GLOBALS['almaden_bookster_typst_page_flow_map'] ) ) {
-		header( 'X-Almaden-Page-Flow: ' . rawurlencode( wp_json_encode( $GLOBALS['almaden_bookster_typst_page_flow_map'] ) ) );
-	}
-	if ( isset( $GLOBALS['almaden_bookster_typst_page_template_results'] ) ) {
-		header( 'X-Almaden-Page-Template-Results: ' . rawurlencode( wp_json_encode( $GLOBALS['almaden_bookster_typst_page_template_results'] ) ) );
-	}
-	if ( isset( $GLOBALS['almaden_bookster_typst_universal_counter'] ) ) {
-		header( 'X-Almaden-Universal-Counter: ' . rawurlencode( wp_json_encode( $GLOBALS['almaden_bookster_typst_universal_counter'] ) ) );
-	}
-	if ( ! empty( $GLOBALS['almaden_bookster_typst_image_blocks'] ) ) {
-		header( 'X-Almaden-Image-Blocks: ' . rawurlencode( wp_json_encode( $GLOBALS['almaden_bookster_typst_image_blocks'] ) ) );
-	}
-	if ( isset( $GLOBALS['almaden_bookster_typst_opening_debug'] ) ) {
-		header( 'X-Almaden-Typst-Opening-Debug: ' . rawurlencode( wp_json_encode( $GLOBALS['almaden_bookster_typst_opening_debug'] ) ) );
-	}
-	if ( ! empty( $GLOBALS['almaden_bookster_typst_integrity_warning'] ) ) {
-		header( 'X-Almaden-PDF-Integrity: ' . rawurlencode( wp_json_encode( array(
-			'status'  => 'warning',
-			'message' => (string) $GLOBALS['almaden_bookster_typst_integrity_warning'],
-		) ) ) );
-	}
-	echo $pdf;
+	header( 'X-Almaden-Metadata-Length: ' . strlen( $metadata_json ) );
+	echo $metadata_json . $pdf;
 	exit;
 }
 
@@ -177,14 +191,10 @@ function almaden_bookster_ajax_compile_typst_pdf() {
 	$payload['settings'] = isset( $payload['settings'] ) && is_array( $payload['settings'] )
 		? $payload['settings']
 		: array();
-	/*
-	 * Page templates are persistent book layout data. Reading them here avoids a
-	 * stale editor state silently compiling a regular PDF after a template was
-	 * successfully saved through the settings endpoint.
-	 */
-	if ( function_exists( 'almaden_bookster_typst_get_page_templates' ) ) {
-		$payload['settings']['page_templates'] = almaden_bookster_typst_get_page_templates( $book_id );
-	}
+	$payload['settings'] = almaden_bookster_typst_hydrate_persisted_layout_settings(
+		$book_id,
+		$payload['settings']
+	);
 
 	$cover_settings = get_post_meta( $book_id, '_almaden_cover_settings', true );
 	if ( ! is_array( $cover_settings ) && '' === trim( (string) $cover_settings ) ) {

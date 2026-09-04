@@ -24,7 +24,8 @@ estructura ni sus slots.
 - `page-template-registry.php`
   - Declara los presets disponibles.
   - Hoy los presets activos incluyen `one-column-one-image`,
-    `upper-image-bottom-text-split` e `inner-full-page`.
+    `one-image-one-column`, `upper-image-bottom-text-split`,
+    `image-top-two-column-bottom`, `four-images` e `inner-full-page`.
   - Aquí se registran también el label visible y los slots esperados.
 
 - `page-template-normalizer.php`
@@ -44,7 +45,8 @@ estructura ni sus slots.
 - `page-template-placeholder.php`
   - Renderiza el placeholder temporal de cada slot.
   - En ausencia de imagen, devuelve un rectángulo naranjo.
-  - Si existen varios slots, arma una grilla vertical para todos.
+  - Si existen varios slots, arma una grilla vertical para todos; `four-images`
+    usa una grilla 2x2 específica.
   - Consume `asset_mode` para decidir si el slot pinta la versión optimizada o
     la original del archivo.
 
@@ -66,14 +68,39 @@ estructura ni sus slots.
   - Busca los bloques físicos del flujo.
   - Reemplaza la región de la página objetivo por un wrapper de página
     completa.
-  - Soporta layouts `split` y `full` para poder sumar más presets sin tocar el
-    composer principal en cada nuevo caso.
+  - Soporta layouts `split`, `image-left-split`, `upper-bottom-split`,
+    `image-top-two-column-bottom`, `four-images-grid` y `full` para poder sumar
+    más presets sin tocar el composer principal en cada nuevo caso.
 
 - `page-template-word-flow.php`
   - Ejecuta el probe de Typst por palabra.
   - Detecta el último punto visible real de la caja de texto.
   - Usa ese corte para dividir el bloque entre lo visible en la página actual y
     lo que debe continuar en páginas posteriores.
+  - Cuando la hoja seleccionada empieza con la continuación de un párrafo de la
+    hoja anterior, detecta la primera palabra real de esa hoja y conserva el
+    fragmento previo antes de insertar la plantilla física.
+  - Los marcadores se adjuntan después de cada palabra y no agregan espacios,
+    para que el probe mida la misma composición que verá el PDF final.
+
+- `page-template-layout-probe.php`
+  - Mide la capacidad del frame después de resolver una continuación de página.
+  - Mantiene dentro de la plantilla solo las palabras que caben y devuelve el
+    excedente al flujo normal de las páginas siguientes.
+  - En `upper-image-bottom-text-split`, mide además la columna derecha para que
+    el texto restante no se desborde bajo el margen inferior.
+  - Conserva cada fragmento como segmento estructurado, incluso cuando la hoja
+    comienza a mitad de un párrafo sin un marcador de flujo propio.
+
+- `page-template-compiler.php`
+  - Orquesta la resolución, medición y aplicación secuencial de plantillas.
+  - Mantiene fuera de `typst-compiler.php` el trabajo específico de este módulo.
+
+- `page-template-plan-cache.php`
+  - Guarda el parche ya medido de cada plantilla hasta la siguiente ancla.
+  - Una edición posterior reutiliza las plantillas anteriores sin repetir sus
+    consultas de Typst; cambios en su contenido, estilo o geometría invalidan
+    el plan automáticamente.
 
 - `page-template-transition.php`
   - Expone como destinos las páginas blancas creadas por `Iniciar izquierda`,
@@ -109,6 +136,11 @@ El arreglo persistido en `_almaden_page_templates` termina en algo así:
   ]
 }
 ```
+
+Cada slot del registro declara además `aspect_ratio.width` y
+`aspect_ratio.height`. Este metadato no modifica el render Typst: permite que
+el Image Setter represente la proporción editorial de la caja sin abrir el
+original de imprenta ni duplicar la geometría en JavaScript.
 
 ## Flujo interno
 
@@ -181,3 +213,9 @@ El arreglo persistido en `_almaden_page_templates` termina en algo así:
   refluír.
 - Si la plantilla necesita más de un rectángulo, modela cada rectángulo como un
   slot independiente para que el panel de imágenes siga siendo directo.
+
+## Registro de Cambios
+
+- **2026-09-02**: Corrección del desborde de texto en plantillas de página físicas.
+  - **Problema**: En plantillas divididas o de columnas (ej. `image-top-two-column-bottom`), cuando el texto excedía la capacidad de la caja asignada, Typst continuaba renderizándolo hacia abajo fuera de la caja, superponiéndose con el margen inferior y el número de página. Adicionalmente, el margen de seguridad del probe de palabras (`bottom_safety`) era muy permisivo.
+  - **Solución**: Se añadió la regla `clip: true` a todos los contenedores de bloques de texto (`#block`) en `page-template-composer.php` para impedir el desborde visual. También se robusteció el margen inferior en la función de corte `almaden_bookster_typst_page_template_probe_cut` (en `page-template-word-flow.php`), asegurando que las palabras al límite se transfieran correctamente a `$deferred_body` para fluir hacia las siguientes columnas y páginas sin salirse de la caja de la plantilla.

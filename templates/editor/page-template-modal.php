@@ -128,7 +128,16 @@
                             <p class="text-xs text-slate-500">Cada zona puede heredar o recibir su propio color.</p>
                         </div>
 
-                        <div class="grid gap-3">
+                        <div class="flex gap-2 overflow-x-auto border-b border-slate-100 pb-2">
+                            <button type="button" data-page-style-text-tab-button="general" class="rounded-full border border-slate-200 bg-black px-3 py-1.5 text-xs font-bold text-white transition whitespace-nowrap">
+                                General
+                            </button>
+                            <button type="button" data-page-style-text-tab-button="opening" class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-slate-100 whitespace-nowrap">
+                                Apertura
+                            </button>
+                        </div>
+
+                        <div data-page-style-text-panel="general" class="grid gap-3">
                             <div>
                                 <label class="mb-1 block text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Content</label>
                                 <input id="page-style-text-color-content" type="color" value="#111111" class="h-11 w-full cursor-pointer rounded-xl border border-slate-200 bg-white p-1">
@@ -141,9 +150,20 @@
                                 <label class="mb-1 block text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Pie</label>
                                 <input id="page-style-text-color-footer" type="color" value="#111111" class="h-11 w-full cursor-pointer rounded-xl border border-slate-200 bg-white p-1">
                             </div>
+                        </div>
+
+                        <div data-page-style-text-panel="opening" class="hidden grid gap-3">
                             <div>
-                                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Apertura</label>
-                                <input id="page-style-text-color-opening" type="color" value="#111111" class="h-11 w-full cursor-pointer rounded-xl border border-slate-200 bg-white p-1">
+								<label class="mb-1 block text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Prefijo del capítulo</label>
+                                <input id="page-style-text-color-opening-prefix" type="color" value="#111111" class="h-11 w-full cursor-pointer rounded-xl border border-slate-200 bg-white p-1">
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Título</label>
+                                <input id="page-style-text-color-opening-title" type="color" value="#111111" class="h-11 w-full cursor-pointer rounded-xl border border-slate-200 bg-white p-1">
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Metadata</label>
+                                <input id="page-style-text-color-opening-subtitle" type="color" value="#111111" class="h-11 w-full cursor-pointer rounded-xl border border-slate-200 bg-white p-1">
                             </div>
                         </div>
                     </div>

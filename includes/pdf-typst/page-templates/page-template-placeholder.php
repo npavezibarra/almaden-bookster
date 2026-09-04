@@ -31,6 +31,15 @@ function almaden_bookster_typst_page_template_placeholder( $template, $context =
 	}
 
 	$gap = round( (float) ( $context['columns_gap'] ?? 0.8 ), 4 ) . ( $context['unit'] ?? 'cm' );
+	if ( 'four-images-grid' === almaden_bookster_typst_page_template_layout_mode( $template ) ) {
+		$cells = array();
+		foreach ( array_slice( $slots, 0, 4 ) as $slot ) {
+			$cells[] = "[\n" . almaden_bookster_typst_page_template_render_slot( $template, $slot, $assets, $asset_mode ) . "\n]";
+		}
+		$output = '#grid(columns: (1fr, 1fr), rows: (1fr, 1fr), gutter: ' . $gap . ')';
+		return $output . "\n" . implode( "\n", $cells ) . "\n";
+	}
+
 	$row_sizes = array_fill( 0, count( $slots ), '1fr' );
 	$rows = array();
 	foreach ( $slots as $slot ) {

@@ -25,16 +25,22 @@ y dispara recompilaciones para que el backend Typst vuelva a renderizar.
   - Mantiene el selector principal por debajo del límite de 500 líneas.
 
 - `editor-page-template-images.js`
-  - Administra los rectángulos/slots que se muestran en el panel de imágenes.
-  - Abre la media library de WordPress.
-  - Guarda el attachment asignado a cada slot.
-  - Limpia imágenes y recompila el PDF para reflejar el cambio.
+  - Renderiza el panel global `SET IMAGES` desde los controles del visor.
+  - Agrupa los slots por capítulo y ofrece filtros de pendientes/asignadas.
+  - Abre el selector de media del libro y guarda cada attachment de inmediato.
+  - Agrupa las modificaciones y recompila Typst una sola vez al actualizar o
+    cerrar el panel.
   - Funciones clave:
     - `bind()`
-    - `renderRows()`
-    - `openMediaUploader(rowData)`
-    - `clearSlotImage(rowData)`
-    - `saveAndRefresh(message)`
+    - `openModal()` / `closeModal()`
+    - `applyPendingChanges()`
+
+- `editor-image-setter-data.js`
+  - Construye un índice puro de capítulos, páginas, plantillas y slots.
+  - Usa `resolved_page` y el contador universal para asignar cada fila a su
+    capítulo actual después del reflujo.
+  - Lee `aspect_ratio` desde el registro y solo expone `preview_url` para las
+    miniaturas ligeras.
 
 - `editor-page-template-state.js`
   - Centraliza la identidad estable de cada instancia.
@@ -74,6 +80,10 @@ Cada slot puede tener:
 - `preview_url`
 - `original_url`
 
+La definición del slot en `page-template-registry.php` agrega
+`aspect_ratio.width` y `aspect_ratio.height`. Es la proporción editorial de la
+caja, no la proporción del archivo que el usuario seleccione.
+
 El modal de plantillas muestra cada preset como una miniatura con su nombre
 debajo, para que el listado siga siendo legible cuando haya muchas plantillas.
 
@@ -83,23 +93,28 @@ debajo, para que el listado siga siendo legible cuando haya muchas plantillas.
 2. `editor-page-template-selector.js` abre el modal de plantillas.
 3. Si aplica una plantilla, el selector escribe la entrada normalizada en
    `bookState.settings.page_templates`.
-4. Si abre el panel de imágenes, `editor-page-template-images.js` muestra todos
-   los slots detectados.
-5. Al subir o quitar una imagen, la UI guarda settings, recompila Typst y
-   redibuja el preview.
+4. `SET IMAGES` muestra todos los capítulos y slots detectados, incluidos los
+   vacíos.
+5. Al subir o quitar una imagen, la UI guarda settings sin recompilar.
+6. `Actualizar PDF` o cerrar el panel ejecuta una sola composición para todos
+   los cambios pendientes.
 
 ## Regla de identidad
 
 `page_number` nunca debe usarse para buscar, reemplazar o eliminar una
 plantilla. La página cambia cuando el texto refluye. Esas operaciones usan
-`instance_id`; `resolved_page` sirve exclusivamente para presentar y
-seleccionar la página actual. Los slots pertenecen a la instancia, por lo que
-eliminarla elimina también sus imágenes y evita registros fantasma.
+`instance_id`; `resolved_page` sirve para presentar la página actual. La UI
+puede descubrir una instancia tanto por `resolved_page` como por `page_number`
+para que una plantilla siga pudiendo quitarse desde la página donde fue creada,
+aunque el reflujo la haya empujado a otra hoja. Los slots pertenecen a la
+instancia, por lo que eliminarla elimina también sus imágenes y evita registros
+fantasma.
 
 ## Extensiones futuras
 
 - Si aparece un preset nuevo, este submódulo debe mostrarlo sin hardcodear IDs
-  en la UI.
+  en la UI. Las miniaturas pueden variar por `definition.preview.type` cuando
+  la estructura visual necesita una disposición distinta.
 - Si una plantilla trae más de un rectángulo, cada rectángulo debe ser un slot
   independiente y seguir teniendo un `id` estable.
 - Si el backend cambia la forma del JSON, actualiza primero el normalizador en

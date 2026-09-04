@@ -164,6 +164,9 @@ window.almadenBuildPDFSettingsState = function(ctx) {
         font_size_h1: parseVal('setting-font-size-h1', 24),
         font_size_h2: parseVal('setting-font-size-h2', 16),
         font_size_h3: parseVal('setting-font-size-h3', 13),
+        hyphenate_h1: getChecked('setting-hyphenate-h1'),
+        hyphenate_h2: getChecked('setting-hyphenate-h2'),
+        hyphenate_h3: getChecked('setting-hyphenate-h3'),
 
         header_font_family: getVal('setting-header-font-family'),
         header_font_size: parseVal('setting-header-font-size', 8.5),

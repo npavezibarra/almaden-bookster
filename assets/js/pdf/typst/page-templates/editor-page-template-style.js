@@ -7,8 +7,9 @@
         return String(value || '').toLowerCase().replace(/[^a-z0-9_-]/g, '');
     }
 
-    function normalizeColor(value, fallback = '#111111') {
+    function normalizeColor(value, fallback = '') {
         const raw = String(value || '').trim().toLowerCase();
+        if (raw === '') return fallback;
         return /^#(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/.test(raw) ? raw : fallback;
     }
 
@@ -76,12 +77,43 @@
                 }
             },
             text_colors: {
-                content: '#111111',
-                header: '#111111',
-                footer: '#111111',
-                opening: '#111111'
+                content: '',
+                header: '',
+                footer: '',
+                opening: '',
+                opening_prefix: '',
+                opening_title: '',
+                opening_subtitle: ''
             }
         };
+    }
+
+    function getTextColorTabButtons() {
+        return Array.from(document.querySelectorAll('[data-page-style-text-tab-button]'));
+    }
+
+    function getTextColorTabPanels() {
+        return Array.from(document.querySelectorAll('[data-page-style-text-panel]'));
+    }
+
+    function setTextColorTab(tabName = 'general') {
+        const modal = document.getElementById('page-template-modal');
+        const normalizedTab = tabName === 'opening' ? 'opening' : 'general';
+        if (modal) {
+            modal.dataset.pageStyleTextTab = normalizedTab;
+        }
+
+        getTextColorTabButtons().forEach(button => {
+            const active = (button.dataset.pageStyleTextTabButton || 'general') === normalizedTab;
+            button.classList.toggle('bg-black', active);
+            button.classList.toggle('text-white', active);
+            button.classList.toggle('bg-white', !active);
+            button.classList.toggle('text-slate-600', !active);
+        });
+
+        getTextColorTabPanels().forEach(panel => {
+            panel.classList.toggle('hidden', (panel.dataset.pageStyleTextPanel || 'general') !== normalizedTab);
+        });
     }
 
     function normalizeStyleData(style) {
@@ -95,6 +127,10 @@
         const image = background.image && typeof background.image === 'object' ? background.image : {};
         const overlay = background.overlay && typeof background.overlay === 'object' ? background.overlay : {};
         const textColors = source.text_colors && typeof source.text_colors === 'object' ? source.text_colors : {};
+        const legacyOpening = normalizeColor(textColors.opening, defaults.text_colors.opening);
+        const openingPrefix = normalizeColor(textColors.opening_prefix, legacyOpening);
+        const openingTitle = normalizeColor(textColors.opening_title, legacyOpening);
+        const openingSubtitle = normalizeColor(textColors.opening_subtitle, legacyOpening);
 
         return {
             background: {
@@ -131,7 +167,10 @@
                 content: normalizeColor(textColors.content, defaults.text_colors.content),
                 header: normalizeColor(textColors.header, defaults.text_colors.header),
                 footer: normalizeColor(textColors.footer, defaults.text_colors.footer),
-                opening: normalizeColor(textColors.opening, defaults.text_colors.opening)
+                opening: openingTitle,
+                opening_prefix: openingPrefix,
+                opening_title: openingTitle,
+                opening_subtitle: openingSubtitle
             }
         };
     }
@@ -176,10 +215,13 @@
                 }
             },
             text_colors: {
-                content: normalizeColor(document.getElementById('page-style-text-color-content')?.value, '#111111'),
-                header: normalizeColor(document.getElementById('page-style-text-color-header')?.value, '#111111'),
-                footer: normalizeColor(document.getElementById('page-style-text-color-footer')?.value, '#111111'),
-                opening: normalizeColor(document.getElementById('page-style-text-color-opening')?.value, '#111111')
+                content: normalizeColor(document.getElementById('page-style-text-color-content')?.value, ''),
+                header: normalizeColor(document.getElementById('page-style-text-color-header')?.value, ''),
+                footer: normalizeColor(document.getElementById('page-style-text-color-footer')?.value, ''),
+                opening: normalizeColor(document.getElementById('page-style-text-color-opening-title')?.value, ''),
+                opening_prefix: normalizeColor(document.getElementById('page-style-text-color-opening-prefix')?.value, ''),
+                opening_title: normalizeColor(document.getElementById('page-style-text-color-opening-title')?.value, ''),
+                opening_subtitle: normalizeColor(document.getElementById('page-style-text-color-opening-subtitle')?.value, '')
             }
         };
     }
@@ -257,7 +299,9 @@
         const textContent = document.getElementById('page-style-text-color-content');
         const textHeader = document.getElementById('page-style-text-color-header');
         const textFooter = document.getElementById('page-style-text-color-footer');
-        const textOpening = document.getElementById('page-style-text-color-opening');
+        const textOpeningPrefix = document.getElementById('page-style-text-color-opening-prefix');
+        const textOpeningTitle = document.getElementById('page-style-text-color-opening-title');
+        const textOpeningSubtitle = document.getElementById('page-style-text-color-opening-subtitle');
 
         if (backgroundType) backgroundType.value = background.type || 'color';
         if (backgroundColor) backgroundColor.value = background.color || '#ffffff';
@@ -270,9 +314,12 @@
         if (textContent) textContent.value = normalized.text_colors?.content || '#111111';
         if (textHeader) textHeader.value = normalized.text_colors?.header || '#111111';
         if (textFooter) textFooter.value = normalized.text_colors?.footer || '#111111';
-        if (textOpening) textOpening.value = normalized.text_colors?.opening || '#111111';
+        if (textOpeningPrefix) textOpeningPrefix.value = normalized.text_colors?.opening_prefix || normalized.text_colors?.opening || '#111111';
+        if (textOpeningTitle) textOpeningTitle.value = normalized.text_colors?.opening_title || normalized.text_colors?.opening || '#111111';
+        if (textOpeningSubtitle) textOpeningSubtitle.value = normalized.text_colors?.opening_subtitle || normalized.text_colors?.opening || '#111111';
         setImageFieldValues(background.image || getDefaultStyle().background.image);
         applyBackgroundSections();
+        setTextColorTab(document.getElementById('page-template-modal')?.dataset.pageStyleTextTab || 'general');
         updateOpacityLabel();
         syncBackgroundColorFields();
     }
@@ -464,6 +511,7 @@
         const overlayOpacity = document.getElementById('page-style-background-overlay-opacity');
         const backgroundColor = document.getElementById('page-style-background-color');
         const backgroundColorText = document.getElementById('page-style-background-color-text');
+        const textColorTabButtons = getTextColorTabButtons();
 
         if (confirm) {
             confirm.addEventListener('click', saveStyle);
@@ -497,6 +545,12 @@
         if (backgroundColorText) {
             backgroundColorText.addEventListener('input', syncBackgroundColorFields);
         }
+
+        textColorTabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                setTextColorTab(button.dataset.pageStyleTextTabButton || 'general');
+            });
+        });
 
         document.addEventListener('click', event => {
             if (event.target?.closest?.('[data-page-template-tab-button="style"]')) {

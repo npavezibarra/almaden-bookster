@@ -39,6 +39,10 @@
         return Number(template?.resolved_page || template?.page_number) || 0;
     }
 
+    function getAuthoredPage(template) {
+        return Number(template?.page_number || template?.resolved_page) || 0;
+    }
+
     function getAppliedTemplates() {
         const templates = getTemplates();
         const results = getResults();
@@ -52,8 +56,12 @@
         const target = Number(pageNumber) || 0;
         const applied = getAppliedTemplates().find(template => getResolvedPage(template) === target);
         if (applied) return applied;
+        const authored = getAppliedTemplates().find(template => getAuthoredPage(template) === target);
+        if (authored) return authored;
         if (getResults().length) return null;
-        return getTemplates().find(template => getResolvedPage(template) === target) || null;
+        return getTemplates().find(template => (
+            getResolvedPage(template) === target || getAuthoredPage(template) === target
+        )) || null;
     }
 
     function getAnchorForPage(pageNumber) {
@@ -93,6 +101,7 @@
         createInstanceId,
         getResult,
         getResolvedPage,
+        getAuthoredPage,
         getAppliedTemplates,
         getTemplateAtPage,
         getAnchorForPage,

@@ -46,8 +46,47 @@
             `;
         }
 
+        if ('image-top-two-column-bottom' === type) {
+            const fill = escapeHtml(preview.fill || '#f59e0b');
+            const text = escapeHtml(preview.text || '#cbd5e1');
+            return `
+                <div class="flex h-full w-full items-center justify-center rounded-xl border border-slate-200 p-2" style="background:${canvas};">
+                    <div class="grid h-full w-full grid-cols-2 grid-rows-[1fr_1.08fr] gap-1 rounded-lg border p-1" style="border-color:${frame}; background:${canvas};">
+                        <span class="col-span-2 rounded-sm" style="background:${fill};"></span>
+                        <span class="rounded-sm" style="background:${text};"></span>
+                        <span class="rounded-sm" style="background:${text};"></span>
+                    </div>
+                </div>
+            `;
+        }
+
+        if ('four-images-grid' === type) {
+            const fill = escapeHtml(preview.fill || '#f59e0b');
+            return `
+                <div class="flex h-full w-full items-center justify-center rounded-xl border border-slate-200 p-2" style="background:${canvas};">
+                    <div class="grid h-full w-full grid-cols-2 grid-rows-2 gap-2 rounded-lg border p-4" style="border-color:${frame}; background:${canvas};">
+                        <span class="rounded-sm border" style="border-color:${frame}; background:${fill};"></span>
+                        <span class="rounded-sm border" style="border-color:${frame}; background:${fill};"></span>
+                        <span class="rounded-sm border" style="border-color:${frame}; background:${fill};"></span>
+                        <span class="rounded-sm border" style="border-color:${frame}; background:${fill};"></span>
+                    </div>
+                </div>
+            `;
+        }
+
         const left = escapeHtml(preview.left || '#cbd5e1');
         const right = escapeHtml(preview.right || '#f59e0b');
+        if ('image-left-split' === type) {
+            return `
+                <div class="flex h-full w-full items-center justify-center rounded-xl border border-slate-200 p-2" style="background:${canvas};">
+                    <div class="grid h-full w-full grid-cols-[0.56fr_0.44fr] gap-1 rounded-lg border p-1" style="border-color:${frame}; background:${canvas};">
+                        <span class="rounded-sm" style="background:${left};"></span>
+                        <span class="rounded-sm" style="background:${right};"></span>
+                    </div>
+                </div>
+            `;
+        }
+
         return `
             <div class="flex h-full w-full items-center justify-center rounded-xl border border-slate-200 p-2" style="background:${canvas};">
                 <div class="grid h-full w-full grid-cols-[0.44fr_0.56fr] gap-1 rounded-lg border p-1" style="border-color:${frame}; background:${canvas};">

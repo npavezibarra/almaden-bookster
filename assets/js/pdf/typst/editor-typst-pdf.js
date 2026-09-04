@@ -94,105 +94,36 @@
             });
             if (!response.ok) throw new Error(await state.readError(response));
 
-            let geometry = null;
             const serverCacheStatus = response.headers.get('X-Almaden-Typst-Cache') || 'MISS-NOSTORE';
             const serverCacheHit = serverCacheStatus === 'HIT';
             console.info('[Typst preview cache]', { status: serverCacheStatus });
-            const geometryHeader = response.headers.get('X-Almaden-PDF-Geometry');
-            if (geometryHeader) {
-                try {
-                    geometry = JSON.parse(decodeURIComponent(geometryHeader));
-                } catch (error) {
-                    console.warn('No se pudo leer la geometría del PDF.', error);
-                }
-            }
-
-            const openingDebugHeader = response.headers.get('X-Almaden-Typst-Opening-Debug');
-            if (openingDebugHeader) {
-                try {
-                    window.almadenTypstOpeningDebug = JSON.parse(decodeURIComponent(openingDebugHeader));
-                    console.info('[Typst opening layout: document]', window.almadenTypstOpeningDebug);
-                } catch (error) {
-                    console.warn('No se pudo leer el diagnóstico de apertura Typst.', error);
-                }
-            }
-
-            let integrity = null;
-            const pageFlowHeader = response.headers.get('X-Almaden-Page-Flow');
-            if (pageFlowHeader) {
-                try {
-                    window.almadenPageTemplateFlowMap = JSON.parse(decodeURIComponent(pageFlowHeader));
-                } catch (error) {
-                    console.warn('No se pudo leer el mapa de flujo Typst.', error);
-                }
-            }
-
-            const pageTemplateResultsHeader = response.headers.get('X-Almaden-Page-Template-Results');
-            if (pageTemplateResultsHeader) {
-                try {
-                    window.almadenPageTemplateResults = JSON.parse(decodeURIComponent(pageTemplateResultsHeader));
-                    window.almadenPageTemplateState?.reconcileResults?.();
-                    console.info(
-                        'Typst page-template results:',
-                        window.almadenPageTemplateResults.map(result => ({
-                            instance_id: result?.instance_id,
-                            page: result?.resolved_page || result?.page,
-                            anchor: result?.anchor?.flow_id || '',
-                            flow_rows: result?.flow_rows,
-                            applied: result?.applied,
-                            reason: result?.debug?.reason || '',
-                            fallback_used: !!result?.debug?.fallback_used,
-                            selected_ids: Array.isArray(result?.debug?.selected_ids) ? result.debug.selected_ids : []
-                        }))
-                    );
-                    const skipped = window.almadenPageTemplateResults.find(result => result && !result.applied && result?.debug?.reason !== 'no_rows_for_legacy_page');
-                    if (skipped && typeof window.showToast === 'function') {
-                        const reason = skipped?.debug?.reason ? ` (${skipped.debug.reason})` : '';
-                        window.showToast(`No se pudo aplicar la plantilla en la página ${skipped.page}${reason}.`, 'fa-solid fa-circle-exclamation');
-                    }
-                } catch (error) {
-                    console.warn('No se pudo leer el resultado de plantillas Typst.', error);
-                }
-            }
-
-            const universalCounterHeader = response.headers.get('X-Almaden-Universal-Counter');
-            if (universalCounterHeader) {
-                try {
-                    shared.pendingUniversalCounter = JSON.parse(decodeURIComponent(universalCounterHeader));
-                    state.rebuildUniversalCounter();
-                } catch (error) {
-                    console.warn('No se pudo leer el contador universal Typst.', error);
-                }
-            } else {
-                shared.pendingUniversalCounter = null;
-                state.rebuildUniversalCounter();
-            }
-
-            const imageBlocksHeader = response.headers.get('X-Almaden-Image-Blocks');
-            if (imageBlocksHeader) {
-                try {
-                    shared.imageBlocks = JSON.parse(decodeURIComponent(imageBlocksHeader));
-                } catch (error) {
-                    shared.imageBlocks = [];
-                    console.warn('No se pudo leer la geometría de imágenes Typst.', error);
-                }
-            } else {
-                shared.imageBlocks = [];
-            }
-
-            const integrityHeader = response.headers.get('X-Almaden-PDF-Integrity');
-            if (integrityHeader) {
-                try {
-                    integrity = JSON.parse(decodeURIComponent(integrityHeader));
-                } catch (error) {
-                    console.warn('No se pudo leer la integridad del PDF.', error);
-                }
-            }
-
-            const blob = await response.blob();
+            const metadataLength = response.headers.get('X-Almaden-Metadata-Length') || '0';
+            const envelope = await response.arrayBuffer();
+            const decodedResponse = window.almadenTypstResponse.decode(envelope, metadataLength);
+            const responseMetadata = decodedResponse.metadata;
+            const blob = new Blob([decodedResponse.pdfBytes], { type: 'application/pdf' });
             if (sequence !== compileSequence) return 0;
-            if (blob.type && blob.type !== 'application/pdf') {
-                throw new Error('El servidor no devolvió un archivo PDF.');
+
+            const geometry = responseMetadata.geometry || null;
+            const integrity = responseMetadata.integrity_warning
+                ? { status: 'warning', message: String(responseMetadata.integrity_warning) }
+                : null;
+            window.almadenTypstOpeningDebug = responseMetadata.opening_debug || null;
+            window.almadenPageTemplateFlowMap = Array.isArray(responseMetadata.page_flow) ? responseMetadata.page_flow : [];
+            window.almadenPageTemplateResults = Array.isArray(responseMetadata.page_template_results) ? responseMetadata.page_template_results : [];
+            window.almadenPageTemplateAssetDiagnostics = Array.isArray(responseMetadata.page_template_asset_diagnostics)
+                ? responseMetadata.page_template_asset_diagnostics
+                : [];
+            window.almadenPageTemplateAssetAudit = responseMetadata.page_template_asset_audit || null;
+            shared.pendingUniversalCounter = responseMetadata.universal_counter || null;
+            shared.imageBlocks = Array.isArray(responseMetadata.image_blocks) ? responseMetadata.image_blocks : [];
+            window.almadenPageTemplateState?.reconcileResults?.();
+            state.rebuildUniversalCounter();
+
+            const skipped = window.almadenPageTemplateResults.find(result => result && !result.applied && result?.debug?.reason !== 'no_rows_for_legacy_page');
+            if (skipped && typeof window.showToast === 'function') {
+                const reason = skipped?.debug?.reason ? ` (${skipped.debug.reason})` : '';
+                window.showToast(`No se pudo aplicar la plantilla en la página ${skipped.page}${reason}.`, 'fa-solid fa-circle-exclamation');
             }
 
             const metadata = state.snapshotPreviewMetadata(geometry, integrity);

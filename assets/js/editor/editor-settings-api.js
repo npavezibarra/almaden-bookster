@@ -189,6 +189,18 @@ window.savePDFSettings = function(silent = false, skipPreview = false) {
     data.append('font_size_h1', getCleanVal('setting-font-size-h1'));
     data.append('font_size_h2', getCleanVal('setting-font-size-h2'));
     data.append('font_size_h3', getCleanVal('setting-font-size-h3'));
+    data.append('line_height_h1', getCleanVal('setting-line-height-h1'));
+    data.append('line_height_h2', getCleanVal('setting-line-height-h2'));
+    data.append('line_height_h3', getCleanVal('setting-line-height-h3'));
+    data.append('text_align_h1', getVal('setting-text-align-h1'));
+    data.append('text_align_h2', getVal('setting-text-align-h2'));
+    data.append('text_align_h3', getVal('setting-text-align-h3'));
+    data.append('letter_spacing_h1', getCleanVal('setting-letter-spacing-h1'));
+    data.append('letter_spacing_h2', getCleanVal('setting-letter-spacing-h2'));
+    data.append('letter_spacing_h3', getCleanVal('setting-letter-spacing-h3'));
+    data.append('hyphenate_h1', getChecked('setting-hyphenate-h1'));
+    data.append('hyphenate_h2', getChecked('setting-hyphenate-h2'));
+    data.append('hyphenate_h3', getChecked('setting-hyphenate-h3'));
 
     // Cabecera y Pie
     data.append('header_font_family', getVal('setting-header-font-family'));

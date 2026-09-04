@@ -3,10 +3,11 @@
     const originalCompile = window.compilePDFPreview;
     if (typeof originalCompile !== 'function' || window.almadenTypstPreviewExperience) return;
 
-    const QUIET_DELAY_MS = 700;
+    const QUIET_DELAY_MS = 1000;
     const ACTION_DELAY_MS = 0;
-    const MAX_WAIT_MS = 1800;
+    const MAX_WAIT_MS = 3000;
     let pendingBatch = null;
+    let activeCompilePromise = null;
     let activeContinuity = null;
     let requestedRevision = 0;
 
@@ -175,16 +176,26 @@
     function flushPendingBatch() {
         const batch = pendingBatch;
         if (!batch) return;
+        if (activeCompilePromise) {
+            clearBatchTimers(batch);
+            batch.quietTimer = null;
+            batch.maxTimer = null;
+            return;
+        }
         pendingBatch = null;
         clearBatchTimers(batch);
-        runCompile(batch.args, batch.queuedAt, batch.revision).then(result => resolveBatch(batch, result));
+        activeCompilePromise = runCompile(batch.args, batch.queuedAt, batch.revision);
+        activeCompilePromise.then(result => resolveBatch(batch, result)).finally(() => {
+            activeCompilePromise = null;
+            if (pendingBatch) flushPendingBatch();
+        });
     }
 
-    function queueCompile(args) {
+    function queueCompile(args, forceImmediate = false) {
         requestedRevision += 1;
         const revision = requestedRevision;
         const scrollToActive = args[0] === true;
-        const delay = scrollToActive ? ACTION_DELAY_MS : QUIET_DELAY_MS;
+        const delay = forceImmediate || scrollToActive ? ACTION_DELAY_MS : QUIET_DELAY_MS;
 
         if (!pendingBatch) {
             const queuedAt = performance.now();
@@ -192,7 +203,7 @@
             pendingBatch.promise = new Promise(resolve => {
                 pendingBatch.resolve = resolve;
             });
-            pendingBatch.maxTimer = window.setTimeout(flushPendingBatch, MAX_WAIT_MS);
+            pendingBatch.maxTimer = window.setTimeout(flushPendingBatch, forceImmediate ? 0 : MAX_WAIT_MS);
         } else {
             pendingBatch.args = args;
             pendingBatch.revision = revision;
@@ -212,15 +223,7 @@
 
         if (!forceImmediate) return queueCompile(args);
 
-        requestedRevision += 1;
-        const revision = requestedRevision;
-        if (pendingBatch) {
-            const interruptedBatch = pendingBatch;
-            pendingBatch = null;
-            clearBatchTimers(interruptedBatch);
-            resolveBatch(interruptedBatch, 0);
-        }
-        return runCompile(args, performance.now(), revision);
+        return queueCompile(args, true);
     }
 
     function compileEditorAction(scrollToActive = true) {
@@ -233,7 +236,7 @@
     window.almadenTypstPreviewExperience = {
         compileEditorAction,
         flush: flushPendingBatch,
-        isUpdating: () => !!activeContinuity,
+        isUpdating: () => !!activeCompilePromise || !!pendingBatch,
         delays: { quiet: QUIET_DELAY_MS, action: ACTION_DELAY_MS, maxWait: MAX_WAIT_MS }
     };
 })();

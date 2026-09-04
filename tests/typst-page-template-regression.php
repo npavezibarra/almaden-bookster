@@ -204,13 +204,17 @@ if ( 2 !== count( $cleaned_templates ) || in_array( 'page-4-one-column-one-image
 
 $registry = almaden_bookster_typst_page_template_registry();
 if ( empty( $registry['inner-full-page'] ) ) {
-	fwrite( STDERR, "El registry no expuso la nueva plantilla Inner Full Page.\n" );
-	exit( 1 );
+	fwrite( STDERR, "El registry no expuso la nueva plantilla Inner Full Page.\n" ); exit( 1 );
 }
 if ( 'upper-bottom-split' !== almaden_bookster_typst_page_template_layout_mode(
 	array( 'template_id' => 'upper-image-bottom-text-split' )
 ) ) {
 	fwrite( STDERR, "El preset superior/inferior se degradó al layout split básico.\n" );
+	exit( 1 );
+}
+$image_left_output = almaden_bookster_typst_page_template_render_image_left_replacement( '0.8cm', 'Texto derecho', 'Imagen izquierda' );
+if ( 'image-left-split' !== almaden_bookster_typst_page_template_layout_mode( array( 'template_id' => 'one-image-one-column' ) ) || false === strpos( $image_left_output, "Imagen izquierda\n]\n][\n#block" ) ) {
+	fwrite( STDERR, "El preset imagen/columna no dejó la imagen en el bloque izquierdo.\n" );
 	exit( 1 );
 }
 $upper_template = array_merge( $template, array( 'template_id' => 'upper-image-bottom-text-split' ) );
@@ -309,6 +313,34 @@ if ( 1 !== substr_count( $partial_source, '#metadata("almaden-flow-2")' ) ) {
 	exit( 1 );
 }
 file_put_contents( sys_get_temp_dir() . '/almaden-typst-page-template-partial.typ', $partial_source );
+
+$unmeasured_debug = array();
+$unmeasured_layout = almaden_bookster_typst_page_template_page_start_layout(
+	$source,
+	$flow_map,
+	array_merge( $template, array( 'anchor' => array( 'flow_id' => 'almaden-flow-3' ) ) ),
+	array(
+		'block_id' => 'almaden-flow-2',
+		'words'    => array(
+			array( 'word_count' => 3, 'page' => 2 ),
+		),
+	)
+);
+$unmeasured_source = almaden_bookster_typst_page_template_apply_blocks(
+	$source,
+	$context,
+	$template,
+	$blocks,
+	$ordered_ids,
+	$unmeasured_layout['page_ids'] ?? array(),
+	$unmeasured_layout['left_ids'] ?? array(),
+	$unmeasured_debug,
+	$unmeasured_layout
+);
+if ( $unmeasured_source !== $source || 'unmeasured_clipped_layout' !== ( $unmeasured_debug['reason'] ?? '' ) ) {
+	fwrite( STDERR, "Un layout sin medición se aplicó dentro de una caja con clip y puede perder texto.\n" );
+	exit( 1 );
+}
 
 $result = almaden_bookster_typst_apply_page_template_flow( $source, $context, $flow_map, $template );
 if ( false === strpos( $result, '#page(columns: 1)[' ) ) {
@@ -410,7 +442,7 @@ if ( 1 !== substr_count( $transition_result, 'Contenido del capítulo siguiente.
 	fwrite( STDERR, "La plantilla de transición alteró el contenido del capítulo siguiente.\n" );
 	exit( 1 );
 }
-if ( ! preg_match( '/<almaden-transition-2>.*?#pagebreak\(to: "odd"\).*?#box\(width: 100%, height: 100%\).*?#pagebreak\(to: "even"\)/s', $transition_result ) ) {
+if ( ! preg_match( '/<almaden-transition-2>.*?#pagebreak\(to: "odd"\).*?#place\(top \+ left\)\[.*?#box\(width: 100%, height: 100%\).*?#pagebreak\(to: "even"\)/s', $transition_result ) ) {
 	fwrite( STDERR, "La plantilla de transición no preservó el salto de paridad.\n" );
 	exit( 1 );
 }
@@ -459,6 +491,10 @@ $blank_result = almaden_bookster_typst_apply_page_template_flow(
 );
 if ( false === strpos( $blank_result, 'almaden-template-slot-tpl-blank-first-image-1' ) ) {
 	fwrite( STDERR, "La plantilla no se dibujó en la página de relleno.\n" );
+	exit( 1 );
+}
+if ( false === strpos( $blank_result, '#place(top + left)[' ) ) {
+	fwrite( STDERR, "La plantilla de relleno no quedó anclada al inicio de la página.\n" );
 	exit( 1 );
 }
 if ( 1 !== substr_count( $blank_result, 'Texto del capítulo anterior.' ) || 1 !== substr_count( $blank_result, 'Texto del capítulo siguiente.' ) ) {

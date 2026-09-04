@@ -330,15 +330,22 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 			$rendered_heading = almaden_bookster_typst_render_inline( $heading[2], $footnotes, 0, $exceptions, $footnote_mode, $footnote_numbers );
 			if ( isset( $heading_styles[ $level ] ) && is_array( $heading_styles[ $level ] ) && ! empty( $heading_styles[ $level ]['font_family'] ) ) {
 				$style = $heading_styles[ $level ];
-				$output[] = '#heading(level: ' . $level . ')[#text(font: "' .
+				$heading_align = isset( $style['align'] ) && in_array( $style['align'], array( 'left', 'center', 'right' ), true ) ? $style['align'] : 'left';
+				$heading_leading = round( max( 0, (float) ( $style['line_height'] ?? 1.3 ) - 1 ), 4 );
+				$output[] = '#block(width: 100%, breakable: false)[' .
+					"\n" .
+					'#set par(justify: false, first-line-indent: 0pt, leading: ' . $heading_leading . 'em)' . "\n" .
+					'#align(' . $heading_align . ')[#heading(level: ' . $level . ')[#almaden-page-colored("content", fill => text(fill: fill, font: "' .
 					almaden_bookster_typst_escape_string( $style['font_family'] ) . '", size: ' .
 					almaden_bookster_typst_size_to_pt( $style['font_size'] ?? 0, 'pt' ) . 'pt, weight: ' .
 					almaden_bookster_typst_font_weight( $style['font_weight'] ?? 'normal' ) . ', style: "' .
 					almaden_bookster_typst_escape_string( $style['font_style'] ?? 'normal' ) . '", tracking: ' .
-					almaden_bookster_typst_length( $style['letter_spacing'] ?? 0, 'pt' ) . ')[' .
-					$rendered_heading . ']]';
+					almaden_bookster_typst_length( $style['letter_spacing'] ?? 0, 'pt' ) . ', hyphenate: ' .
+					( ! empty( $style['hyphenate'] ) ? 'true' : 'false' ) . ')[' .
+					$rendered_heading . '])]]' . "\n" .
+					']';
 			} else {
-				$output[] = '#heading(level: ' . $level . ')[' . $rendered_heading . ']';
+				$output[] = '#heading(level: ' . $level . ')[#almaden-page-colored("content", fill => text(fill: fill)[' . $rendered_heading . '])]';
 			}
 			continue;
 		}

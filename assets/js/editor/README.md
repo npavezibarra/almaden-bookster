@@ -182,7 +182,7 @@ graph TD
 ### A. Ciclo de Autoguardado e Intercambio de IDs AJAX
 Cuando el usuario escribe en el editor:
 1. Se calcula el recuento de palabras local y se actualiza el estado en memoria `bookState`.
-2. Se activa un timer de autosave debounced a 15 segundos.
+2. Se activa un autosave debounced a 6 segundos. Los cambios rápidos se consolidan y nunca se ejecutan dos guardados AJAX en paralelo; si llega una edición durante un guardado, se conserva un único guardado posterior con el estado más reciente.
 3. Si el guardado es manual o inmediato:
    * Si está en previsualización de capítulo individual, se invoca a `window.calculateAllPagesBackground()` que calcula silenciosamente las páginas totales reales del libro entero usando un visor temporal invisible `#dummy-pdf-scroller`.
    * Se recopila el total de páginas y se envía vía AJAX con los capítulos serializados.

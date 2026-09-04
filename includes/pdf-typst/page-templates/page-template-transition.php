@@ -89,13 +89,16 @@ function almaden_bookster_typst_page_template_render_transition( $template, $con
 		$replacement = almaden_bookster_typst_page_template_render_full_replacement( $placeholder );
 	} elseif ( 'upper-bottom-split' === $mode ) {
 		$replacement = almaden_bookster_typst_page_template_render_upper_bottom_replacement( $gap, '', $placeholder, '' );
+	} elseif ( 'image-left-split' === $mode ) {
+		$replacement = almaden_bookster_typst_page_template_render_image_left_replacement( $gap, '', $placeholder );
 	} else {
 		$replacement = almaden_bookster_typst_page_template_render_split_replacement( $gap, '', $placeholder );
 	}
 
 	$prefix = "#page(columns: 1)[\n";
 	if ( 0 === strpos( $replacement, $prefix ) && "]\n" === substr( $replacement, -2 ) ) {
-		return substr( $replacement, strlen( $prefix ), -2 ) . "\n";
+		$body = substr( $replacement, strlen( $prefix ), -2 );
+		return "#place(top + left)[\n" . $body . "\n]\n";
 	}
 	return $replacement;
 }

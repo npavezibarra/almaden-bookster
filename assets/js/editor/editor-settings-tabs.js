@@ -146,6 +146,22 @@ function switchTypographyTab(tab) {
     headingsButton?.setAttribute('aria-selected', showHeadings ? 'true' : 'false');
 }
 
+function switchHeadingTypographyTab(level, tab) {
+    const normalizedLevel = ['h1', 'h2', 'h3'].includes(level) ? level : 'h1';
+    const showComposition = tab === 'composition';
+    const fontPanel = document.getElementById(`typography-${normalizedLevel}-font-panel`);
+    const compositionPanel = document.getElementById(`typography-${normalizedLevel}-composition-panel`);
+    const fontButton = document.getElementById(`btn-typography-${normalizedLevel}-font`);
+    const compositionButton = document.getElementById(`btn-typography-${normalizedLevel}-composition`);
+
+    fontPanel?.classList.toggle('hidden', showComposition);
+    compositionPanel?.classList.toggle('hidden', !showComposition);
+    fontButton?.classList.toggle('is-active', !showComposition);
+    compositionButton?.classList.toggle('is-active', showComposition);
+    fontButton?.setAttribute('aria-selected', showComposition ? 'false' : 'true');
+    compositionButton?.setAttribute('aria-selected', showComposition ? 'true' : 'false');
+}
+
 function switchChapterSettingsInnerTab(tabId) {
     document.querySelectorAll('.chapter-settings-inner-tab-content').forEach(el => {
         el.classList.add('hidden');
@@ -412,6 +428,18 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-font-size-h1')) document.getElementById('setting-font-size-h1').value = settings.font_size_h1 || 24;
     if (document.getElementById('setting-font-size-h2')) document.getElementById('setting-font-size-h2').value = settings.font_size_h2 || 16;
     if (document.getElementById('setting-font-size-h3')) document.getElementById('setting-font-size-h3').value = settings.font_size_h3 || 13;
+    if (document.getElementById('setting-line-height-h1')) document.getElementById('setting-line-height-h1').value = settings.line_height_h1 ?? 1.3;
+    if (document.getElementById('setting-line-height-h2')) document.getElementById('setting-line-height-h2').value = settings.line_height_h2 ?? 1.4;
+    if (document.getElementById('setting-line-height-h3')) document.getElementById('setting-line-height-h3').value = settings.line_height_h3 ?? 1.4;
+    if (document.getElementById('setting-text-align-h1')) document.getElementById('setting-text-align-h1').value = ['left', 'center', 'right'].includes(String(settings.text_align_h1 || '').toLowerCase()) ? String(settings.text_align_h1).toLowerCase() : 'center';
+    if (document.getElementById('setting-text-align-h2')) document.getElementById('setting-text-align-h2').value = ['left', 'center', 'right'].includes(String(settings.text_align_h2 || '').toLowerCase()) ? String(settings.text_align_h2).toLowerCase() : 'left';
+    if (document.getElementById('setting-text-align-h3')) document.getElementById('setting-text-align-h3').value = ['left', 'center', 'right'].includes(String(settings.text_align_h3 || '').toLowerCase()) ? String(settings.text_align_h3).toLowerCase() : 'left';
+    if (document.getElementById('setting-letter-spacing-h1')) document.getElementById('setting-letter-spacing-h1').value = settings.letter_spacing_h1 ?? 0;
+    if (document.getElementById('setting-letter-spacing-h2')) document.getElementById('setting-letter-spacing-h2').value = settings.letter_spacing_h2 ?? 0;
+    if (document.getElementById('setting-letter-spacing-h3')) document.getElementById('setting-letter-spacing-h3').value = settings.letter_spacing_h3 ?? 0;
+    if (document.getElementById('setting-hyphenate-h1')) document.getElementById('setting-hyphenate-h1').checked = String(settings.hyphenate_h1 ?? '0') === '1';
+    if (document.getElementById('setting-hyphenate-h2')) document.getElementById('setting-hyphenate-h2').checked = String(settings.hyphenate_h2 ?? '0') === '1';
+    if (document.getElementById('setting-hyphenate-h3')) document.getElementById('setting-hyphenate-h3').checked = String(settings.hyphenate_h3 ?? '0') === '1';
 
     // Pestaña Cabecera y Pie
     if (document.getElementById('setting-header-font-family')) document.getElementById('setting-header-font-family').value = settings.header_font_family || 'Merriweather';

@@ -11,13 +11,22 @@ function get_temp_dir() { return sys_get_temp_dir() . '/'; }
 function wp_json_encode( $value ) { return json_encode( $value ); }
 function wp_generate_uuid4() { return uniqid( 'cache-', true ); }
 function wp_mkdir_p( $path ) { return is_dir( $path ) || mkdir( $path, 0777, true ); }
+function sanitize_text_field( $value ) { return trim( (string) $value ); }
+function esc_url_raw( $value ) { return trim( (string) $value ); }
+function get_post_meta( $book_id, $key ) {
+	return $GLOBALS['almaden_test_post_meta'][ $book_id ][ $key ] ?? '';
+}
 
 require_once dirname( __DIR__ ) . '/includes/ajax/ajax-typst-pdf.php';
 
 $client_state_source = file_get_contents( dirname( __DIR__ ) . '/assets/js/pdf/typst/editor-typst-pdf-state.js' );
 $client_view_source = file_get_contents( dirname( __DIR__ ) . '/assets/js/pdf/typst/editor-typst-pdf-view.js' );
-if ( false === strpos( $client_state_source, "const PREVIEW_CACHE_VERSION = 'v16';" ) ) {
-	fwrite( STDERR, "La caché persistente del navegador no fue invalidada para la composición de fondo a sangre.\n" );
+if ( false === strpos( $client_state_source, "const PREVIEW_CACHE_VERSION = 'v19';" ) ) {
+	fwrite( STDERR, "La caché persistente del navegador no fue invalidada para la versión actual del renderer.\n" );
+	exit( 1 );
+}
+if ( '11' !== ALMADEN_BOOKSTER_TYPST_PREVIEW_RENDERER_VERSION ) {
+	fwrite( STDERR, "La versión de caché del renderer del servidor no fue actualizada.\n" );
 	exit( 1 );
 }
 if ( false !== strpos( $client_view_source, 'getFullBleedChapterImageUrl' ) || false !== strpos( $client_view_source, 'dataBleedGuideImage' ) ) {
@@ -36,6 +45,7 @@ file_put_contents( $asset, 'asset-v1' );
 $document = array(
 	'source'         => '#set page(width: 20cm)',
 	'page_templates' => array(),
+	'page_styles'    => array(),
 	'assets'         => array( 'asset.txt' => $asset ),
 	'font_assets'    => array(),
 );
@@ -66,6 +76,47 @@ clearstatcache( true, $asset );
 $changed_key = almaden_bookster_typst_preview_cache_key( $document );
 if ( $key === $changed_key ) {
 	fwrite( STDERR, "El caché no se invalidó al cambiar un asset.\n" );
+	exit( 1 );
+}
+
+$style_document = $document;
+$style_document['page_styles'] = array(
+	array(
+		'page_number' => 60,
+		'style' => array(
+			'text_colors' => array( 'opening_prefix' => '#e49595' ),
+		),
+	),
+);
+if ( $changed_key === almaden_bookster_typst_preview_cache_key( $style_document ) ) {
+	fwrite( STDERR, "El caché no se invalidó al cambiar los estilos de página.\n" );
+	exit( 1 );
+}
+
+$GLOBALS['almaden_test_post_meta'][ $book_id ] = array(
+	'_almaden_page_templates' => '[]',
+	'_almaden_page_styles' => wp_json_encode( $style_document['page_styles'] ),
+);
+$hydrated = almaden_bookster_typst_hydrate_persisted_layout_settings(
+	$book_id,
+	array(
+		'page_templates' => array( array( 'page_number' => 1 ) ),
+		'page_styles' => array(
+			array(
+				'page_number' => 60,
+				'style' => array(
+					'text_colors' => array( 'opening_prefix' => '#111111' ),
+				),
+			),
+		),
+	)
+);
+if ( '#e49595' !== ( $hydrated['page_styles'][0]['style']['text_colors']['opening_prefix'] ?? '' ) ) {
+	fwrite( STDERR, "El compilador no reemplazó los estilos obsoletos del navegador por los persistidos.\n" );
+	exit( 1 );
+}
+if ( ! empty( $hydrated['page_templates'] ) ) {
+	fwrite( STDERR, "El compilador no reemplazó las plantillas obsoletas del navegador por las persistidas.\n" );
 	exit( 1 );
 }
 

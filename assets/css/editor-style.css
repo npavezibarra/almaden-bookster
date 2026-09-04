@@ -606,6 +606,18 @@ body.sidebar-collapsed #sidebar-footer {
     box-shadow: 0 1px 3px rgb(15 23 42 / 0.12);
 }
 
+#settings-modal .settings-type-level-card .settings-inner-tabs {
+    padding: 3px;
+    border-radius: 9px;
+}
+
+#settings-modal .settings-type-level-card .header-footer-tab-btn {
+    min-height: 28px;
+    padding: 5px 10px !important;
+    border-radius: 6px;
+    font-size: 11px !important;
+}
+
 #settings-modal .settings-inner-tabs-row {
     margin-bottom: 20px;
 }

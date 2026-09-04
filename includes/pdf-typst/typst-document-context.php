@@ -128,6 +128,18 @@ function almaden_bookster_typst_build_document_context( $payload ) {
 	$heading1_font_size   = almaden_bookster_typst_number( $settings, 'font_size_h1', 24, 5, 100 );
 	$heading2_font_size   = almaden_bookster_typst_number( $settings, 'font_size_h2', 18, 5, 100 );
 	$heading3_font_size   = almaden_bookster_typst_number( $settings, 'font_size_h3', 14, 5, 100 );
+	$heading1_line_height = almaden_bookster_typst_number( $settings, 'line_height_h1', 1.3, 0.8, 4 );
+	$heading2_line_height = almaden_bookster_typst_number( $settings, 'line_height_h2', 1.4, 0.8, 4 );
+	$heading3_line_height = almaden_bookster_typst_number( $settings, 'line_height_h3', 1.4, 0.8, 4 );
+	$heading1_align = isset( $settings['text_align_h1'] ) && in_array( $settings['text_align_h1'], array( 'left', 'center', 'right' ), true ) ? $settings['text_align_h1'] : 'center';
+	$heading2_align = isset( $settings['text_align_h2'] ) && in_array( $settings['text_align_h2'], array( 'left', 'center', 'right' ), true ) ? $settings['text_align_h2'] : 'left';
+	$heading3_align = isset( $settings['text_align_h3'] ) && in_array( $settings['text_align_h3'], array( 'left', 'center', 'right' ), true ) ? $settings['text_align_h3'] : 'left';
+	$heading1_letter_spacing = almaden_bookster_typst_number( $settings, 'letter_spacing_h1', 0, -20, 20 );
+	$heading2_letter_spacing = almaden_bookster_typst_number( $settings, 'letter_spacing_h2', 0, -20, 20 );
+	$heading3_letter_spacing = almaden_bookster_typst_number( $settings, 'letter_spacing_h3', 0, -20, 20 );
+	$heading1_hyphenate = almaden_bookster_typst_bool( $settings['hyphenate_h1'] ?? false );
+	$heading2_hyphenate = almaden_bookster_typst_bool( $settings['hyphenate_h2'] ?? false );
+	$heading3_hyphenate = almaden_bookster_typst_bool( $settings['hyphenate_h3'] ?? false );
 	$heading1_font_weight = almaden_bookster_typst_font_weight( $settings['font_weight_h1'] ?? 'bold' );
 	$heading2_font_weight = almaden_bookster_typst_font_weight( $settings['font_weight_h2'] ?? 'bold' );
 	$heading3_font_weight = almaden_bookster_typst_font_weight( $settings['font_weight_h3'] ?? 'bold' );
@@ -267,5 +279,7 @@ function almaden_bookster_typst_build_document_context( $payload ) {
 	$content_margin_bottom = almaden_bookster_typst_running_content_margin( $margin_bot, $footer_reserve );
 	$page_template_context['asset_mode'] = $asset_mode;
 	$page_template_context['preview_asset_mode'] = $asset_mode;
+	$page_template_context['font_size'] = $font_size;
+	$page_template_context['line_height'] = $line_height;
 	return get_defined_vars();
 }
