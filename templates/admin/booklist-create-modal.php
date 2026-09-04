@@ -9,6 +9,25 @@ $creation_template_name = ( $creation_template && ! empty( $creation_template['n
     ? sanitize_text_field( $creation_template['name'] )
     : 'Literat';
 ?>
+    <style id="almaden-create-book-form-fields">
+        #create-book-form input[type="text"],
+        #create-book-form input[type="number"] {
+            border-width: 0 0 1px !important;
+            border-style: solid !important;
+            border-color: #cbd5e1 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            outline: 0 !important;
+        }
+
+        #create-book-form input[type="text"]:focus,
+        #create-book-form input[type="number"]:focus {
+            border-width: 0 0 1px !important;
+            border-color: #000 !important;
+            box-shadow: none !important;
+            outline: 0 !important;
+        }
+    </style>
     <div id="create-modal" class="fixed inset-0 z-50 hidden" aria-label="Crear libro" role="dialog" aria-modal="true">
         <div class="fixed inset-0 bg-slate-950/45 backdrop-blur-sm" aria-hidden="true" data-create-modal-backdrop></div>
 

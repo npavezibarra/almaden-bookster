@@ -81,6 +81,13 @@ $document = almaden_bookster_build_typst_document(
 				'chapter_image_mode'     => 'image_full_page',
 				'chapter_image_url'      => '',
 			),
+			array(
+				'title'                  => 'Imagen legacy desactivada',
+				'content'                => 'Contenido de prueba sin pagina de imagen previa.',
+				'chapter_image_override' => '0',
+				'chapter_image_enabled'  => '0',
+				'parity_image'           => $chapter_image,
+			),
 		),
 	)
 );
@@ -108,6 +115,16 @@ foreach ( $expected_fragments as $fragment ) {
 }
 if ( false === strpos( $source, '#metadata("chapter-image-placeholder") <almaden-chapter-image-page>' ) ) {
 	fwrite( STDERR, "La politica de imagen no reserva una pagina cuando falta la imagen del capitulo.\n" );
+	exit( 1 );
+}
+$disabled_legacy_position = strpos( $source, 'Imagen legacy desactivada' );
+if ( false === $disabled_legacy_position ) {
+	fwrite( STDERR, "No se encontro el capitulo de control con imagen legacy desactivada.\n" );
+	exit( 1 );
+}
+$disabled_legacy_source = substr( $source, max( 0, $disabled_legacy_position - 600 ), 600 );
+if ( false !== strpos( $disabled_legacy_source, '<almaden-chapter-image-page>' ) ) {
+	fwrite( STDERR, "Un capitulo con Iniciar con Imagen = No sigue emitiendo una pagina de imagen legacy.\n" );
 	exit( 1 );
 }
 if ( false !== strpos( $source, "background: {\n#" ) ) {

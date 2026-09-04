@@ -203,7 +203,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 				$source .= "#pagebreak()\n";
 				$source .= "#set page(background: almaden-page-background())\n\n";
 			}
-		} elseif ( ! empty( $chapter['parity_image'] ) ) {
+		} elseif ( $chapter_image_enabled && ! empty( $chapter['parity_image'] ) ) {
 			$image_asset = almaden_bookster_typst_register_upload( $chapter['parity_image'], $assets, $asset_mode );
 			if ( '' !== $image_asset ) {
 				$source .= '#align(center + horizon)[#image("' . almaden_bookster_typst_escape_string( $image_asset ) . '", width: 100%, height: 100%, fit: "contain")]' . "\n#pagebreak()\n\n";
