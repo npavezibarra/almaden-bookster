@@ -9,9 +9,47 @@ async function postImportAction(action) {
 
     const response = await fetch(bookState.ajaxUrl, {
         method: 'POST',
+        credentials: 'same-origin',
         body: form
     });
-    return response.json();
+    return readDocumentImportResponse(response);
+}
+
+async function readDocumentImportResponse(response) {
+    const text = await response.text();
+    try {
+        return JSON.parse(text);
+    } catch (error) {
+        console.error('Almaden document import non-JSON response', {
+            status: response.status,
+            statusText: response.statusText,
+            body: text.slice(0, 1000)
+        });
+        return {
+            success: false,
+            data: {
+                message: `El servidor respondió ${response.status || 'sin estado'} sin JSON válido. Revisa Network y los logs del servidor.`,
+                diagnostics: {
+                    status: response.status,
+                    statusText: response.statusText,
+                    bodyPreview: text.slice(0, 1000)
+                }
+            }
+        };
+    }
+}
+
+function getDocumentImportErrorMessage(data, fallback) {
+    if (data?.data && typeof data.data === 'object') {
+        if (data.data.diagnostics) {
+            console.error('Almaden document import diagnostics', data.data);
+        }
+        return data.data.message || fallback;
+    }
+    if (typeof data?.data === 'string') {
+        return data.data;
+    }
+    return fallback;
 }
 
 function applyAnalysis(analysis) {
@@ -42,11 +80,12 @@ async function analyzeDocumentImport() {
     try {
         const response = await fetch(bookState.ajaxUrl, {
             method: 'POST',
+            credentials: 'same-origin',
             body: form
         });
-        const data = await response.json();
+        const data = await readDocumentImportResponse(response);
         if (!data.success) {
-            throw new Error(data.data || 'No se pudo analizar el archivo.');
+            throw new Error(getDocumentImportErrorMessage(data, 'No se pudo analizar el archivo.'));
         }
 
         applyAnalysis(data.data);
@@ -74,7 +113,7 @@ async function commitDocumentImport() {
     try {
         const result = await postImportAction('almaden_import_document');
         if (!result.success) {
-            throw new Error(result.data || 'No se pudo importar el documento.');
+            throw new Error(getDocumentImportErrorMessage(result, 'No se pudo importar el documento.'));
         }
 
         closeDocumentImportModal();

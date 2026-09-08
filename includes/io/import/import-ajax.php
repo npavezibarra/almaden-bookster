@@ -6,6 +6,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_action( 'wp_ajax_almaden_analyze_document_import', 'almaden_bookster_ajax_analyze_document_import' );
 add_action( 'wp_ajax_almaden_import_document', 'almaden_bookster_ajax_import_document' );
 
+function almaden_bookster_send_import_error( WP_Error $error ) {
+	wp_send_json_error(
+		array(
+			'code'        => $error->get_error_code(),
+			'message'     => $error->get_error_message(),
+			'diagnostics' => $error->get_error_data(),
+		),
+		400
+	);
+}
+
 function almaden_bookster_ajax_analyze_document_import() {
 	$book_id = isset( $_POST['book_id'] ) ? intval( $_POST['book_id'] ) : 0;
 	if ( ! current_user_can( 'edit_post', $book_id ) ) {
@@ -18,7 +29,7 @@ function almaden_bookster_ajax_analyze_document_import() {
 
 	$result = almaden_bookster_parse_uploaded_document_file( $book_id, 'document_file' );
 	if ( is_wp_error( $result ) ) {
-		wp_send_json_error( $result->get_error_message() );
+		almaden_bookster_send_import_error( $result );
 	}
 
 	wp_send_json_success( $result );
@@ -41,7 +52,7 @@ function almaden_bookster_ajax_import_document() {
 
 	$parsed = almaden_bookster_parse_uploaded_document_file( $book_id, 'document_file' );
 	if ( is_wp_error( $parsed ) ) {
-		wp_send_json_error( $parsed->get_error_message() );
+		almaden_bookster_send_import_error( $parsed );
 	}
 
 	$mapping = isset( $_POST['import_mapping'] ) ? json_decode( wp_unslash( $_POST['import_mapping'] ), true ) : array();
