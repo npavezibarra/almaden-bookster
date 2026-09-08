@@ -204,7 +204,15 @@
         }
         try {
             const valid = await compileTypstPreview({ assetMode: 'original' });
-            if (!valid || !shared.currentPdfBlob || !shared.currentPdfUrl) return;
+            if ((!valid && !shared.currentPdfBlob) || !shared.currentPdfUrl) {
+                const error = window.pdfContentIntegrity?.error || 'No se pudo generar el PDF para descargar.';
+                if (typeof window.showToast === 'function') {
+                    window.showToast(error, 'fa-solid fa-triangle-exclamation');
+                } else {
+                    alert(error);
+                }
+                return;
+            }
             const link = document.createElement('a');
             const safeTitle = String(bookState.title || 'libro').trim().replace(/[^\p{L}\p{N}._-]+/gu, '-');
             link.href = shared.currentPdfUrl;

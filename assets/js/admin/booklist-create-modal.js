@@ -317,7 +317,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         templateButtons.forEach((button) => {
-            button.className = 'rounded-2xl border border-black bg-black px-3 py-3 text-center text-xs font-semibold text-white transition hover:border-black hover:bg-slate-900';
+            const isSelected = normalizeTemplateId(button.getAttribute('data-template-value')) === normalizedId;
+            button.className = isSelected
+                ? 'rounded-2xl border border-black bg-black px-4 py-3 text-center text-xs font-semibold text-white transition hover:border-black hover:bg-slate-900'
+                : 'rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center text-xs font-semibold text-slate-700 transition hover:border-slate-900 hover:bg-slate-50';
         });
 
         renderTemplatePreview(normalizedId);
@@ -348,13 +351,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const totalSteps = getTotalSteps();
         const atFirstStep = currentStep === 1;
         const atFinalStep = currentStep === totalSteps;
+        const progressPercent = Math.max(1, (currentStep / totalSteps) * 100);
 
         if (stepIndicator) {
             stepIndicator.textContent = `Paso ${currentStep} de ${totalSteps}`;
         }
 
         if (progressBar) {
-            progressBar.style.width = `${Math.max(1, (currentStep / totalSteps) * 100)}%`;
+            progressBar.style.width = `${progressPercent}%`;
+
+            const progressTrack = progressBar.parentElement;
+            if (progressTrack) {
+                progressTrack.setAttribute('aria-valuemax', String(totalSteps));
+                progressTrack.setAttribute('aria-valuenow', String(currentStep));
+                progressTrack.setAttribute('aria-valuetext', `Paso ${currentStep} de ${totalSteps}`);
+            }
         }
 
         if (prevBtn) {

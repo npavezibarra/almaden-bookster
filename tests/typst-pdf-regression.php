@@ -39,6 +39,11 @@ if ( empty( $prefix_visibility['show_prefix'] ) ) {
 	exit( 1 );
 }
 
+if ( 'KK\\`' !== almaden_bookster_typst_escape_markup( 'KK`' ) ) {
+	fwrite( STDERR, 'El escape Typst no protege el backtick y puede abrir texto raw sin cerrar.' . PHP_EOL );
+	exit( 1 );
+}
+
 $problem_paragraph = 'En los próximos años, la ventaja competitiva no dependerá únicamente del acceso a la tecnología, sino de la habilidad para integrarla de manera inteligente en procesos, organizaciones y proyectos personales. Quienes aprendan a combinar pensamiento crítico, conocimiento especializado y herramientas de inteligencia artificial estarán mejor preparados para adaptarse a un entorno en constante cambio y para convertir los avances tecnológicos en oportunidades reales de crecimiento. La inteligencia artificial está transformando la forma en que las personas crean, aprenden y trabajan. Lo que antes requería equipos completos o largos procesos técnicos ahora puede realizarse en cuestión de minutos, permitiendo que individuos y pequeñas organizaciones desarrollen proyectos con una velocidad sin precedentes. Sin embargo, esta aceleración no elimina la importancia del criterio humano; por el contrario, hace aún más valiosa la capacidad de formular buenas preguntas, evaluar resultados y tomar decisiones fundamentadas.';
 
 $payload = array(
@@ -550,6 +555,29 @@ $chapter_endnote_payload['settings']['footnote_chapter_new_page'] = 0;
 $inline_chapter_endnote_document = almaden_bookster_build_typst_document( $chapter_endnote_payload );
 if ( false !== strpos( $inline_chapter_endnote_document['source'], '#pagebreak(weak: true)' ) ) {
 	fwrite( STDERR, 'Las referencias de capítulo insertaron un salto de página con la opción desmarcada.' . PHP_EOL );
+	exit( 1 );
+}
+
+$subtitle_spacing_payload = $hidden_title_payload;
+$subtitle_spacing_payload['settings']['chapter_subtitle_show'] = 1;
+$subtitle_spacing_payload['settings']['chapter_subtitle_font_size'] = 16;
+$subtitle_spacing_payload['settings']['chapter_subtitle_margin_top'] = 0;
+$subtitle_spacing_payload['settings']['chapter_subtitle_margin_bottom'] = 0;
+$subtitle_spacing_payload['chapters'][0]['hide_title'] = '0';
+$subtitle_spacing_payload['chapters'][0]['subtitle_show'] = '1';
+$subtitle_spacing_payload['chapters'][0]['subtitle_text'] = 'Subtítulo sin margen inferior';
+$subtitle_spacing_payload['chapters'][0]['content'] = 'Texto inmediatamente después del subtítulo.';
+$subtitle_spacing_document = almaden_bookster_build_typst_document( $subtitle_spacing_payload );
+if ( false === strpos( $subtitle_spacing_document['source'], 'inset: (top: 0cm, bottom: 0cm, left: 0cm, right: 0cm)' ) ) {
+	fwrite( STDERR, 'El subtítulo no respetó margen superior/inferior en 0 cm.' . PHP_EOL );
+	exit( 1 );
+}
+if ( false !== strpos( $subtitle_spacing_document['source'], '#v(3mm)' ) ) {
+	fwrite( STDERR, 'La apertura conserva un espaciado fijo que ignora los márgenes del subtítulo.' . PHP_EOL );
+	exit( 1 );
+}
+if ( false === strpos( $subtitle_spacing_document['source'], 'Texto inmediatamente después del subtítulo.' ) ) {
+	fwrite( STDERR, 'El contenido posterior al subtítulo se perdió en la composición Typst.' . PHP_EOL );
 	exit( 1 );
 }
 

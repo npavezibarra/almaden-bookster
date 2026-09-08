@@ -2,6 +2,10 @@
 
 Este directorio contiene las plantillas PHP relacionadas con la interfaz principal del editor de libros (Content Editor) y sus modales de configuración.
 
+## Relacion con el harness de agentes
+
+El detalle de arquitectura del editor vive aqui y en [assets/js/editor/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/README.md). El guideline raiz solo define el protocolo general; cualquier agente que toque el editor debe leer ambos README antes de modificar wrappers, modales, settings tabs o controles visuales.
+
 ## Archivos y Funcionalidades
 
 *   **[editor-app.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/editor/editor-app.php)**: Plantilla principal que renderiza el contenedor y las zonas de la aplicación de edición de libros.

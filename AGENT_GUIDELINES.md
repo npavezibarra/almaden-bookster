@@ -1,137 +1,156 @@
-# Guía para Agentes AI: AlmadenBookster Plugin
+# Agent Guidelines: Almaden Bookster
 
-Esta guía establece las reglas estrictas de desarrollo y arquitectura para cualquier agente o desarrollador que trabaje en el plugin `AlmadenBookster`. Estas directrices deben seguirse sin excepción.
+Esta guia define el protocolo obligatorio para agentes AI y desarrolladores que trabajen en el plugin `Almaden Bookster`. Su objetivo es que cada cambio se haga con contexto local, modularidad estricta y verificacion suficiente.
 
-## REGLA PRINCIPAL: Límite de 500 Líneas de Código
+## Protocolo Operativo
 
-**Ningún archivo dentro de este plugin debe superar NUNCA las 500 líneas de código.**
+Antes de crear o modificar codigo:
 
-La modularidad extrema es la prioridad de este proyecto. Si la implementación de una nueva característica o idea va a provocar que un archivo supere este límite, tu responsabilidad inmediata es **refactorizar y dividir** el archivo antes de continuar.
+1. Leer este archivo completo.
+2. Leer el [README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/README.md) del plugin.
+3. Leer todos los `README.md` en la ruta desde la raiz del plugin hasta la carpeta que se va a tocar.
+4. Revisar los archivos vecinos del area modificada para entender patrones, nombres, hooks, dependencias y responsabilidades.
+5. Confirmar si el cambio toca frontend publico, app page interna, WordPress admin, datos, pagos, quizzes, reader, editor o modulos.
 
-## Principios de Modularidad a Seguir:
+Durante el cambio:
 
-1. **Separación de Responsabilidades:** Nunca mezcles diferentes contextos en un solo archivo masivo. Si el archivo principal (`almaden-bookster.php`) comienza a crecer, divídelo en carpetas lógicas (ej. `includes/`, `admin/`, `public/`, `cpt/`) y requiere los archivos correspondientes.
-2. **Funciones Pequeñas y Específicas:** Unifica y simplifica las funciones. Cada función debe tener un único propósito bien definido. Evita los bloques condicionales gigantescos y el código procedimental extenso.
-3. **Refactorización Continua:** Si ves un archivo con 400 líneas, considéralo en estado crítico. Comienza a planificar su división en componentes más pequeños.
-4. **Componentización:** Para interfaces de usuario o plantillas, utiliza archivos separados. No incluyas HTML extenso o scripts inline masivos dentro de los archivos PHP de lógica; cárgalos desde archivos parciales o encola los assets adecuadamente.
-5. **IDs en Elementos Principales:** Siempre que se cree un nuevo template o página, los elementos HTML principales deben tener un ID especial o identificador único para poder referirnos correctamente a ellos con CSS, JavaScript u otros scripts.
+1. Mantener el alcance lo mas pequeno posible.
+2. Respetar la arquitectura descrita por el README local.
+3. Actualizar el README local si se agrega, elimina, mueve o cambia la responsabilidad de archivos.
+4. Evitar duplicar HTML, consultas, helpers, estilos o controladores cuando exista una pieza compartida clara.
+5. No cambiar contratos de rutas, slugs, metadatos, tablas, AJAX, permisos o payloads sin revisar sus consumidores.
 
-*Cualquier código que incumpla estas reglas será considerado como un fallo en la implementación de la arquitectura.*
+Antes de cerrar:
 
-## Lógica obligatoria para crear nuevas páginas frontend
+1. Ejecutar la verificacion minima que corresponda.
+2. Reportar los archivos modificados y la verificacion realizada.
+3. Indicar explicitamente cualquier prueba que no se pudo ejecutar.
 
-Las nuevas páginas frontend del plugin no deben construirse como páginas genéricas del tema de WordPress. Deben construirse como **app pages** con su propio wrapper, navegación y layout consistente.
+Modificar codigo sin leer los README correspondientes se considera una falla de proceso.
 
-### Flujo correcto
+## Regla Principal: 500 Lineas
 
-1. **Definir la ruta o endpoint propio** dentro del plugin, usando `rewrite rules`, `query vars` o un loader por `template_redirect` cuando corresponda.
-2. **Crear un archivo wrapper específico** para esa página, por ejemplo `*-app.php`, que sea el punto de entrada visual de la pantalla.
-3. **Reutilizar el shell compartido** para mantener consistencia de logo, navbar, encabezado, fuentes y estructura general.
-4. **Dejar el contenido real en partials o templates internos** separados del wrapper.
-5. **Usar IDs únicos en el contenedor principal** de cada página para facilitar CSS, JS y testing.
-6. **No depender del template del tema** para estas pantallas. Si una página debe verse como producto interno del plugin, debe renderizarse de forma autónoma.
+Ningun archivo dentro de este plugin debe superar las 500 lineas de codigo.
 
-### Regla de implementación
+La modularidad extrema es una regla de arquitectura, no una recomendacion. Si una implementacion va a llevar un archivo por encima del limite, primero se debe dividir o refactorizar.
 
-- Si la página es pública o de producto, crea un wrapper con `template_redirect` y `exit` después de renderizar.
-- Si la página necesita variaciones por rol o contexto, separa cada variante en su propio wrapper, pero comparte el mismo shell base.
-- Si la página necesita navegación propia, define los links explícitamente en el wrapper o en el shell compartido, no en el tema.
-- Si aparece HTML repetido entre varias pantallas, extrae primero un helper o shell común antes de duplicar.
+Reglas practicas:
 
-### Instalación obligatoria de páginas Almaden Shell
+- Si un archivo supera las 400 lineas, queda en estado de alerta y cualquier cambio grande debe planificar su division.
+- Cada archivo debe tener una responsabilidad principal clara.
+- Los archivos principales deben orquestar, no acumular toda la logica.
+- Las funciones deben ser pequenas, especificas y nombradas segun su accion.
+- No mezclar HTML extenso, scripts inline masivos y logica PHP en un mismo archivo.
+- Las interfaces deben componerse con templates, partials, helpers y assets encolados.
 
-Cada vez que una instrucción solicite crear una nueva página de **Almaden Shell**, esa página debe incorporarse también al proceso de instalación y activación del plugin. No basta con crear el wrapper, la ruta o el template: hay que registrarla como página canónica del sistema para que se cree automáticamente al activar AlmadenBookster en una instalación nueva.
+## Contrato de README Local
 
-La implementación debe cumplir lo siguiente:
+Cada carpeta funcional debe tener un `README.md` cuando contenga codigo propio o defina una frontera de arquitectura.
 
-1. Añadir la configuración predeterminada de la página, incluyendo su título, slug y referencia de `page_id`.
-2. Crear o actualizar su función de sincronización para generar la página de WordPress con el contenido dinámico del plugin.
-3. Incluirla en la rutina de instalación de páginas principales ejecutada por `register_activation_hook`.
-4. Marcarla como página perteneciente al Almaden Shell para que las reglas de navegación, visibilidad y menús la reconozcan.
-5. Mantener separadas las páginas personalizadas creadas desde el administrador: estas no deben convertirse en páginas canónicas ni instalarse automáticamente en otros sitios.
+Cada README local debe responder, en forma breve:
 
-Si el título o el slug de una página Shell son editables, esos valores deben conservarse como configuración del sitio, pero la página y su funcionalidad base deben seguir siendo instaladas por el plugin.
+- `Responsabilidad`: que resuelve esa carpeta.
+- `Archivos principales`: que hace cada archivo relevante.
+- `Flujo de entrada`: desde donde se carga, llama o renderiza.
+- `Reglas locales`: convenciones y limites propios del area.
+- `Al modificar aqui`: que revisar y que validar.
+- `Archivos relacionados`: enlaces a carpetas vecinas o consumidores.
 
-### Ejemplo de arquitectura esperada
+Si una carpeta nueva contiene codigo, debe nacer con su README. Si una carpeta existente no tiene README y se va a tocar, crear o completar el README forma parte del cambio.
 
-- `includes/frontend/app-shell.php`: estructura común de navegación y documento.
-- `templates/<dominio>/<pantalla>-app.php`: wrapper de la pantalla.
+## App Pages Frontend
+
+Las nuevas paginas frontend del plugin no deben construirse como paginas genericas del tema de WordPress cuando pertenecen a una experiencia propia del producto. Deben construirse como app pages con wrapper, navegacion y layout consistente.
+
+Flujo correcto:
+
+1. Definir la ruta o endpoint propio dentro del plugin, usando `rewrite rules`, `query vars` o un loader por `template_redirect` cuando corresponda.
+2. Crear un wrapper especifico para esa pagina, por ejemplo `*-app.php`.
+3. Reutilizar el shell compartido para mantener logo, navbar, encabezado, fuentes y estructura general.
+4. Dejar el contenido real en partials o templates internos separados del wrapper.
+5. Usar IDs unicos en el contenedor principal de cada pagina para facilitar CSS, JS y testing.
+6. No depender del template del tema si la pantalla debe verse como producto interno del plugin.
+
+Reglas de implementacion:
+
+- Si la pagina es app publica o producto autonomo, puede usar `template_redirect` y `exit` despues de renderizar.
+- Si la pagina publica debe mantener el layout del tema activo, el contenido debe entrar por `the_content` y no reemplazar toda la respuesta con `template_redirect`.
+- Si la pagina necesita variaciones por rol o contexto, separar cada variante en su propio wrapper y compartir el shell base.
+- Si la pagina necesita navegacion propia, definir los links en el wrapper o en el shell compartido.
+- Si aparece HTML repetido entre pantallas, extraer primero un helper o shell comun.
+
+Arquitectura esperada:
+
+- `includes/frontend/app-shell.php`: estructura comun de navegacion y documento.
+- `templates/<dominio>/<pantalla>-app.php`: wrapper de pantalla.
 - `templates/<dominio>/<pantalla>.php`: contenido parcial o vista interna.
-- `includes/<dominio>/*.php`: reglas de ruta, permisos, query vars y loaders.
+- `includes/<dominio>/*.php`: rutas, permisos, query vars, loaders y persistencia.
 
-## Contexto Obligatorio (READMEs)
+## Paginas Almaden Shell
 
-**Antes de crear o modificar cualquier código, el Agente AI DEBE buscar y leer los archivos `README.md` empezando desde el root folder (directorio raíz) hacia las subcarpetas.**
-Esto permite hacer más eficiente la modificación o creación de archivos, ya que cada `README` indicará qué hace cada archivo dentro de la carpeta sin tener que escanear todo el código. Modificar código sin entender la arquitectura descrita en los `README.md` correspondientes está estrictamente prohibido.
+Cada nueva pagina de Almaden Shell debe incorporarse al proceso de instalacion y activacion del plugin. No basta con crear wrapper, ruta o template.
 
-## Conexión a Base de Datos (Local by Flywheel)
+La implementacion debe:
 
-Para operaciones directas en la base de datos MySQL, utilizar el siguiente socket:
+1. Agregar la configuracion predeterminada de la pagina, incluyendo titulo, slug y referencia de `page_id`.
+2. Crear o actualizar la funcion de sincronizacion que genera la pagina de WordPress con el contenido dinamico del plugin.
+3. Incluirla en la rutina de instalacion de paginas principales ejecutada por `register_activation_hook`.
+4. Marcarla como pagina perteneciente a Almaden Shell para que navegacion, visibilidad y menus la reconozcan.
+5. Mantener separadas las paginas personalizadas creadas desde el administrador.
 
-```
-/Users/nicolasibarra/Library/Application Support/Local/run/J__JXc6LL/mysql/mysqld.sock
-```
+Si el titulo o slug son editables, esos valores deben conservarse como configuracion del sitio, pero la pagina y su funcionalidad base deben seguir instaladas por el plugin.
 
-Ejemplo de uso con `mysql` CLI:
+## Acceso y Navegacion
 
-```bash
-mysql --socket="/Users/nicolasibarra/Library/Application Support/Local/run/J__JXc6LL/mysql/mysqld.sock" -u root -e "USE local; SHOW TABLES;"
-```
+El plugin separa sus superficies en publicas, navegacion de usuario e internas.
 
-## Credenciales WordPress (Local)
+Publicas:
 
-- **URL de Admin:** `http://ada.local/wp-admin/`
-- **Usuario:** `chatgpt`
-- **Contraseña:** `chatgpt123`
-# BookCraft Editor Architecture Guide
+- `Autores`
+- `Editoriales`
+- `Ebook Store`
 
-This file serves as a guide for AI agents (and developers) working on the Almaden Bookster plugin. It explains the responsibilities and structure of the JavaScript assets and PHP templates that power the main book editor interface.
+Navegacion de usuario:
 
-## 📂 JavaScript (`assets/js/`)
+- Main navbar: `Autores`, `Editoriales`, `Ebook Store`.
+- Profile menu: `Dashboard`, `Taller`, `Sala de clases` y `Cerrar sesion`.
+- El profile menu no debe duplicar enlaces de navegacion principal.
 
-The frontend JavaScript logic is organized into subfolders by domain to maintain clean modularity:
+Privadas o internas:
 
-### 1. Editor Components (`assets/js/editor/`)
-- **`editor-core.js`**: Application brain, global state (`bookState`), autosaving, and core initialization.
-- **`editor-ui.js`**: UI theme switching, layout configurations, and sidebar chapters controls.
-- **`editor-toolbar.js`**: Markdown format injection, media library attachment, and parity-image toggling.
-- **`editor-chapters.js`**: Chapter CRUD (creation, sorting, selecting active chapters).
-- **`editor-virtualization.js`**: Performance optimization for massive documents using IntersectionObserver.
-- **`editor-settings-tabs.js`**, **`editor-settings-fields.js`**, **`editor-settings-credits.js`**, **`editor-settings-templates.js`** & **`editor-settings-api.js`**: Controller logic, UI conditionals, and AJAX communication for the layout Settings Modal and dynamic credits form.
-- **`editor-chapter-settings.js`**: Specific chapter overrides and target page parity properties.
-- **`editor-markdown.js`**: Conversion of raw markdown into HTML.
+- `Taller`
+- `Sala de clases`
+- Flujos de creacion, edicion o administracion editorial.
 
-### 2. PDF Rendering (`assets/js/pdf/`)
-- **`typst/editor-typst-pdf.js`**: Typst-based PDF preview engine and export bridge.
-- **`typst/page-templates/editor-page-template-selector.js`**: Page template picker and application flow.
-- **`typst/page-templates/editor-page-template-images.js`**: Image binding for template placeholders.
-- **`typst/README.md`**: Entry documentation for the Typst preview pipeline.
+Reglas:
 
-### 3. Reader & Admin (`assets/js/reader/` & `assets/js/admin/`)
-- **`reader/reader-app.js`**, **`reader-navigation.js`**, **`reader-prefs.js`**, **`reader-styles.js`**: Visor engine for reading web-based EPUB/Ebooks.
-- **`admin/admin-fonts-page.js`**: Google Font downloads and setup console in wp-admin.
-- **`admin/booklist-ui.js`**: Control logic for the WordPress templates dashboard workshop list.
+- Las paginas publicas se renderizan sin exigir login.
+- Las paginas privadas deben redirigir a login con `auth_redirect()` o con la regla equivalente del shell, y luego validar permisos especificos.
+- La navegacion compartida debe ocultar enlaces privados para usuarios anonimos.
+- Si una vista cambia de publica a privada, la URL puede mantenerse, pero el acceso debe validarse igual en `template_redirect`, menus y CTAs.
 
----
+## Modulos y Fronteras
 
-## 📂 Templates (`templates/`)
+`modules/learni` es la fuente de verdad para quizzes de ebooks y capitulos dentro de Bookster. No debe dependerse de `learni-standalone` para abrir o guardar quizzes de ebooks.
 
-These files define the HTML structure and PHP rendering for the BookCraft application shells. They are organized into functional subfolders matching their respective contexts:
+Los quizzes de ebooks y cursos comparten conceptos, pero no contrato de ejecucion:
 
-### 1. Editor Components (`templates/editor/`)
-- **`editor-app.php`**: The main entry point for the editor application (left sidebar, top toolbar, text input, and right preview virtualizer).
-- **`editor-settings-modal.php`**: Wrapper layout Settings Modal including tabs from `settings-tabs/` subdirectory.
-- **`chapter-settings-modal.php`**, `chapter-settings-normal.php`, `chapter-settings-toc.php`: Options and layouts at the individual chapter level.
-- **`settings-tabs/`**:
-  - **`functions.php`**: Font arrays helper.
-  - **`tab-page.php`**, `tab-typography.php`, `tab-header-footer.php`, `tab-chapters.php`, `tab-ebook-chapters.php`: Custom pages settings tabs.
+- Ebooks: contexto editorial, capitulos, orden de lectura y flujo de libro.
+- Cursos: contexto LMS, lecciones, progreso academico y dashboard de creador.
 
-### 2. Admin & Lists (`templates/admin/`)
-- **`booklist-app.php`**: Taller / workshop list of books.
-- **`booklist-create-modal.php`**: New book creation dialog.
+Si se unifica logica, hacerlo con una capa compartida pequena y adaptadores por contexto.
 
-### 3. Other Apps (`templates/ebook/`, `templates/reader/`, `templates/bookshelf/`, `templates/cover/`)
-- **`ebook/ebook-single-app.php`**: Public ebook detail page with preview, purchase CTA, and handoff to the reader when access is granted.
-- **`reader/reader-app.php`**: Ebook Reader page shell.
-- **`bookshelf/bookshelf-app.php`**: Public Ebook store / bookshelf template.
-- **`cover/cover-app.php`**: Page shell layout for the Book Cover editor.
+## Verificacion Minima
+
+Elegir la verificacion segun el cambio:
+
+- PHP: `php -l <archivo.php>` en archivos tocados.
+- JS: revisar errores de sintaxis y dependencias globales; cuando aplique, probar en navegador.
+- CSS/templates: revisar la pantalla afectada en desktop y movil si cambia layout.
+- Rutas/app pages: visitar URL canonica y revisar usuario anonimo y logueado cuando haya permisos.
+- DB/schema: verificar activacion, migracion o consulta involucrada.
+- README/docs: confirmar que los links y nombres de archivos sigan vigentes.
+
+## Contexto Local
+
+Las credenciales, sockets y datos de una instalacion local no son reglas de arquitectura. Deben documentarse fuera de este guideline, por ejemplo en `README.local-login.md` o documentacion local equivalente.

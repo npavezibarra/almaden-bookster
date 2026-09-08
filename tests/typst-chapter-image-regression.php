@@ -82,6 +82,15 @@ $document = almaden_bookster_build_typst_document(
 				'chapter_image_url'      => '',
 			),
 			array(
+				'title'                     => 'Imagen legacy ajustable',
+				'content'                   => 'Contenido de prueba con imagen legacy ajustable.',
+				'chapter_image_override'    => '1',
+				'chapter_image_enabled'     => '1',
+				'chapter_image_mode'        => 'image_inner',
+				'chapter_image_inner_width' => '25',
+				'parity_image'              => $chapter_image,
+			),
+			array(
 				'title'                  => 'Imagen legacy desactivada',
 				'content'                => 'Contenido de prueba sin pagina de imagen previa.',
 				'chapter_image_override' => '0',
@@ -115,6 +124,16 @@ foreach ( $expected_fragments as $fragment ) {
 }
 if ( false === strpos( $source, '#metadata("chapter-image-placeholder") <almaden-chapter-image-page>' ) ) {
 	fwrite( STDERR, "La politica de imagen no reserva una pagina cuando falta la imagen del capitulo.\n" );
+	exit( 1 );
+}
+$chapter_image_page_count = substr_count( $source, '#metadata("chapter-image") <almaden-chapter-image-page>' )
+	+ substr_count( $source, '#metadata("chapter-image-placeholder") <almaden-chapter-image-page>' );
+if ( 5 !== $chapter_image_page_count ) {
+	fwrite( STDERR, "La cantidad de paginas de imagen de capitulo no respeta imagenes activadas, placeholder y desactivadas. Conteo: {$chapter_image_page_count}\n" );
+	exit( 1 );
+}
+if ( false === strpos( $source, 'width: 5.4cm' ) ) {
+	fwrite( STDERR, "Una imagen legacy activada no respeto el modo ajustable ni su ancho configurado.\n" );
 	exit( 1 );
 }
 $disabled_legacy_position = strpos( $source, 'Imagen legacy desactivada' );

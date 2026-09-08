@@ -446,7 +446,7 @@ if ( $is_logged_in && $current_user ) {
                                     </a>
                                     <?php if ( $can_manage_quiz && function_exists( 'almaden_bookster_learni_integration_active' ) && almaden_bookster_learni_integration_active() ) : ?>
                                         <?php if ( $has_saved_chapter_content ) : ?>
-                                            <a href="<?php echo esc_url( home_url( '/almaden-book-quiz/?book_id=' . get_the_ID() ) ); ?>" id="btn-create-quiz-<?php echo get_the_ID(); ?>" class="w-full inline-flex justify-center items-center py-2 px-3 <?php echo $book_quiz_id > 0 ? 'bg-slate-900 text-white' : 'bg-amber-500 text-white'; ?> text-xs font-semibold rounded-md <?php echo $book_quiz_id > 0 ? 'hover:bg-slate-800' : 'hover:bg-amber-600'; ?> transition-colors shadow-sm">
+                                            <a href="<?php echo esc_url( home_url( '/almaden-book-quiz/?book_id=' . get_the_ID() ) ); ?>" id="btn-create-quiz-<?php echo get_the_ID(); ?>" class="w-full inline-flex justify-center items-center py-2 px-3 bg-white text-gray-700 border border-gray-300 text-xs font-semibold rounded-md hover:bg-gray-50 transition-colors">
                                                 <?php echo $book_quiz_id > 0 ? 'EDIT QUIZ' : 'CREATE QUIZ'; ?>
                                             </a>
                                         <?php else : ?>

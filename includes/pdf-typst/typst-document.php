@@ -18,7 +18,7 @@ function almaden_bookster_typst_chapter_image_length_literal( $value, $unit ) {
 	return round( max( 0, (float) $value ), 4 ) . $unit;
 }
 
-function almaden_bookster_typst_chapter_image_background_source( $image_asset, $chapter_image_mode, $page_width_with_bleed, $page_height_with_bleed, $bleed, $unit, $chapter_image_inner_width ) {
+function almaden_bookster_typst_chapter_image_background_source( $image_asset, $chapter_image_mode, $page_width_with_bleed, $page_height_with_bleed, $bleed, $unit, $chapter_image_inner_width, $content_width = null, $content_height = null ) {
 	$image_asset = trim( (string) $image_asset );
 	if ( '' === $image_asset ) {
 		return '';
@@ -28,6 +28,8 @@ function almaden_bookster_typst_chapter_image_background_source( $image_asset, $
 	$page_height_with_bleed = max( 0, (float) $page_height_with_bleed );
 	$bleed = max( 0, (float) $bleed );
 	$chapter_image_inner_width = max( 10, min( 100, (float) $chapter_image_inner_width ) );
+	$content_width = null === $content_width ? $page_width_with_bleed : max( 0.1, (float) $content_width );
+	$content_height = null === $content_height ? $page_height_with_bleed : max( 0.1, (float) $content_height );
 	$background = '#place(top + left)[#almaden-page-background()]';
 
 	if ( 'image_full_page' === $chapter_image_mode ) {
@@ -44,6 +46,15 @@ function almaden_bookster_typst_chapter_image_background_source( $image_asset, $
 			. ']'
 			. ' }'
 			. ' }';
+	}
+
+	if ( 'page_blank' === $chapter_image_mode ) {
+		return 'box(width: 100%, height: 100%)[' . $background
+			. '#place(center + horizon)[#box(width: '
+			. almaden_bookster_typst_chapter_image_length_literal( $content_width, $unit )
+			. ', height: '
+			. almaden_bookster_typst_chapter_image_length_literal( $content_height, $unit )
+			. ')[#image("' . almaden_bookster_typst_escape_string( $image_asset ) . '", width: 100%, height: 100%, fit: "contain")]]]';
 	}
 
 	$target_width = 'image_inner' === $chapter_image_mode
@@ -177,6 +188,9 @@ function almaden_bookster_build_typst_document( $payload ) {
 			$chapter_image_mode = 'page_blank';
 		}
 		$chapter_image_url = trim( (string) ( $chapter['chapter_image_url'] ?? '' ) );
+		if ( '' === $chapter_image_url && ! empty( $chapter['parity_image'] ) ) {
+			$chapter_image_url = trim( (string) $chapter['parity_image'] );
+		}
 		$chapter_image_inner_width = almaden_bookster_typst_number( $chapter, 'chapter_image_inner_width', 100, 10, 100 );
 		$has_new_chapter_image = $chapter_image_enabled && '' !== $chapter_image_url;
 
@@ -186,6 +200,8 @@ function almaden_bookster_build_typst_document( $payload ) {
 			if ( '' !== $image_asset ) {
 				$page_width_with_bleed = max( 0.1, $width + ( 2 * $bleed ) );
 				$page_height_with_bleed = max( 0.1, $height + ( 2 * $bleed ) );
+				$chapter_image_content_width = max( 0.1, $width - $margin_inside - $margin_outside );
+				$chapter_image_content_height = max( 0.1, $height - $chapter_content_margin_top - $chapter_content_margin_bottom );
 				$source .= '#set page(background: {' . "\n";
 				$source .= almaden_bookster_typst_chapter_image_background_source(
 						$image_asset,
@@ -194,7 +210,9 @@ function almaden_bookster_build_typst_document( $payload ) {
 						$page_height_with_bleed,
 						$bleed,
 						$unit,
-						$chapter_image_inner_width
+						$chapter_image_inner_width,
+						$chapter_image_content_width,
+						$chapter_image_content_height
 					) . "\n";
 					$source .= '})' . "\n";
 				$source .= '#metadata("chapter-image") <almaden-chapter-image-page>' . "\n";
@@ -202,11 +220,6 @@ function almaden_bookster_build_typst_document( $payload ) {
 				$source .= '#metadata("chapter-image") <almaden-hide-footer-page>' . "\n";
 				$source .= "#pagebreak()\n";
 				$source .= "#set page(background: almaden-page-background())\n\n";
-			}
-		} elseif ( $chapter_image_enabled && ! empty( $chapter['parity_image'] ) ) {
-			$image_asset = almaden_bookster_typst_register_upload( $chapter['parity_image'], $assets, $asset_mode );
-			if ( '' !== $image_asset ) {
-				$source .= '#align(center + horizon)[#image("' . almaden_bookster_typst_escape_string( $image_asset ) . '", width: 100%, height: 100%, fit: "contain")]' . "\n#pagebreak()\n\n";
 			}
 		} elseif ( $chapter_image_enabled ) {
 			// A global or chapter-level image policy reserves the page even when
@@ -369,13 +382,13 @@ function almaden_bookster_build_typst_document( $payload ) {
 				$source .= '#box(width: 100%, height: 100%)[' . "\n";
 				$source .= '#place(' . $opening_place_alignment . ')[' . "\n";
 				$source .= '#block(breakable: false)[' . "\n";
-				$source .= implode( "\n#v(3mm)\n", $opening_lines ) . "\n";
+				$source .= implode( "\n", $opening_lines ) . "\n";
 				$source .= "]\n]\n]\n]\n]\n#pagebreak()\n\n";
 			} else {
 				$source .= '#almaden-with-text-zone("opening")[' . "\n";
 				$source .= '#almaden-page-styled("opening")[' . "\n";
 				$source .= ( $show_title ? '#v(10mm)' : '#v(4mm)' ) . "\n";
-				$source .= implode( "\n#v(3mm)\n", $opening_lines ) . "\n";
+				$source .= implode( "\n", $opening_lines ) . "\n";
 				$source .= "\n";
 				$source .= "]\n]\n";
 			}

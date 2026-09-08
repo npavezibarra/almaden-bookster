@@ -1,10 +1,32 @@
 <?php
-$creation_template = function_exists( 'almaden_bookster_get_book_template_payload_for_seed' )
-    ? almaden_bookster_get_book_template_payload_for_seed( 'literat', 'Literat' )
-    : null;
-$creation_template_id = ( $creation_template && ! empty( $creation_template['id'] ) )
-    ? sanitize_key( $creation_template['id'] )
-    : 'literat';
+$creation_templates = function_exists( 'almaden_bookster_read_system_book_templates' )
+    ? almaden_bookster_read_system_book_templates()
+    : array();
+
+if ( empty( $creation_templates ) && function_exists( 'almaden_bookster_get_book_template_payload_for_seed' ) ) {
+    $fallback_template = almaden_bookster_get_book_template_payload_for_seed( 'literat', 'Literat' );
+    if ( $fallback_template ) {
+        $creation_templates[] = $fallback_template;
+    }
+}
+
+$creation_template = null;
+foreach ( $creation_templates as $template_candidate ) {
+    $candidate_key = isset( $template_candidate['template_key'] ) ? (string) $template_candidate['template_key'] : (string) ( $template_candidate['id'] ?? '' );
+    $candidate_name = isset( $template_candidate['name'] ) ? (string) $template_candidate['name'] : '';
+    if ( 'literat' === sanitize_title( $candidate_key ) || 'literat' === sanitize_title( $candidate_name ) ) {
+        $creation_template = $template_candidate;
+        break;
+    }
+}
+
+if ( ! $creation_template && ! empty( $creation_templates ) ) {
+    $creation_template = $creation_templates[0];
+}
+
+$creation_template_id = ( $creation_template && ! empty( $creation_template['template_key'] ) )
+    ? sanitize_key( $creation_template['template_key'] )
+    : ( ( $creation_template && ! empty( $creation_template['id'] ) ) ? sanitize_key( preg_replace( '/^system:/', '', (string) $creation_template['id'] ) ) : 'literat' );
 $creation_template_name = ( $creation_template && ! empty( $creation_template['name'] ) )
     ? sanitize_text_field( $creation_template['name'] )
     : 'Literat';
@@ -17,6 +39,7 @@ $creation_template_name = ( $creation_template && ! empty( $creation_template['n
             border-color: #cbd5e1 !important;
             border-radius: 0 !important;
             box-shadow: none !important;
+            font-size: 18px !important;
             outline: 0 !important;
         }
 
@@ -27,6 +50,11 @@ $creation_template_name = ( $creation_template && ! empty( $creation_template['n
             box-shadow: none !important;
             outline: 0 !important;
         }
+
+        #create-book-form input[type="text"]::placeholder,
+        #create-book-form input[type="number"]::placeholder {
+            font-size: 18px !important;
+        }
     </style>
     <div id="create-modal" class="fixed inset-0 z-50 hidden" aria-label="Crear libro" role="dialog" aria-modal="true">
         <div class="fixed inset-0 bg-slate-950/45 backdrop-blur-sm" aria-hidden="true" data-create-modal-backdrop></div>
@@ -34,24 +62,21 @@ $creation_template_name = ( $creation_template && ! empty( $creation_template['n
         <div class="fixed inset-0 z-10 overflow-y-auto">
             <div class="flex min-h-full items-center justify-center p-4 sm:p-6">
                 <div id="modal-panel" class="relative w-full max-w-4xl transform overflow-hidden rounded-3xl bg-white text-left shadow-2xl ring-1 ring-black/5 opacity-0 scale-95 transition-all duration-300">
-                    <div class="flex items-start justify-between border-b border-slate-100 px-6 py-5 sm:px-8">
-                        <div class="pr-6">
+                    <div class="flex items-center justify-between gap-4 border-b border-slate-100 px-6 py-5 sm:px-8">
+                        <div class="shrink-0 pr-2">
                             <p class="text-[11px] font-semibold uppercase tracking-[0.35em] text-slate-400">Taller</p>
+                        </div>
+                        <div class="flex min-w-0 flex-1 items-center gap-3 sm:max-w-xl">
+                            <span id="step-indicator" class="shrink-0 text-xs font-semibold text-slate-500">Paso 1 de 3</span>
+                            <div class="h-1 w-full min-w-[7rem] overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-label="Progreso de creación del libro" aria-valuemin="1" aria-valuemax="3" aria-valuenow="1">
+                                <div id="progress-bar" class="h-full w-0 rounded-full bg-black transition-all duration-300 ease-out"></div>
+                            </div>
                         </div>
                         <button type="button" id="close-modal-btn" class="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" aria-label="Cerrar">
                             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M6 18L18 6" />
                             </svg>
                         </button>
-                    </div>
-
-                    <div class="px-6 pt-5 sm:px-8">
-                        <div class="flex items-center justify-between gap-4">
-                            <span id="step-indicator" class="text-sm font-semibold text-slate-500">Paso 1 de 3</span>
-                        </div>
-                        <div class="mt-3 h-1 rounded-full bg-slate-100">
-                            <div id="progress-bar" class="h-1 w-1/3 rounded-full bg-black transition-all duration-300"></div>
-                        </div>
                     </div>
 
                     <div class="px-6 pb-6 pt-6 sm:px-8 sm:pb-8">
@@ -155,8 +180,24 @@ $creation_template_name = ( $creation_template && ! empty( $creation_template['n
                                     <!-- Vista preliminar deshabilitada temporalmente. -->
                                 </div>
 
-                                <div class="flex justify-start pt-2">
-                                    <button type="button" data-template-button data-template-value="<?php echo esc_attr( $creation_template_id ); ?>" data-template-label="<?php echo esc_attr( $creation_template_name ); ?>" class="rounded-2xl border border-black bg-black px-3 py-3 text-center text-xs font-semibold text-white transition hover:border-black hover:bg-slate-900"><?php echo esc_html( $creation_template_name ); ?></button>
+                                <div class="flex flex-wrap justify-start gap-3 pt-2">
+                                    <?php foreach ( $creation_templates as $template_option ) : ?>
+                                        <?php
+                                        $template_option_id = ! empty( $template_option['template_key'] )
+                                            ? sanitize_key( $template_option['template_key'] )
+                                            : sanitize_key( preg_replace( '/^system:/', '', (string) ( $template_option['id'] ?? '' ) ) );
+                                        $template_option_name = ! empty( $template_option['name'] )
+                                            ? sanitize_text_field( $template_option['name'] )
+                                            : $template_option_id;
+                                        if ( '' === $template_option_id ) {
+                                            continue;
+                                        }
+                                        $template_option_selected = $template_option_id === $creation_template_id;
+                                        ?>
+                                        <button type="button" data-template-button data-template-value="<?php echo esc_attr( $template_option_id ); ?>" data-template-label="<?php echo esc_attr( $template_option_name ); ?>" class="rounded-2xl border px-4 py-3 text-center text-xs font-semibold transition <?php echo $template_option_selected ? 'border-black bg-black text-white hover:border-black hover:bg-slate-900' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-900 hover:bg-slate-50'; ?>">
+                                            <?php echo esc_html( $template_option_name ); ?>
+                                        </button>
+                                    <?php endforeach; ?>
                                 </div>
                             </section>
 

@@ -15,7 +15,7 @@ require_once __DIR__ . '/typst-image-block.php';
  * Escape plain text for Typst markup mode.
  */
 function almaden_bookster_typst_escape_markup( $text ) {
-	return preg_replace( '/([\\\\#\[\]\$\*_<>@])/', '\\\\$1', (string) $text );
+	return preg_replace( '/([\\\\#\[\]\$\*_<>@`])/', '\\\\$1', (string) $text );
 }
 
 /**
