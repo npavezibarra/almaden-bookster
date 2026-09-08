@@ -24,6 +24,83 @@ body.theme-dark :where(button, input, select, textarea),
     font-family: var(--almaden-ui-font) !important;
 }
 
+body.theme-light :where(.fa, .fa-solid, .fa-regular, .fa-brands),
+body.theme-sepia :where(.fa, .fa-solid, .fa-regular, .fa-brands),
+body.theme-dark :where(.fa, .fa-solid, .fa-regular, .fa-brands) {
+    display: inline-block;
+    font-family: var(--almaden-ui-font) !important;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 800;
+    line-height: 1;
+    text-rendering: auto;
+}
+
+body.theme-light :where(.fa, .fa-solid, .fa-regular, .fa-brands)::before,
+body.theme-sepia :where(.fa, .fa-solid, .fa-regular, .fa-brands)::before,
+body.theme-dark :where(.fa, .fa-solid, .fa-regular, .fa-brands)::before {
+    display: inline-block;
+}
+
+.fa-plus::before,
+.fa-plus-circle::before { content: "+"; }
+.fa-chevron-down::before { content: "v"; }
+.fa-chevron-left::before { content: "<"; }
+.fa-chevron-right::before { content: ">"; }
+.fa-xmark::before { content: "x"; }
+.fa-check::before,
+.fa-circle-check::before { content: "✓"; }
+.fa-floppy-disk::before { content: "▣"; }
+.fa-gear::before,
+.fa-sliders::before { content: "⚙"; }
+.fa-file-pdf::before,
+.fa-file-lines::before { content: "▤"; }
+.fa-file-import::before,
+.fa-file-arrow-up::before,
+.fa-upload::before,
+.fa-cloud-arrow-up::before { content: "↑"; }
+.fa-bars::before,
+.fa-list-ul::before,
+.fa-align-justify::before { content: "☰"; }
+.fa-bold::before { content: "B"; }
+.fa-italic::before { content: "I"; font-style: italic; }
+.fa-underline::before { content: "U"; text-decoration: underline; }
+.fa-image::before,
+.fa-images::before { content: "▧"; }
+.fa-quote-left::before { content: "“"; }
+.fa-align-left::before { content: "≡"; }
+.fa-align-center::before { content: "≣"; }
+.fa-align-right::before { content: "≡"; }
+.fa-language::before { content: "A"; }
+.fa-circle-question::before { content: "?"; }
+.fa-circle-info::before,
+.fa-circle-exclamation::before,
+.fa-triangle-exclamation::before { content: "!"; }
+.fa-table-cells-large::before { content: "▦"; }
+.fa-vector-square::before,
+.fa-crop-simple::before { content: "□"; }
+.fa-book-open::before,
+.fa-bookmark::before { content: "▰"; }
+.fa-ruler-horizontal::before,
+.fa-ruler-combined::before { content: "—"; }
+.fa-window-maximize::before { content: "▢"; }
+.fa-window-minimize::before { content: "▔"; }
+.fa-palette::before { content: "◐"; }
+.fa-font::before { content: "T"; }
+.fa-wand-magic-sparkles::before,
+.fa-star::before { content: "*"; }
+.fa-spinner::before,
+.fa-circle-notch::before,
+.fa-rotate::before { content: "↻"; }
+.fa-trash::before,
+.fa-trash-can::before { content: "×"; }
+.fa-copy::before { content: "⧉"; }
+.fa-magnifying-glass::before { content: "⌕"; }
+.fa-scissors::before { content: "✂"; }
+.fa-copyright::before { content: "C"; }
+.fa-grip-vertical::before { content: "⋮"; }
+.fa-download::before { content: "↓"; }
+
 /* Chapter list typography: match the native WordPress admin stack */
 #chapters-list {
     font-family: var(--almaden-ui-font) !important;

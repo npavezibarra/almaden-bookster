@@ -199,7 +199,7 @@ function almaden_bookster_typst_render_toc( $chapter, $chapters, $settings, $fal
 			$leader_box_options .= ', baseline: bottom';
 		}
 		$leader_content = '' !== $leader_fill ? '#box(' . $leader_box_options . ')[' . $leader_fill . ']' : '';
-		$page_expr = '#context { let marks = query(<' . $entry['label'] . '>); if marks.len() > 0 { counter(page).display(at: marks.last().location()) } else { "" } }';
+		$page_expr = '#context { let marks = query(<' . $entry['label'] . '>); if marks.len() > 0 { counter(page).display(marks.last().location()) } else { "" } }';
 		$page_expr = '#text(font: "' . almaden_bookster_typst_escape_string( $page_style['family'] ) . '", size: ' . $page_style['size'] . 'pt, weight: ' . $page_style['weight'] . ', style: "' . almaden_bookster_typst_escape_string( $page_style['style'] ) . '", tracking: ' . $page_style['tracking'] . 'pt)[' . $page_expr . ']';
 		$page_expr = 0.0 !== $page_number_offset_pt ? '#move(dy: ' . round( $page_number_offset_pt, 3 ) . 'pt)[' . $page_expr . ']' : $page_expr;
 		$output .= '#block(width: 100%, breakable: false)[#layout(size => context {' . "\n";

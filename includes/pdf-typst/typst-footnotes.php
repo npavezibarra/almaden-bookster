@@ -81,7 +81,7 @@ function almaden_bookster_typst_render_page_footnote_rules( $options = array() )
 	if ( $align_wrapper ) {
 		$source .= '    #align(' . $align . ')[' . "\n";
 	}
-	$source .= '      #grid(columns: (auto, 1fr), column-gutter: 0.35em, counter(footnote).display(at: it.note.location()), it.note.body)' . "\n";
+	$source .= '      #grid(columns: (auto, 1fr), column-gutter: 0.35em, counter(footnote).display(it.note.location()), it.note.body)' . "\n";
 	if ( $align_wrapper ) {
 		$source .= '    ]' . "\n";
 	}
