@@ -160,9 +160,9 @@ if ( $is_logged_in && $current_user ) {
         }
         body.almaden-app-body,
         body.almaden-app-body #almaden-app-nav,
-        body.almaden-app-body #almaden-app-nav *,
+        body.almaden-app-body #almaden-app-nav :where(*):not(.fa):not(.fa-solid):not(.fa-regular):not(.fa-brands),
         body.almaden-app-body .almaden-app-content-shell,
-        body.almaden-app-body .almaden-app-content-shell :where(*):not(.cover-thumbnail-wrapper):not(.cover-thumbnail-wrapper *):not(.cover-spread-container):not(.cover-spread-container *):not(.ebook-page-content):not(.ebook-page-content *):not(#ebook-page):not(#ebook-page *):not(#reader-content):not(#reader-content *):not([data-almaden-book-font]):not([data-almaden-book-font] *) {
+        body.almaden-app-body .almaden-app-content-shell :where(*):not(.fa):not(.fa-solid):not(.fa-regular):not(.fa-brands):not(.cover-thumbnail-wrapper):not(.cover-thumbnail-wrapper *):not(.cover-spread-container):not(.cover-spread-container *):not(.ebook-page-content):not(.ebook-page-content *):not(#ebook-page):not(#ebook-page *):not(#reader-content):not(#reader-content *):not([data-almaden-book-font]):not([data-almaden-book-font] *) {
             font-family: "Urbanist", sans-serif !important;
         }
         main {

@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! function_exists( 'almaden_bookster_asset_path' ) ) {
 	function almaden_bookster_asset_path( $relative_path ) {
-		return plugin_dir_path( dirname( dirname( __FILE__ ) ) ) . ltrim( (string) $relative_path, '/' );
+		return dirname( __DIR__, 2 ) . '/' . ltrim( (string) $relative_path, '/' );
 	}
 }
 
@@ -19,7 +19,7 @@ if ( ! function_exists( 'almaden_bookster_asset_url' ) ) {
 	function almaden_bookster_asset_url( $relative_path ) {
 		$relative_path = ltrim( (string) $relative_path, '/' );
 		$path = almaden_bookster_asset_path( $relative_path );
-		$url = plugins_url( $relative_path, dirname( dirname( __FILE__ ) ) . '/almaden-bookster.php' );
+		$url = plugins_url( $relative_path, dirname( __DIR__, 2 ) . '/almaden-bookster.php' );
 		$version = file_exists( $path ) ? (string) filemtime( $path ) : (string) time();
 
 		return add_query_arg( 'ver', $version, $url );
@@ -75,8 +75,8 @@ if ( ! function_exists( 'almaden_bookster_asset_diagnostics_payload' ) ) {
 		return array(
 			'surface' => $surface,
 			'pluginVersion' => defined( 'ALMADEN_BOOKSTER_VERSION' ) ? ALMADEN_BOOKSTER_VERSION : '1.0.0',
-			'pluginDir' => plugin_dir_path( dirname( dirname( __FILE__ ) ) ),
-			'pluginUrl' => plugins_url( '', dirname( dirname( __FILE__ ) ) . '/almaden-bookster.php' ),
+			'pluginDir' => dirname( __DIR__, 2 ) . '/',
+			'pluginUrl' => plugins_url( '', dirname( __DIR__, 2 ) . '/almaden-bookster.php' ),
 			'phpVersion' => PHP_VERSION,
 			'serverSoftware' => isset( $_SERVER['SERVER_SOFTWARE'] ) ? (string) wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) : '',
 			'assets' => $checks,

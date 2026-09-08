@@ -54,6 +54,32 @@ body.theme-dark :where(button, input, select, textarea),
     font-family: var(--almaden-ui-font) !important;
 }
 
+body.almaden-shell :where(.fa, .fa-solid, .fa-regular, .fa-brands),
+body.almaden-app-body :where(.fa, .fa-solid, .fa-regular, .fa-brands),
+body.theme-light :where(.fa, .fa-solid, .fa-regular, .fa-brands),
+body.theme-sepia :where(.fa, .fa-solid, .fa-regular, .fa-brands),
+body.theme-dark :where(.fa, .fa-solid, .fa-regular, .fa-brands) {
+    font-family: "Font Awesome 6 Free" !important;
+}
+
+body.almaden-shell :where(.fa-regular),
+body.almaden-app-body :where(.fa-regular),
+body.theme-light :where(.fa-regular),
+body.theme-sepia :where(.fa-regular),
+body.theme-dark :where(.fa-regular) {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
+}
+
+body.almaden-shell :where(.fa-solid),
+body.almaden-app-body :where(.fa-solid),
+body.theme-light :where(.fa-solid),
+body.theme-sepia :where(.fa-solid),
+body.theme-dark :where(.fa-solid) {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
 /* Chapter list typography: match the native WordPress admin stack */
 #chapters-list {
     font-family: var(--almaden-ui-font) !important;
