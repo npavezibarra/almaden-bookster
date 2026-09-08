@@ -13,7 +13,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+define( 'ALMADEN_BOOKSTER_VERSION', '1.0.0' );
+
 // --- Módulos de Google Fonts (Admin) ---
+require_once plugin_dir_path( __FILE__ ) . 'includes/frontend/asset-diagnostics.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/frontend/pages.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/frontend/app-shell.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/frontend/shell-access.php';

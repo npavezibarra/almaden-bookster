@@ -34,8 +34,8 @@
         var ajaxurl = "<?php echo admin_url( 'admin-ajax.php' ); ?>";
     </script>
     <?php wp_head(); ?>
-    <link rel="stylesheet" href="<?php echo esc_url( plugins_url( '../../assets/vendor/fontawesome/css/all.min.css?v=6.4.0', __FILE__ ) ); ?>">
-    <link rel="stylesheet" href="<?php echo esc_url( plugins_url( '../../assets/css/editor-style.css?v=' . time(), __FILE__ ) ); ?>">
+    <link rel="stylesheet" href="<?php echo esc_url( function_exists( 'almaden_bookster_fontawesome_css_url' ) ? almaden_bookster_fontawesome_css_url() : plugins_url( '../../assets/vendor/fontawesome/css/all.min.css?v=6.4.0', __FILE__ ) ); ?>">
+    <link rel="stylesheet" href="<?php echo esc_url( function_exists( 'almaden_bookster_editor_css_url' ) ? almaden_bookster_editor_css_url() : plugins_url( '../../assets/css/editor-style.css?v=' . time(), __FILE__ ) ); ?>">
     <style id="almaden-editor-overrides">
         html {
             margin-top: 0 !important;
@@ -44,3 +44,8 @@
             background-color: #f9fafb;
         }
     </style>
+    <?php
+    if ( function_exists( 'almaden_bookster_render_asset_diagnostics' ) ) {
+        almaden_bookster_render_asset_diagnostics( 'editor' );
+    }
+    ?>

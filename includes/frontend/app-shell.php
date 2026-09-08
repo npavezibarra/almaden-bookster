@@ -478,6 +478,7 @@ if ( ! function_exists( 'almaden_bookster_render_app_shell_start' ) ) {
 		}
 		$body_class = array_filter( array_map( 'sanitize_html_class', (array) $body_class ) );
 		$body_class[] = 'almaden-app-body';
+		$body_class[] = 'almaden-shell';
 		$body_class = array_values( array_unique( $body_class ) );
 
 		$active_nav_key = sanitize_key( (string) $args['active_nav_key'] );
@@ -550,6 +551,8 @@ if ( ! function_exists( 'almaden_bookster_render_app_shell_start' ) ) {
 		}
 	</style>
 	<?php wp_head(); ?>
+	<link rel="stylesheet" href="<?php echo esc_url( function_exists( 'almaden_bookster_fontawesome_css_url' ) ? almaden_bookster_fontawesome_css_url() : plugins_url( 'assets/vendor/fontawesome/css/all.min.css?v=6.4.0', dirname( dirname( __FILE__ ) ) . '/almaden-bookster.php' ) ); ?>">
+	<link rel="stylesheet" href="<?php echo esc_url( function_exists( 'almaden_bookster_editor_css_url' ) ? almaden_bookster_editor_css_url() : plugins_url( 'assets/css/editor-style.css?v=' . time(), dirname( dirname( __FILE__ ) ) . '/almaden-bookster.php' ) ); ?>">
 	<style id="almaden-app-shell-overrides">
 		html {
 			margin-top: 0 !important;
@@ -610,6 +613,11 @@ if ( ! function_exists( 'almaden_bookster_render_app_shell_start' ) ) {
 			background-color: #f5f5f5;
 		}
 	</style>
+	<?php
+	if ( function_exists( 'almaden_bookster_render_asset_diagnostics' ) ) {
+		almaden_bookster_render_asset_diagnostics( 'app-shell' );
+	}
+	?>
 </head>
 <body<?php echo ! empty( $body_class ) ? ' class="' . esc_attr( implode( ' ', $body_class ) ) . '"' : ''; ?><?php echo '' !== trim( (string) $args['body_id'] ) ? ' id="' . esc_attr( $args['body_id'] ) . '"' : ''; ?>>
 	<?php echo almaden_bookster_render_shared_nav( $active_nav_key ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>

@@ -82,10 +82,6 @@ if ( $is_logged_in && $current_user ) {
     <?php if ( function_exists( 'almaden_bookster_get_bundled_fonts_stylesheet_url' ) ) : ?>
     <link rel="stylesheet" href="<?php echo esc_url( almaden_bookster_get_bundled_fonts_stylesheet_url() ); ?>">
     <?php endif; ?>
-    <link href="<?php echo esc_url( almaden_get_thumbnail_fonts_url() ); ?>" rel="stylesheet">
-    <!-- Font Awesome Icons para UI -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo esc_url( plugins_url( '../../assets/css/editor-style.css?v=' . time(), __FILE__ ) ); ?>">
     <script>
         var ajaxurl = "<?php echo admin_url( 'admin-ajax.php' ); ?>";
         let bookState = {
@@ -156,6 +152,8 @@ if ( $is_logged_in && $current_user ) {
         }
     </style>
     <?php wp_head(); ?>
+    <link rel="stylesheet" href="<?php echo esc_url( function_exists( 'almaden_bookster_fontawesome_css_url' ) ? almaden_bookster_fontawesome_css_url() : plugins_url( '../../assets/vendor/fontawesome/css/all.min.css?v=6.4.0', __FILE__ ) ); ?>">
+    <link rel="stylesheet" href="<?php echo esc_url( function_exists( 'almaden_bookster_editor_css_url' ) ? almaden_bookster_editor_css_url() : plugins_url( '../../assets/css/editor-style.css?v=' . time(), __FILE__ ) ); ?>">
     <style id="almaden-booklist-overrides">
         html {
             margin-top: 0 !important;
@@ -175,8 +173,13 @@ if ( $is_logged_in && $current_user ) {
             box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
         }
     </style>
+    <?php
+    if ( function_exists( 'almaden_bookster_render_asset_diagnostics' ) ) {
+        almaden_bookster_render_asset_diagnostics( 'booklist' );
+    }
+    ?>
 </head>
-<body class="almaden-app-body min-h-screen flex flex-col theme-light">
+<body class="almaden-app-body almaden-shell min-h-screen flex flex-col theme-light">
 
     <?php echo almaden_bookster_render_shared_nav( 'creator' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 

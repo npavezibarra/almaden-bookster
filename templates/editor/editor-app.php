@@ -27,7 +27,7 @@ if (!headers_sent()) {
     <?php include dirname( __FILE__ ) . '/editor-app-head-extras.php'; ?>
 </head>
 
-<body class="theme-light h-full overflow-hidden flex flex-col bg-[var(--bg-app)] text-[var(--text-main)]">
+<body class="almaden-shell theme-light h-full overflow-hidden flex flex-col bg-[var(--bg-app)] text-[var(--text-main)]">
 
     <!-- CABECERA PRINCIPAL -->
     <header class="h-16 border-b border-[var(--border-color)] px-4 flex items-center justify-between z-10 no-print transition-all" style="background-color: #f0f0f0;">
