@@ -5,11 +5,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once dirname( __FILE__ ) . '/../../includes/helpers/cover-thumbnail.php';
 
-// Fetch all books
+$current_user = function_exists( 'wp_get_current_user' ) ? wp_get_current_user() : null;
+$is_logged_in = function_exists( 'is_user_logged_in' ) ? is_user_logged_in() : false;
+$current_user_id = $is_logged_in ? get_current_user_id() : 0;
+
+// Fetch only the books created by the current user for the workshop.
 $args = array(
     'post_type'      => 'almaden-books',
     'posts_per_page' => -1,
     'post_status'    => 'publish',
+    'author'         => $current_user_id,
 );
 $books_query = new WP_Query( $args );
 
@@ -22,8 +27,6 @@ $publisher_created = isset( $_GET['publisher_created'] ) && $_GET['publisher_cre
 $publisher_tour_completed = isset( $_GET['publisher_tour_completed'] ) && $_GET['publisher_tour_completed'] == '1';
 $show_publisher_tour = function_exists( 'almaden_bookster_should_show_publisher_tour' ) ? almaden_bookster_should_show_publisher_tour() : false;
 
-$current_user = function_exists( 'wp_get_current_user' ) ? wp_get_current_user() : null;
-$is_logged_in = function_exists( 'is_user_logged_in' ) ? is_user_logged_in() : false;
 $current_user_name = '';
 $current_user_avatar = '';
 $logout_url = '';
