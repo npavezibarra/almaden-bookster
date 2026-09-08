@@ -34,6 +34,7 @@
         var ajaxurl = "<?php echo admin_url( 'admin-ajax.php' ); ?>";
     </script>
     <?php wp_head(); ?>
+    <link rel="stylesheet" href="<?php echo esc_url( plugins_url( '../../assets/vendor/fontawesome/css/all.min.css?v=6.4.0', __FILE__ ) ); ?>">
     <link rel="stylesheet" href="<?php echo esc_url( plugins_url( '../../assets/css/editor-style.css?v=' . time(), __FILE__ ) ); ?>">
     <style id="almaden-editor-overrides">
         html {
