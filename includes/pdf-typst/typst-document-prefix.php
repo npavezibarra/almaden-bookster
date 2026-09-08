@@ -343,7 +343,7 @@ function almaden_bookster_typst_build_document_prefix( $context, $payload ) {
 		' fill: rgb("ffffff"),' .
 		' background: almaden-page-background(),' .
 		' foreground: almaden-page-running-overlay(),' .
-		' binding: left, bleed: 0pt,' .
+		' binding: left,' .
 		')' . "\n";
 	$source .= '#set text(fill: rgb("111111"), font: "' . almaden_bookster_typst_escape_string( $font_family ) . '", size: ' .
 		$font_size . 'pt, weight: ' . $font_weight . ', lang: "' .

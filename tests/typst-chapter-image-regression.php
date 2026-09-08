@@ -114,7 +114,7 @@ $expected_fragments = array(
 	'<almaden-hide-footer-page>',
 	'#set page(background: almaden-page-background())',
 	'#set page(width: 21.6cm, height: 30.3cm,',
-	'binding: left, bleed: 0pt,',
+	'binding: left,',
 );
 foreach ( $expected_fragments as $fragment ) {
 	if ( false === strpos( $source, $fragment ) ) {

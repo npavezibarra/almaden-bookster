@@ -1,16 +1,32 @@
 /* Estilos generales de tipografía e interfaz */
+:root {
+    --almaden-ui-font: 'Urbanist', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
 h1, h2, h3, h4, h5, h6, .font-sans {
-    font-family: 'Urbanist', sans-serif !important;
+    font-family: var(--almaden-ui-font) !important;
 }
 
 body, html {
-    font-family: 'Urbanist', sans-serif !important;
+    font-family: var(--almaden-ui-font) !important;
     transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body.theme-light,
+body.theme-sepia,
+body.theme-dark,
+body.theme-light :where(button, input, select, textarea),
+body.theme-sepia :where(button, input, select, textarea),
+body.theme-dark :where(button, input, select, textarea),
+#almaden-editor-shell,
+#almaden-editor-shell :where(button, input, select, textarea),
+#almaden-editor-shell :where(.font-sans, .font-bold, .font-semibold, .font-medium) {
+    font-family: var(--almaden-ui-font) !important;
 }
 
 /* Chapter list typography: match the native WordPress admin stack */
 #chapters-list {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    font-family: var(--almaden-ui-font) !important;
 }
 
 body.sidebar-collapsed #sidebar {
