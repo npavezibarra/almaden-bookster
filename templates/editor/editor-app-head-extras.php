@@ -22,7 +22,6 @@
     <?php if ( function_exists( 'almaden_bookster_get_bundled_fonts_stylesheet_url' ) ) : ?>
     <link rel="stylesheet" href="<?php echo esc_url( almaden_bookster_get_bundled_fonts_stylesheet_url() ); ?>">
     <?php endif; ?>
-    <link rel="stylesheet" href="<?php echo esc_url( plugins_url( '../../assets/css/editor-style.css?v=' . time(), __FILE__ ) ); ?>">
     <!-- Estilos dinámicos de maquetación del PDF -->
     <style id="dynamic-pdf-settings"></style>
     <style>
@@ -35,6 +34,7 @@
         var ajaxurl = "<?php echo admin_url( 'admin-ajax.php' ); ?>";
     </script>
     <?php wp_head(); ?>
+    <link rel="stylesheet" href="<?php echo esc_url( plugins_url( '../../assets/css/editor-style.css?v=' . time(), __FILE__ ) ); ?>">
     <style id="almaden-editor-overrides">
         html {
             margin-top: 0 !important;
