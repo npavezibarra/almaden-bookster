@@ -551,10 +551,11 @@ if ( ! function_exists( 'almaden_bookster_render_app_shell_start' ) ) {
 		}
 	</style>
 	<?php
-	if ( function_exists( 'almaden_bookster_activate_shell_asset_quarantine' ) ) {
-		almaden_bookster_activate_shell_asset_quarantine( 'app-shell' );
+	if ( function_exists( 'almaden_bookster_render_quarantined_wp_head' ) ) {
+		almaden_bookster_render_quarantined_wp_head( 'app-shell' );
+	} else {
+		wp_head();
 	}
-	wp_head();
 	?>
 	<link rel="stylesheet" href="<?php echo esc_url( function_exists( 'almaden_bookster_fontawesome_css_url' ) ? almaden_bookster_fontawesome_css_url() : plugins_url( 'assets/vendor/fontawesome/css/all.min.css?v=6.4.0', dirname( dirname( __FILE__ ) ) . '/almaden-bookster.php' ) ); ?>">
 	<link rel="stylesheet" href="<?php echo esc_url( function_exists( 'almaden_bookster_editor_css_url' ) ? almaden_bookster_editor_css_url() : plugins_url( 'assets/css/editor-style.css?v=' . time(), dirname( dirname( __FILE__ ) ) . '/almaden-bookster.php' ) ); ?>">

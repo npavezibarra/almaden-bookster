@@ -102,6 +102,50 @@ if ( ! function_exists( 'almaden_bookster_apply_shell_asset_quarantine' ) ) {
 add_action( 'wp_enqueue_scripts', 'almaden_bookster_apply_shell_asset_quarantine', PHP_INT_MAX );
 add_action( 'admin_enqueue_scripts', 'almaden_bookster_apply_shell_asset_quarantine', PHP_INT_MAX );
 
+if ( ! function_exists( 'almaden_bookster_filter_shell_head_output' ) ) {
+	function almaden_bookster_filter_shell_head_output( $html ) {
+		$html = (string) $html;
+		$html = preg_replace_callback(
+			'/<link\b[^>]*rel=["\']stylesheet["\'][^>]*>/i',
+			static function ( $matches ) {
+				$tag = $matches[0];
+				if ( preg_match( '/\bhref=["\']([^"\']+)["\']/i', $tag, $href_match ) ) {
+					$href = html_entity_decode( $href_match[1], ENT_QUOTES );
+					if (
+						false !== strpos( $href, '/wp-content/plugins/almaden-bookster/' ) ||
+						false !== strpos( $href, '/wp-includes/css/dashicons' ) ||
+						false !== strpos( $href, '/wp-includes/css/admin-bar' ) ||
+						false !== strpos( $href, '/wp-includes/css/buttons' ) ||
+						false !== strpos( $href, '/wp-includes/css/media-views' ) ||
+						false !== strpos( $href, '/wp-includes/js/mediaelement/' ) ||
+						false !== strpos( $href, '/wp-includes/js/imgareaselect/' )
+					) {
+						return $tag;
+					}
+				}
+
+				return '';
+			},
+			$html
+		);
+		$html = preg_replace( '/<link\b[^>]*href=["\']https:\/\/fonts\.googleapis\.com\/[^"\']+["\'][^>]*>/i', '', $html );
+		$html = preg_replace( '/<link\b[^>]*href=["\'][^"\']*\/wp-content\/uploads\/custom-css-js\/[^"\']+["\'][^>]*>/i', '', $html );
+
+		return $html;
+	}
+}
+
+if ( ! function_exists( 'almaden_bookster_render_quarantined_wp_head' ) ) {
+	function almaden_bookster_render_quarantined_wp_head( $surface = 'shell' ) {
+		if ( function_exists( 'almaden_bookster_activate_shell_asset_quarantine' ) ) {
+			almaden_bookster_activate_shell_asset_quarantine( $surface );
+		}
+		ob_start();
+		wp_head();
+		echo almaden_bookster_filter_shell_head_output( ob_get_clean() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+}
+
 if ( ! function_exists( 'almaden_bookster_asset_diagnostics_payload' ) ) {
 	function almaden_bookster_asset_diagnostics_payload( $surface = 'shell' ) {
 		$assets = array(
@@ -174,6 +218,15 @@ if ( ! function_exists( 'almaden_bookster_render_asset_diagnostics' ) ) {
 					}).join('');
 				}
 				function collect() {
+					var probe = document.getElementById('almaden-fa-probe');
+					if (!probe) {
+						probe = document.createElement('i');
+						probe.id = 'almaden-fa-probe';
+						probe.className = 'fa-solid fa-plus';
+						probe.setAttribute('aria-hidden', 'true');
+						probe.style.cssText = 'position:absolute;left:-9999px;top:-9999px;display:inline-block;';
+						document.body.appendChild(probe);
+					}
 					var sheets = Array.prototype.slice.call(document.styleSheets).map(function (sheet) {
 						return sheet.href || 'inline';
 					});
@@ -193,7 +246,7 @@ if ( ! function_exists( 'almaden_bookster_render_asset_diagnostics' ) ) {
 							styleOf('#almaden-app-nav'),
 							styleOf('#almaden-workshop'),
 							styleOf('.book-card'),
-							styleOf('.fa-solid'),
+							styleOf('#almaden-fa-probe'),
 							styleOf('button')
 						],
 						almadenStyleSheets: almadenSheets,
@@ -213,9 +266,19 @@ if ( ! function_exists( 'almaden_bookster_render_asset_diagnostics' ) ) {
 					document.body.appendChild(panel);
 				}
 				if (document.readyState === 'loading') {
-					document.addEventListener('DOMContentLoaded', render);
+					document.addEventListener('DOMContentLoaded', function () {
+						if (document.fonts && document.fonts.ready) {
+							document.fonts.ready.then(render);
+						} else {
+							render();
+						}
+					});
 				} else {
-					render();
+					if (document.fonts && document.fonts.ready) {
+						document.fonts.ready.then(render);
+					} else {
+						render();
+					}
 				}
 			}());
 		</script>

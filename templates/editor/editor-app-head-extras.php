@@ -34,10 +34,11 @@
         var ajaxurl = "<?php echo admin_url( 'admin-ajax.php' ); ?>";
     </script>
     <?php
-    if ( function_exists( 'almaden_bookster_activate_shell_asset_quarantine' ) ) {
-        almaden_bookster_activate_shell_asset_quarantine( 'editor' );
+    if ( function_exists( 'almaden_bookster_render_quarantined_wp_head' ) ) {
+        almaden_bookster_render_quarantined_wp_head( 'editor' );
+    } else {
+        wp_head();
     }
-    wp_head();
     ?>
     <link rel="stylesheet" href="<?php echo esc_url( function_exists( 'almaden_bookster_fontawesome_css_url' ) ? almaden_bookster_fontawesome_css_url() : plugins_url( '../../assets/vendor/fontawesome/css/all.min.css?v=6.4.0', __FILE__ ) ); ?>">
     <link rel="stylesheet" href="<?php echo esc_url( function_exists( 'almaden_bookster_editor_css_url' ) ? almaden_bookster_editor_css_url() : plugins_url( '../../assets/css/editor-style.css?v=' . time(), __FILE__ ) ); ?>">

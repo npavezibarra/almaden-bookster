@@ -152,10 +152,11 @@ if ( $is_logged_in && $current_user ) {
         }
     </style>
     <?php
-    if ( function_exists( 'almaden_bookster_activate_shell_asset_quarantine' ) ) {
-        almaden_bookster_activate_shell_asset_quarantine( 'booklist' );
+    if ( function_exists( 'almaden_bookster_render_quarantined_wp_head' ) ) {
+        almaden_bookster_render_quarantined_wp_head( 'booklist' );
+    } else {
+        wp_head();
     }
-    wp_head();
     ?>
     <link rel="stylesheet" href="<?php echo esc_url( function_exists( 'almaden_bookster_fontawesome_css_url' ) ? almaden_bookster_fontawesome_css_url() : plugins_url( '../../assets/vendor/fontawesome/css/all.min.css?v=6.4.0', __FILE__ ) ); ?>">
     <link rel="stylesheet" href="<?php echo esc_url( function_exists( 'almaden_bookster_editor_css_url' ) ? almaden_bookster_editor_css_url() : plugins_url( '../../assets/css/editor-style.css?v=' . time(), __FILE__ ) ); ?>">
