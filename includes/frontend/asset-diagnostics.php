@@ -46,6 +46,62 @@ if ( ! function_exists( 'almaden_bookster_debug_assets_enabled' ) ) {
 	}
 }
 
+if ( ! function_exists( 'almaden_bookster_activate_shell_asset_quarantine' ) ) {
+	function almaden_bookster_activate_shell_asset_quarantine( $surface = 'shell' ) {
+		$GLOBALS['almaden_bookster_shell_asset_quarantine'] = sanitize_key( (string) $surface );
+	}
+}
+
+if ( ! function_exists( 'almaden_bookster_shell_asset_quarantine_allowed_style' ) ) {
+	function almaden_bookster_shell_asset_quarantine_allowed_style( $handle, $src ) {
+		$handle = (string) $handle;
+		$src = (string) $src;
+		$allowed_handles = array(
+			'admin-bar',
+			'buttons',
+			'common',
+			'dashicons',
+			'imgareaselect',
+			'media-views',
+			'mediaelement',
+			'wp-mediaelement',
+		);
+		if ( in_array( $handle, $allowed_handles, true ) ) {
+			return true;
+		}
+		if ( 0 === strpos( $handle, 'almaden' ) || 0 === strpos( $handle, 'almaden-bookster' ) ) {
+			return true;
+		}
+		if ( false !== strpos( $src, '/wp-content/plugins/almaden-bookster/' ) ) {
+			return true;
+		}
+
+		return false;
+	}
+}
+
+if ( ! function_exists( 'almaden_bookster_apply_shell_asset_quarantine' ) ) {
+	function almaden_bookster_apply_shell_asset_quarantine() {
+		if ( empty( $GLOBALS['almaden_bookster_shell_asset_quarantine'] ) || ! isset( $GLOBALS['wp_styles'] ) ) {
+			return;
+		}
+		$wp_styles = $GLOBALS['wp_styles'];
+		if ( ! is_object( $wp_styles ) || empty( $wp_styles->queue ) ) {
+			return;
+		}
+		foreach ( (array) $wp_styles->queue as $handle ) {
+			$registered = isset( $wp_styles->registered[ $handle ] ) ? $wp_styles->registered[ $handle ] : null;
+			$src = is_object( $registered ) && isset( $registered->src ) ? (string) $registered->src : '';
+			if ( ! almaden_bookster_shell_asset_quarantine_allowed_style( $handle, $src ) ) {
+				wp_dequeue_style( $handle );
+				wp_deregister_style( $handle );
+			}
+		}
+	}
+}
+add_action( 'wp_enqueue_scripts', 'almaden_bookster_apply_shell_asset_quarantine', PHP_INT_MAX );
+add_action( 'admin_enqueue_scripts', 'almaden_bookster_apply_shell_asset_quarantine', PHP_INT_MAX );
+
 if ( ! function_exists( 'almaden_bookster_asset_diagnostics_payload' ) ) {
 	function almaden_bookster_asset_diagnostics_payload( $surface = 'shell' ) {
 		$assets = array(
@@ -121,10 +177,16 @@ if ( ! function_exists( 'almaden_bookster_render_asset_diagnostics' ) ) {
 					var sheets = Array.prototype.slice.call(document.styleSheets).map(function (sheet) {
 						return sheet.href || 'inline';
 					});
+					var almadenSheets = sheets.filter(function (href) {
+						return href.indexOf('/wp-content/plugins/almaden-bookster/') !== -1;
+					});
+					var foreignSheets = sheets.filter(function (href) {
+						return href !== 'inline' && href.indexOf('/wp-content/plugins/almaden-bookster/') === -1 && href.indexOf('/wp-includes/') === -1;
+					});
 					return {
 						fonts: {
 							urbanist: document.fonts && document.fonts.check ? document.fonts.check('16px Urbanist') : null,
-							fontAwesome: document.fonts && document.fonts.check ? document.fonts.check('16px "Font Awesome 6 Free"') : null
+							fontAwesome: document.fonts && document.fonts.check ? document.fonts.check('900 16px "Font Awesome 6 Free"') : null
 						},
 						styles: [
 							styleOf('body'),
@@ -134,6 +196,8 @@ if ( ! function_exists( 'almaden_bookster_render_asset_diagnostics' ) ) {
 							styleOf('.fa-solid'),
 							styleOf('button')
 						],
+						almadenStyleSheets: almadenSheets,
+						foreignStyleSheets: foreignSheets,
 						styleSheets: sheets
 					};
 				}
