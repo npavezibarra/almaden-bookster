@@ -133,17 +133,23 @@ function switchHeaderFooterTab(tab) {
 
 function switchTypographyTab(tab) {
     const showHeadings = tab === 'headings';
+    const showQuotes = tab === 'quotes';
     const bodyPanel = document.getElementById('typography-body-panel');
     const headingsPanel = document.getElementById('typography-headings-panel');
+    const quotesPanel = document.getElementById('typography-quotes-panel');
     const bodyButton = document.getElementById('btn-typography-body');
     const headingsButton = document.getElementById('btn-typography-headings');
+    const quotesButton = document.getElementById('btn-typography-quotes');
 
-    bodyPanel?.classList.toggle('hidden', showHeadings);
+    bodyPanel?.classList.toggle('hidden', showHeadings || showQuotes);
     headingsPanel?.classList.toggle('hidden', !showHeadings);
-    bodyButton?.classList.toggle('is-active', !showHeadings);
+    quotesPanel?.classList.toggle('hidden', !showQuotes);
+    bodyButton?.classList.toggle('is-active', !showHeadings && !showQuotes);
     headingsButton?.classList.toggle('is-active', showHeadings);
-    bodyButton?.setAttribute('aria-selected', showHeadings ? 'false' : 'true');
+    quotesButton?.classList.toggle('is-active', showQuotes);
+    bodyButton?.setAttribute('aria-selected', showHeadings || showQuotes ? 'false' : 'true');
     headingsButton?.setAttribute('aria-selected', showHeadings ? 'true' : 'false');
+    quotesButton?.setAttribute('aria-selected', showQuotes ? 'true' : 'false');
 }
 
 function switchHeadingTypographyTab(level, tab) {
@@ -437,9 +443,24 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-letter-spacing-h1')) document.getElementById('setting-letter-spacing-h1').value = settings.letter_spacing_h1 ?? 0;
     if (document.getElementById('setting-letter-spacing-h2')) document.getElementById('setting-letter-spacing-h2').value = settings.letter_spacing_h2 ?? 0;
     if (document.getElementById('setting-letter-spacing-h3')) document.getElementById('setting-letter-spacing-h3').value = settings.letter_spacing_h3 ?? 0;
+    if (document.getElementById('setting-margin-top-h1')) document.getElementById('setting-margin-top-h1').value = settings.margin_top_h1 ?? 0;
+    if (document.getElementById('setting-margin-top-h2')) document.getElementById('setting-margin-top-h2').value = settings.margin_top_h2 ?? 0;
+    if (document.getElementById('setting-margin-top-h3')) document.getElementById('setting-margin-top-h3').value = settings.margin_top_h3 ?? 0;
+    if (document.getElementById('setting-margin-bottom-h1')) document.getElementById('setting-margin-bottom-h1').value = settings.margin_bottom_h1 ?? 0;
+    if (document.getElementById('setting-margin-bottom-h2')) document.getElementById('setting-margin-bottom-h2').value = settings.margin_bottom_h2 ?? 0;
+    if (document.getElementById('setting-margin-bottom-h3')) document.getElementById('setting-margin-bottom-h3').value = settings.margin_bottom_h3 ?? 0;
     if (document.getElementById('setting-hyphenate-h1')) document.getElementById('setting-hyphenate-h1').checked = String(settings.hyphenate_h1 ?? '0') === '1';
     if (document.getElementById('setting-hyphenate-h2')) document.getElementById('setting-hyphenate-h2').checked = String(settings.hyphenate_h2 ?? '0') === '1';
     if (document.getElementById('setting-hyphenate-h3')) document.getElementById('setting-hyphenate-h3').checked = String(settings.hyphenate_h3 ?? '0') === '1';
+    if (document.getElementById('setting-quote-font-family')) document.getElementById('setting-quote-font-family').value = settings.quote_font_family || settings.font_family_content || 'Merriweather';
+    if (document.getElementById('setting-quote-font-size')) document.getElementById('setting-quote-font-size').value = settings.quote_font_size ?? settings.font_size_content ?? 11.5;
+    if (document.getElementById('setting-quote-font-style')) document.getElementById('setting-quote-font-style').value = settings.quote_font_style || 'normal';
+    if (document.getElementById('setting-quote-font-weight')) document.getElementById('setting-quote-font-weight').value = settings.quote_font_weight || 'bold';
+    if (document.getElementById('setting-quote-line-height')) document.getElementById('setting-quote-line-height').value = settings.quote_line_height ?? 1.4;
+    if (document.getElementById('setting-quote-text-align')) document.getElementById('setting-quote-text-align').value = ['left', 'center', 'right'].includes(String(settings.quote_text_align || '').toLowerCase()) ? String(settings.quote_text_align).toLowerCase() : 'left';
+    if (document.getElementById('setting-quote-margin-top')) document.getElementById('setting-quote-margin-top').value = settings.quote_margin_top ?? 10;
+    if (document.getElementById('setting-quote-margin-bottom')) document.getElementById('setting-quote-margin-bottom').value = settings.quote_margin_bottom ?? 10;
+    if (document.getElementById('setting-quote-indent')) document.getElementById('setting-quote-indent').value = settings.quote_indent ?? 14;
 
     // Pestaña Cabecera y Pie
     if (document.getElementById('setting-header-font-family')) document.getElementById('setting-header-font-family').value = settings.header_font_family || 'Merriweather';

@@ -198,9 +198,24 @@ window.savePDFSettings = function(silent = false, skipPreview = false) {
     data.append('letter_spacing_h1', getCleanVal('setting-letter-spacing-h1'));
     data.append('letter_spacing_h2', getCleanVal('setting-letter-spacing-h2'));
     data.append('letter_spacing_h3', getCleanVal('setting-letter-spacing-h3'));
+    data.append('margin_top_h1', getCleanVal('setting-margin-top-h1'));
+    data.append('margin_top_h2', getCleanVal('setting-margin-top-h2'));
+    data.append('margin_top_h3', getCleanVal('setting-margin-top-h3'));
+    data.append('margin_bottom_h1', getCleanVal('setting-margin-bottom-h1'));
+    data.append('margin_bottom_h2', getCleanVal('setting-margin-bottom-h2'));
+    data.append('margin_bottom_h3', getCleanVal('setting-margin-bottom-h3'));
     data.append('hyphenate_h1', getChecked('setting-hyphenate-h1'));
     data.append('hyphenate_h2', getChecked('setting-hyphenate-h2'));
     data.append('hyphenate_h3', getChecked('setting-hyphenate-h3'));
+    data.append('quote_font_family', getVal('setting-quote-font-family'));
+    data.append('quote_font_size', getCleanVal('setting-quote-font-size'));
+    data.append('quote_font_style', getVal('setting-quote-font-style'));
+    data.append('quote_font_weight', getVal('setting-quote-font-weight'));
+    data.append('quote_line_height', getCleanVal('setting-quote-line-height'));
+    data.append('quote_text_align', getVal('setting-quote-text-align'));
+    data.append('quote_margin_top', getCleanVal('setting-quote-margin-top'));
+    data.append('quote_margin_bottom', getCleanVal('setting-quote-margin-bottom'));
+    data.append('quote_indent', getCleanVal('setting-quote-indent'));
 
     // Cabecera y Pie
     data.append('header_font_family', getVal('setting-header-font-family'));

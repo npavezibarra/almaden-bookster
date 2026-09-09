@@ -486,6 +486,8 @@ function almaden_bookster_build_typst_document( $payload ) {
 						'line_height'    => $heading1_line_height,
 						'align'          => $heading1_align,
 						'letter_spacing' => $heading1_letter_spacing,
+						'margin_top'     => $heading1_margin_top,
+						'margin_bottom'  => $heading1_margin_bottom,
 						'hyphenate'      => $heading1_hyphenate,
 					),
 					2 => array(
@@ -496,6 +498,8 @@ function almaden_bookster_build_typst_document( $payload ) {
 						'line_height'    => $heading2_line_height,
 						'align'          => $heading2_align,
 						'letter_spacing' => $heading2_letter_spacing,
+						'margin_top'     => $heading2_margin_top,
+						'margin_bottom'  => $heading2_margin_bottom,
 						'hyphenate'      => $heading2_hyphenate,
 					),
 					3 => array(
@@ -506,8 +510,21 @@ function almaden_bookster_build_typst_document( $payload ) {
 						'line_height'    => $heading3_line_height,
 						'align'          => $heading3_align,
 						'letter_spacing' => $heading3_letter_spacing,
+						'margin_top'     => $heading3_margin_top,
+						'margin_bottom'  => $heading3_margin_bottom,
 						'hyphenate'      => $heading3_hyphenate,
 					),
+				),
+				'quote_style'            => array(
+					'font_family'    => $quote_font_family,
+					'font_size'      => $quote_font_size,
+					'font_weight'    => $quote_font_weight,
+					'font_style'     => $quote_font_style,
+					'line_height'    => $quote_line_height,
+					'align'          => $quote_align,
+					'margin_top'     => $quote_margin_top,
+					'margin_bottom'  => $quote_margin_bottom,
+					'indent'         => $quote_indent,
 				),
 			);
 			if ( 'page' !== $footnote_mode ) {
@@ -620,6 +637,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 			$heading1_font_error ? array() : $heading1_font['files'],
 			$heading2_font_error ? array() : $heading2_font['files'],
 			$heading3_font_error ? array() : $heading3_font['files'],
+			$quote_font_error ? array() : $quote_font['files'],
 			$toc_font_assets,
 			$credits_font_assets,
 			$inline_font_assets
@@ -640,7 +658,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 		'semantic_extras' => $plain_extras,
 		'assets'        => $assets,
 		'font_assets'   => array_values( array_unique( $font_assets ) ),
-		'build_error'   => $font_error ?: $title_font_error ?: $header_font_error ?: $footer_font_error ?: $heading1_font_error ?: $heading2_font_error ?: $heading3_font_error ?: $toc_font_error ?: $credits_font_error ?: $inline_font_error,
+		'build_error'   => $font_error ?: $title_font_error ?: $header_font_error ?: $footer_font_error ?: $heading1_font_error ?: $heading2_font_error ?: $heading3_font_error ?: $quote_font_error ?: $toc_font_error ?: $credits_font_error ?: $inline_font_error,
 		'heading_styles' => array(
 			1 => array(
 				'font_family'    => $heading1_font_family,
@@ -650,6 +668,8 @@ function almaden_bookster_build_typst_document( $payload ) {
 				'line_height'    => $heading1_line_height,
 				'align'          => $heading1_align,
 				'letter_spacing' => $heading1_letter_spacing,
+				'margin_top'     => $heading1_margin_top,
+				'margin_bottom'  => $heading1_margin_bottom,
 				'hyphenate'      => $heading1_hyphenate,
 			),
 			2 => array(
@@ -660,6 +680,8 @@ function almaden_bookster_build_typst_document( $payload ) {
 				'line_height'    => $heading2_line_height,
 				'align'          => $heading2_align,
 				'letter_spacing' => $heading2_letter_spacing,
+				'margin_top'     => $heading2_margin_top,
+				'margin_bottom'  => $heading2_margin_bottom,
 				'hyphenate'      => $heading2_hyphenate,
 			),
 			3 => array(
@@ -670,6 +692,8 @@ function almaden_bookster_build_typst_document( $payload ) {
 				'line_height'    => $heading3_line_height,
 				'align'          => $heading3_align,
 				'letter_spacing' => $heading3_letter_spacing,
+				'margin_top'     => $heading3_margin_top,
+				'margin_bottom'  => $heading3_margin_bottom,
 				'hyphenate'      => $heading3_hyphenate,
 			),
 		),

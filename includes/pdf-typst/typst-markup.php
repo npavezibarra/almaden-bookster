@@ -62,6 +62,11 @@ function almaden_bookster_typst_render_inline( $text, $footnotes = array(), $dep
 	$patterns = array(
 		'/<foreign\s+lang=(?:"|\')([a-zA-Z-]{2,10})(?:"|\')\s*>([\s\S]*?)<\/foreign>/i',
 		'/<u>([\s\S]*?)<\/u>/i',
+		'/<strong\b[^>]*>([\s\S]*?)<\/strong>/i',
+		'/<b\b[^>]*>([\s\S]*?)<\/b>/i',
+		'/<em\b[^>]*>([\s\S]*?)<\/em>/i',
+		'/<i\b[^>]*>([\s\S]*?)<\/i>/i',
+		'/<br\s*\/?>/i',
 		'/\*\*([\s\S]*?)\*\*/',
 		'/(?<!\*)\*([^*\n]+)\*(?!\*)/',
 		'/\[size=([0-9]+(?:\.[0-9]+)?)(px|pt|em|rem)?\]([\s\S]*?)\[\/size\]/i',
@@ -102,17 +107,28 @@ function almaden_bookster_typst_render_inline( $text, $footnotes = array(), $dep
 			$output .= '#underline[' . almaden_bookster_typst_render_inline( $match[1][0], $footnotes, $depth + 1, $exceptions, $footnote_mode, $footnote_numbers ) . ']';
 			break;
 		case 2:
+		case 3:
 			$output .= '#strong[' . almaden_bookster_typst_render_inline( $match[1][0], $footnotes, $depth + 1, $exceptions, $footnote_mode, $footnote_numbers ) . ']';
 			break;
-		case 3:
+		case 4:
+		case 5:
 			$output .= '#emph[' . almaden_bookster_typst_render_inline( $match[1][0], $footnotes, $depth + 1, $exceptions, $footnote_mode, $footnote_numbers ) . ']';
 			break;
-		case 4:
+		case 6:
+			$output .= '#linebreak()';
+			break;
+		case 7:
+			$output .= '#strong[' . almaden_bookster_typst_render_inline( $match[1][0], $footnotes, $depth + 1, $exceptions, $footnote_mode, $footnote_numbers ) . ']';
+			break;
+		case 8:
+			$output .= '#emph[' . almaden_bookster_typst_render_inline( $match[1][0], $footnotes, $depth + 1, $exceptions, $footnote_mode, $footnote_numbers ) . ']';
+			break;
+		case 9:
 			$size_pt = almaden_bookster_typst_size_to_pt( $match[1][0], $match[2][0] );
 			$output .= '#text(size: ' . $size_pt . 'pt)[' .
 				almaden_bookster_typst_render_inline( $match[3][0], $footnotes, $depth + 1, $exceptions, $footnote_mode, $footnote_numbers ) . ']';
 			break;
-		case 5:
+		case 10:
 			$family = function_exists( 'almaden_bookster_typst_font_family' )
 				? almaden_bookster_typst_font_family( $match[1][0], '' )
 				: trim( (string) $match[1][0] );
@@ -123,7 +139,7 @@ function almaden_bookster_typst_render_inline( $text, $footnotes = array(), $dep
 			$output .= '#text(font: "' . almaden_bookster_typst_escape_string( $family ) . '")[' .
 				almaden_bookster_typst_render_inline( $match[2][0], $footnotes, $depth + 1, $exceptions, $footnote_mode, $footnote_numbers ) . ']';
 			break;
-		case 6:
+		case 11:
 			$id = $match[1][0];
 			if ( isset( $footnotes[ $id ] ) ) {
 				if ( 'page' === $footnote_mode ) {
@@ -140,6 +156,117 @@ function almaden_bookster_typst_render_inline( $text, $footnotes = array(), $dep
 	}
 
 	return $output . almaden_bookster_typst_render_inline( $after, $footnotes, $depth + 1, $exceptions, $footnote_mode, $footnote_numbers );
+}
+
+function almaden_bookster_typst_parse_style_declarations( $style ) {
+	$declarations = array();
+	foreach ( explode( ';', (string) $style ) as $declaration ) {
+		$parts = explode( ':', $declaration, 2 );
+		if ( 2 !== count( $parts ) ) {
+			continue;
+		}
+		$key = strtolower( trim( $parts[0] ) );
+		$value = trim( $parts[1] );
+		if ( '' !== $key && '' !== $value ) {
+			$declarations[ $key ] = $value;
+		}
+	}
+
+	return $declarations;
+}
+
+function almaden_bookster_typst_css_color( $value, $fallback = '' ) {
+	$value = strtolower( trim( (string) $value ) );
+	$named = array(
+		'black' => '000000',
+		'white' => 'ffffff',
+		'transparent' => '',
+	);
+	if ( isset( $named[ $value ] ) ) {
+		return '' === $named[ $value ] ? $fallback : 'rgb("' . $named[ $value ] . '")';
+	}
+	if ( preg_match( '/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i', $value, $match ) ) {
+		$hex = $match[1];
+		if ( 3 === strlen( $hex ) ) {
+			$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+		}
+		return 'rgb("' . strtolower( $hex ) . '")';
+	}
+
+	return $fallback;
+}
+
+function almaden_bookster_typst_css_length_pt( $value, $fallback = 0, $min = 0, $max = 200 ) {
+	if ( ! preg_match( '/(-?[0-9]+(?:\.[0-9]+)?)(px|pt|mm|cm|in|em|rem)?/i', (string) $value, $match ) ) {
+		return $fallback;
+	}
+	$pt = almaden_bookster_typst_size_to_pt( $match[1], $match[2] ?? 'pt' );
+	return max( $min, min( $max, (float) $pt ) );
+}
+
+function almaden_bookster_typst_render_box_block( $raw, $attrs, $footnotes, $exceptions, $footnote_mode, $footnote_numbers ) {
+	$style = almaden_bookster_typst_parse_style_declarations( $attrs['style'] ?? '' );
+	$body = preg_replace( '/^\s*\[html\]\s*/i', '', (string) $raw );
+	$body = preg_replace( '/\s*\[\/html\]\s*$/i', '', $body );
+	if ( preg_match( '/<div\b([^>]*)>([\s\S]*?)<\/div>/i', $body, $div ) ) {
+		$attrs = array_merge( $attrs, almaden_bookster_typst_parse_html_attributes( $div[1] ) );
+		$style = array_merge( $style, almaden_bookster_typst_parse_style_declarations( $attrs['style'] ?? '' ) );
+		$body = $div[2];
+	}
+
+	$fill = almaden_bookster_typst_css_color( $style['background'] ?? ( $style['background-color'] ?? '' ), 'rgb("f3f3f3")' );
+	$border_color = almaden_bookster_typst_css_color( preg_replace( '/\b(?:solid|dashed|dotted|double|none)\b/i', '', (string) ( $style['border'] ?? '' ) ), 'rgb("d9d9d9")' );
+	$border_width = isset( $style['border'] ) ? almaden_bookster_typst_css_length_pt( $style['border'], 1, 0, 20 ) : 1;
+	$padding = isset( $style['padding'] ) ? almaden_bookster_typst_css_length_pt( $style['padding'], 12, 0, 80 ) : 12;
+	$radius = isset( $style['border-radius'] ) ? almaden_bookster_typst_css_length_pt( $style['border-radius'], 0, 0, 80 ) : 0;
+	$leading = isset( $style['line-height'] ) && is_numeric( $style['line-height'] ) ? max( 0, min( 4, (float) $style['line-height'] - 1 ) ) : null;
+
+	$body = preg_replace( '/<\/p>\s*<p\b[^>]*>/i', "\n\n", $body );
+	$body = preg_replace( '/^\s*<p\b[^>]*>/i', '', $body );
+	$body = preg_replace( '/<\/p>\s*$/i', '', $body );
+	$paragraphs = preg_split( "/\n{2,}/", trim( $body ) );
+	$rendered = array();
+	foreach ( $paragraphs as $paragraph ) {
+		$paragraph = trim( preg_replace( '/\s+/', ' ', $paragraph ) );
+		if ( '' === $paragraph ) {
+			continue;
+		}
+		$rendered[] = '#par[' . almaden_bookster_typst_render_inline( $paragraph, $footnotes, 0, $exceptions, $footnote_mode, $footnote_numbers ) . ']';
+	}
+
+	$par_setup = null === $leading ? '' : '#set par(leading: ' . round( $leading, 4 ) . "em)\n";
+	return '#block(width: 100%, breakable: true, fill: ' . $fill . ', stroke: ' . round( $border_width, 3 ) . 'pt + ' . $border_color . ', radius: ' . round( $radius, 3 ) . 'pt, inset: ' . round( $padding, 3 ) . 'pt)[' . "\n" .
+		$par_setup .
+		implode( "\n\n", $rendered ) . "\n" .
+		']';
+}
+
+function almaden_bookster_typst_render_quote_block( $text, $style, $footnotes, $exceptions, $footnote_mode, $footnote_numbers ) {
+	$style = is_array( $style ) ? $style : array();
+	$font_family = trim( (string) ( $style['font_family'] ?? '' ) );
+	$font_size = isset( $style['font_size'] ) && is_numeric( $style['font_size'] ) ? max( 5, min( 100, (float) $style['font_size'] ) ) : 11.5;
+	$font_weight = function_exists( 'almaden_bookster_typst_font_weight' )
+		? almaden_bookster_typst_font_weight( $style['font_weight'] ?? 'bold' )
+		: ( 'bold' === (string) ( $style['font_weight'] ?? 'bold' ) ? 700 : 400 );
+	$font_style = isset( $style['font_style'] ) ? strtolower( trim( (string) $style['font_style'] ) ) : 'normal';
+	if ( ! in_array( $font_style, array( 'normal', 'italic', 'oblique' ), true ) ) {
+		$font_style = 'normal';
+	}
+	$align = isset( $style['align'] ) && in_array( $style['align'], array( 'left', 'center', 'right' ), true ) ? $style['align'] : 'left';
+	$leading = isset( $style['line_height'] ) && is_numeric( $style['line_height'] ) ? max( 0, min( 4, (float) $style['line_height'] - 1 ) ) : 0.4;
+	$margin_top = isset( $style['margin_top'] ) && is_numeric( $style['margin_top'] ) ? max( 0, min( 200, (float) $style['margin_top'] ) ) : 10;
+	$margin_bottom = isset( $style['margin_bottom'] ) && is_numeric( $style['margin_bottom'] ) ? max( 0, min( 200, (float) $style['margin_bottom'] ) ) : 10;
+	$indent = isset( $style['indent'] ) && is_numeric( $style['indent'] ) ? max( 0, min( 200, (float) $style['indent'] ) ) : 14;
+	$text_options = 'size: ' . round( $font_size, 3 ) . 'pt, weight: ' . $font_weight . ', style: "' . almaden_bookster_typst_escape_string( $font_style ) . '"';
+	if ( '' !== $font_family ) {
+		$text_options = 'font: "' . almaden_bookster_typst_escape_string( $font_family ) . '", ' . $text_options;
+	}
+
+	return '#block(width: 100%, breakable: true, above: ' . round( $margin_top, 3 ) . 'pt, below: ' . round( $margin_bottom, 3 ) . 'pt, inset: (left: ' . round( $indent, 3 ) . 'pt, right: 0pt))[' . "\n" .
+		'#set par(justify: false, first-line-indent: 0pt, leading: ' . round( $leading, 4 ) . 'em)' . "\n" .
+		'#set text(' . $text_options . ')' . "\n" .
+		'#align(' . $align . ')[#quote(block: true)[' . almaden_bookster_typst_render_inline( $text, $footnotes, 0, $exceptions, $footnote_mode, $footnote_numbers ) . ']]' . "\n" .
+		']';
 }
 
 /**
@@ -252,6 +379,7 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 
 	$exceptions = (array) ( $options['hyphenation_exceptions'] ?? array() );
 	$heading_styles = (array) ( $options['heading_styles'] ?? array() );
+	$quote_style = (array) ( $options['quote_style'] ?? array() );
 	$footnote_mode = 'page';
 	if ( isset( $options['footnote_mode'] ) && function_exists( 'almaden_bookster_typst_footnote_mode' ) ) {
 		$footnote_mode = almaden_bookster_typst_footnote_mode( array( 'footnote_mode' => $options['footnote_mode'] ) );
@@ -272,11 +400,35 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 		}
 	};
 
-	foreach ( $lines as $line ) {
+	$line_count = count( $lines );
+	for ( $line_index = 0; $line_index < $line_count; ++$line_index ) {
+		$line = $lines[ $line_index ];
 		$trimmed = trim( $line );
 		if ( '' === $trimmed ) {
 			$flush_paragraph();
 			$close_list();
+			continue;
+		}
+
+		if ( preg_match( '/^\[box(?:\s+([^\]]+))?\]$/i', $trimmed, $box ) ) {
+			$flush_paragraph();
+			$close_list();
+			$box_lines = array();
+			while ( ++$line_index < $line_count ) {
+				$box_line = $lines[ $line_index ];
+				if ( preg_match( '/^\s*\[\/box\]\s*$/i', $box_line ) ) {
+					break;
+				}
+				$box_lines[] = $box_line;
+			}
+			$output[] = almaden_bookster_typst_render_box_block(
+				implode( "\n", $box_lines ),
+				almaden_bookster_typst_parse_html_attributes( $box[1] ?? '' ),
+				$footnotes,
+				$exceptions,
+				$footnote_mode,
+				$footnote_numbers
+			);
 			continue;
 		}
 
@@ -332,7 +484,9 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 				$style = $heading_styles[ $level ];
 				$heading_align = isset( $style['align'] ) && in_array( $style['align'], array( 'left', 'center', 'right' ), true ) ? $style['align'] : 'left';
 				$heading_leading = round( max( 0, (float) ( $style['line_height'] ?? 1.3 ) - 1 ), 4 );
-				$output[] = '#block(width: 100%, breakable: false)[' .
+				$heading_margin_top = isset( $style['margin_top'] ) && is_numeric( $style['margin_top'] ) ? max( 0, min( 200, (float) $style['margin_top'] ) ) : 0;
+				$heading_margin_bottom = isset( $style['margin_bottom'] ) && is_numeric( $style['margin_bottom'] ) ? max( 0, min( 200, (float) $style['margin_bottom'] ) ) : 0;
+				$output[] = '#block(width: 100%, breakable: false, above: ' . round( $heading_margin_top, 3 ) . 'pt, below: ' . round( $heading_margin_bottom, 3 ) . 'pt)[' .
 					"\n" .
 					'#set par(justify: false, first-line-indent: 0pt, leading: ' . $heading_leading . 'em)' . "\n" .
 					'#align(' . $heading_align . ')[#heading(level: ' . $level . ')[#almaden-page-colored("content", fill => text(fill: fill, font: "' .
@@ -352,8 +506,7 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 		if ( preg_match( '/^>\s*(.*)$/', $trimmed, $quote ) ) {
 			$flush_paragraph();
 			$close_list();
-			$output[] = '#quote(block: true)[' .
-				almaden_bookster_typst_render_inline( $quote[1], $footnotes, 0, $exceptions, $footnote_mode, $footnote_numbers ) . ']';
+			$output[] = almaden_bookster_typst_render_quote_block( $quote[1], $quote_style, $footnotes, $exceptions, $footnote_mode, $footnote_numbers );
 			continue;
 		}
 		if ( preg_match( '/^-\s+(.+)$/', $trimmed, $item ) ) {

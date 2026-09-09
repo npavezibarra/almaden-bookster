@@ -2,6 +2,7 @@
                 <nav class="settings-inner-tabs" role="tablist" aria-label="Tipos de tipografía">
                     <button type="button" role="tab" aria-controls="typography-body-panel" id="btn-typography-body" class="typography-tab-btn header-footer-tab-btn is-active" onclick="switchTypographyTab('body')" aria-selected="true">Cuerpo</button>
                     <button type="button" role="tab" aria-controls="typography-headings-panel" id="btn-typography-headings" class="typography-tab-btn header-footer-tab-btn" onclick="switchTypographyTab('headings')" aria-selected="false">Títulos</button>
+                    <button type="button" role="tab" aria-controls="typography-quotes-panel" id="btn-typography-quotes" class="typography-tab-btn header-footer-tab-btn" onclick="switchTypographyTab('quotes')" aria-selected="false">Citas</button>
                 </nav>
 
                 <div id="typography-body-panel" class="typography-tab-panel" role="tabpanel" aria-labelledby="btn-typography-body">
@@ -159,6 +160,14 @@
                                         <label class="block text-[8px] text-[var(--text-muted)] mb-1">Espaciado letras (pt)</label>
                                         <input id="setting-letter-spacing-<?php echo esc_attr( $heading_key ); ?>" type="number" step="0.1" min="-20" max="20" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded p-1 text-xs text-center focus:outline-none focus:ring-1 focus:ring-black">
                                     </div>
+                                    <div>
+                                        <label class="block text-[8px] text-[var(--text-muted)] mb-1">Margen superior (pt)</label>
+                                        <input id="setting-margin-top-<?php echo esc_attr( $heading_key ); ?>" type="number" step="0.5" min="0" max="200" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded p-1 text-xs text-center focus:outline-none focus:ring-1 focus:ring-black">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[8px] text-[var(--text-muted)] mb-1">Margen inferior (pt)</label>
+                                        <input id="setting-margin-bottom-<?php echo esc_attr( $heading_key ); ?>" type="number" step="0.5" min="0" max="200" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded p-1 text-xs text-center focus:outline-none focus:ring-1 focus:ring-black">
+                                    </div>
                                 </div>
                                 <label class="mt-3 flex items-center gap-2 text-xs font-semibold text-[var(--text-main)]">
                                     <input id="setting-hyphenate-<?php echo esc_attr( $heading_key ); ?>" type="checkbox" class="rounded border-[var(--border-color)] text-black focus:ring-black bg-[var(--bg-app)] h-4 w-4">
@@ -168,6 +177,73 @@
                         </div>
                         <?php endforeach; ?>
                     </div>
+                    </div>
+                </section>
+                </div>
+
+                <div id="typography-quotes-panel" class="typography-tab-panel hidden" role="tabpanel" aria-labelledby="btn-typography-quotes">
+                <section class="settings-section-card">
+                    <h4><i class="fa-solid fa-quote-left" aria-hidden="true"></i> Tipografía de citas</h4>
+                    <div class="settings-section-card-body space-y-4">
+                        <div class="grid grid-cols-4 gap-2">
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Familia</label>
+                                <select id="setting-quote-font-family" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                    <?php almaden_render_font_options( $default_fonts, $selector_fonts ); ?>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Tamaño (pt)</label>
+                                <input id="setting-quote-font-size" type="number" step="0.1" min="5" max="100" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Estilo</label>
+                                <select id="setting-quote-font-style" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                    <option value="normal">Normal</option>
+                                    <option value="italic">Cursiva</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Peso</label>
+                                <select id="setting-quote-font-weight" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                    <option value="100">100 - Fino</option>
+                                    <option value="200">200 - Extra Ligero</option>
+                                    <option value="300">300 - Ligero</option>
+                                    <option value="normal">400 - Normal</option>
+                                    <option value="500">500 - Medio</option>
+                                    <option value="600">600 - Semi Negrita</option>
+                                    <option value="bold">700 - Negrita</option>
+                                    <option value="800">800 - Extra Negrita</option>
+                                    <option value="900">900 - Negro</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-5 gap-2">
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Interlineado</label>
+                                <input id="setting-quote-line-height" type="number" step="0.05" min="0.8" max="4" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Alineación</label>
+                                <select id="setting-quote-text-align" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                    <option value="left">Izquierda</option>
+                                    <option value="center">Centro</option>
+                                    <option value="right">Derecha</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Antes (pt)</label>
+                                <input id="setting-quote-margin-top" type="number" step="0.5" min="0" max="200" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Después (pt)</label>
+                                <input id="setting-quote-margin-bottom" type="number" step="0.5" min="0" max="200" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Sangría (pt)</label>
+                                <input id="setting-quote-indent" type="number" step="0.5" min="0" max="200" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                        </div>
                     </div>
                 </section>
                 </div>

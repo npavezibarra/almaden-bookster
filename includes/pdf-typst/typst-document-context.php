@@ -137,6 +137,12 @@ function almaden_bookster_typst_build_document_context( $payload ) {
 	$heading1_letter_spacing = almaden_bookster_typst_number( $settings, 'letter_spacing_h1', 0, -20, 20 );
 	$heading2_letter_spacing = almaden_bookster_typst_number( $settings, 'letter_spacing_h2', 0, -20, 20 );
 	$heading3_letter_spacing = almaden_bookster_typst_number( $settings, 'letter_spacing_h3', 0, -20, 20 );
+	$heading1_margin_top = almaden_bookster_typst_number( $settings, 'margin_top_h1', 0, 0, 200 );
+	$heading2_margin_top = almaden_bookster_typst_number( $settings, 'margin_top_h2', 0, 0, 200 );
+	$heading3_margin_top = almaden_bookster_typst_number( $settings, 'margin_top_h3', 0, 0, 200 );
+	$heading1_margin_bottom = almaden_bookster_typst_number( $settings, 'margin_bottom_h1', 0, 0, 200 );
+	$heading2_margin_bottom = almaden_bookster_typst_number( $settings, 'margin_bottom_h2', 0, 0, 200 );
+	$heading3_margin_bottom = almaden_bookster_typst_number( $settings, 'margin_bottom_h3', 0, 0, 200 );
 	$heading1_hyphenate = almaden_bookster_typst_bool( $settings['hyphenate_h1'] ?? false );
 	$heading2_hyphenate = almaden_bookster_typst_bool( $settings['hyphenate_h2'] ?? false );
 	$heading3_hyphenate = almaden_bookster_typst_bool( $settings['hyphenate_h3'] ?? false );
@@ -169,6 +175,23 @@ function almaden_bookster_typst_build_document_context( $payload ) {
 	}
 	if ( ! $heading3_font_error ) {
 		$heading3_font_family = $heading3_font['family'];
+	}
+	$quote_font_family = almaden_bookster_typst_font_family( $settings['quote_font_family'] ?? $font_family, $font_family );
+	$quote_font_size = almaden_bookster_typst_number( $settings, 'quote_font_size', $font_size, 5, 100 );
+	$quote_font_weight = almaden_bookster_typst_font_weight( $settings['quote_font_weight'] ?? 'bold' );
+	$quote_font_style = isset( $settings['quote_font_style'] ) ? strtolower( trim( (string) $settings['quote_font_style'] ) ) : 'normal';
+	if ( ! in_array( $quote_font_style, array( 'normal', 'italic', 'oblique' ), true ) ) {
+		$quote_font_style = 'normal';
+	}
+	$quote_line_height = almaden_bookster_typst_number( $settings, 'quote_line_height', 1.4, 0.8, 4 );
+	$quote_align = isset( $settings['quote_text_align'] ) && in_array( $settings['quote_text_align'], array( 'left', 'center', 'right' ), true ) ? $settings['quote_text_align'] : 'left';
+	$quote_margin_top = almaden_bookster_typst_number( $settings, 'quote_margin_top', 10, 0, 200 );
+	$quote_margin_bottom = almaden_bookster_typst_number( $settings, 'quote_margin_bottom', 10, 0, 200 );
+	$quote_indent = almaden_bookster_typst_number( $settings, 'quote_indent', 14, 0, 200 );
+	$quote_font = almaden_bookster_typst_resolve_font( $quote_font_family, $quote_font_weight );
+	$quote_font_error = function_exists( 'is_wp_error' ) && is_wp_error( $quote_font ) ? $quote_font : null;
+	if ( ! $quote_font_error ) {
+		$quote_font_family = $quote_font['family'];
 	}
 
 	$book_title = isset( $payload['title'] ) ? (string) $payload['title'] : '';
