@@ -132,7 +132,7 @@ function almaden_bookster_handle_download_book() {
 
 	$chapters = array();
 	$all_meta_keys = array(
-		'_parity_image', '_hide_title', '_hide_header', '_hide_footer', '_hide_all_headers_footers', '_exclude_from_numbering', '_custom_running_header',
+		'_parity_image', '_hide_opening', '_hide_title', '_hide_header', '_hide_footer', '_hide_all_headers_footers', '_exclude_from_numbering', '_custom_running_header',
 		'_opening_block_horizontal_align', '_opening_block_vertical_align',
 			'_subtitle_text', '_subtitle_show', '_subtitle_font_family', '_subtitle_align', '_subtitle_font_size', '_subtitle_letter_spacing',
 			'_subtitle_font_style', '_subtitle_text_transform', '_subtitle_font_weight', '_subtitle_margin_top', '_subtitle_margin_bottom', '_subtitle_padding_top', '_subtitle_padding_bottom', '_subtitle_padding_left', '_subtitle_padding_right',

@@ -162,6 +162,7 @@ function saveStateToLocalStorage(immediate = false) {
                         opening_block_enabled: chapter.opening_block_enabled,
                         opening_block_horizontal_align: chapter.opening_block_horizontal_align,
                         opening_block_vertical_align: chapter.opening_block_vertical_align,
+                        hide_opening: chapter.hide_opening,
                         hide_title: chapter.hide_title,
                         hide_header: chapter.hide_header ?? (chapter.hide_all_headers_footers === '1' ? '1' : '0'),
                         hide_footer: chapter.hide_footer ?? (chapter.hide_all_headers_footers === '1' ? '1' : '0'),

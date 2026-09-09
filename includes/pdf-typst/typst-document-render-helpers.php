@@ -72,6 +72,9 @@ function almaden_bookster_typst_render_credits( $config, $author_label, $book_ti
 	$text = static function ( $value ) {
 		return almaden_bookster_typst_escape_markup( trim( (string) $value ) );
 	};
+	$inline_text = static function ( $value ) {
+		return almaden_bookster_typst_render_inline( trim( (string) $value ) );
+	};
 
 	$editorial = is_array( $config['editorial'] ?? null ) ? $config['editorial'] : array();
 	$people_style = almaden_bookster_typst_credits_text_style(
@@ -166,7 +169,7 @@ function almaden_bookster_typst_render_credits( $config, $author_label, $book_ti
 					$value = preg_replace( '#^https?://#i', '', $value );
 				}
 				if ( '' !== $value ) {
-					$text_parts[] = $text( $value );
+					$text_parts[] = 'text' === $key ? $inline_text( $value ) : $text( $value );
 				}
 			}
 			if ( $text_parts ) {
@@ -238,7 +241,7 @@ function almaden_bookster_typst_render_credits( $config, $author_label, $book_ti
 	$legal = is_array( $config['legal'] ?? null ) ? $config['legal'] : array();
 	$legal_rows = array();
 	if ( '' !== trim( (string) ( $legal['copyright_text'] ?? '' ) ) ) {
-		$legal_rows[] = $text( $legal['copyright_text'] );
+		$legal_rows[] = $inline_text( $legal['copyright_text'] );
 	}
 	if ( '' !== trim( (string) ( $legal['license'] ?? '' ) ) ) {
 		$legal_rows[] = $text( $license_labels[ $legal['license'] ] ?? $legal['license'] );
