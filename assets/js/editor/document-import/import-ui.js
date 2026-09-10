@@ -69,7 +69,7 @@ function renderValidationSection(analysis, mapping) {
 }
 
 function clearAnalysisUI() {
-    ['document-import-analysis', 'document-import-separator-section', 'document-import-mapping-section', 'document-import-validation-section', 'document-import-preview-section'].forEach((id) => {
+    ['document-import-analysis', 'document-import-separator-section', 'document-import-mapping-section', 'document-import-table-style-section', 'document-import-validation-section', 'document-import-preview-section'].forEach((id) => {
         const node = docImportEl(id);
         if (node) node.classList.add('hidden');
     });
@@ -85,6 +85,57 @@ function clearAnalysisUI() {
     if (preview) preview.innerHTML = '';
     const previewCount = docImportEl('document-import-preview-count');
     if (previewCount) previewCount.textContent = '0';
+}
+
+function renderTableStyleSection(analysis) {
+    const section = docImportEl('document-import-table-style-section');
+    const countEl = docImportEl('document-import-table-count');
+    if (!section) return;
+
+    const tableCount = Number(analysis?.table_count || 0);
+    if (countEl) countEl.textContent = String(tableCount);
+    if (tableCount <= 0) {
+        section.classList.add('hidden');
+        return;
+    }
+
+    section.classList.remove('hidden');
+    const style = documentImportState.tableStyle || buildDefaultTableStyle(analysis);
+    const setValue = (id, value) => {
+        const input = docImportEl(id);
+        if (input) input.value = value ?? '';
+    };
+
+    setValue('document-import-table-enabled', style.enabled || '1');
+    setValue('document-import-table-background', style.background || '#f3f3f3');
+    setValue('document-import-table-border-color', style.border_color || '#d9d9d9');
+    setValue('document-import-table-border-width', style.border_width || '1');
+    setValue('document-import-table-padding-y', style.padding_y || '18');
+    setValue('document-import-table-padding-x', style.padding_x || '22');
+    setValue('document-import-table-border-radius', style.border_radius || '4');
+    setValue('document-import-table-font-size', style.font_size || '');
+    setValue('document-import-table-line-height', style.line_height || '1.65');
+    setValue('document-import-table-text-align', style.text_align || 'left');
+
+    section.querySelectorAll('[data-import-table-style-field]').forEach((field) => {
+        field.oninput = () => syncTableStyleFromControls();
+        field.onchange = () => syncTableStyleFromControls();
+    });
+}
+
+function syncTableStyleFromControls() {
+    documentImportState.tableStyle = {
+        enabled: docImportEl('document-import-table-enabled')?.value || '1',
+        background: docImportEl('document-import-table-background')?.value || '#f3f3f3',
+        border_color: docImportEl('document-import-table-border-color')?.value || '#d9d9d9',
+        border_width: docImportEl('document-import-table-border-width')?.value || '1',
+        padding_y: docImportEl('document-import-table-padding-y')?.value || '18',
+        padding_x: docImportEl('document-import-table-padding-x')?.value || '22',
+        border_radius: docImportEl('document-import-table-border-radius')?.value || '4',
+        font_size: docImportEl('document-import-table-font-size')?.value || '',
+        line_height: docImportEl('document-import-table-line-height')?.value || '1.65',
+        text_align: docImportEl('document-import-table-text-align')?.value || 'left'
+    };
 }
 
 function setBusy(busy, label) {
@@ -302,6 +353,7 @@ function updateAnalysisSummary(analysis) {
     const format = docImportEl('document-import-format');
     const blocks = docImportEl('document-import-blocks');
     const chapters = docImportEl('document-import-chapters');
+    const tables = docImportEl('document-import-tables');
     const confidence = docImportEl('document-import-confidence');
     const analysisSection = docImportEl('document-import-analysis');
     const status = docImportEl('document-import-status');
@@ -310,6 +362,7 @@ function updateAnalysisSummary(analysis) {
     if (format) format.textContent = analysis.format_label || analysis.format || '-';
     if (blocks) blocks.textContent = String(analysis.block_count ?? 0);
     if (chapters) chapters.textContent = String(analysis.chapter_count ?? 0);
+    if (tables) tables.textContent = String(analysis.table_count ?? 0);
     if (confidence) confidence.textContent = analysis.confidence_label || '-';
     if (status) {
         status.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${analysis.status_label || 'Analizado'}`;

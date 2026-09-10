@@ -42,6 +42,9 @@ function almaden_bookster_parse_uploaded_document_file( $book_id, $field_name ) 
 	$parsed['format_label'] = almaden_bookster_import_format_label( $format );
 	$parsed['hint'] = almaden_bookster_import_format_hint( $format );
 	$parsed['confidence_label'] = almaden_bookster_import_confidence_label( $format );
+	$parsed['table_count'] = count( array_filter( $parsed['blocks'], function( $block ) {
+		return isset( $block['style_key'] ) && 'table' === (string) $block['style_key'];
+	} ) );
 	$parsed['separator_options'] = almaden_bookster_build_separator_candidates( $parsed['blocks'] );
 	$parsed['style_counts'] = almaden_bookster_build_import_style_lookup( $parsed['blocks'] );
 	$parsed['status_label'] = 'Analizado';

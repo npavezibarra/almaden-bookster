@@ -51,7 +51,7 @@
                         </span>
                     </div>
 
-                    <div class="grid gap-3 md:grid-cols-4">
+                    <div class="grid gap-3 md:grid-cols-5">
                         <div class="rounded-xl border border-[var(--border-color)] bg-[var(--bg-app)] p-3">
                             <p class="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Formato</p>
                             <p id="document-import-format" class="mt-1 text-sm font-semibold text-[var(--text-main)]">-</p>
@@ -63,6 +63,10 @@
                         <div class="rounded-xl border border-[var(--border-color)] bg-[var(--bg-app)] p-3">
                             <p class="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Capítulos sugeridos</p>
                             <p id="document-import-chapters" class="mt-1 text-sm font-semibold text-[var(--text-main)]">-</p>
+                        </div>
+                        <div class="rounded-xl border border-[var(--border-color)] bg-[var(--bg-app)] p-3">
+                            <p class="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Tablas</p>
+                            <p id="document-import-tables" class="mt-1 text-sm font-semibold text-[var(--text-main)]">-</p>
                         </div>
                         <div class="rounded-xl border border-[var(--border-color)] bg-[var(--bg-app)] p-3">
                             <p class="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Confianza</p>
@@ -90,6 +94,64 @@
                         <p class="mt-1 text-xs text-[var(--text-muted)]">Aquí puedes corregir qué estilo debe convertirse en Title, Subtitle, Heading 1, Heading 2 y Heading 3.</p>
                     </div>
                     <div id="document-import-mapping-options" class="grid gap-3 lg:grid-cols-2"></div>
+                </div>
+            </section>
+
+            <section id="document-import-table-style-section" class="hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-app)] p-5">
+                <div class="flex flex-col gap-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p class="text-sm font-semibold text-[var(--text-main)]">5. Estilo de tablas detectadas</p>
+                            <p class="mt-1 text-xs text-[var(--text-muted)]">Se aplicará a las <span id="document-import-table-count">0</span> tablas detectadas durante la importación.</p>
+                        </div>
+                        <select id="document-import-table-enabled" data-import-table-style-field class="rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)] px-3 py-2 text-xs font-semibold text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-sky-500">
+                            <option value="1">Caja editorial</option>
+                            <option value="0">Texto plano</option>
+                        </select>
+                    </div>
+                    <div class="grid gap-3 md:grid-cols-3">
+                        <label class="text-xs font-semibold text-[var(--text-muted)]">
+                            Fondo
+                            <input id="document-import-table-background" data-import-table-style-field type="color" class="mt-1 h-10 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)] px-2 py-1">
+                        </label>
+                        <label class="text-xs font-semibold text-[var(--text-muted)]">
+                            Borde
+                            <input id="document-import-table-border-color" data-import-table-style-field type="color" class="mt-1 h-10 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)] px-2 py-1">
+                        </label>
+                        <label class="text-xs font-semibold text-[var(--text-muted)]">
+                            Alineación
+                            <select id="document-import-table-text-align" data-import-table-style-field class="mt-1 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)] px-3 py-2 text-sm text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-sky-500">
+                                <option value="left">Izquierda</option>
+                                <option value="center">Centro</option>
+                                <option value="right">Derecha</option>
+                                <option value="justify">Justificado</option>
+                            </select>
+                        </label>
+                        <label class="text-xs font-semibold text-[var(--text-muted)]">
+                            Grosor borde px
+                            <input id="document-import-table-border-width" data-import-table-style-field type="number" min="0" max="12" step="1" class="mt-1 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)] px-3 py-2 text-sm text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-sky-500">
+                        </label>
+                        <label class="text-xs font-semibold text-[var(--text-muted)]">
+                            Padding vertical px
+                            <input id="document-import-table-padding-y" data-import-table-style-field type="number" min="0" max="80" step="1" class="mt-1 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)] px-3 py-2 text-sm text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-sky-500">
+                        </label>
+                        <label class="text-xs font-semibold text-[var(--text-muted)]">
+                            Padding horizontal px
+                            <input id="document-import-table-padding-x" data-import-table-style-field type="number" min="0" max="100" step="1" class="mt-1 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)] px-3 py-2 text-sm text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-sky-500">
+                        </label>
+                        <label class="text-xs font-semibold text-[var(--text-muted)]">
+                            Radio px
+                            <input id="document-import-table-border-radius" data-import-table-style-field type="number" min="0" max="48" step="1" class="mt-1 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)] px-3 py-2 text-sm text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-sky-500">
+                        </label>
+                        <label class="text-xs font-semibold text-[var(--text-muted)]">
+                            Tamaño fuente px
+                            <input id="document-import-table-font-size" data-import-table-style-field type="number" min="8" max="32" step="0.5" placeholder="Global" class="mt-1 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)] px-3 py-2 text-sm text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-sky-500">
+                        </label>
+                        <label class="text-xs font-semibold text-[var(--text-muted)]">
+                            Interlineado
+                            <input id="document-import-table-line-height" data-import-table-style-field type="number" min="1" max="3" step="0.05" class="mt-1 w-full rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)] px-3 py-2 text-sm text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-sky-500">
+                        </label>
+                    </div>
                 </div>
             </section>
 

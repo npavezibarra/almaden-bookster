@@ -5,6 +5,7 @@ async function postImportAction(action) {
     form.append('nonce', bookState.documentImportNonce);
     form.append('chapter_separator', documentImportState.mapping?.chapter_separator || '');
     form.append('import_mapping', JSON.stringify(documentImportState.mapping || {}));
+    form.append('import_table_style', JSON.stringify(documentImportState.tableStyle || buildDefaultTableStyle(documentImportState.analysis)));
     form.append('document_file', documentImportState.file, documentImportState.file.name);
 
     const response = await fetch(bookState.ajaxUrl, {
@@ -55,10 +56,12 @@ function getDocumentImportErrorMessage(data, fallback) {
 function applyAnalysis(analysis) {
     documentImportState.analysis = analysis;
     documentImportState.mapping = buildDefaultMapping(analysis);
+    documentImportState.tableStyle = buildDefaultTableStyle(analysis);
     updateAnalysisSummary(analysis);
     renderStyleCards(analysis.style_counts || []);
     renderSeparatorOptions(analysis);
     renderMappingSection(analysis);
+    renderTableStyleSection(analysis);
     renderValidationSection(analysis, documentImportState.mapping);
     renderPreview(analysis, documentImportState.mapping);
     setHint(analysis.hint || 'Revisa la separación y corrige la jerarquía antes de importar.');

@@ -60,6 +60,10 @@ function almaden_bookster_ajax_import_document() {
 		$mapping = array();
 	}
 	$mapping['chapter_separator'] = $separator;
+	$table_style = isset( $_POST['import_table_style'] ) ? json_decode( wp_unslash( $_POST['import_table_style'] ), true ) : array();
+	if ( ! is_array( $table_style ) ) {
+		$table_style = array();
+	}
 	$available_styles = isset( $parsed['separator_options'] ) && is_array( $parsed['separator_options'] ) ? $parsed['separator_options'] : almaden_bookster_build_separator_candidates( $parsed['blocks'] );
 	$normalized_mapping = almaden_bookster_normalize_import_mapping( $mapping, $available_styles );
 	$validation = almaden_bookster_validate_import_mapping( $normalized_mapping, $available_styles );
@@ -67,7 +71,7 @@ function almaden_bookster_ajax_import_document() {
 		wp_send_json_error( implode( ' ', $validation['errors'] ) );
 	}
 
-	$import = almaden_bookster_build_chapters_from_parsed_document( $book_id, $parsed, $normalized_mapping );
+	$import = almaden_bookster_build_chapters_from_parsed_document( $book_id, $parsed, $normalized_mapping, $table_style );
 	if ( is_wp_error( $import ) ) {
 		wp_send_json_error( $import->get_error_message() );
 	}

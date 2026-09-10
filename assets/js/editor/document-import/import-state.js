@@ -30,6 +30,7 @@ const documentImportState = {
     file: null,
     analysis: null,
     mapping: null,
+    tableStyle: null,
     validation: null,
     busy: false
 };

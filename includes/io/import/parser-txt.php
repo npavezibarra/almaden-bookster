@@ -23,7 +23,7 @@ function almaden_bookster_blocks_from_plain_text( $text, $filename, $format ) {
 		}
 		$joined = trim( implode( ' ', $pending ) );
 		if ( '' !== $joined ) {
-			$joined = htmlspecialchars( $joined, ENT_QUOTES, get_bloginfo( 'charset' ) ?: 'UTF-8' );
+			$joined = html_entity_decode( $joined, ENT_QUOTES | ENT_HTML5, get_bloginfo( 'charset' ) ?: 'UTF-8' );
 			$style_key = almaden_bookster_guess_plain_text_style_key( $joined );
 			$blocks[] = array(
 				'type'          => in_array( $style_key, array( 'heading-1', 'heading-2', 'heading-3', 'title', 'subtitle' ), true ) ? 'heading' : 'paragraph',

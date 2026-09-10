@@ -30,6 +30,7 @@ $document_xml = <<<'XML'
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
   <w:body>
     <w:p><w:r><w:t>Antes</w:t></w:r></w:p>
+    <w:p><w:r><w:t>&amp;quot;Texto con entidad&amp;quot; y &amp;#8212;</w:t></w:r></w:p>
     <w:tbl>
       <w:tr>
         <w:tc>
@@ -60,12 +61,12 @@ $texts = array_values( array_filter( array_map( function( $block ) {
 	return 'blank' === $block['type'] ? '' : $block['text'];
 }, $parsed['blocks'] ) ) );
 
-if ( count( $texts ) !== 3 ) {
-	fwrite( STDERR, "Se esperaban 3 bloques no vacíos; llegaron " . count( $texts ) . ".\n" );
+if ( count( $texts ) !== 4 ) {
+	fwrite( STDERR, "Se esperaban 4 bloques no vacíos; llegaron " . count( $texts ) . ".\n" );
 	exit( 1 );
 }
 
-if ( 'Antes' !== $texts[0] || false === strpos( $texts[1], 'Para reflexionar' ) || false === strpos( $texts[1], 'Texto dentro de tabla' ) || 'Después' !== $texts[2] ) {
+if ( 'Antes' !== $texts[0] || '"Texto con entidad" y —' !== $texts[1] || false === strpos( $texts[2], 'Para reflexionar' ) || false === strpos( $texts[2], 'Texto dentro de tabla' ) || 'Después' !== $texts[3] ) {
 	fwrite( STDERR, "La tabla DOCX no se importó en orden con su contenido.\n" );
 	exit( 1 );
 }

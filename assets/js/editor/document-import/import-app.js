@@ -4,6 +4,7 @@ function openDocumentImportModal() {
     documentImportState.file = null;
     documentImportState.analysis = null;
     documentImportState.mapping = null;
+    documentImportState.tableStyle = null;
     documentImportState.validation = null;
     clearAnalysisUI();
     updateFileMeta(null);
@@ -23,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
             documentImportState.file = input.files && input.files[0] ? input.files[0] : null;
             documentImportState.analysis = null;
             documentImportState.mapping = null;
+            documentImportState.tableStyle = null;
             documentImportState.validation = null;
             clearAnalysisUI();
             updateFileMeta(documentImportState.file);

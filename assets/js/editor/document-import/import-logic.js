@@ -117,6 +117,22 @@ function buildDefaultMapping(analysis) {
     };
 }
 
+function buildDefaultTableStyle(analysis) {
+    const tableCount = Number(analysis?.table_count || 0);
+    return {
+        enabled: tableCount > 0 ? '1' : '0',
+        background: '#f3f3f3',
+        border_color: '#d9d9d9',
+        border_width: '1',
+        padding_y: '18',
+        padding_x: '22',
+        border_radius: '4',
+        font_size: '',
+        line_height: '1.65',
+        text_align: 'left'
+    };
+}
+
 function getSemanticLevel(styleKey, mapping) {
     if (!styleKey || !mapping) return 0;
     if (mapping.chapter_separator && mapping.chapter_separator === styleKey) return 1;

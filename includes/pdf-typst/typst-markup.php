@@ -15,7 +15,8 @@ require_once __DIR__ . '/typst-image-block.php';
  * Escape plain text for Typst markup mode.
  */
 function almaden_bookster_typst_escape_markup( $text ) {
-	return preg_replace( '/([\\\\#\[\]\$\*_<>@`])/', '\\\\$1', (string) $text );
+	$text = html_entity_decode( (string) $text, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+	return preg_replace( '/([\\\\#\[\]\$\*_<>@`])/', '\\\\$1', $text );
 }
 
 /**
@@ -618,7 +619,8 @@ function almaden_bookster_typst_length( $value, $unit ) {
  * Build plain semantic text for post-compilation integrity checks.
  */
 function almaden_bookster_typst_plain_text( $raw ) {
-	$text = str_replace( array( "\r\n", "\r" ), "\n", (string) $raw );
+	$text = html_entity_decode( (string) $raw, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+	$text = str_replace( array( "\r\n", "\r" ), "\n", $text );
 	$footnotes = array();
 	preg_match_all( '/(?:^|\n)\[\^([^\]]+)\]:\s*([^\n]+)/', $text, $definitions, PREG_SET_ORDER );
 	foreach ( $definitions as $definition ) {

@@ -25,4 +25,10 @@ if ( false === strpos( $rendered, "La edición de Adiós Valparaíso. It's worki
 	exit( 1 );
 }
 
+$entity_rendered = almaden_bookster_typst_render_blocks( '&quot;Cita importada&quot; y &#8212; guion.' );
+if ( false === strpos( $entity_rendered, '"Cita importada" y — guion.' ) ) {
+	fwrite( STDERR, "Las entidades HTML importadas no se normalizaron antes de renderizar Typst.\n" );
+	exit( 1 );
+}
+
 echo "typst-justify-regression-ok\n";

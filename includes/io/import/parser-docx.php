@@ -177,8 +177,7 @@ function almaden_bookster_docx_run_to_markdown( DOMElement $run, DOMXPath $xpath
 		return "\n";
 	}
 
-	$text = html_entity_decode( $text, ENT_QUOTES, get_bloginfo( 'charset' ) ?: 'UTF-8' );
-	$text = htmlspecialchars( $text, ENT_QUOTES, get_bloginfo( 'charset' ) ?: 'UTF-8' );
+	$text = html_entity_decode( $text, ENT_QUOTES | ENT_HTML5, get_bloginfo( 'charset' ) ?: 'UTF-8' );
 	if ( '' === $text ) {
 		return '';
 	}
