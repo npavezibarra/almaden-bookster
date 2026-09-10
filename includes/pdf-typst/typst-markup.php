@@ -58,6 +58,11 @@ function almaden_bookster_typst_render_inline( $text, $footnotes = array(), $dep
 	if ( $depth > 12 || '' === $text ) {
 		return almaden_bookster_typst_escape_with_exceptions( $text, $exceptions );
 	}
+	$text = preg_replace(
+		'/\[size=([0-9]+(?:\.[0-9]+)?(?:px|pt|em|rem)?)\]\s*\[size=\1\]([\s\S]*?)\[\/size\]\s*\[\/size\]/i',
+		'[size=$1]$2[/size]',
+		(string) $text
+	);
 
 	$patterns = array(
 		'/<foreign\s+lang=(?:"|\')([a-zA-Z-]{2,10})(?:"|\')\s*>([\s\S]*?)<\/foreign>/i',
@@ -350,6 +355,8 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 		: ( 'original' === (string) ( $options['asset_mode'] ?? '' ) ? 'original' : 'optimized' );
 	$image_placeholders = array();
 	$image_counter = 0;
+	$size_placeholders = array();
+	$size_counter = 0;
 	// Normalize Markdown bullets that start with `*` into the list syntax this
 	// renderer already understands, before inline emphasis can consume them.
 	$raw = preg_replace( '/(^|\n)([ \t]*)\*\s+/m', '$1$2- ', (string) $raw );
@@ -369,6 +376,25 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 			return "\n";
 		}
 		$image_placeholders[ $placeholder ] = $rendered;
+		return "\n" . $placeholder . "\n";
+	}, (string) $raw );
+	$raw = preg_replace_callback( '/\[size=([0-9]+(?:\.[0-9]+)?)(px|pt|em|rem)?\]([\s\S]*?)\[\/size\]/i', function ( $match ) use ( &$size_placeholders, &$size_counter, &$assets, $footnotes, $allow_embedded_typst, $options ) {
+		$body = (string) ( $match[3] ?? '' );
+		if ( ! preg_match( "/\n\s*\n/", $body ) ) {
+			return $match[0];
+		}
+
+		$placeholder = '%%ALMADEN_SIZE_BLOCK_' . $size_counter++ . '%%';
+		$size_pt = almaden_bookster_typst_size_to_pt( $match[1], $match[2] ?: 'pt' );
+		$rendered_body = almaden_bookster_typst_render_blocks_with_footnotes(
+			trim( $body ),
+			$footnotes,
+			$allow_embedded_typst,
+			$options,
+			$assets
+		);
+		$size_placeholders[ $placeholder ] = '#text(size: ' . $size_pt . 'pt)[' . "\n" . $rendered_body . "\n" . ']';
+
 		return "\n" . $placeholder . "\n";
 	}, (string) $raw );
 	$lines     = explode( "\n", (string) $raw );
@@ -475,6 +501,12 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 			$output[] = $trimmed;
 			continue;
 		}
+		if ( preg_match( '/^%%ALMADEN_SIZE_BLOCK_\d+%%$/', $trimmed ) ) {
+			$flush_paragraph();
+			$close_list();
+			$output[] = $trimmed;
+			continue;
+		}
 		if ( preg_match( '/^(#{1,6})\s+(.+)$/', $trimmed, $heading ) ) {
 			$flush_paragraph();
 			$close_list();
@@ -542,6 +574,9 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 	$result = implode( "\n\n", $output );
 	if ( ! empty( $image_placeholders ) ) {
 		$result = str_replace( array_keys( $image_placeholders ), array_values( $image_placeholders ), $result );
+	}
+	if ( ! empty( $size_placeholders ) ) {
+		$result = str_replace( array_keys( $size_placeholders ), array_values( $size_placeholders ), $result );
 	}
 
 	return $result;

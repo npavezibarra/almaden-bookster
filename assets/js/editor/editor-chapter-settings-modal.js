@@ -101,6 +101,8 @@ function openChapterSettingsModal() {
         }
         document.getElementById('chapter_toc_hide_header').checked = (activeChapter.toc_hide_header !== '0');
         document.getElementById('chapter_toc_hide_page_numbers').checked = (activeChapter.toc_hide_page_numbers !== '0');
+        document.getElementById('chapter_toc_blank_before').value = activeChapter.chapter_blank_before ?? '0';
+        document.getElementById('chapter_toc_blank_after').value = activeChapter.chapter_blank_after ?? '0';
         document.getElementById('chapter_toc_item_align').value = activeChapter.toc_item_align || 'left';
         document.getElementById('chapter_toc_hide_title').checked = activeChapter.toc_hide_title === '1';
         document.getElementById('chapter_toc_title_text').value = activeChapter.toc_title_text || activeChapter.title || 'Índice';
@@ -369,6 +371,8 @@ async function saveChapterSettings() {
         }
         activeChapter.toc_hide_header = document.getElementById('chapter_toc_hide_header').checked ? '1' : '0';
         activeChapter.toc_hide_page_numbers = document.getElementById('chapter_toc_hide_page_numbers').checked ? '1' : '0';
+        activeChapter.chapter_blank_before = Math.min(999, Math.max(0, parseInt(document.getElementById('chapter_toc_blank_before').value, 10) || 0));
+        activeChapter.chapter_blank_after = Math.min(999, Math.max(0, parseInt(document.getElementById('chapter_toc_blank_after').value, 10) || 0));
         activeChapter.toc_item_align = document.getElementById('chapter_toc_item_align').value;
         activeChapter.toc_hide_title = document.getElementById('chapter_toc_hide_title').checked ? '1' : '0';
         activeChapter.toc_title_text = document.getElementById('chapter_toc_title_text').value.trim();

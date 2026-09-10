@@ -121,10 +121,10 @@ function almaden_bookster_build_typst_document( $payload ) {
 			: ( isset( $chapter['credits_config'] ) && is_array( $chapter['credits_config'] ) ? $chapter['credits_config'] : array() );
 		$blank_before = $is_credits
 			? almaden_bookster_typst_credits_blank_count( $settings, 'before' )
-			: ( ! $is_toc ? almaden_bookster_typst_chapter_blank_count( $chapter, 'before' ) : 0 );
+			: almaden_bookster_typst_chapter_blank_count( $chapter, 'before' );
 		$blank_after  = $is_credits
 			? almaden_bookster_typst_credits_blank_count( $settings, 'after' )
-			: ( ! $is_toc ? almaden_bookster_typst_chapter_blank_count( $chapter, 'after' ) : 0 );
+			: almaden_bookster_typst_chapter_blank_count( $chapter, 'after' );
 		$chapter_hide_header = $is_credits
 			? almaden_bookster_typst_bool( $chapter['credits_hide_header'] ?? false )
 			: ( $is_toc
@@ -416,6 +416,12 @@ function almaden_bookster_build_typst_document( $payload ) {
 				$toc_page_number_offset
 			);
 			$source .= $toc_title_source;
+			for ( $blank_index = 0; $blank_index < $blank_after; ++$blank_index ) {
+				$source .= "\n#pagebreak()\n";
+				$source .= '#metadata("chapter-after") <almaden-intentional-blank>' . "\n";
+				$blank_id = 'almaden-blank-after-' . (int) $rendered . '-' . ( $blank_index + 1 );
+				$source .= '#metadata("' . $blank_id . '") <' . $blank_id . '>' . "\n";
+			}
 			continue;
 		}
 

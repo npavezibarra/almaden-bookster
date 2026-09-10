@@ -48,6 +48,160 @@ $labels = [
 $login_url = \AlmadenBookster\Auth\Utilities\AuthUtils::build_modal_url('login', $redirect_to);
 $register_url = \AlmadenBookster\Auth\Utilities\AuthUtils::build_modal_url('register', $redirect_to);
 ?>
+<style id="pl-auth-critical-css">
+    #pl-auth-overlay {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: rgb(0 0 0 / 68%);
+        backdrop-filter: blur(10px);
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 180ms ease, visibility 180ms ease;
+        font-family: Poppins, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        box-sizing: border-box;
+    }
+    #pl-auth-overlay * {
+        box-sizing: border-box;
+    }
+    #pl-auth-overlay.is-open {
+        opacity: 1;
+        visibility: visible;
+    }
+    #pl-auth-card {
+        position: relative;
+        width: min(100%, 400px);
+        max-height: min(90vh, 760px);
+        overflow: auto;
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 18px 70px rgb(0 0 0 / 24%);
+        transform: translateY(12px) scale(0.98);
+        transition: transform 180ms ease;
+    }
+    #pl-auth-overlay.is-open #pl-auth-card {
+        transform: translateY(0) scale(1);
+    }
+    .pl-auth-shell {
+        padding: 40px;
+    }
+    .pl-auth-close {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        width: 40px;
+        height: 40px;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        color: #000;
+        cursor: pointer;
+        font-size: 24px;
+        line-height: 1;
+        z-index: 3;
+    }
+    .pl-auth-loading {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 14px;
+        padding: 26px;
+        background: rgb(248 250 252 / 92%);
+        backdrop-filter: blur(6px);
+        z-index: 2;
+        text-align: center;
+    }
+    #pl-auth-overlay.is-loading .pl-auth-loading {
+        display: flex;
+    }
+    .pl-auth-loading__spinner {
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        border: 3px solid rgb(15 23 42 / 14%);
+        border-top-color: rgb(15 23 42 / 78%);
+        animation: plAuthSpin 0.8s linear infinite;
+    }
+    @keyframes plAuthSpin {
+        to { transform: rotate(360deg); }
+    }
+    .pl-auth-eyebrow,
+    .pl-auth-logo,
+    .pl-auth-tabs {
+        display: none;
+    }
+    .pl-auth-title {
+        margin: 0 0 8px;
+        color: #000;
+        font-size: 1.75rem;
+        font-weight: 600;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        text-transform: uppercase;
+    }
+    .pl-auth-copy {
+        margin: 0 0 40px;
+        color: #666;
+        font-size: 0.85rem;
+        line-height: 1.45;
+    }
+    .pl-auth-field {
+        position: relative;
+        margin-bottom: 30px;
+    }
+    .pl-auth-field label {
+        display: block;
+        margin-bottom: 2px;
+        color: #000;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+    .pl-auth-field input {
+        width: 100%;
+        border: 0;
+        border-bottom: 2px solid #e0e0e0;
+        border-radius: 0;
+        padding: 8px 0;
+        background: transparent;
+        color: #000;
+        font-size: 0.95rem;
+        outline: none;
+    }
+    .pl-auth-submit {
+        width: 100%;
+        margin-top: 10px;
+        border: 1px solid #000;
+        border-radius: 6px;
+        padding: 8px;
+        background: #000;
+        color: #fff;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+    .pl-auth-footer {
+        margin-top: 30px;
+        text-align: center;
+        color: #666;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+    .pl-auth-hidden {
+        display: none !important;
+    }
+</style>
 <div id="pl-auth-overlay" data-initial-view="<?php echo esc_attr($view); ?>" data-notice="<?php echo esc_attr($notice); ?>" data-error="<?php echo esc_attr($error); ?>" data-auto-open="<?php echo esc_attr($auto_open ? '1' : '0'); ?>">
     <div id="pl-auth-card" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr__('Authentication', 'almaden-bookster'); ?>">
         <div class="pl-auth-loading" data-pl-auth-loading aria-hidden="true">
@@ -130,3 +284,78 @@ $register_url = \AlmadenBookster\Auth\Utilities\AuthUtils::build_modal_url('regi
         </div>
     </div>
 </div>
+<script>
+    (function () {
+        if (window.PLAuthOpenModal && window.PLAuthCloseModal) {
+            return;
+        }
+
+        function showView(view) {
+            var overlay = document.getElementById('pl-auth-overlay');
+            if (!overlay) return;
+            var isRegister = view === 'register';
+            var mode = overlay.querySelector('[data-pl-auth-mode]');
+            var registerFields = overlay.querySelectorAll('.pl-auth-register-only');
+            var loginOnly = overlay.querySelector('[data-pl-auth-login-row]');
+            var email = document.getElementById('pl-auth-email');
+            var emailLabel = overlay.querySelector('[data-pl-auth-email-label]');
+            var submit = overlay.querySelector('[data-pl-auth-submit]');
+            if (mode) mode.value = isRegister ? 'register' : 'login';
+            registerFields.forEach(function (field) {
+                field.classList.toggle('pl-auth-hidden', !isRegister);
+            });
+            if (loginOnly) loginOnly.classList.toggle('pl-auth-hidden', isRegister);
+            if (email) {
+                email.type = isRegister ? 'email' : 'text';
+                email.setAttribute('autocomplete', isRegister ? 'email' : 'username');
+                email.setAttribute('inputmode', isRegister ? 'email' : 'text');
+            }
+            if (emailLabel) {
+                emailLabel.textContent = isRegister
+                    ? <?php echo wp_json_encode($labels['email']); ?>
+                    : <?php echo wp_json_encode($labels['login_identifier']); ?>;
+            }
+            if (submit) {
+                submit.textContent = isRegister
+                    ? <?php echo wp_json_encode($labels['create_account']); ?>
+                    : <?php echo wp_json_encode($labels['login']); ?>;
+            }
+        }
+
+        window.PLAuthOpenModal = function (view) {
+            var overlay = document.getElementById('pl-auth-overlay');
+            if (!overlay) return;
+            showView(view === 'register' ? 'register' : 'login');
+            overlay.classList.add('is-open');
+        };
+
+        window.PLAuthCloseModal = function () {
+            var overlay = document.getElementById('pl-auth-overlay');
+            if (overlay) overlay.classList.remove('is-open', 'is-loading');
+        };
+
+        document.addEventListener('click', function (event) {
+            var close = event.target && event.target.closest ? event.target.closest('[data-pl-auth-close]') : null;
+            if (close) {
+                event.preventDefault();
+                window.PLAuthCloseModal();
+                return;
+            }
+
+            var trigger = event.target && event.target.closest ? event.target.closest('[data-pl-auth-open], [data-rcp-auth-open]') : null;
+            if (!trigger) return;
+            event.preventDefault();
+            window.PLAuthOpenModal(trigger.getAttribute('data-pl-auth-view') === 'register' ? 'register' : 'login');
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var overlay = document.getElementById('pl-auth-overlay');
+            if (!overlay) return;
+            var initialView = overlay.getAttribute('data-initial-view') || 'login';
+            showView(initialView === 'register' ? 'register' : 'login');
+            if (overlay.getAttribute('data-auto-open') === '1') {
+                overlay.classList.add('is-open');
+            }
+        });
+    })();
+</script>

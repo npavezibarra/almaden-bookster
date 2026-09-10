@@ -46,6 +46,7 @@ window.AlmadenShortcodes = {
         let t = text;
 
         t = window.AlmadenShortcodes.parseLanguageMarkup(t);
+        t = t.replace(/\[size=([0-9]+(?:\.[0-9]+)?(?:px|pt|em|rem)?)\]\s*\[size=\1\]([\s\S]*?)\[\/size\]\s*\[\/size\]/gi, '[size=$1]$2[/size]');
         
         // [size=12px] ... [/size]
         t = t.replace(/\[size=([0-9]+(?:\.[0-9]+)?)(px|pt|em|rem)?\]([\s\S]*?)\[\/size\]/gi, (match, val, unit, content) => {

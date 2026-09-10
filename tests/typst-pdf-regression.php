@@ -155,6 +155,8 @@ $payload = array(
 			'toc_title_padding_top' => 0.4,
 			'toc_title_padding_bottom' => 1.2,
 			'toc_title_line_height' => 1.1,
+			'chapter_blank_before' => '1',
+			'chapter_blank_after'  => '1',
 		),
 			array(
 				'title'   => 'Introducción',
@@ -295,6 +297,14 @@ foreach ( $required_typography as $required ) {
 }
 if ( false !== strpos( $document['source'], 'header: context {' ) || false !== strpos( $document['source'], 'footer: context {' ) ) {
 	fwrite( STDERR, 'El documento volvió a usar las áreas automáticas de cabecera o pie de Typst.' . PHP_EOL );
+	exit( 1 );
+}
+if ( substr_count( $document['source'], '#metadata("chapter-before") <almaden-intentional-blank>' ) < 3 ) {
+	fwrite( STDERR, 'El Índice no está respetando las páginas en blanco antes del capítulo.' . PHP_EOL );
+	exit( 1 );
+}
+if ( substr_count( $document['source'], '#metadata("chapter-after") <almaden-intentional-blank>' ) < 2 ) {
+	fwrite( STDERR, 'El Índice no está respetando las páginas en blanco después del capítulo.' . PHP_EOL );
 	exit( 1 );
 }
 

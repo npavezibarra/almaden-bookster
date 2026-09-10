@@ -49,38 +49,28 @@ function almaden_bookster_parse_docx_import_document( $path, $filename ) {
 	$xpath->registerNamespace( 'w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main' );
 
 	$blocks = array();
-	foreach ( $xpath->query( '//w:body/w:p' ) as $paragraph ) {
-		$style_id = '';
-		$style_name = '';
-		$p_style = $xpath->query( './w:pPr/w:pStyle', $paragraph )->item( 0 );
-		if ( $p_style instanceof DOMElement ) {
-			$style_id = $p_style->getAttributeNS( 'http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'val' );
-			$style_name = isset( $style_map[ $style_id ] ) ? $style_map[ $style_id ] : $style_id;
+	$body = $xpath->query( '//w:body' )->item( 0 );
+	if ( $body instanceof DOMElement ) {
+		foreach ( $body->childNodes as $child ) {
+			if ( XML_ELEMENT_NODE !== $child->nodeType ) {
+				continue;
+			}
+
+			if ( 'p' === $child->localName ) {
+				$blocks[] = almaden_bookster_docx_paragraph_to_import_block( $child, $xpath, $style_map );
+			} elseif ( 'tbl' === $child->localName ) {
+				$table_text = almaden_bookster_docx_table_to_markdown( $child, $xpath );
+				if ( '' !== trim( $table_text ) ) {
+					$blocks[] = array(
+						'type'          => 'paragraph',
+						'text'          => trim( $table_text ),
+						'style_key'     => 'table',
+						'style_label'   => 'Tabla',
+						'heading_level' => 0,
+					);
+				}
+			}
 		}
-
-		$text = almaden_bookster_docx_paragraph_to_markdown( $paragraph, $xpath );
-		$style_key = almaden_bookster_normalize_import_style_key( $style_name );
-		$heading_number = almaden_bookster_import_heading_number_from_style_key( $style_key );
-
-		if ( '' === trim( $text ) ) {
-			$blocks[] = array(
-				'type'          => 'blank',
-				'text'          => '',
-				'style_key'     => $style_key,
-				'style_label'   => $style_name ?: 'Normal',
-				'heading_level' => 0,
-			);
-			continue;
-		}
-
-		$is_heading = in_array( $style_key, array( 'title', 'subtitle', 'heading-1', 'heading-2', 'heading-3', 'heading-4', 'heading-5', 'heading-6' ), true );
-		$blocks[] = array(
-			'type'          => $is_heading ? 'heading' : 'paragraph',
-			'text'          => trim( $text ),
-			'style_key'     => $style_key,
-			'style_label'   => $style_name ?: 'Normal',
-			'heading_level' => $heading_number,
-		);
 	}
 
 	return array(
@@ -88,6 +78,63 @@ function almaden_bookster_parse_docx_import_document( $path, $filename ) {
 		'blocks'      => $blocks,
 		'block_count' => count( array_filter( $blocks, function( $block ) { return 'blank' !== $block['type']; } ) ),
 	);
+}
+
+function almaden_bookster_docx_paragraph_to_import_block( DOMElement $paragraph, DOMXPath $xpath, array $style_map ) {
+	$style_id = '';
+	$style_name = '';
+	$p_style = $xpath->query( './w:pPr/w:pStyle', $paragraph )->item( 0 );
+	if ( $p_style instanceof DOMElement ) {
+		$style_id = $p_style->getAttributeNS( 'http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'val' );
+		$style_name = isset( $style_map[ $style_id ] ) ? $style_map[ $style_id ] : $style_id;
+	}
+
+	$text = almaden_bookster_docx_paragraph_to_markdown( $paragraph, $xpath );
+	$style_key = almaden_bookster_normalize_import_style_key( $style_name );
+	$heading_number = almaden_bookster_import_heading_number_from_style_key( $style_key );
+
+	if ( '' === trim( $text ) ) {
+		return array(
+			'type'          => 'blank',
+			'text'          => '',
+			'style_key'     => $style_key,
+			'style_label'   => $style_name ?: 'Normal',
+			'heading_level' => 0,
+		);
+	}
+
+	$is_heading = in_array( $style_key, array( 'title', 'subtitle', 'heading-1', 'heading-2', 'heading-3', 'heading-4', 'heading-5', 'heading-6' ), true );
+	return array(
+		'type'          => $is_heading ? 'heading' : 'paragraph',
+		'text'          => trim( $text ),
+		'style_key'     => $style_key,
+		'style_label'   => $style_name ?: 'Normal',
+		'heading_level' => $heading_number,
+	);
+}
+
+function almaden_bookster_docx_table_to_markdown( DOMElement $table, DOMXPath $xpath ) {
+	$rows = array();
+	foreach ( $xpath->query( './w:tr', $table ) as $row ) {
+		$cells = array();
+		foreach ( $xpath->query( './w:tc', $row ) as $cell ) {
+			$paragraphs = array();
+			foreach ( $xpath->query( './w:p', $cell ) as $paragraph ) {
+				$text = trim( almaden_bookster_docx_paragraph_to_markdown( $paragraph, $xpath ) );
+				if ( '' !== $text ) {
+					$paragraphs[] = $text;
+				}
+			}
+			if ( ! empty( $paragraphs ) ) {
+				$cells[] = implode( "\n\n", $paragraphs );
+			}
+		}
+		if ( ! empty( $cells ) ) {
+			$rows[] = implode( "\n\n", $cells );
+		}
+	}
+
+	return implode( "\n\n", $rows );
 }
 
 function almaden_bookster_docx_paragraph_to_markdown( DOMElement $paragraph, DOMXPath $xpath ) {

@@ -34,6 +34,23 @@
                                     <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-black"></div>
                                 </label>
                             </div>
+
+                            <div class="space-y-4 p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+                                <div>
+                                    <h4 class="font-bold border-b border-[var(--border-color)] pb-2">Páginas en blanco</h4>
+                                    <p class="text-xs text-[var(--text-muted)] mt-3">Agrega páginas completamente vacías inmediatamente antes o después del Índice.</p>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Antes del Índice</label>
+                                        <input type="number" min="0" max="999" step="1" id="chapter_toc_blank_before" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" value="0">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Después del Índice</label>
+                                        <input type="number" min="0" max="999" step="1" id="chapter_toc_blank_after" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black" value="0">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div><!-- End TOC Tab: General -->
 
