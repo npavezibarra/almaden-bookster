@@ -483,6 +483,16 @@ function almaden_bookster_build_typst_document( $payload ) {
 				'hyphenation_exceptions' => $hyphenation_exceptions,
 				'asset_mode'             => $asset_mode,
 				'content_height' => max( 1, $height - $content_margin_top - $content_margin_bottom ), 'unit' => $unit,
+				'heading_keep_with_next' => array(
+					'enabled'   => ! empty( $settings['heading_keep_with_next_enabled'] ),
+					'min_lines' => isset( $settings['heading_keep_with_next_lines'] ) ? max( 1, min( 8, (int) $settings['heading_keep_with_next_lines'] ) ) : 3,
+					'reserve_pt' => ( isset( $settings['heading_keep_with_next_lines'] ) ? max( 1, min( 8, (int) $settings['heading_keep_with_next_lines'] ) ) : 3 ) * max( 1, (float) $font_size * (float) $line_height ),
+					'levels'    => array_values( array_filter( array(
+						! empty( $settings['heading_keep_with_next_h1'] ) ? 1 : 0,
+						! empty( $settings['heading_keep_with_next_h2'] ) ? 2 : 0,
+						! empty( $settings['heading_keep_with_next_h3'] ) ? 3 : 0,
+					) ) ),
+				),
 				'heading_styles'         => array(
 					1 => array(
 						'font_family'    => $heading1_font_family,
@@ -531,6 +541,20 @@ function almaden_bookster_build_typst_document( $payload ) {
 					'margin_top'     => $quote_margin_top,
 					'margin_bottom'  => $quote_margin_bottom,
 					'indent'         => $quote_indent,
+				),
+				'table_style'            => array(
+					'font_family'     => $table_font_family,
+					'font_size'       => $table_font_size,
+					'font_weight'     => $table_font_weight,
+					'font_style'      => $table_font_style,
+					'line_height'     => $table_line_height,
+					'align'           => $table_text_align,
+					'cell_padding'    => $table_cell_padding,
+					'border_width'    => $table_border_width,
+					'letter_spacing'  => $table_letter_spacing,
+					'border_color'    => $table_border_color,
+					'header_bg_color' => $table_header_bg_color,
+					'cell_bg_color'   => $table_cell_bg_color,
 				),
 			);
 			if ( 'page' !== $footnote_mode ) {
@@ -644,6 +668,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 			$heading2_font_error ? array() : $heading2_font['files'],
 			$heading3_font_error ? array() : $heading3_font['files'],
 			$quote_font_error ? array() : $quote_font['files'],
+			$table_font_error ? array() : $table_font['files'],
 			$toc_font_assets,
 			$credits_font_assets,
 			$inline_font_assets
@@ -664,7 +689,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 		'semantic_extras' => $plain_extras,
 		'assets'        => $assets,
 		'font_assets'   => array_values( array_unique( $font_assets ) ),
-		'build_error'   => $font_error ?: $title_font_error ?: $header_font_error ?: $footer_font_error ?: $heading1_font_error ?: $heading2_font_error ?: $heading3_font_error ?: $quote_font_error ?: $toc_font_error ?: $credits_font_error ?: $inline_font_error,
+		'build_error'   => $font_error ?: $title_font_error ?: $header_font_error ?: $footer_font_error ?: $heading1_font_error ?: $heading2_font_error ?: $heading3_font_error ?: $quote_font_error ?: $table_font_error ?: $toc_font_error ?: $credits_font_error ?: $inline_font_error,
 		'heading_styles' => array(
 			1 => array(
 				'font_family'    => $heading1_font_family,

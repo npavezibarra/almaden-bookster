@@ -216,6 +216,18 @@ window.savePDFSettings = function(silent = false, skipPreview = false) {
     data.append('quote_margin_top', getCleanVal('setting-quote-margin-top'));
     data.append('quote_margin_bottom', getCleanVal('setting-quote-margin-bottom'));
     data.append('quote_indent', getCleanVal('setting-quote-indent'));
+    data.append('table_font_family', getVal('setting-table-font-family'));
+    data.append('table_font_size', getCleanVal('setting-table-font-size'));
+    data.append('table_font_style', getVal('setting-table-font-style'));
+    data.append('table_font_weight', getVal('setting-table-font-weight'));
+    data.append('table_line_height', getCleanVal('setting-table-line-height'));
+    data.append('table_text_align', getVal('setting-table-text-align'));
+    data.append('table_cell_padding', getCleanVal('setting-table-cell-padding'));
+    data.append('table_border_width', getCleanVal('setting-table-border-width'));
+    data.append('table_letter_spacing', getCleanVal('setting-table-letter-spacing'));
+    data.append('table_border_color', getVal('setting-table-border-color'));
+    data.append('table_header_bg_color', getVal('setting-table-header-bg-color'));
+    data.append('table_cell_bg_color', getVal('setting-table-cell-bg-color'));
 
     // Cabecera y Pie
     data.append('header_font_family', getVal('setting-header-font-family'));
@@ -247,6 +259,11 @@ window.savePDFSettings = function(silent = false, skipPreview = false) {
     data.append('book_chapter_flow_mode', getBookFlowMode());
     data.append('chapter_transition_blank_mode', getVal('setting-chapter-transition-blank-mode') || 'full_blank');
     data.append('chapter_transition_blank_text', getVal('setting-chapter-transition-blank-text') || '...');
+    data.append('heading_keep_with_next_enabled', getChecked('setting-heading-keep-with-next-enabled'));
+    data.append('heading_keep_with_next_lines', getCleanVal('setting-heading-keep-with-next-lines') || '3');
+    data.append('heading_keep_with_next_h1', getChecked('setting-heading-keep-with-next-h1'));
+    data.append('heading_keep_with_next_h2', getChecked('setting-heading-keep-with-next-h2'));
+    data.append('heading_keep_with_next_h3', getChecked('setting-heading-keep-with-next-h3'));
 
     // Footnotes
 	    data.append('footnote_mode', getVal('setting-footnote-mode') || 'page');

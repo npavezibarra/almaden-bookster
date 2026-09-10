@@ -15,7 +15,7 @@ require_once dirname( __DIR__ ) . '/pdf-typst/typst-compiler.php';
 add_action( 'wp_ajax_almaden_compile_typst_pdf', 'almaden_bookster_ajax_compile_typst_pdf' );
 
 if ( ! defined( 'ALMADEN_BOOKSTER_TYPST_PREVIEW_RENDERER_VERSION' ) ) {
-	define( 'ALMADEN_BOOKSTER_TYPST_PREVIEW_RENDERER_VERSION', '12' );
+	define( 'ALMADEN_BOOKSTER_TYPST_PREVIEW_RENDERER_VERSION', '13' );
 }
 
 /**

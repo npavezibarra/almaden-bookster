@@ -3,6 +3,7 @@
                     <button type="button" role="tab" aria-controls="typography-body-panel" id="btn-typography-body" class="typography-tab-btn header-footer-tab-btn is-active" onclick="switchTypographyTab('body')" aria-selected="true">Cuerpo</button>
                     <button type="button" role="tab" aria-controls="typography-headings-panel" id="btn-typography-headings" class="typography-tab-btn header-footer-tab-btn" onclick="switchTypographyTab('headings')" aria-selected="false">Títulos</button>
                     <button type="button" role="tab" aria-controls="typography-quotes-panel" id="btn-typography-quotes" class="typography-tab-btn header-footer-tab-btn" onclick="switchTypographyTab('quotes')" aria-selected="false">Citas</button>
+                    <button type="button" role="tab" aria-controls="typography-tables-panel" id="btn-typography-tables" class="typography-tab-btn header-footer-tab-btn" onclick="switchTypographyTab('tables')" aria-selected="false">Tables</button>
                 </nav>
 
                 <div id="typography-body-panel" class="typography-tab-panel" role="tabpanel" aria-labelledby="btn-typography-body">
@@ -242,6 +243,88 @@
                             <div>
                                 <label class="block text-[9px] text-[var(--text-muted)] mb-1">Sangría (pt)</label>
                                 <input id="setting-quote-indent" type="number" step="0.5" min="0" max="200" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                </div>
+
+                <div id="typography-tables-panel" class="typography-tab-panel hidden" role="tabpanel" aria-labelledby="btn-typography-tables">
+                <section class="settings-section-card">
+                    <h4><i class="fa-solid fa-table" aria-hidden="true"></i> Tipografía Tables</h4>
+                    <div class="settings-section-card-body space-y-4">
+                        <div class="grid grid-cols-4 gap-2">
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Familia</label>
+                                <select id="setting-table-font-family" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                    <?php almaden_render_font_options( $default_fonts, $selector_fonts ); ?>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Tamaño (pt)</label>
+                                <input id="setting-table-font-size" type="number" step="0.1" min="5" max="100" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Estilo</label>
+                                <select id="setting-table-font-style" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                    <option value="normal">Normal</option>
+                                    <option value="italic">Cursiva</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Peso</label>
+                                <select id="setting-table-font-weight" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                    <option value="100">100 - Fino</option>
+                                    <option value="200">200 - Extra Ligero</option>
+                                    <option value="300">300 - Ligero</option>
+                                    <option value="normal">400 - Normal</option>
+                                    <option value="500">500 - Medio</option>
+                                    <option value="600">600 - Semi Negrita</option>
+                                    <option value="bold">700 - Negrita</option>
+                                    <option value="800">800 - Extra Negrita</option>
+                                    <option value="900">900 - Negro</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-5 gap-2">
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Interlineado</label>
+                                <input id="setting-table-line-height" type="number" step="0.05" min="0.8" max="4" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Alineación</label>
+                                <select id="setting-table-text-align" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                    <option value="left">Izquierda</option>
+                                    <option value="center">Centro</option>
+                                    <option value="right">Derecha</option>
+                                    <option value="justify">Justificado</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Padding celda (pt)</label>
+                                <input id="setting-table-cell-padding" type="number" step="0.5" min="0" max="60" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Borde (pt)</label>
+                                <input id="setting-table-border-width" type="number" step="0.1" min="0" max="20" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Espaciado letras (pt)</label>
+                                <input id="setting-table-letter-spacing" type="number" step="0.1" min="-20" max="20" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs text-center focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Color borde</label>
+                                <input id="setting-table-border-color" type="text" placeholder="#d9d9d9" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Fondo cabecera</label>
+                                <input id="setting-table-header-bg-color" type="text" placeholder="#eeeeee" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Fondo celdas</label>
+                                <input id="setting-table-cell-bg-color" type="text" placeholder="transparent" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                             </div>
                         </div>
                     </div>

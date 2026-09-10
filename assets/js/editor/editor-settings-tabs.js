@@ -134,22 +134,28 @@ function switchHeaderFooterTab(tab) {
 function switchTypographyTab(tab) {
     const showHeadings = tab === 'headings';
     const showQuotes = tab === 'quotes';
+    const showTables = tab === 'tables';
     const bodyPanel = document.getElementById('typography-body-panel');
     const headingsPanel = document.getElementById('typography-headings-panel');
     const quotesPanel = document.getElementById('typography-quotes-panel');
+    const tablesPanel = document.getElementById('typography-tables-panel');
     const bodyButton = document.getElementById('btn-typography-body');
     const headingsButton = document.getElementById('btn-typography-headings');
     const quotesButton = document.getElementById('btn-typography-quotes');
+    const tablesButton = document.getElementById('btn-typography-tables');
 
-    bodyPanel?.classList.toggle('hidden', showHeadings || showQuotes);
+    bodyPanel?.classList.toggle('hidden', showHeadings || showQuotes || showTables);
     headingsPanel?.classList.toggle('hidden', !showHeadings);
     quotesPanel?.classList.toggle('hidden', !showQuotes);
-    bodyButton?.classList.toggle('is-active', !showHeadings && !showQuotes);
+    tablesPanel?.classList.toggle('hidden', !showTables);
+    bodyButton?.classList.toggle('is-active', !showHeadings && !showQuotes && !showTables);
     headingsButton?.classList.toggle('is-active', showHeadings);
     quotesButton?.classList.toggle('is-active', showQuotes);
-    bodyButton?.setAttribute('aria-selected', showHeadings || showQuotes ? 'false' : 'true');
+    tablesButton?.classList.toggle('is-active', showTables);
+    bodyButton?.setAttribute('aria-selected', showHeadings || showQuotes || showTables ? 'false' : 'true');
     headingsButton?.setAttribute('aria-selected', showHeadings ? 'true' : 'false');
     quotesButton?.setAttribute('aria-selected', showQuotes ? 'true' : 'false');
+    tablesButton?.setAttribute('aria-selected', showTables ? 'true' : 'false');
 }
 
 function switchHeadingTypographyTab(level, tab) {
@@ -461,6 +467,18 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-quote-margin-top')) document.getElementById('setting-quote-margin-top').value = settings.quote_margin_top ?? 10;
     if (document.getElementById('setting-quote-margin-bottom')) document.getElementById('setting-quote-margin-bottom').value = settings.quote_margin_bottom ?? 10;
     if (document.getElementById('setting-quote-indent')) document.getElementById('setting-quote-indent').value = settings.quote_indent ?? 14;
+    if (document.getElementById('setting-table-font-family')) document.getElementById('setting-table-font-family').value = settings.table_font_family || settings.font_family_content || 'Merriweather';
+    if (document.getElementById('setting-table-font-size')) document.getElementById('setting-table-font-size').value = settings.table_font_size ?? settings.font_size_content ?? 10;
+    if (document.getElementById('setting-table-font-style')) document.getElementById('setting-table-font-style').value = settings.table_font_style || 'normal';
+    if (document.getElementById('setting-table-font-weight')) document.getElementById('setting-table-font-weight').value = settings.table_font_weight || 'normal';
+    if (document.getElementById('setting-table-line-height')) document.getElementById('setting-table-line-height').value = settings.table_line_height ?? 1.35;
+    if (document.getElementById('setting-table-text-align')) document.getElementById('setting-table-text-align').value = ['left', 'center', 'right', 'justify'].includes(String(settings.table_text_align || '').toLowerCase()) ? String(settings.table_text_align).toLowerCase() : 'left';
+    if (document.getElementById('setting-table-cell-padding')) document.getElementById('setting-table-cell-padding').value = settings.table_cell_padding ?? 6;
+    if (document.getElementById('setting-table-border-width')) document.getElementById('setting-table-border-width').value = settings.table_border_width ?? 0.75;
+    if (document.getElementById('setting-table-letter-spacing')) document.getElementById('setting-table-letter-spacing').value = settings.table_letter_spacing ?? 0;
+    if (document.getElementById('setting-table-border-color')) document.getElementById('setting-table-border-color').value = settings.table_border_color || '#d9d9d9';
+    if (document.getElementById('setting-table-header-bg-color')) document.getElementById('setting-table-header-bg-color').value = settings.table_header_bg_color || '#eeeeee';
+    if (document.getElementById('setting-table-cell-bg-color')) document.getElementById('setting-table-cell-bg-color').value = settings.table_cell_bg_color || 'transparent';
 
     // Pestaña Cabecera y Pie
     if (document.getElementById('setting-header-font-family')) document.getElementById('setting-header-font-family').value = settings.header_font_family || 'Merriweather';
@@ -490,6 +508,11 @@ window.populateSettingsForm = function() {
     if (document.getElementById('setting-first-page-footer-custom')) document.getElementById('setting-first-page-footer-custom').value = settings.first_page_footer_custom || '';
     if (document.getElementById('setting-chapter-transition-blank-mode')) document.getElementById('setting-chapter-transition-blank-mode').value = settings.chapter_transition_blank_mode || 'full_blank';
     if (document.getElementById('setting-chapter-transition-blank-text')) document.getElementById('setting-chapter-transition-blank-text').value = settings.chapter_transition_blank_text || '...';
+    if (document.getElementById('setting-heading-keep-with-next-enabled')) document.getElementById('setting-heading-keep-with-next-enabled').checked = settings.heading_keep_with_next_enabled == 1 || settings.heading_keep_with_next_enabled === undefined;
+    if (document.getElementById('setting-heading-keep-with-next-lines')) document.getElementById('setting-heading-keep-with-next-lines').value = settings.heading_keep_with_next_lines || 3;
+    if (document.getElementById('setting-heading-keep-with-next-h1')) document.getElementById('setting-heading-keep-with-next-h1').checked = settings.heading_keep_with_next_h1 == 1 || settings.heading_keep_with_next_h1 === undefined;
+    if (document.getElementById('setting-heading-keep-with-next-h2')) document.getElementById('setting-heading-keep-with-next-h2').checked = settings.heading_keep_with_next_h2 == 1 || settings.heading_keep_with_next_h2 === undefined;
+    if (document.getElementById('setting-heading-keep-with-next-h3')) document.getElementById('setting-heading-keep-with-next-h3').checked = settings.heading_keep_with_next_h3 == 1 || settings.heading_keep_with_next_h3 === undefined;
 
     // Pestaña Footnotes
     if (document.getElementById('setting-footnote-mode')) document.getElementById('setting-footnote-mode').value = ['page', 'chapter', 'book'].includes(String(settings.footnote_mode || '').toLowerCase()) ? settings.footnote_mode : 'page';

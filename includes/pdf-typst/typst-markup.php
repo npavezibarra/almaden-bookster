@@ -210,10 +210,122 @@ function almaden_bookster_typst_css_length_pt( $value, $fallback = 0, $min = 0, 
 	return max( $min, min( $max, (float) $pt ) );
 }
 
-function almaden_bookster_typst_render_box_block( $raw, $attrs, $footnotes, $exceptions, $footnote_mode, $footnote_numbers ) {
+function almaden_bookster_typst_unescape_html_tag_markers( $html ) {
+	return preg_replace( '/\\\\(?=<\/?[a-z][^>]*>)/i', '', (string) $html );
+}
+
+function almaden_bookster_typst_table_text_setup( $table_style ) {
+	$table_style = is_array( $table_style ) ? $table_style : array();
+	$font_family = almaden_bookster_typst_escape_string( $table_style['font_family'] ?? '' );
+	$font_size = isset( $table_style['font_size'] ) ? max( 5, min( 100, (float) $table_style['font_size'] ) ) : 10;
+	$raw_font_weight = strtolower( trim( (string) ( $table_style['font_weight'] ?? 'normal' ) ) );
+	$font_weight = function_exists( 'almaden_bookster_typst_font_weight' )
+		? almaden_bookster_typst_font_weight( $raw_font_weight )
+		: ( 'bold' === $raw_font_weight ? 700 : ( 'normal' === $raw_font_weight ? 400 : max( 100, min( 900, (int) $raw_font_weight ) ) ) );
+	$font_style = isset( $table_style['font_style'] ) && in_array( $table_style['font_style'], array( 'normal', 'italic', 'oblique' ), true ) ? $table_style['font_style'] : 'normal';
+	$line_height = isset( $table_style['line_height'] ) ? max( 0.8, min( 4, (float) $table_style['line_height'] ) ) : 1.35;
+	$text_align = isset( $table_style['align'] ) && in_array( $table_style['align'], array( 'left', 'center', 'right', 'justify' ), true ) ? $table_style['align'] : 'left';
+	$letter_spacing = isset( $table_style['letter_spacing'] ) ? max( -20, min( 20, (float) $table_style['letter_spacing'] ) ) : 0;
+
+	$setup = '#set par(justify: ' . ( 'justify' === $text_align ? 'true' : 'false' ) . ', leading: ' . round( max( 0, $line_height - 1 ), 4 ) . 'em)' . "\n";
+	$setup .= '#set align(' . ( 'justify' === $text_align ? 'left' : $text_align ) . ')' . "\n";
+	$setup .= '#set text(' . ( '' !== $font_family ? 'font: "' . $font_family . '", ' : '' ) . 'size: ' . round( $font_size, 3 ) . 'pt, weight: ' . $font_weight . ', style: "' . almaden_bookster_typst_escape_string( $font_style ) . '", tracking: ' . round( $letter_spacing, 3 ) . 'pt)' . "\n";
+
+	return $setup;
+}
+
+function almaden_bookster_typst_html_cell_text( $html ) {
+	$text = preg_replace( '/<br\s*\/?>/i', "\n", (string) $html );
+	$text = preg_replace( '/<\/p>\s*<p\b[^>]*>/i', "\n", $text );
+	$text = preg_replace( '/<\/?(?:p|div|span)\b[^>]*>/i', '', $text );
+	return trim( preg_replace( '/[ \t\r\n]+/', ' ', $text ) );
+}
+
+function almaden_bookster_typst_extract_html_table_rows( $html ) {
+	$rows = array();
+	if ( ! preg_match_all( '/<tr\b[^>]*>([\s\S]*?)<\/tr>/i', (string) $html, $row_matches ) ) {
+		return $rows;
+	}
+
+	foreach ( $row_matches[1] as $row_html ) {
+		if ( ! preg_match_all( '/<(td|th)\b([^>]*)>([\s\S]*?)<\/\1>/i', $row_html, $cell_matches, PREG_SET_ORDER ) ) {
+			continue;
+		}
+		$cells = array();
+		foreach ( $cell_matches as $cell ) {
+			$cells[] = array(
+				'header' => 'th' === strtolower( $cell[1] ),
+				'attrs'  => almaden_bookster_typst_parse_html_attributes( $cell[2] ?? '' ),
+				'text'   => almaden_bookster_typst_html_cell_text( $cell[3] ?? '' ),
+			);
+		}
+		if ( ! empty( $cells ) ) {
+			$rows[] = $cells;
+		}
+	}
+
+	return $rows;
+}
+
+function almaden_bookster_typst_render_html_table( $html, $style, $footnotes, $exceptions, $footnote_mode, $footnote_numbers, $table_style = array() ) {
+	$rows = almaden_bookster_typst_extract_html_table_rows( $html );
+	if ( empty( $rows ) ) {
+		return '';
+	}
+
+	$column_count = 0;
+	foreach ( $rows as $row ) {
+		$column_count = max( $column_count, count( $row ) );
+	}
+	if ( $column_count < 1 ) {
+		return '';
+	}
+
+	$table_style = is_array( $table_style ) ? $table_style : array();
+	$border_color = almaden_bookster_typst_css_color( $table_style['border_color'] ?? '', 'rgb("d9d9d9")' );
+	$border_width = (float) ( $table_style['border_width'] ?? 0.75 );
+	$cell_padding = (float) ( $table_style['cell_padding'] ?? 6 );
+	$header_fill_color = almaden_bookster_typst_css_color( $table_style['header_bg_color'] ?? '', 'rgb("eeeeee")' );
+	$cell_fill_color = almaden_bookster_typst_css_color( $table_style['cell_bg_color'] ?? '', 'none' );
+	$table_text_prefix = almaden_bookster_typst_table_text_setup( $table_style );
+	$columns = implode( ', ', array_fill( 0, $column_count, '1fr' ) );
+	$parts = array();
+
+	foreach ( $rows as $row_index => $row ) {
+		$is_header_row = 0 === $row_index;
+		foreach ( $row as $cell ) {
+			$is_header_row = $is_header_row || ! empty( $cell['header'] );
+		}
+
+		foreach ( $row as $cell ) {
+			$text = almaden_bookster_typst_render_inline( $cell['text'], $footnotes, 0, $exceptions, $footnote_mode, $footnote_numbers );
+			if ( $is_header_row || ! empty( $cell['header'] ) ) {
+				$text = '#strong[' . $text . ']';
+			}
+			$fill_color = $is_header_row || ! empty( $cell['header'] ) ? $header_fill_color : $cell_fill_color;
+			$fill = 'none' !== $fill_color ? ', fill: ' . $fill_color : '';
+			$parts[] = 'table.cell(inset: ' . round( $cell_padding, 3 ) . 'pt' . $fill . ')[' . $text . ']';
+		}
+
+		for ( $missing = count( $row ); $missing < $column_count; ++$missing ) {
+			$parts[] = '[]';
+		}
+	}
+
+	return '#block(width: 100%)[' . "\n" .
+		$table_text_prefix .
+		'#table(columns: (' . $columns . '), stroke: ' . round( $border_width, 3 ) . 'pt + ' . $border_color . ', ' . "\n" .
+		implode( ",\n", $parts ) . "\n" .
+		')' . "\n" .
+		']';
+}
+
+function almaden_bookster_typst_render_box_block( $raw, $attrs, $footnotes, $exceptions, $footnote_mode, $footnote_numbers, $table_style = array() ) {
 	$style = almaden_bookster_typst_parse_style_declarations( $attrs['style'] ?? '' );
+	$table_style = is_array( $table_style ) ? $table_style : array();
 	$body = preg_replace( '/^\s*\[html\]\s*/i', '', (string) $raw );
 	$body = preg_replace( '/\s*\[\/html\]\s*$/i', '', $body );
+	$body = almaden_bookster_typst_unescape_html_tag_markers( $body );
 	if ( preg_match( '/<div\b([^>]*)>([\s\S]*?)<\/div>/i', $body, $div ) ) {
 		$attrs = array_merge( $attrs, almaden_bookster_typst_parse_html_attributes( $div[1] ) );
 		$style = array_merge( $style, almaden_bookster_typst_parse_style_declarations( $attrs['style'] ?? '' ) );
@@ -226,6 +338,17 @@ function almaden_bookster_typst_render_box_block( $raw, $attrs, $footnotes, $exc
 	$padding = isset( $style['padding'] ) ? almaden_bookster_typst_css_length_pt( $style['padding'], 12, 0, 80 ) : 12;
 	$radius = isset( $style['border-radius'] ) ? almaden_bookster_typst_css_length_pt( $style['border-radius'], 0, 0, 80 ) : 0;
 	$leading = isset( $style['line-height'] ) && is_numeric( $style['line-height'] ) ? max( 0, min( 4, (float) $style['line-height'] - 1 ) ) : null;
+
+	if ( false !== stripos( $body, '<table' ) ) {
+		$table = almaden_bookster_typst_render_html_table( $body, $style, $footnotes, $exceptions, $footnote_mode, $footnote_numbers, $table_style );
+		if ( '' !== $table ) {
+			$par_setup = null === $leading ? '' : '#set par(leading: ' . round( $leading, 4 ) . "em)\n";
+			return '#block(width: 100%, breakable: true, fill: ' . $fill . ', stroke: ' . round( $border_width, 3 ) . 'pt + ' . $border_color . ', radius: ' . round( $radius, 3 ) . 'pt, inset: 0pt)[' . "\n" .
+				$par_setup .
+				$table . "\n" .
+				']';
+		}
+	}
 
 	$body = preg_replace( '/<\/p>\s*<p\b[^>]*>/i', "\n\n", $body );
 	$body = preg_replace( '/^\s*<p\b[^>]*>/i', '', $body );
@@ -243,6 +366,7 @@ function almaden_bookster_typst_render_box_block( $raw, $attrs, $footnotes, $exc
 	$par_setup = null === $leading ? '' : '#set par(leading: ' . round( $leading, 4 ) . "em)\n";
 	return '#block(width: 100%, breakable: true, fill: ' . $fill . ', stroke: ' . round( $border_width, 3 ) . 'pt + ' . $border_color . ', radius: ' . round( $radius, 3 ) . 'pt, inset: ' . round( $padding, 3 ) . 'pt)[' . "\n" .
 		$par_setup .
+		almaden_bookster_typst_table_text_setup( $table_style ) .
 		implode( "\n\n", $rendered ) . "\n" .
 		']';
 }
@@ -322,6 +446,91 @@ function almaden_bookster_typst_parse_html_attributes( $tag ) {
 /**
  * Render RAW block syntax.
  */
+function almaden_bookster_typst_heading_keep_options( $options ) {
+	$config = isset( $options['heading_keep_with_next'] ) && is_array( $options['heading_keep_with_next'] )
+		? $options['heading_keep_with_next']
+		: array();
+	$enabled = ! empty( $config['enabled'] );
+	$levels  = isset( $config['levels'] ) && is_array( $config['levels'] ) ? array_map( 'intval', $config['levels'] ) : array();
+	$levels  = array_values( array_intersect( array( 1, 2, 3, 4, 5, 6 ), $levels ) );
+	$min_lines = isset( $config['min_lines'] ) ? max( 1, min( 8, (int) $config['min_lines'] ) ) : 3;
+	$reserve_pt = isset( $config['reserve_pt'] ) && is_numeric( $config['reserve_pt'] )
+		? max( 0, min( 400, (float) $config['reserve_pt'] ) )
+		: 0;
+
+	return array(
+		'enabled'   => $enabled,
+		'levels'    => $levels,
+		'min_lines' => $min_lines,
+		'reserve_pt' => $reserve_pt,
+	);
+}
+
+function almaden_bookster_typst_output_heading_level( $block ) {
+	if ( preg_match( '/#heading\(level:\s*([1-6])/', (string) $block, $match ) ) {
+		return (int) $match[1];
+	}
+
+	return 0;
+}
+
+function almaden_bookster_typst_output_is_heading( $block ) {
+	return almaden_bookster_typst_output_heading_level( $block ) > 0;
+}
+
+function almaden_bookster_typst_output_is_keepable_after_heading( $block ) {
+	$trimmed = trim( (string) $block );
+	if ( '' === $trimmed ) {
+		return false;
+	}
+	if ( almaden_bookster_typst_output_is_heading( $trimmed ) ) {
+		return false;
+	}
+	if ( '#pagebreak' === substr( $trimmed, 0, 10 ) ) {
+		return false;
+	}
+	if ( '#set ' === substr( $trimmed, 0, 5 ) ) {
+		return false;
+	}
+	if ( ']' === $trimmed || ')' === $trimmed ) {
+		return false;
+	}
+
+	return true;
+}
+
+function almaden_bookster_typst_apply_heading_keep_with_next( $output, $options ) {
+	$config = almaden_bookster_typst_heading_keep_options( $options );
+	if ( empty( $config['enabled'] ) || empty( $config['levels'] ) || count( $output ) < 2 ) {
+		return $output;
+	}
+
+	$protected = array();
+	$count     = count( $output );
+	for ( $index = 0; $index < $count; ++$index ) {
+		$current = $output[ $index ];
+		$level   = almaden_bookster_typst_output_heading_level( $current );
+		if ( ! $level || ! in_array( $level, $config['levels'], true ) || $index + 1 >= $count ) {
+			$protected[] = $current;
+			continue;
+		}
+
+		if ( ! almaden_bookster_typst_output_is_keepable_after_heading( $output[ $index + 1 ] ) ) {
+			$protected[] = $current;
+			continue;
+		}
+
+		$reserve = $config['reserve_pt'];
+		if ( $reserve <= 0 ) {
+			$reserve = $config['min_lines'] * 18;
+		}
+		$reserve = round( $reserve, 3 );
+		$protected[] = '#block(width: 100%, breakable: false, sticky: true)[' . "\n" . $current . "\n#v(" . $reserve . "pt)\n]\n#v(-" . $reserve . 'pt)';
+	}
+
+	return $protected;
+}
+
 function almaden_bookster_typst_render_blocks( $raw, $options = array(), &$assets = null ) {
 	$raw = str_replace( array( "\r\n", "\r" ), "\n", (string) $raw );
 	$footnote_data = isset( $options['footnotes'] ) && is_array( $options['footnotes'] )
@@ -407,6 +616,7 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 	$exceptions = (array) ( $options['hyphenation_exceptions'] ?? array() );
 	$heading_styles = (array) ( $options['heading_styles'] ?? array() );
 	$quote_style = (array) ( $options['quote_style'] ?? array() );
+	$table_style = (array) ( $options['table_style'] ?? array() );
 	$footnote_mode = 'page';
 	if ( isset( $options['footnote_mode'] ) && function_exists( 'almaden_bookster_typst_footnote_mode' ) ) {
 		$footnote_mode = almaden_bookster_typst_footnote_mode( array( 'footnote_mode' => $options['footnote_mode'] ) );
@@ -454,7 +664,8 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 				$footnotes,
 				$exceptions,
 				$footnote_mode,
-				$footnote_numbers
+				$footnote_numbers,
+				$table_style
 			);
 			continue;
 		}
@@ -519,8 +730,9 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 				$heading_leading = round( max( 0, (float) ( $style['line_height'] ?? 1.3 ) - 1 ), 4 );
 				$heading_margin_top = isset( $style['margin_top'] ) && is_numeric( $style['margin_top'] ) ? max( 0, min( 200, (float) $style['margin_top'] ) ) : 0;
 				$heading_margin_bottom = isset( $style['margin_bottom'] ) && is_numeric( $style['margin_bottom'] ) ? max( 0, min( 200, (float) $style['margin_bottom'] ) ) : 0;
-				$output[] = '#block(width: 100%, breakable: false, above: ' . round( $heading_margin_top, 3 ) . 'pt, below: ' . round( $heading_margin_bottom, 3 ) . 'pt)[' .
+				$output[] = '#block(width: 100%, breakable: false)[' .
 					"\n" .
+					( $heading_margin_top > 0 ? '#v(' . round( $heading_margin_top, 3 ) . 'pt)' . "\n" : '' ) .
 					'#set par(justify: false, first-line-indent: 0pt, leading: ' . $heading_leading . 'em)' . "\n" .
 					'#align(' . $heading_align . ')[#heading(level: ' . $level . ')[#almaden-page-colored("content", fill => text(fill: fill, font: "' .
 					almaden_bookster_typst_escape_string( $style['font_family'] ) . '", size: ' .
@@ -530,6 +742,7 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 					almaden_bookster_typst_length( $style['letter_spacing'] ?? 0, 'pt' ) . ', hyphenate: ' .
 					( ! empty( $style['hyphenate'] ) ? 'true' : 'false' ) . ')[' .
 					$rendered_heading . '])]]' . "\n" .
+					( $heading_margin_bottom > 0 ? '#v(' . round( $heading_margin_bottom, 3 ) . 'pt)' . "\n" : '' ) .
 					']';
 			} else {
 				$output[] = '#heading(level: ' . $level . ')[#almaden-page-colored("content", fill => text(fill: fill)[' . $rendered_heading . '])]';
@@ -572,6 +785,7 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 
 	$flush_paragraph();
 	$close_list();
+	$output = almaden_bookster_typst_apply_heading_keep_with_next( $output, $options );
 	$result = implode( "\n\n", $output );
 	if ( ! empty( $image_placeholders ) ) {
 		$result = str_replace( array_keys( $image_placeholders ), array_values( $image_placeholders ), $result );

@@ -193,6 +193,26 @@ function almaden_bookster_typst_build_document_context( $payload ) {
 	if ( ! $quote_font_error ) {
 		$quote_font_family = $quote_font['family'];
 	}
+	$table_font_family = almaden_bookster_typst_font_family( $settings['table_font_family'] ?? $font_family, $font_family );
+	$table_font_size = almaden_bookster_typst_number( $settings, 'table_font_size', 10, 5, 100 );
+	$table_font_weight = almaden_bookster_typst_font_weight( $settings['table_font_weight'] ?? 'normal' );
+	$table_font_style = isset( $settings['table_font_style'] ) ? strtolower( trim( (string) $settings['table_font_style'] ) ) : 'normal';
+	if ( ! in_array( $table_font_style, array( 'normal', 'italic', 'oblique' ), true ) ) {
+		$table_font_style = 'normal';
+	}
+	$table_line_height = almaden_bookster_typst_number( $settings, 'table_line_height', 1.35, 0.8, 4 );
+	$table_text_align = isset( $settings['table_text_align'] ) && in_array( $settings['table_text_align'], array( 'left', 'center', 'right', 'justify' ), true ) ? $settings['table_text_align'] : 'left';
+	$table_cell_padding = almaden_bookster_typst_number( $settings, 'table_cell_padding', 6, 0, 60 );
+	$table_border_width = almaden_bookster_typst_number( $settings, 'table_border_width', 0.75, 0, 20 );
+	$table_letter_spacing = almaden_bookster_typst_number( $settings, 'table_letter_spacing', 0, -20, 20 );
+	$table_border_color = isset( $settings['table_border_color'] ) ? (string) $settings['table_border_color'] : '#d9d9d9';
+	$table_header_bg_color = isset( $settings['table_header_bg_color'] ) ? (string) $settings['table_header_bg_color'] : '#eeeeee';
+	$table_cell_bg_color = isset( $settings['table_cell_bg_color'] ) ? (string) $settings['table_cell_bg_color'] : 'transparent';
+	$table_font = almaden_bookster_typst_resolve_font( $table_font_family, $table_font_weight );
+	$table_font_error = function_exists( 'is_wp_error' ) && is_wp_error( $table_font ) ? $table_font : null;
+	if ( ! $table_font_error ) {
+		$table_font_family = $table_font['family'];
+	}
 
 	$book_title = isset( $payload['title'] ) ? (string) $payload['title'] : '';
 	$header_font_family = almaden_bookster_typst_font_family( $settings['header_font_family'] ?? 'Merriweather' );

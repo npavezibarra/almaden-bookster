@@ -67,6 +67,32 @@
                         </select>
                         <p class="text-[10px] text-[var(--text-muted)] mt-1">Define dónde se ubica la apertura en la página separada del capítulo.</p>
                     </div>
+                    <div class="col-span-2 border-t border-[var(--border-color)] pt-3 mt-1">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Mantener encabezados con contenido</label>
+                                <p class="text-[10px] text-[var(--text-muted)]">Evita que un subtítulo quede solo al final de una página cuando el texto empieza en la siguiente.</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer mt-1">
+                                <input type="checkbox" id="setting-heading-keep-with-next-enabled" class="sr-only peer" checked>
+                                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-black rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
+                            </label>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mt-3">
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Líneas mínimas posteriores</label>
+                                <input id="setting-heading-keep-with-next-lines" type="number" min="1" max="8" step="1" value="3" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-[var(--text-muted)] mb-1">Aplicar a</label>
+                                <div class="flex flex-wrap gap-2 text-[10px] text-[var(--text-main)]">
+                                    <label class="inline-flex items-center gap-1"><input type="checkbox" id="setting-heading-keep-with-next-h1" checked> H1</label>
+                                    <label class="inline-flex items-center gap-1"><input type="checkbox" id="setting-heading-keep-with-next-h2" checked> H2</label>
+                                    <label class="inline-flex items-center gap-1"><input type="checkbox" id="setting-heading-keep-with-next-h3" checked> H3</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
