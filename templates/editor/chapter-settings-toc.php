@@ -6,6 +6,7 @@
                             <button type="button" onclick="switchTocTab('toc-tab-general')" id="btn-toc-tab-general" class="toc-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-black dark:border-white text-black dark:text-white">General</button>
                             <button type="button" onclick="switchTocTab('toc-tab-list')" id="btn-toc-tab-list" class="toc-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-gray-300">Lista de Capítulos</button>
                             <button type="button" onclick="switchTocTab('toc-tab-title')" id="btn-toc-tab-title" class="toc-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-gray-300">Título del Índice</button>
+                            <button type="button" onclick="switchTocTab('toc-tab-items')" id="btn-toc-tab-items" class="toc-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-gray-300">Items de Índice</button>
                         </nav>
                     </div>
 
@@ -307,5 +308,20 @@
                             </div>
                         </div>
                     </div><!-- End TOC Tab: Title -->
+
+                    <!-- TOC TAB: Items de Índice -->
+                    <div id="toc-tab-items" class="toc-tab-content space-y-6 hidden">
+                        <div class="space-y-4">
+                            <div class="p-4 bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]">
+                                <div>
+                                    <h4 class="font-bold border-b border-[var(--border-color)] pb-2">Elementos del Índice</h4>
+                                    <p class="text-xs text-[var(--text-muted)] mt-3 mb-4">Selecciona qué capítulos y subtítulos (H1-H4) deben aparecer en el índice generado.</p>
+                                </div>
+                                <div id="toc-items-list-container" class="space-y-2 max-h-64 overflow-y-auto pr-2">
+                                    <!-- Populated via JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- End TOC Tab: Items -->
 
                 </div><!-- End toc-chapter-settings -->

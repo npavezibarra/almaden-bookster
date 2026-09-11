@@ -232,6 +232,7 @@ function saveStateToLocalStorage(immediate = false) {
                         toc_leader_position: chapter.toc_leader_position,
 						toc_leader_thickness: chapter.toc_leader_thickness,
 						toc_leader_min_width: chapter.toc_leader_min_width,
+                        toc_excluded_items: chapter.toc_excluded_items,
 						toc_number_font_family: chapter.toc_number_font_family,
 						toc_number_font_size: chapter.toc_number_font_size,
 						toc_number_font_weight: chapter.toc_number_font_weight,

@@ -36,6 +36,11 @@ function almaden_bookster_parse_docx_import_document( $path, $filename ) {
 			}
 		}
 	}
+	$numbering_map = array();
+	$numbering_xml = $zip->getFromName( 'word/numbering.xml' );
+	if ( false !== $numbering_xml ) {
+		$numbering_map = almaden_bookster_docx_parse_numbering( $numbering_xml );
+	}
 	$zip->close();
 
 	$dom = new DOMDocument();
@@ -48,6 +53,8 @@ function almaden_bookster_parse_docx_import_document( $path, $filename ) {
 	$xpath = new DOMXPath( $dom );
 	$xpath->registerNamespace( 'w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main' );
 
+	$numbering_state = array();
+
 	$blocks = array();
 	$body = $xpath->query( '//w:body' )->item( 0 );
 	if ( $body instanceof DOMElement ) {
@@ -57,7 +64,7 @@ function almaden_bookster_parse_docx_import_document( $path, $filename ) {
 			}
 
 			if ( 'p' === $child->localName ) {
-				$blocks[] = almaden_bookster_docx_paragraph_to_import_block( $child, $xpath, $style_map );
+				$blocks[] = almaden_bookster_docx_paragraph_to_import_block( $child, $xpath, $style_map, $numbering_map, $numbering_state );
 			} elseif ( 'tbl' === $child->localName ) {
 				$table_text = almaden_bookster_docx_table_to_markdown( $child, $xpath );
 				if ( '' !== trim( $table_text ) ) {
@@ -80,7 +87,7 @@ function almaden_bookster_parse_docx_import_document( $path, $filename ) {
 	);
 }
 
-function almaden_bookster_docx_paragraph_to_import_block( DOMElement $paragraph, DOMXPath $xpath, array $style_map ) {
+function almaden_bookster_docx_paragraph_to_import_block( DOMElement $paragraph, DOMXPath $xpath, array $style_map, array $numbering_map = array(), array &$numbering_state = array() ) {
 	$style_id = '';
 	$style_name = '';
 	$p_style = $xpath->query( './w:pPr/w:pStyle', $paragraph )->item( 0 );
@@ -89,7 +96,55 @@ function almaden_bookster_docx_paragraph_to_import_block( DOMElement $paragraph,
 		$style_name = isset( $style_map[ $style_id ] ) ? $style_map[ $style_id ] : $style_id;
 	}
 
+	$num_pr = $xpath->query( './w:pPr/w:numPr', $paragraph )->item( 0 );
+	$numbering_prefix = '';
+	if ( $num_pr instanceof DOMElement ) {
+		$ilvl_node = $xpath->query( './w:ilvl', $num_pr )->item( 0 );
+		$num_id_node = $xpath->query( './w:numId', $num_pr )->item( 0 );
+		if ( $ilvl_node && $num_id_node ) {
+			$ilvl = (int) $ilvl_node->getAttributeNS( 'http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'val' );
+			$num_id = (int) $num_id_node->getAttributeNS( 'http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'val' );
+
+			if ( isset( $numbering_map[ $num_id ][ $ilvl ] ) ) {
+				$def = $numbering_map[ $num_id ][ $ilvl ];
+
+				if ( ! isset( $numbering_state[ $num_id ] ) ) {
+					$numbering_state[ $num_id ] = array();
+				}
+
+				foreach ( array_keys( $numbering_state[ $num_id ] ) as $lvl ) {
+					if ( $lvl > $ilvl ) {
+						unset( $numbering_state[ $num_id ][ $lvl ] );
+					}
+				}
+
+				if ( ! isset( $numbering_state[ $num_id ][ $ilvl ] ) ) {
+					$numbering_state[ $num_id ][ $ilvl ] = $def['start'];
+				} else {
+					$numbering_state[ $num_id ][ $ilvl ]++;
+				}
+
+				$lvl_text = $def['text'];
+				for ( $i = 0; $i <= 9; $i++ ) {
+					if ( strpos( $lvl_text, '%' . ( $i + 1 ) ) !== false ) {
+						if ( ! isset( $numbering_state[ $num_id ][ $i ] ) ) {
+							$numbering_state[ $num_id ][ $i ] = isset( $numbering_map[ $num_id ][ $i ]['start'] ) ? $numbering_map[ $num_id ][ $i ]['start'] : 1;
+						}
+						$val = almaden_bookster_docx_format_number( $numbering_state[ $num_id ][ $i ], $numbering_map[ $num_id ][ $i ]['fmt'] ?? 'decimal' );
+						$lvl_text = str_replace( '%' . ( $i + 1 ), $val, $lvl_text );
+					}
+				}
+				if ( $lvl_text ) {
+					$numbering_prefix = $lvl_text . ' ';
+				}
+			}
+		}
+	}
+
 	$text = almaden_bookster_docx_paragraph_to_markdown( $paragraph, $xpath );
+	if ( '' !== $numbering_prefix && '' !== trim( $text ) ) {
+		$text = $numbering_prefix . trim( $text );
+	}
 	$style_key = almaden_bookster_normalize_import_style_key( $style_name );
 	$heading_number = almaden_bookster_import_heading_number_from_style_key( $style_key );
 
@@ -195,4 +250,81 @@ function almaden_bookster_docx_run_to_markdown( DOMElement $run, DOMXPath $xpath
 	}
 
 	return $text;
+}
+
+
+function almaden_bookster_docx_parse_numbering( $xml ) {
+	$dom = new DOMDocument();
+	if ( ! @$dom->loadXML( $xml ) ) {
+		return array();
+	}
+
+	$xpath = new DOMXPath( $dom );
+	$xpath->registerNamespace( 'w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main' );
+
+	$abstract_nums = array();
+	foreach ( $xpath->query( '//w:abstractNum' ) as $abs ) {
+		$abs_id = $abs->getAttributeNS( 'http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'abstractNumId' );
+		$levels = array();
+		foreach ( $xpath->query( './w:lvl', $abs ) as $lvl ) {
+			$ilvl = (int) $lvl->getAttributeNS( 'http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'ilvl' );
+			$start_node = $xpath->query( './w:start', $lvl )->item( 0 );
+			$start = $start_node ? (int) $start_node->getAttributeNS( 'http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'val' ) : 1;
+			$fmt_node = $xpath->query( './w:numFmt', $lvl )->item( 0 );
+			$fmt = $fmt_node ? $fmt_node->getAttributeNS( 'http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'val' ) : 'decimal';
+			$text_node = $xpath->query( './w:lvlText', $lvl )->item( 0 );
+			$text = $text_node ? $text_node->getAttributeNS( 'http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'val' ) : '';
+			$levels[ $ilvl ] = array(
+				'start' => $start,
+				'fmt'   => $fmt,
+				'text'  => $text,
+			);
+		}
+		$abstract_nums[ $abs_id ] = $levels;
+	}
+
+	$num_map = array();
+	foreach ( $xpath->query( '//w:num' ) as $num ) {
+		$num_id = (int) $num->getAttributeNS( 'http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'numId' );
+		$abs_node = $xpath->query( './w:abstractNumId', $num )->item( 0 );
+		if ( $abs_node ) {
+			$abs_id = $abs_node->getAttributeNS( 'http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'val' );
+			if ( isset( $abstract_nums[ $abs_id ] ) ) {
+				$num_map[ $num_id ] = $abstract_nums[ $abs_id ];
+			}
+		}
+	}
+
+	return $num_map;
+}
+
+function almaden_bookster_docx_format_number( $value, $format ) {
+	if ( 'lowerLetter' === $format ) {
+		return chr( 97 + ( ( $value - 1 ) % 26 ) );
+	}
+	if ( 'upperLetter' === $format ) {
+		return chr( 65 + ( ( $value - 1 ) % 26 ) );
+	}
+	if ( 'lowerRoman' === $format ) {
+		return strtolower( almaden_bookster_int_to_roman( $value ) );
+	}
+	if ( 'upperRoman' === $format ) {
+		return almaden_bookster_int_to_roman( $value );
+	}
+	return $value;
+}
+
+function almaden_bookster_int_to_roman( $number ) {
+	$map = array( 'M' => 1000, 'CM' => 900, 'D' => 500, 'CD' => 400, 'C' => 100, 'XC' => 90, 'L' => 50, 'XL' => 40, 'X' => 10, 'IX' => 9, 'V' => 5, 'IV' => 4, 'I' => 1 );
+	$returnValue = '';
+	while ( $number > 0 ) {
+		foreach ( $map as $roman => $int ) {
+			if ( $number >= $int ) {
+				$number -= $int;
+				$returnValue .= $roman;
+				break;
+			}
+		}
+	}
+	return $returnValue;
 }

@@ -160,6 +160,7 @@ if ( $chapter_posts ) {
 			'toc_leader_position'      => get_post_meta( $cp->ID, '_toc_leader_position', true ),
 			'toc_leader_thickness'     => get_post_meta( $cp->ID, '_toc_leader_thickness', true ),
 			'toc_leader_min_width'     => get_post_meta( $cp->ID, '_toc_leader_min_width', true ),
+			'toc_excluded_items'       => get_post_meta( $cp->ID, '_toc_excluded_items', true ),
 			'toc_number_font_family'   => get_post_meta( $cp->ID, '_toc_number_font_family', true ),
 			'toc_number_font_size'     => get_post_meta( $cp->ID, '_toc_number_font_size', true ),
 			'toc_number_font_weight'   => get_post_meta( $cp->ID, '_toc_number_font_weight', true ),

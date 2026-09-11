@@ -8,6 +8,119 @@ function getChapterSettingsActiveChapter() {
     return bookState.chapters.find(c => c.id === bookState.activeChapterId) || null;
 }
 
+function extractHeadingsFromContent(content) {
+    if (!content) return [];
+    
+    // Si el contenido es HTML, usamos DOMParser
+    // Si es Markdown, extraemos los # (1 a 4)
+    const headings = [];
+    
+    // Tratamos de parsear markdown basico: líneas que empiezan con # hasta ####
+    const lines = content.split('\n');
+    lines.forEach(line => {
+        const match = line.match(/^(#{1,4})\s+(.+)$/);
+        if (match) {
+            headings.push({
+                level: match[1].length,
+                text: match[2].replace(/<\/?[^>]+(>|$)/g, "").trim() // removemos html interno si hay
+            });
+        }
+    });
+    
+    // Tratamos de parsear tags HTML <h1..4> si hay
+    const htmlMatches = content.matchAll(/<h([1-4])[^>]*>(.*?)<\/h\1>/gi);
+    for (const match of htmlMatches) {
+        headings.push({
+            level: parseInt(match[1], 10),
+            text: match[2].replace(/<\/?[^>]+(>|$)/g, "").trim()
+        });
+    }
+    
+    return headings;
+}
+
+function populateTocItemsTab(activeChapter) {
+    const container = document.getElementById('toc-items-list-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    // Recuperamos items excluidos previamente (si existen)
+    let excludedItems = [];
+    try {
+        if (activeChapter.toc_excluded_items) {
+            excludedItems = JSON.parse(activeChapter.toc_excluded_items);
+        }
+    } catch (e) {
+        excludedItems = [];
+    }
+    
+    if (!bookState || !bookState.chapters) return;
+    
+    bookState.chapters.forEach((chapter, index) => {
+        // Ignoramos el propio índice y página de créditos si no son contenido regular
+        if (chapter.is_toc === '1' || chapter.is_credits === '1') return;
+        
+        const chapterId = chapter.id;
+        const chapterTitle = chapter.title || `Capítulo ${index + 1}`;
+        
+        // Crear checkbox de capítulo
+        const chapterDiv = document.createElement('div');
+        chapterDiv.className = 'flex items-center space-x-2 py-1';
+        
+        const chapterCheckbox = document.createElement('input');
+        chapterCheckbox.type = 'checkbox';
+        chapterCheckbox.className = 'toc-item-checkbox rounded border-gray-300 text-black focus:ring-black';
+        chapterCheckbox.dataset.type = 'chapter';
+        chapterCheckbox.dataset.id = chapterId;
+        
+        // Por defecto chequeado, a menos que esté en excludedItems
+        const itemKey = `chapter_${chapterId}`;
+        chapterCheckbox.checked = !excludedItems.includes(itemKey);
+        
+        const chapterLabel = document.createElement('label');
+        chapterLabel.className = 'text-sm font-semibold';
+        chapterLabel.textContent = chapterTitle;
+        
+        chapterDiv.appendChild(chapterCheckbox);
+        chapterDiv.appendChild(chapterLabel);
+        container.appendChild(chapterDiv);
+        
+        // Extraer encabezados del contenido
+        const headings = extractHeadingsFromContent(chapter.content);
+        
+        if (headings.length > 0) {
+            const headingsContainer = document.createElement('div');
+            headingsContainer.className = 'ml-6 space-y-1 mt-1 mb-3';
+            
+            headings.forEach((h, hIndex) => {
+                const hDiv = document.createElement('div');
+                hDiv.className = 'flex items-center space-x-2';
+                
+                const hCheckbox = document.createElement('input');
+                hCheckbox.type = 'checkbox';
+                hCheckbox.className = 'toc-item-checkbox rounded border-gray-300 text-black focus:ring-black';
+                hCheckbox.dataset.type = 'heading';
+                hCheckbox.dataset.id = chapterId;
+                hCheckbox.dataset.hIndex = hIndex;
+                
+                const hKey = `heading_${chapterId}_${hIndex}`;
+                hCheckbox.checked = !excludedItems.includes(hKey);
+                
+                const hLabel = document.createElement('label');
+                hLabel.className = `text-xs text-[var(--text-muted)]`;
+                hLabel.textContent = `H${h.level}: ${h.text}`;
+                
+                hDiv.appendChild(hCheckbox);
+                hDiv.appendChild(hLabel);
+                headingsContainer.appendChild(hDiv);
+            });
+            
+            container.appendChild(headingsContainer);
+        }
+    });
+}
+
 function openChapterSettingsModal() {
     const modal = document.getElementById('chapter-settings-modal');
     if (!modal) return;
@@ -36,6 +149,8 @@ function openChapterSettingsModal() {
         if (typeof switchTocTab === 'function') {
             switchTocTab('toc-tab-general');
         }
+        
+        populateTocItemsTab(activeChapter);
 
         const fontSelect = document.getElementById('chapter_toc_font_family');
         const titleFontSelect = document.getElementById('chapter_toc_title_font_family');
@@ -395,6 +510,21 @@ async function saveChapterSettings() {
         activeChapter.hide_all_headers_footers = (
             activeChapter.hide_header === '1' && activeChapter.hide_footer === '1'
         ) ? '1' : '0';
+        
+        // Guardar items de indice excluidos
+        const excludedItems = [];
+        const checkboxes = document.querySelectorAll('#toc-items-list-container .toc-item-checkbox');
+        checkboxes.forEach(cb => {
+            if (!cb.checked) {
+                if (cb.dataset.type === 'chapter') {
+                    excludedItems.push(`chapter_${cb.dataset.id}`);
+                } else if (cb.dataset.type === 'heading') {
+                    excludedItems.push(`heading_${cb.dataset.id}_${cb.dataset.hIndex}`);
+                }
+            }
+        });
+        activeChapter.toc_excluded_items = JSON.stringify(excludedItems);
+        
     } else if (isCredits) {
         activeChapter.credits_font_family = document.getElementById('chapter_credits_font_family').value;
         activeChapter.credits_align = document.getElementById('chapter_credits_align').value;

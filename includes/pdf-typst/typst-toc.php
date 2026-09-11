@@ -165,11 +165,47 @@ function almaden_bookster_typst_render_toc( $chapter, $chapters, $settings, $fal
 		} elseif ( 'bullet' === $enumerate ) {
 			$prefix = '•';
 		}
-		$visible_chapters[] = array(
-			'label' => 'almaden-chapter-start-' . preg_replace( '/[^0-9A-Za-z_-]/', '', $chapter_id ),
-			'title' => almaden_bookster_typst_transform_title( trim( (string) ( $toc_chapter['title'] ?? 'Capítulo' ) ), $chapter['toc_text_transform'] ?? 'none' ),
-			'number' => $prefix,
-		);
+		$chapter_excluded = false;
+		$excluded_items = array();
+		if ( ! empty( $chapter['toc_excluded_items'] ) ) {
+			$decoded = json_decode( $chapter['toc_excluded_items'], true );
+			if ( is_array( $decoded ) ) {
+				$excluded_items = $decoded;
+			}
+		}
+		
+		if ( in_array( 'chapter_' . $chapter_id, $excluded_items, true ) ) {
+			$chapter_excluded = true;
+		}
+
+		if ( ! $chapter_excluded ) {
+			$visible_chapters[] = array(
+				'label' => 'almaden-chapter-start-' . preg_replace( '/[^0-9A-Za-z_-]/', '', $chapter_id ),
+				'title' => almaden_bookster_typst_transform_title( trim( (string) ( $toc_chapter['title'] ?? 'Capítulo' ) ), $chapter['toc_text_transform'] ?? 'none' ),
+				'number' => $prefix,
+				'level'  => 0,
+			);
+		}
+
+		// Parse markdown headings (HTML headings are currently not fully supported by Typst compiler for TOC tags)
+		$content = $toc_chapter['content'] ?? '';
+		$lines = explode( "\n", $content );
+		$h_idx = 0;
+		foreach ( $lines as $line ) {
+			if ( preg_match( '/^(#{1,4})\s+(.+)$/', trim( $line ), $match ) ) {
+				$hKey = 'heading_' . $chapter_id . '_' . $h_idx;
+				if ( ! in_array( $hKey, $excluded_items, true ) ) {
+					$h_level = strlen( $match[1] );
+					$visible_chapters[] = array(
+						'label'  => 'almaden-heading-' . preg_replace( '/[^0-9A-Za-z_-]/', '', $chapter_id ) . '-h_' . $h_idx,
+						'title'  => trim( strip_tags( $match[2] ) ),
+						'number' => '', // Sub-headings generally don't get chapter numbering prefix
+						'level'  => $h_level,
+					);
+				}
+				$h_idx++;
+			}
+		}
 	}
 	if ( empty( $visible_chapters ) ) {
 		return '';
@@ -204,7 +240,10 @@ function almaden_bookster_typst_render_toc( $chapter, $chapters, $settings, $fal
 		$page_expr = 0.0 !== $page_number_offset_pt ? '#move(dy: ' . round( $page_number_offset_pt, 3 ) . 'pt)[' . $page_expr . ']' : $page_expr;
 		$output .= '#block(width: 100%, breakable: false)[#layout(size => context {' . "\n";
 		$output .= '  let toc-number = [' . $number_content . ']' . "\n";
-		$output .= '  let toc-title = [' . $title_content . ']' . "\n";
+		
+		$indent_pt = isset( $entry['level'] ) && $entry['level'] > 0 ? ( $entry['level'] * 12 ) . 'pt' : '0pt';
+		$title_content_with_indent = $indent_pt !== '0pt' ? '#h(' . $indent_pt . ')' . $title_content : $title_content;
+		$output .= '  let toc-title = [' . $title_content_with_indent . ']' . "\n";
 		$output .= '  let toc-leader = [' . $leader_content . ']' . "\n";
 		$output .= '  let toc-page = [' . $page_expr . ']' . "\n";
 		$output .= '  let toc-gutter = ' . $grid_gutter_pt . 'pt' . "\n";

@@ -226,6 +226,7 @@ function almaden_bookster_save_book_ajax() {
 		$toc_leader_position   = isset( $chapter['toc_leader_position'] ) ? sanitize_text_field( $chapter['toc_leader_position'] ) : 'middle';
 		$toc_leader_thickness  = isset( $chapter['toc_leader_thickness'] ) ? sanitize_text_field( $chapter['toc_leader_thickness'] ) : '0.35';
 		$toc_leader_min_width  = isset( $chapter['toc_leader_min_width'] ) ? sanitize_text_field( $chapter['toc_leader_min_width'] ) : '4';
+		$toc_excluded_items    = isset( $chapter['toc_excluded_items'] ) ? wp_unslash( $chapter['toc_excluded_items'] ) : '';
 		$toc_number_font_family = isset( $chapter['toc_number_font_family'] ) ? sanitize_text_field( $chapter['toc_number_font_family'] ) : '';
 		$toc_number_font_size = isset( $chapter['toc_number_font_size'] ) ? sanitize_text_field( $chapter['toc_number_font_size'] ) : '';
 		$toc_number_font_weight = isset( $chapter['toc_number_font_weight'] ) ? sanitize_text_field( $chapter['toc_number_font_weight'] ) : '';
@@ -360,6 +361,7 @@ function almaden_bookster_save_book_ajax() {
 			update_post_meta( $post_id, '_toc_leader_position', $toc_leader_position );
 			update_post_meta( $post_id, '_toc_leader_thickness', $toc_leader_thickness );
 			update_post_meta( $post_id, '_toc_leader_min_width', $toc_leader_min_width );
+			update_post_meta( $post_id, '_toc_excluded_items', $toc_excluded_items );
 			update_post_meta( $post_id, '_toc_number_font_family', $toc_number_font_family );
 			update_post_meta( $post_id, '_toc_number_font_size', $toc_number_font_size );
 			update_post_meta( $post_id, '_toc_number_font_weight', $toc_number_font_weight );
@@ -470,7 +472,8 @@ function almaden_bookster_save_book_ajax() {
 				'toc_leader_position'   => $toc_leader_position,
 				'toc_leader_thickness'  => $toc_leader_thickness,
 				'toc_leader_min_width'  => $toc_leader_min_width,
-				'toc_number_font_family' => $toc_number_font_family,
+				'toc_excluded_items'    => $toc_excluded_items,
+				'toc_number_font_family'=> $toc_number_font_family,
 				'toc_number_font_size' => $toc_number_font_size,
 				'toc_number_font_weight' => $toc_number_font_weight,
 				'toc_number_font_style' => $toc_number_font_style,

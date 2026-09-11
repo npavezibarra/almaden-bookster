@@ -556,6 +556,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 					'header_bg_color' => $table_header_bg_color,
 					'cell_bg_color'   => $table_cell_bg_color,
 				),
+				'chapter_id' => $chapter_label_id,
 			);
 			if ( 'page' !== $footnote_mode ) {
 				$content_render_options['footnotes'] = $chapter_footnotes;

@@ -350,6 +350,7 @@ Cada uno de estos campos se escribe en `post_meta` del `book_chapter`:
   - `_toc_item_align`
   - `_toc_leader_style`
   - `_toc_leader_position`
+  - `_toc_excluded_items`
   - `_toc_title_align`
   - `_toc_title_font_family`
   - `_toc_title_font_size`

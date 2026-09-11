@@ -145,7 +145,7 @@ function almaden_bookster_handle_download_book() {
 			'_parity_image_width', '_parity_image_height', '_is_toc', '_is_credits', '_credits_font_family', '_credits_align', '_credits_vertical_align',
 		'_credits_font_size', '_credits_letter_spacing', '_credits_font_weight', '_credits_hide_header', '_credits_hide_page_number', '_credits_margin_top', '_credits_margin_bottom', '_toc_font_family', '_toc_font_size',
 			'_toc_enumerate', '_toc_font_style', '_toc_font_weight', '_toc_text_transform', '_toc_letter_spacing', '_toc_line_height',
-		'_toc_item_spacing', '_toc_leader_style', '_toc_leader_position', '_toc_leader_thickness', '_toc_leader_min_width', '_toc_page_number_offset', '_toc_hide_title', '_toc_title_text', '_toc_title_align',
+		'_toc_item_spacing', '_toc_leader_style', '_toc_leader_position', '_toc_leader_thickness', '_toc_leader_min_width', '_toc_excluded_items', '_toc_page_number_offset', '_toc_hide_title', '_toc_title_text', '_toc_title_align',
 		'_toc_number_font_family', '_toc_number_font_size', '_toc_number_font_weight', '_toc_number_font_style', '_toc_number_letter_spacing',
 		'_toc_page_font_family', '_toc_page_font_size', '_toc_page_font_weight', '_toc_page_font_style', '_toc_page_letter_spacing',
 		'_toc_page_one_vertical',
