@@ -6,3 +6,4 @@ Este directorio contiene los scripts dedicados al taller y los paneles de admini
 
 *   **[admin-fonts-page.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/admin/admin-fonts-page.js)**: Lógica de la página de administración de fuentes de Google (explorar catálogo, instalar tipografías, probar conectividad de Google Drive).
 *   **[booklist-ui.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/admin/booklist-ui.js)**: Gestión interactiva del taller de libros (abrir modales de creación, publicar/ocultar del catálogo, subir a Drive).
+*   **[booklist-share-modal.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/admin/booklist-share-modal.js)**: Controlador del modal de compartir libro, búsqueda de usuarios por autocompletado en tiempo real y llamadas AJAX para asignar/revocar accesos.

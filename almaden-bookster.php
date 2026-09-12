@@ -36,6 +36,7 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/authors/authors.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/cpt/cpt.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/books/book-authors.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/books/book-authors-hooks.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/books/book-sharing.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/publishers/publishers.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/publishers/permissions.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/publishers/settings.php';
@@ -58,6 +59,7 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-settings-template
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-settings.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-cover.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-user-prefs.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/ajax/ajax-book-sharing.php';
 
 // --- Configuraciones Generales y Seguridad ---
 require_once plugin_dir_path( __FILE__ ) . 'includes/helpers/crypto.php';

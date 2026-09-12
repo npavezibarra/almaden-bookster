@@ -9,12 +9,16 @@ $current_user = function_exists( 'wp_get_current_user' ) ? wp_get_current_user()
 $is_logged_in = function_exists( 'is_user_logged_in' ) ? is_user_logged_in() : false;
 $current_user_id = $is_logged_in ? get_current_user_id() : 0;
 
-// Fetch only the books created by the current user for the workshop.
+// Fetch books created by or shared with the current user for the workshop.
+$workshop_book_ids = function_exists( 'almaden_bookster_get_user_workshop_book_ids' )
+	? almaden_bookster_get_user_workshop_book_ids( $current_user_id )
+	: array();
+
 $args = array(
-    'post_type'      => 'almaden-books',
-    'posts_per_page' => -1,
-    'post_status'    => 'publish',
-    'author'         => $current_user_id,
+	'post_type'      => 'almaden-books',
+	'posts_per_page' => -1,
+	'post_status'    => 'publish',
+	'post__in'       => ! empty( $workshop_book_ids ) ? $workshop_book_ids : array( 0 ),
 );
 $books_query = new WP_Query( $args );
 
@@ -416,6 +420,7 @@ if ( $is_logged_in && $current_user ) {
                                                     <button type="submit" id="option-download-<?php echo get_the_ID(); ?>" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Download Book (Backup)</button>
                                                 </form>
                                                 <a href="#" id="option-drive-<?php echo get_the_ID(); ?>" onclick="uploadBookToDrive(<?php echo get_the_ID(); ?>); event.preventDefault();" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center"><span class="drive-text-<?php echo get_the_ID(); ?>">Subir a Google Drive</span><i class="fa-solid fa-spinner fa-spin hidden drive-spinner-<?php echo get_the_ID(); ?>"></i></a>
+                                                <a href="#" id="option-share-<?php echo get_the_ID(); ?>" onclick="openShareModal(<?php echo get_the_ID(); ?>, '<?php echo esc_js( get_the_title() ); ?>'); event.preventDefault();" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex justify-between items-center"><span class="share-text-<?php echo get_the_ID(); ?>">Compartir</span><i class="fa-solid fa-share-nodes text-xs text-gray-400"></i></a>
                                             </div>
                                             <div class="py-1">
                                                 <form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este libro? Esta acción borrará el libro de forma permanente.');">
@@ -430,7 +435,13 @@ if ( $is_logged_in && $current_user ) {
                                 </div>
                                 
                                 <div class="flex-1 flex flex-col">
-                                    <div class="flex items-center gap-2 mt-auto mb-4">
+                                    <div class="flex items-center gap-2 mt-auto mb-4 flex-wrap">
+                                        <?php if ( $current_user_id > 0 && absint( get_post_field( 'post_author', get_the_ID() ) ) !== $current_user_id ) : ?>
+                                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 leading-none" title="Libro compartido contigo">
+                                                <i class="fa-solid fa-user-group text-[10px]"></i>
+                                                <span class="text-[10px] font-semibold uppercase tracking-wider">Compartido</span>
+                                            </div>
+                                        <?php endif; ?>
                                         <?php if ( $pages_count > 0 ) : ?>
                                             <div class="inline-flex items-baseline gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-slate-800 leading-none">
                                                 <span class="text-sm font-bold"><?php echo $pages_count; ?></span>
@@ -505,11 +516,13 @@ if ( $is_logged_in && $current_user ) {
         <?php endif; ?>
     </main>
 
-    <!-- Modal Form (Hidden by default) -->
+    <!-- Modal Forms (Hidden by default) -->
     <?php include plugin_dir_path( __FILE__ ) . 'booklist-create-modal.php'; ?>
+    <?php include plugin_dir_path( __FILE__ ) . 'booklist-share-modal.php'; ?>
 
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/admin/booklist-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/admin/booklist-create-modal.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/admin/booklist-share-modal.js?v=' . time(), __FILE__ ) ); ?>"></script>
     
     <!-- Include the Settings Modal and JS -->
     <?php include plugin_dir_path( __FILE__ ) . '../editor/editor-settings-modal.php'; ?>

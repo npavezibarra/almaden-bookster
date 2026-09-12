@@ -6,19 +6,19 @@ require_once dirname( __DIR__ ) . '/includes/pdf-typst/typst-markup.php';
 $raw = <<<'RAW'
 [box]
 [html]
-\<table style="width:100%;border-collapse:collapse;text-align:left;font-size:6pt;line-height:1.25;">
+\<table style="width:100%;border-collapse:collapse;">
 \<thead>
 \<tr>
-\<th style="padding:4px;border:1px solid #d9d9d9;">\<strong>Estrategia\</strong>\</th>
-\<th style="padding:4px;border:1px solid #d9d9d9;">\<strong>Dedicación\</strong>\</th>
-\<th style="padding:4px;border:1px solid #d9d9d9;">\<strong>Descripción\</strong>\</th>
+\<th style="">\<strong>Estrategia\</strong>\</th>
+\<th style="">\<strong>Dedicación\</strong>\</th>
+\<th style="">\<strong>Descripción\</strong>\</th>
 \</tr>
 \</thead>
 \<tbody>
 \<tr>
-\<td style="padding:4px;border:1px solid #d9d9d9;">\<em>Turnkey\</em>\</td>
-\<td style="padding:4px;border:1px solid #d9d9d9;">Muy baja\</td>
-\<td style="padding:4px;border:1px solid #d9d9d9;">Propiedad comprada lista para arrendar, con administración incluida.\</td>
+\<td style="">\<em>Turnkey\</em>\</td>
+\<td style="">Muy baja\</td>
+\<td style="">Propiedad comprada lista para arrendar, con administración incluida.\</td>
 \</tr>
 \</tbody>
 \</table>
@@ -48,14 +48,14 @@ $rendered = almaden_bookster_typst_render_blocks(
 
 foreach (
 	array(
-		'#table(columns: (1fr, 1fr, 1fr)',
+		'#table(columns: (auto, auto, 68fr)',
 		'font: "Inter"',
 		'size: 14pt',
 		'weight: 700',
 		'style: "italic"',
 		'#set align(right)',
 		'tracking: 0.7pt',
-		'inset: 0pt',
+		
 		'inset: 9pt',
 		'stroke: 2pt + rgb("123456")',
 		'fill: rgb("abcdef")',

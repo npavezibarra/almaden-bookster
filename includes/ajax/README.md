@@ -23,5 +23,7 @@ Este directorio contiene los manejadores de peticiones AJAX y endpoints del lado
     Guarda y recupera la configuración de capas, fondos y solapas del editor de portadas de libros.
 *   **[ajax-publish.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/ajax-publish.php)**: 
     Manejador AJAX para cambiar el estado de publicación pública de un libro (hacer visible/oculto en la estantería pública).
+*   **[ajax-book-sharing.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/ajax-book-sharing.php)**:
+    Endpoints para buscar usuarios con autocompletado, compartir un libro con otro usuario, revocar accesos y listar los usuarios con permiso sobre el libro.
 *   **[ajax-user-prefs.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/ajax-user-prefs.php)**: 
     Permite guardar preferencias específicas del usuario del editor (como el zoom, atajos, etc.) en las preferencias de perfil de WordPress.

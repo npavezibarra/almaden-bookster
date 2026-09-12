@@ -154,3 +154,16 @@ Elegir la verificacion segun el cambio:
 ## Contexto Local
 
 Las credenciales, sockets y datos de una instalacion local no son reglas de arquitectura. Deben documentarse fuera de este guideline, por ejemplo en `README.local-login.md` o documentacion local equivalente.
+
+## Método de Sincronización Diferencial Asistida por LLM
+
+Este método estandariza el proceso para corregir y sincronizar contenidos complejos de WordPress (donde existen shortcodes, tablas HTML u otras etiquetas de formato) con una fuente de verdad externa (como un archivo `.docx`), asegurando que la maquetación no se pierda en el proceso.
+
+**Flujo de trabajo:**
+
+1. **Obtención de la fuente de verdad**: Extraer el texto de la fuente original (ej. convertir `.docx` a `.txt` plano o extraer capítulos específicos) y guardarlo en un entorno temporal (scratch).
+2. **Obtención del contenido actual**: Utilizar comandos como `wp post get <ID> --field=post_content > ch_actual.txt` para descargar la versión en crudo de la base de datos de WordPress.
+3. **Limpieza y Diffing**: Utilizar un script (`Python` con la librería `difflib`) para extraer solo las palabras (ignorando tags HTML y shortcodes) y generar un reporte diferencial preciso de las palabras faltantes, sobrantes o discrepancias.
+4. **Actualización quirúrgica (LLM / Scripting)**: Con el reporte de diferencias, usar expresiones regulares o funciones de reemplazo (`replace()` o `re.sub()`) de manera programática sobre el archivo `ch_actual.txt` para insertar las correcciones, cuidando escrupulosamente de NO alterar las tablas HTML, atributos `style` ni estructuras de shortcode (`[box]`, `[html]`, etc.).
+5. **Subida de los cambios**: Cargar el contenido actualizado de regreso a la base de datos usando WP-CLI (`wp post update <ID> /ruta/al/archivo/actualizado.txt`).
+6. **Validación**: Verificar visualmente o mediante logs que la actualización fue exitosa y que la maquetación se conservó intacta.

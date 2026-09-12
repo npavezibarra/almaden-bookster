@@ -8,6 +8,7 @@ Gestiona relaciones editoriales del libro, especialmente la asociacion libro-aut
 
 - `book-authors.php`: tabla de relacion libro-usuario, orden de autores, helpers de permisos y sincronizacion base.
 - `book-authors-hooks.php`: migracion inicial y sincronizacion automatica cuando se guarda un libro.
+- `book-sharing.php`: tabla `wp_almaden_book_shares`, permisos de colaboracion y consultas de libros compartidos en Taller.
 
 ## Flujo de entrada
 

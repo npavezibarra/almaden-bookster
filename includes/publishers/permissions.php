@@ -90,6 +90,10 @@ function almaden_bookster_user_can_manage_book( $book_id, $user_id = null ) {
 		return true;
 	}
 
+	if ( function_exists( 'almaden_bookster_is_book_shared_with_user' ) && almaden_bookster_is_book_shared_with_user( $book_id, $user_id ) ) {
+		return true;
+	}
+
 	$publisher_id = function_exists( 'almaden_bookster_get_book_publisher_id' ) ? almaden_bookster_get_book_publisher_id( $book_id ) : 0;
 	if ( $publisher_id <= 0 ) {
 		return function_exists( 'almaden_bookster_user_is_book_author' ) ? almaden_bookster_user_is_book_author( $book_id, $user_id ) : false;

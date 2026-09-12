@@ -242,16 +242,17 @@ function almaden_bookster_typst_render_toc( $chapter, $chapters, $settings, $fal
 		$output .= '  let toc-number = [' . $number_content . ']' . "\n";
 		
 		$indent_pt = isset( $entry['level'] ) && $entry['level'] > 0 ? ( $entry['level'] * 12 ) . 'pt' : '0pt';
-		$title_content_with_indent = $indent_pt !== '0pt' ? '#h(' . $indent_pt . ')' . $title_content : $title_content;
-		$output .= '  let toc-title = [' . $title_content_with_indent . ']' . "\n";
+		$output .= '  let toc-title = [' . $title_content . ']' . "\n";
 		$output .= '  let toc-leader = [' . $leader_content . ']' . "\n";
 		$output .= '  let toc-page = [' . $page_expr . ']' . "\n";
 		$output .= '  let toc-gutter = ' . $grid_gutter_pt . 'pt' . "\n";
 		$output .= '  let number-width = toc-number-samples.fold(0pt, (current, sample) => calc.max(current, measure(sample).width))' . "\n";
 		$output .= '  let page-width = measure(toc-page).width' . "\n";
+		$pad_open  = '0pt' !== $indent_pt ? '#pad(left: ' . $indent_pt . ')[' : '';
+		$pad_close = '0pt' !== $indent_pt ? ']' : '';
 		$output .= '' !== $leader_content
-			? '  let toc-main = [#align(' . $item_align . ')[#toc-title#h(toc-gutter)#toc-leader]]' . "\n"
-			: '  let toc-main = [#align(' . $item_align . ')[#toc-title]]' . "\n";
+			? '  let toc-main = [' . $pad_open . '#align(' . $item_align . ')[#toc-title#h(toc-gutter)#toc-leader]' . $pad_close . ']' . "\n"
+			: '  let toc-main = [' . $pad_open . '#align(' . $item_align . ')[#toc-title]' . $pad_close . ']' . "\n";
 		if ( $has_number_column ) {
 			$output .= '  grid(columns: (number-width, 1fr, page-width), gutter: toc-gutter, row-gutter: 0pt, align: (left + top, left + top, right + bottom), toc-number, toc-main, toc-page)' . "\n";
 		} else {

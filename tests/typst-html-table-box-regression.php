@@ -30,7 +30,7 @@ RAW;
 
 $rendered = almaden_bookster_typst_render_blocks( $raw );
 
-if ( false === strpos( $rendered, '#table(columns: (1fr, 1fr, 1fr)' ) ) {
+if ( false === strpos( $rendered, '#table(columns: (auto, auto, 68fr)' ) ) {
 	fwrite( STDERR, "La tabla HTML dentro de box no se renderizó como tabla Typst.\n" );
 	exit( 1 );
 }
