@@ -130,6 +130,8 @@ if ( ! function_exists( 'almaden_bookster_filter_shell_head_output' ) ) {
 		);
 		$html = preg_replace( '/<link\b[^>]*href=["\']https:\/\/fonts\.googleapis\.com\/[^"\']+["\'][^>]*>/i', '', $html );
 		$html = preg_replace( '/<link\b[^>]*href=["\'][^"\']*\/wp-content\/uploads\/custom-css-js\/[^"\']+["\'][^>]*>/i', '', $html );
+		$html = preg_replace( '/<style\b[^>]*\bid=["\'](?:global-styles-inline-css|classic-theme-styles-inline-css|wp-custom-css|core-block-supports-inline-css)["\'][^>]*>.*?<\/style>/is', '', $html );
+		$html = preg_replace( '/<style\b[^>]*>[^<]*(?:--wp--preset|\.wp-site-blocks|\.wp-block-|body\s*\{[^}]*--wp--style|wp-container-|wp-elements-)[\s\S]*?<\/style>/i', '', $html );
 
 		return $html;
 	}

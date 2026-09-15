@@ -42,7 +42,7 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
     <?php endif; ?>
     <!-- Urbanist Font for UI -->
     <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&amp;display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="<?php echo esc_url( function_exists( 'almaden_bookster_fontawesome_css_url' ) ? almaden_bookster_fontawesome_css_url() : plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/vendor/fontawesome/css/all.min.css?v=6.4.0' ); ?>">
     <style>
         html {
             margin-top: 0 !important;
@@ -217,10 +217,63 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
             installedFonts: <?php echo json_encode($installed_fonts); ?>
         };
     </script>
-    <?php wp_head(); ?>
+    <?php
+    if ( function_exists( 'almaden_bookster_render_quarantined_wp_head' ) ) {
+        almaden_bookster_render_quarantined_wp_head( 'cover-editor' );
+    } else {
+        wp_head();
+    }
+    ?>
+    <link rel="stylesheet" href="<?php echo esc_url( function_exists( 'almaden_bookster_editor_css_url' ) ? almaden_bookster_editor_css_url() : plugin_dir_url( dirname( dirname( __FILE__ ) ) ) . 'assets/css/editor-style.css?v=' . time() ); ?>">
     <style id="almaden-cover-overrides">
         html {
             margin-top: 0 !important;
+        }
+        html,
+        body,
+        #page,
+        #content,
+        #wpwrap {
+            background-color: #e5e7eb !important;
+            background-image: none !important;
+        }
+        #wpadminbar {
+            display: none !important;
+        }
+        #almaden-cover-app-body,
+        #almaden-cover-app-body #almaden-cover-navbar,
+        #almaden-cover-app-body #almaden-cover-navbar :where(*):not(.fa):not(.fa-solid):not(.fa-regular):not(.fa-brands),
+        #almaden-cover-app-body #almaden-cover-app-workspace,
+        #almaden-cover-app-body #almaden-cover-app-workspace :where(*):not(.fa):not(.fa-solid):not(.fa-regular):not(.fa-brands),
+        #almaden-cover-app-body :where(button, input, select, textarea),
+        #almaden-cover-app-body :where(h1, h2, h3, h4, h5, h6, label, .font-sans, .font-bold, .font-semibold, .font-medium) {
+            font-family: "Urbanist", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+            letter-spacing: normal;
+        }
+        #almaden-cover-app-body :where(.fa, .fa-solid, .fa-regular, .fa-brands) {
+            font-family: "Font Awesome 6 Free" !important;
+        }
+        #almaden-cover-app-body :where(.fa-solid) {
+            font-weight: 900 !important;
+        }
+        #almaden-cover-app-body :where(.fa-regular) {
+            font-weight: 400 !important;
+        }
+        #almaden-cover-app-body :where(button, input, select, textarea) {
+            font-size: inherit;
+            line-height: inherit;
+            text-transform: none;
+        }
+        #almaden-cover-navbar {
+            position: sticky;
+            top: 0;
+            z-index: 60;
+            background-color: rgba(255, 255, 255, 0.96) !important;
+            backdrop-filter: saturate(180%) blur(14px);
+            -webkit-backdrop-filter: saturate(180%) blur(14px);
+        }
+        #almaden-cover-app-workspace {
+            background-color: #e5e7eb !important;
         }
         main {
             padding-top: 20px !important;
@@ -228,7 +281,7 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
         }
     </style>
 </head>
-<body id="almaden-cover-app-body" class="h-screen w-screen overflow-hidden flex flex-col">
+<body id="almaden-cover-app-body" class="almaden-shell almaden-app-body theme-light h-screen w-screen overflow-hidden flex flex-col">
 
     <!-- Navbar -->
     <?php include dirname( __FILE__ ) . '/cover-navbar.php'; ?>
