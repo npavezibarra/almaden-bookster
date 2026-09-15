@@ -156,6 +156,19 @@ de continuidad hasta que PDF.js termina de pintar la nueva revisión.
   `[Typst preview performance]` informa `memory`, `browser-cache`,
   `server-cache` o `typst` junto al tiempo total percibido.
 
+## Overrides RAW
+
+Los ajustes de libro son la base tipográfica global. `h1`, `h2`, `h3`,
+párrafos, citas, tablas y demás estilos se aplican por defecto a todo el
+manuscrito. Cuando el editor RAW incluye un shortcode local, ese shortcode
+tiene prioridad solo dentro de su bloque y no modifica la configuración global.
+
+Para alineación, `[align=left|center|right]...[/align]` centra o desplaza tanto
+párrafos normales como headings Markdown (`#`, `##`, `###`) dentro del bloque.
+Los headings conservan fuente, tamaño, peso, tracking, márgenes y demás valores
+globales; únicamente toman el alineamiento local declarado en el RAW. El modo
+`[align=justify]` se limita a párrafos y no fuerza headings.
+
 ## Archivos activos
 
 - [`editor-typst-pdf.js`](./editor-typst-pdf.js)

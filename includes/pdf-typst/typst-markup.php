@@ -1013,6 +1013,9 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
 			if ( isset( $heading_styles[ $level ] ) && is_array( $heading_styles[ $level ] ) && ! empty( $heading_styles[ $level ]['font_family'] ) ) {
 				$style = $heading_styles[ $level ];
 				$heading_align = isset( $style['align'] ) && in_array( $style['align'], array( 'left', 'center', 'right' ), true ) ? $style['align'] : 'left';
+				if ( in_array( $align_type, array( 'left', 'center', 'right' ), true ) ) {
+					$heading_align = $align_type;
+				}
 				$heading_leading = round( max( 0, (float) ( $style['line_height'] ?? 1.3 ) - 1 ), 4 );
 				$heading_margin_top = isset( $style['margin_top'] ) && is_numeric( $style['margin_top'] ) ? max( 0, min( 200, (float) $style['margin_top'] ) ) : 0;
 				$heading_margin_bottom = isset( $style['margin_bottom'] ) && is_numeric( $style['margin_bottom'] ) ? max( 0, min( 200, (float) $style['margin_bottom'] ) ) : 0;
