@@ -6,10 +6,10 @@ Esta carpeta contiene la vista del editor de quizzes por capitulo usada por Alma
 
 Si vas a modificar este flujo, revisa en este orden:
 
-1. [includes/learni-integration.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/learni-integration.php)
-2. [templates/quiz-builder/quiz-builder-app.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/quiz-builder/quiz-builder-app.php)
-3. [learni-standalone/includes/QuizEditor/QuizEditor.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/learni-standalone/includes/QuizEditor/QuizEditor.php)
-4. [learni-standalone/includes/QuizEditor/QuizRepository.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/learni-standalone/includes/QuizEditor/QuizRepository.php)
+1. [includes/learni-integration.php](../../includes/integrations/learni-integration.php)
+2. [templates/quiz-builder/quiz-builder-app.php](quiz-builder-app.php)
+3. [learni-standalone/includes/QuizEditor/QuizEditor.php](../../../learni-standalone/includes/QuizEditor/QuizEditor.php)
+4. [learni-standalone/includes/QuizEditor/QuizRepository.php](../../../learni-standalone/includes/QuizEditor/QuizRepository.php)
 
 ## Que hace esta pantalla
 

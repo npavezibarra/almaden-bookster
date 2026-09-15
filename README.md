@@ -6,19 +6,11 @@ Plugin principal de Almaden para crear libros, editar contenido, diseñar portad
 
 Si eres un agente o vas a modificar codigo, usa este orden:
 
-1. [AGENT_GUIDELINES.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/AGENT_GUIDELINES.md)
-2. Este [README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/README.md)
-3. [includes/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/README.md)
-4. La carpeta que corresponda al area a tocar:
-- [modules/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/modules/README.md)
-- [templates/editor/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/editor/README.md)
-- [templates/cover/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/cover/README.md)
-- [templates/ebook/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/ebook/README.md)
-- [templates/bookshelf/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/bookshelf/README.md)
-- [templates/shell/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/shell/README.md)
-   - [templates/reader/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/reader/README.md)
-   - [templates/quiz-builder/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/quiz-builder/README.md)
-5. [assets/js/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/README.md)
+1. [AGENTS.md](AGENTS.md)
+2. Este [README.md](README.md)
+3. El README local de la carpeta que corresponda al area a tocar.
+4. README de carpetas vecinas solo si el cambio cruza fronteras entre areas.
+5. Documentacion adicional en [docs/](docs/README.md) solo cuando sea relevante.
 
 Cada subcarpeta con codigo debe tener su propio `README.md`. Si vas a tocar una carpeta sin README, primero crea uno breve con responsabilidad, archivos principales, flujo de entrada, reglas locales, validacion y archivos relacionados.
 
@@ -38,33 +30,33 @@ Cada subcarpeta con codigo debe tener su propio `README.md`. Si vas a tocar una 
 
 ### Backend PHP
 
-- [includes/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/README.md)
-- [includes/frontend/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/frontend/README.md)
-- [includes/authors/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/authors/README.md)
-- [includes/books/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/books/README.md)
-- [includes/ajax/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/README.md)
-- [includes/learni-integration.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/learni-integration.php)
+- [includes/README.md](includes/README.md)
+- [includes/frontend/README.md](includes/frontend/README.md)
+- [includes/authors/README.md](includes/authors/README.md)
+- [includes/books/README.md](includes/books/README.md)
+- [includes/ajax/README.md](includes/ajax/README.md)
+- [includes/integrations/learni-integration.php](includes/integrations/learni-integration.php)
 
 ### Templates
 
-- Taller / admin: [templates/admin/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/admin/README.md)
-- Book editor: [templates/editor/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/editor/README.md)
-- Cover editor: [templates/cover/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/cover/README.md)
-- Ebook public page: [templates/ebook/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/ebook/README.md)
-- Catálogo público: [templates/bookshelf/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/bookshelf/README.md)
-- Shell: [templates/shell/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/shell/README.md)
-- Reader: [templates/reader/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/reader/README.md)
-- Quiz builder: [templates/quiz-builder/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/quiz-builder/README.md)
-- Autores: [templates/authors/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/authors/README.md)
+- Taller / admin: [templates/admin/README.md](templates/admin/README.md)
+- Book editor: [templates/editor/README.md](templates/editor/README.md)
+- Cover editor: [templates/cover/README.md](templates/cover/README.md)
+- Ebook public page: [templates/ebook/README.md](templates/ebook/README.md)
+- Catalogo publico: [templates/bookshelf/README.md](templates/bookshelf/README.md)
+- Shell: [templates/shell/README.md](templates/shell/README.md)
+- Reader: [templates/reader/README.md](templates/reader/README.md)
+- Quiz builder: [templates/quiz-builder/README.md](templates/quiz-builder/README.md)
+- Autores: [templates/authors/README.md](templates/authors/README.md)
 
 ### Frontend JS
 
-- [assets/js/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/README.md)
-- [assets/js/editor/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/README.md)
-- [assets/js/cover/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/cover/README.md)
-- [assets/js/reader/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/README.md)
-- [assets/js/pdf/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/pdf/README.md)
-- [assets/js/quiz-builder/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/quiz-builder/README.md)
+- [assets/js/README.md](assets/js/README.md)
+- [assets/js/editor/README.md](assets/js/editor/README.md)
+- [assets/js/cover/README.md](assets/js/cover/README.md)
+- [assets/js/reader/README.md](assets/js/reader/README.md)
+- [assets/js/pdf/README.md](assets/js/pdf/README.md)
+- [assets/js/quiz-builder/README.md](assets/js/quiz-builder/README.md)
 
 ## Learni y quizzes
 
@@ -86,9 +78,9 @@ modulo nativo en `modules/learni`.
 
 ### Lectura recomendada para este contexto
 
-1. [modules/learni/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/modules/learni/README.md)
-2. [includes/learni-integration.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/learni-integration.php)
-3. [templates/quiz-builder/quiz-builder-app.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/quiz-builder/quiz-builder-app.php)
+1. [modules/learni/README.md](modules/learni/README.md)
+2. [includes/integrations/learni-integration.php](includes/integrations/learni-integration.php)
+3. [templates/quiz-builder/quiz-builder-app.php](templates/quiz-builder/quiz-builder-app.php)
 
 ### Distincion operativa
 
@@ -112,9 +104,9 @@ respuesta y evaluacion, pero no comparten el mismo contrato de ejecucion.
 
 Si el cambio afecta persistencia o CRUD del quiz de ebooks, entra a:
 
-- [modules/learni/includes/QuizEditor/QuizEditor.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/modules/learni/includes/QuizEditor/QuizEditor.php)
-- [modules/learni/includes/QuizEditor/QuizRepository.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/modules/learni/includes/QuizEditor/QuizRepository.php)
-- [includes/integrations/learni-integration-helpers.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/integrations/learni-integration-helpers.php)
+- [modules/learni/includes/QuizEditor/QuizEditor.php](modules/learni/includes/QuizEditor/QuizEditor.php)
+- [modules/learni/includes/QuizEditor/QuizRepository.php](modules/learni/includes/QuizEditor/QuizRepository.php)
+- [includes/integrations/learni-integration-helpers.php](includes/integrations/learni-integration-helpers.php)
 
 ## Regla importante para paginas publicas
 

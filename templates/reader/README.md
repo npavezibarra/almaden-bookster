@@ -5,4 +5,4 @@ La ficha pública y la vista previa bloqueada ahora viven en `templates/ebook/`,
 
 ## Archivos y Funcionalidades
 
-*   **[reader-app.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/reader/reader-app.php)**: Renderiza el visor HTML interactivo del ebook completo. Exporta `window.bookData` al entorno global para scripts como `reader-quizzes.js` y `reader-progress.js`.
+*   **[reader-app.php](reader-app.php)**: Renderiza el visor HTML interactivo del ebook completo. Exporta `window.bookData` al entorno global para scripts como `reader-quizzes.js` y `reader-progress.js`.

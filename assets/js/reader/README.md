@@ -4,19 +4,19 @@ Este directorio contiene los archivos JavaScript que controlan la interactividad
 
 ## Archivos y Funcionalidades
 
-*   **[reader-app.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/reader-app.js)**: Inicialización del visor y renderizado de shortcodes.
-*   **[reader-navigation.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/reader-navigation.js)**: Lógica de navegación del lector (Modo Scroll continuo vs Modo Flip de doble página). Utiliza el `bookData` global de forma segura.
-*   **[reader-prefs.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/reader-prefs.js)**: Gestión y almacenamiento persistente de las preferencias del lector (fuente, tema, tamaño de texto).
-*   **[reader-styles.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/reader-styles.js)**: Construcción dinámica del CSS scoped aplicado al visor del libro.
-*   **[reader-quizzes.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/reader-quizzes.js)**: Control del flujo de las evaluaciones (quizzes) incrustadas en los capítulos. Reforzado para utilizar `window.bookData` como fallback seguro para evitar condiciones de carrera en la carga de variables.
-*   **[reader-progress.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/reader-progress.js)**: Panel flotante de resultados, intentos, avance del libro y reset condicionado a la finalización total de quizzes.
+*   **[reader-app.js](reader-app.js)**: Inicialización del visor y renderizado de shortcodes.
+*   **[reader-navigation.js](reader-navigation.js)**: Lógica de navegación del lector (Modo Scroll continuo vs Modo Flip de doble página). Utiliza el `bookData` global de forma segura.
+*   **[reader-prefs.js](reader-prefs.js)**: Gestión y almacenamiento persistente de las preferencias del lector (fuente, tema, tamaño de texto).
+*   **[reader-styles.js](reader-styles.js)**: Construcción dinámica del CSS scoped aplicado al visor del libro.
+*   **[reader-quizzes.js](reader-quizzes.js)**: Control del flujo de las evaluaciones (quizzes) incrustadas en los capítulos. Reforzado para utilizar `window.bookData` como fallback seguro para evitar condiciones de carrera en la carga de variables.
+*   **[reader-progress.js](reader-progress.js)**: Panel flotante de resultados, intentos, avance del libro y reset condicionado a la finalización total de quizzes.
 *   **Highlights Modulares**: La experiencia de highlights está dividida en 6 módulos para mantener responsabilidades acotadas:
-    *   **[reader-highlights-state.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/reader-highlights-state.js)**: Estado global y utilidades base.
-    *   **[reader-highlights-dom.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/reader-highlights-dom.js)**: Manipulación del DOM, selección de texto, posicionamiento y focos contextuales.
-    *   **[reader-highlights-ui.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/reader-highlights-ui.js)**: Interfaz de usuario (panel lateral, toolbar de selección y acciones sobre highlights existentes).
-    *   **[reader-highlights-api.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/reader-highlights-api.js)**: Comunicación asíncrona con el backend (guardar, borrar, listar).
-    *   **[reader-highlights-page.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/reader-highlights-page.js)**: Vista expandida con feed cronológico, filtros por capítulo y navegación de regreso al texto.
-    *   **[reader-highlights-events.js](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/reader/reader-highlights-events.js)**: Registro de todos los eventos globales de usuario.
+    *   **[reader-highlights-state.js](reader-highlights-state.js)**: Estado global y utilidades base.
+    *   **[reader-highlights-dom.js](reader-highlights-dom.js)**: Manipulación del DOM, selección de texto, posicionamiento y focos contextuales.
+    *   **[reader-highlights-ui.js](reader-highlights-ui.js)**: Interfaz de usuario (panel lateral, toolbar de selección y acciones sobre highlights existentes).
+    *   **[reader-highlights-api.js](reader-highlights-api.js)**: Comunicación asíncrona con el backend (guardar, borrar, listar).
+    *   **[reader-highlights-page.js](reader-highlights-page.js)**: Vista expandida con feed cronológico, filtros por capítulo y navegación de regreso al texto.
+    *   **[reader-highlights-events.js](reader-highlights-events.js)**: Registro de todos los eventos globales de usuario.
 
 ## Página expandida de highlights
 

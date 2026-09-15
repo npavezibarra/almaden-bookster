@@ -4,17 +4,17 @@ Este directorio contiene las plantillas PHP relacionadas con la interfaz princip
 
 ## Relacion con el harness de agentes
 
-El detalle de arquitectura del editor vive aqui y en [assets/js/editor/README.md](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/assets/js/editor/README.md). El guideline raiz solo define el protocolo general; cualquier agente que toque el editor debe leer ambos README antes de modificar wrappers, modales, settings tabs o controles visuales.
+El detalle de arquitectura del editor vive aqui y en [assets/js/editor/README.md](../../assets/js/editor/README.md). El guideline raiz solo define el protocolo general; cualquier agente que toque el editor debe leer ambos README antes de modificar wrappers, modales, settings tabs o controles visuales.
 
 ## Archivos y Funcionalidades
 
-*   **[editor-app.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/editor/editor-app.php)**: Plantilla principal que renderiza el contenedor y las zonas de la aplicación de edición de libros.
-*   **[editor-settings-modal.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/editor/editor-settings-modal.php)**: Modal global de ajustes del libro para PDF, eBook y configuración General. Mantiene header y footer estables, un único cuerpo con scroll y navegación jerárquica por formato, sección y subtab.
-*   **[chapter-settings-modal.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/editor/chapter-settings-modal.php)**: El modal de configuración específico a nivel de capítulo.
-*   **[chapter-settings-normal.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/editor/chapter-settings-normal.php)**: El contenido y formulario para un capítulo de tipo normal.
+*   **[editor-app.php](editor-app.php)**: Plantilla principal que renderiza el contenedor y las zonas de la aplicación de edición de libros.
+*   **[editor-settings-modal.php](editor-settings-modal.php)**: Modal global de ajustes del libro para PDF, eBook y configuración General. Mantiene header y footer estables, un único cuerpo con scroll y navegación jerárquica por formato, sección y subtab.
+*   **[chapter-settings-modal.php](chapter-settings-modal.php)**: El modal de configuración específico a nivel de capítulo.
+*   **[chapter-settings-normal.php](chapter-settings-normal.php)**: El contenido y formulario para un capítulo de tipo normal.
 *   **`image-viewport-modal.php`**: Modal único para elegir, subir, recortar y guardar imágenes desde el editor RAW sin apilar selectores secundarios.
-*   **[chapter-settings-toc.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/editor/chapter-settings-toc.php)**: El formulario de configuración para la Tabla de Contenidos.
-*   **[settings-tabs/](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/templates/editor/settings-tabs/)**: Pestañas de configuración individuales estáticas (páginas, tipografías, encabezados/pies, capítulos, ebooks). *Nota: La pestaña de créditos (`tab-credits.php`) fue eliminada y trasladada al controlador dinámico `editor-settings-credits.js`*.
+*   **[chapter-settings-toc.php](chapter-settings-toc.php)**: El formulario de configuración para la Tabla de Contenidos.
+*   **[settings-tabs/](settings-tabs)**: Pestañas de configuración individuales estáticas (páginas, tipografías, encabezados/pies, capítulos, ebooks). *Nota: La pestaña de créditos (`tab-credits.php`) fue eliminada y trasladada al controlador dinámico `editor-settings-credits.js`*.
 
 ## Sistema visual de Ajustes del libro
 

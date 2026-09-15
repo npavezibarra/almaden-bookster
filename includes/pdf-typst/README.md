@@ -325,7 +325,7 @@ Responsabilidad: endpoint autenticado para el preview Typst.
 4. Si necesitas más trazabilidad, añade headers nuevos desde el endpoint y
    léelos en `assets/js/pdf/typst/editor-typst-pdf.js`.
 5. Si un archivo nuevo de este módulo supera 500 líneas, divídelo de inmediato
-   para seguir el `AGENT_GUIDELINES.md`.
+   para seguir el `AGENTS.md`.
 
 ## Estado de cumplimiento AGENTS
 

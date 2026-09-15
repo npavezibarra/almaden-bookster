@@ -2,7 +2,7 @@
 
 This directory contains the modular JavaScript architecture for the Learni Course Dashboard. 
 
-To comply with the strict `< 500 lines` rule (`AGENT_GUIDELINES.md`), the monolithic `course-dashboard.js` was decomposed into smaller, specialized modules.
+To comply with the strict `< 500 lines` rule (`AGENTS.md`), the monolithic `course-dashboard.js` was decomposed into smaller, specialized modules.
 
 ## Directory Structure
 

@@ -4,26 +4,26 @@ Este directorio contiene los manejadores de peticiones AJAX y endpoints del lado
 
 ## Archivos y Responsabilidades
 
-*   **[ajax-save-book.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/ajax-save-book.php)**: 
+*   **[ajax-save-book.php](ajax-save-book.php)**:
     Recibe los datos serializados del libro y capítulos desde el editor. Realiza actualizaciones de ordenación, crea nuevos capítulos en la base de datos de WordPress, guarda el contenido Markdown y resuelve la concordancia entre IDs temporales cliente y definitivos del servidor.
 *   **`ajax-credits-json.php` / `ajax-credits-persistence.php`**:
     Decodifican y persisten la configuración estructurada de créditos, manteniendo compatibilidad entre JSON proveniente de peticiones y valores recuperados desde `post_meta`.
-*   **[ajax-settings.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/ajax-settings.php)**: 
+*   **[ajax-settings.php](ajax-settings.php)**:
     Manejadores AJAX primarios para guardar (`almaden_save_book_settings`) y obtener las configuraciones físicas de un libro.
-*   **[ajax-settings-helper.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/ajax-settings-helper.php)**: 
+*   **`ajax-settings-helper.php`**:
     Lógica de obtención y definición del gran arreglo asociativo con los valores por defecto de maquetación (márgenes, tipografías de cabecera, pies de página, notas, etc.).
-*   **[ajax-settings-templates.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/ajax-settings-templates.php)**: 
+*   **[ajax-settings-templates.php](ajax-settings-templates.php)**:
     Endpoints para la gestión de `Book Templates`. Permite listar presets guardados, guardarlos como archivos JSON en la carpeta de book templates o eliminarlos. Mantiene compatibilidad con los nombres legacy de `settings templates`.
-*   **[ajax-typst-pdf.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/ajax-typst-pdf.php)**:
+*   **[ajax-typst-pdf.php](ajax-typst-pdf.php)**:
     Endpoint autenticado que recompone el libro con Typst. Reinyecta las
     plantillas persistidas desde `_almaden_page_templates`, adjunta la
     configuración de portada, compila el PDF y expone headers de diagnóstico
     para geometría, flujo, apertura y resultados de plantillas.
-*   **[ajax-cover.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/ajax-cover.php)**: 
+*   **[ajax-cover.php](ajax-cover.php)**:
     Guarda y recupera la configuración de capas, fondos y solapas del editor de portadas de libros.
-*   **[ajax-publish.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/ajax-publish.php)**: 
+*   **[ajax-publish.php](ajax-publish.php)**:
     Manejador AJAX para cambiar el estado de publicación pública de un libro (hacer visible/oculto en la estantería pública).
-*   **[ajax-book-sharing.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/ajax-book-sharing.php)**:
+*   **[ajax-book-sharing.php](ajax-book-sharing.php)**:
     Endpoints para buscar usuarios con autocompletado, compartir un libro con otro usuario, revocar accesos y listar los usuarios con permiso sobre el libro.
-*   **[ajax-user-prefs.php](file:///Users/nicolaspavez/Local%20Sites/almaden/app/public/wp-content/plugins/almaden-bookster/includes/ajax/ajax-user-prefs.php)**: 
+*   **[ajax-user-prefs.php](ajax-user-prefs.php)**:
     Permite guardar preferencias específicas del usuario del editor (como el zoom, atajos, etc.) en las preferencias de perfil de WordPress.

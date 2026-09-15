@@ -302,7 +302,7 @@ Cuando el backend devuelve el índice de capítulos, el viewer lo combina con
 3. Si necesitas más logs, agrega `console.info` o headers específicos, no
    mensajes sueltos mezclados con la lógica de render.
 4. Si este archivo supera 500 líneas durante una expansión futura, divídelo en
-   un core y módulos auxiliares. Esa regla viene del `AGENT_GUIDELINES.md`.
+   un core y módulos auxiliares. Esa regla viene del `AGENTS.md`.
 
 ## Relación con el motor Typst
 
@@ -310,5 +310,5 @@ Este directorio no compone el PDF. Solo prepara el request, consume el
 resultado y ayuda a inspeccionar la geometría visual de la maqueta.
 La composición editorial real vive en:
 
-- [`includes/pdf-typst/README.md`](../../../includes/pdf-typst/README.md)
-- [`includes/pdf-typst/page-templates/README.md`](../../../includes/pdf-typst/page-templates/README.md)
+- [`includes/pdf-typst/README.md`](../../../../includes/pdf-typst/README.md)
+- [`includes/pdf-typst/page-templates/README.md`](../../../../includes/pdf-typst/page-templates/README.md)

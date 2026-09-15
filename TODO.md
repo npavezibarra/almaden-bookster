@@ -50,7 +50,7 @@ modules/reading-tracker/
 ```
 
 Todos los archivos nuevos y modificados deben respetar el limite de 500 lineas
-establecido en `AGENT_GUIDELINES.md`.
+establecido en `AGENTS.md`.
 
 ## Fase 0: modularizacion previa
 
@@ -232,4 +232,4 @@ forma inmediata.
 - [ ] El Reader mantiene su navegacion y quizzes actuales.
 - [ ] El modulo no degrada perceptiblemente el scroll.
 - [ ] Las tablas permiten consultar tiempo por usuario, libro y capitulo.
-- [ ] La implementacion cumple `AGENT_GUIDELINES.md`.
+- [ ] La implementacion cumple `AGENTS.md`.

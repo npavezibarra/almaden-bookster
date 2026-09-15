@@ -31,7 +31,7 @@ El bootstrap principal del plugin carga `pages.php` y archivos relacionados. Las
 
 ## Al modificar aqui
 
-Revisar `AGENT_GUIDELINES.md`, el README raiz, `templates/shell/README.md` y el README del template afectado. Validar al menos la URL canonica, anonimo/logueado cuando aplique y menus compartidos.
+Revisar `AGENTS.md`, el README raiz, `templates/shell/README.md` y el README del template afectado. Validar al menos la URL canonica, anonimo/logueado cuando aplique y menus compartidos.
 
 ## Archivos relacionados
 
