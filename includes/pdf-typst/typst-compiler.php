@@ -13,6 +13,54 @@ require_once __DIR__ . '/typst-compiler-assets.php';
 require_once __DIR__ . '/typst-pdf-boxes.php';
 require_once __DIR__ . '/page-templates/bootstrap.php';
 
+if ( ! function_exists( 'almaden_bookster_typst_perf_now' ) ) {
+	function almaden_bookster_typst_perf_now() {
+		return function_exists( 'hrtime' ) ? hrtime( true ) : (int) round( microtime( true ) * 1000000000 );
+	}
+}
+
+if ( ! function_exists( 'almaden_bookster_typst_perf_ms_since' ) ) {
+	function almaden_bookster_typst_perf_ms_since( $started_at ) {
+		return max( 0, round( ( almaden_bookster_typst_perf_now() - (int) $started_at ) / 1000000, 3 ) );
+	}
+}
+
+if ( ! function_exists( 'almaden_bookster_typst_perf_set' ) ) {
+	function almaden_bookster_typst_perf_set( $section, $value ) {
+		if ( ! isset( $GLOBALS['almaden_bookster_typst_preview_performance'] ) || ! is_array( $GLOBALS['almaden_bookster_typst_preview_performance'] ) ) {
+			$GLOBALS['almaden_bookster_typst_preview_performance'] = array( 'version' => 1 );
+		}
+		$GLOBALS['almaden_bookster_typst_preview_performance'][ $section ] = $value;
+	}
+}
+
+if ( ! function_exists( 'almaden_bookster_typst_perf_add_timing' ) ) {
+	function almaden_bookster_typst_perf_add_timing( $section, $started_at ) {
+		almaden_bookster_typst_perf_set( $section . '_ms', almaden_bookster_typst_perf_ms_since( $started_at ) );
+	}
+}
+
+function almaden_bookster_typst_perf_increment( $section, $amount = 1 ) {
+	if ( ! isset( $GLOBALS['almaden_bookster_typst_preview_performance'] ) || ! is_array( $GLOBALS['almaden_bookster_typst_preview_performance'] ) ) {
+		$GLOBALS['almaden_bookster_typst_preview_performance'] = array( 'version' => 1 );
+	}
+	$current = isset( $GLOBALS['almaden_bookster_typst_preview_performance'][ $section ] )
+		? (int) $GLOBALS['almaden_bookster_typst_preview_performance'][ $section ]
+		: 0;
+	$GLOBALS['almaden_bookster_typst_preview_performance'][ $section ] = $current + (int) $amount;
+}
+
+function almaden_bookster_typst_perf_add_duration( $section, $started_at ) {
+	if ( ! isset( $GLOBALS['almaden_bookster_typst_preview_performance'] ) || ! is_array( $GLOBALS['almaden_bookster_typst_preview_performance'] ) ) {
+		$GLOBALS['almaden_bookster_typst_preview_performance'] = array( 'version' => 1 );
+	}
+	$key = $section . '_ms';
+	$current = isset( $GLOBALS['almaden_bookster_typst_preview_performance'][ $key ] )
+		? (float) $GLOBALS['almaden_bookster_typst_preview_performance'][ $key ]
+		: 0.0;
+	$GLOBALS['almaden_bookster_typst_preview_performance'][ $key ] = round( $current + almaden_bookster_typst_perf_ms_since( $started_at ), 3 );
+}
+
 function almaden_bookster_typst_runtime_key() {
 	$family = strtolower( (string) PHP_OS_FAMILY );
 	$machine = strtolower( (string) php_uname( 'm' ) );
@@ -197,24 +245,36 @@ function almaden_bookster_typst_log_debug( $message, $context = array() ) {
  * Compile source to PDF and reject output if semantic source tokens are absent.
  */
 function almaden_bookster_compile_typst_pdf( $document ) {
+	$compiler_started_at = almaden_bookster_typst_perf_now();
 	$GLOBALS['almaden_bookster_typst_integrity_warning'] = '';
+	$preview_scope = isset( $document['preview_scope'] ) && 'chapter-fragment' === (string) $document['preview_scope']
+		? 'chapter-fragment'
+		: 'full-book';
+	$is_chapter_fragment = 'chapter-fragment' === $preview_scope;
+	almaden_bookster_typst_perf_set( 'compiler_preview_scope', $preview_scope );
 	if ( ! empty( $document['build_error'] ) && is_wp_error( $document['build_error'] ) ) {
 		return $document['build_error'];
 	}
+	$binary_started_at = almaden_bookster_typst_perf_now();
 	$binary = almaden_bookster_find_typst_binary();
+	almaden_bookster_typst_perf_add_timing( 'typst_binary_lookup', $binary_started_at );
 	if ( '' === $binary ) {
 		return new WP_Error( 'typst_missing', almaden_bookster_typst_missing_message( almaden_bookster_typst_binary_candidates() ) );
 	}
 
+	$temp_started_at = almaden_bookster_typst_perf_now();
 	$temp_dir = trailingslashit( sys_get_temp_dir() ) . 'almaden-typst-' . wp_generate_uuid4();
 	if ( ! wp_mkdir_p( $temp_dir ) ) {
 		return new WP_Error( 'typst_temp_failed', 'No se pudo crear el directorio temporal de compilación.' );
 	}
+	almaden_bookster_typst_perf_add_timing( 'temp_dir_create', $temp_started_at );
 
 	$input  = $temp_dir . '/book.typ';
 	$output = $temp_dir . '/book.pdf';
 	$font_path = '';
 	if ( ! empty( $document['font_assets'] ) ) {
+		$font_stage_started_at = almaden_bookster_typst_perf_now();
+		$font_copy_count = 0;
 		$fonts_dir = $temp_dir . '/fonts';
 		wp_mkdir_p( $fonts_dir );
 		foreach ( $document['font_assets'] as $index => $path ) {
@@ -222,13 +282,20 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 				$extension = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) );
 				if ( in_array( $extension, array( 'ttf', 'otf', 'woff', 'woff2' ), true ) ) {
 					copy( $path, $fonts_dir . '/font-' . (int) $index . '.' . $extension );
+					++$font_copy_count;
 				}
 			}
 		}
 		$font_path = $fonts_dir;
+		almaden_bookster_typst_perf_add_timing( 'font_stage', $font_stage_started_at );
+		almaden_bookster_typst_perf_set( 'font_copy_count', $font_copy_count );
 	}
+	$input_write_started_at = almaden_bookster_typst_perf_now();
 	file_put_contents( $input, $document['source'], LOCK_EX );
+	almaden_bookster_typst_perf_add_timing( 'typst_input_write', $input_write_started_at );
+	$asset_stage_started_at = almaden_bookster_typst_perf_now();
 	$asset_stage = almaden_bookster_typst_stage_assets( $document['assets'] ?? array(), $temp_dir );
+	almaden_bookster_typst_perf_add_timing( 'asset_stage_initial', $asset_stage_started_at );
 	if ( is_wp_error( $asset_stage ) ) {
 		almaden_bookster_typst_remove_tree( $temp_dir );
 		return $asset_stage;
@@ -241,6 +308,7 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 	$GLOBALS['almaden_bookster_typst_page_template_asset_audit'] = array();
 	$GLOBALS['almaden_bookster_typst_image_blocks'] = array();
 	$query_document = static function ( $selector, $all = false ) use ( $binary, $temp_dir, $font_path, $input, &$stdout, &$stderr ) {
+		$query_started_at = almaden_bookster_typst_perf_now();
 		$command = array( $binary, 'query', '--root', $temp_dir, '--diagnostic-format', 'short' );
 		if ( '' !== $font_path ) {
 			$command[] = '--font-path';
@@ -249,6 +317,8 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 		$command[] = $input;
 		$command[] = $selector;
 		$result = almaden_bookster_run_process( $command, $stdout, $stderr, 90 );
+		almaden_bookster_typst_perf_increment( 'typst_query_count' );
+		almaden_bookster_typst_perf_add_duration( 'typst_query_total', $query_started_at );
 		$report = json_decode( $stdout, true );
 		if ( is_wp_error( $result ) || ! is_array( $report ) ) {
 			return array();
@@ -256,12 +326,16 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 		$values = array_values( array_filter( array_column( $report, 'value' ), 'is_array' ) );
 		return $all ? $values : ( $values[0] ?? array() );
 	};
+	$page_template_started_at = almaden_bookster_typst_perf_now();
 	$template_stage = almaden_bookster_typst_compile_page_templates( $document, $input, $temp_dir, $query_document );
+	almaden_bookster_typst_perf_add_timing( 'page_template_compile', $page_template_started_at );
 	if ( is_wp_error( $template_stage ) ) {
 		almaden_bookster_typst_remove_tree( $temp_dir );
 		return $template_stage;
 	}
+	$asset_stage_started_at = almaden_bookster_typst_perf_now();
 	$asset_stage = almaden_bookster_typst_stage_assets( $document['assets'] ?? array(), $temp_dir );
+	almaden_bookster_typst_perf_add_timing( 'asset_stage_final', $asset_stage_started_at );
 	if ( is_wp_error( $asset_stage ) ) {
 		almaden_bookster_typst_remove_tree( $temp_dir );
 		return $asset_stage;
@@ -273,12 +347,14 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 	}
 	$command[] = $input;
 	$command[] = $output;
+	$typst_compile_started_at = almaden_bookster_typst_perf_now();
 	$result = almaden_bookster_run_process(
 		$command,
 		$stdout,
 		$stderr,
 		90
 	);
+	almaden_bookster_typst_perf_add_timing( 'typst_compile_process', $typst_compile_started_at );
 	if ( is_wp_error( $result ) || ! is_file( $output ) ) {
 		$failed_source = trailingslashit( sys_get_temp_dir() ) . 'almaden-typst-failed-' . wp_generate_uuid4() . '.typ';
 		@file_put_contents( $failed_source, $document['source'] ?? '', LOCK_EX );
@@ -298,27 +374,70 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 		almaden_bookster_typst_remove_tree( $temp_dir );
 		return is_wp_error( $result ) ? $result : new WP_Error( 'typst_no_pdf', 'Typst no produjo un archivo PDF.' );
 	}
+	$print_boxes_started_at = almaden_bookster_typst_perf_now();
 	$print_boxes = almaden_bookster_typst_apply_print_boxes( $output, $document['geometry'] ?? array() );
+	almaden_bookster_typst_perf_add_timing( 'print_boxes', $print_boxes_started_at );
 	if ( is_wp_error( $print_boxes ) ) {
 		almaden_bookster_typst_remove_tree( $temp_dir );
 		return $print_boxes;
 	}
 
+	if ( $is_chapter_fragment ) {
+		$GLOBALS['almaden_bookster_typst_image_blocks'] = array();
+		$GLOBALS['almaden_bookster_typst_universal_counter'] = array(
+			'version'  => 1,
+			'source'   => 'chapter-fragment',
+			'chapters' => array(),
+		);
+		almaden_bookster_typst_perf_set(
+			'fast_preview_skipped',
+			array( 'image_report_query', 'chapter_counter_query', 'pdftotext_integrity_check' )
+		);
+		$pdf_read_started_at = almaden_bookster_typst_perf_now();
+		$pdf = file_get_contents( $output );
+		almaden_bookster_typst_perf_add_timing( 'pdf_read', $pdf_read_started_at );
+		if ( false === $pdf || 0 !== strpos( $pdf, '%PDF-' ) ) {
+			$failed_source = trailingslashit( sys_get_temp_dir() ) . 'almaden-typst-invalid-' . wp_generate_uuid4() . '.typ';
+			@file_put_contents( $failed_source, $document['source'] ?? '', LOCK_EX );
+			almaden_bookster_typst_log_debug(
+				'Typst produced an invalid fast-preview PDF payload.',
+				array(
+					'source_hash'   => $document['source_hash'] ?? '',
+					'failed_source' => $failed_source,
+				)
+			);
+			almaden_bookster_typst_remove_tree( $temp_dir );
+			return new WP_Error( 'typst_invalid_pdf', 'El compilador devolvió un PDF inválido.' );
+		}
+		$cleanup_started_at = almaden_bookster_typst_perf_now();
+		almaden_bookster_typst_remove_tree( $temp_dir );
+		almaden_bookster_typst_perf_add_timing( 'temp_cleanup', $cleanup_started_at );
+		almaden_bookster_typst_perf_add_timing( 'compiler_total', $compiler_started_at );
+		return $pdf;
+	}
+
+	$image_report_started_at = almaden_bookster_typst_perf_now();
 	$GLOBALS['almaden_bookster_typst_image_blocks'] = array_values( array_filter(
 		$query_document( '<almaden-image-report>', true ),
 		static function ( $entry ) { return ! empty( $entry['id'] ) && ! empty( $entry['page'] ); }
 	) );
+	almaden_bookster_typst_perf_add_timing( 'image_report_query', $image_report_started_at );
+	$counter_report_started_at = almaden_bookster_typst_perf_now();
 	$universal_counter = array_values( array_filter( (array) $query_document( '<almaden-chapter-counter-report>' ), static function ( $entry ) {
 		return is_array( $entry ) && '' !== trim( (string) ( $entry['id'] ?? '' ) );
 	} ) );
+	almaden_bookster_typst_perf_add_timing( 'chapter_counter_query', $counter_report_started_at );
 	$GLOBALS['almaden_bookster_typst_universal_counter'] = array(
 		'version'  => 1,
 		'source'   => 'full-book',
 		'chapters' => $universal_counter,
 	);
+	$pdftotext_lookup_started_at = almaden_bookster_typst_perf_now();
 	$extractor = almaden_bookster_typst_find_pdftotext_binary();
+	almaden_bookster_typst_perf_add_timing( 'pdftotext_lookup', $pdftotext_lookup_started_at );
 	if ( '' !== $extractor ) {
 		$extract_text = static function ( $mode ) use ( $extractor, $output, $temp_dir, &$stdout, &$stderr ) {
+			$extract_started_at = almaden_bookster_typst_perf_now();
 			$txt_file = $temp_dir . '/book-' . $mode . '.txt';
 			$command = array( $extractor );
 			if ( 'layout' === $mode ) {
@@ -329,6 +448,8 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 			$command[] = $output;
 			$command[] = $txt_file;
 			$check = almaden_bookster_run_process( $command, $stdout, $stderr, 30 );
+			almaden_bookster_typst_perf_increment( 'pdftotext_count' );
+			almaden_bookster_typst_perf_add_duration( 'pdftotext_total', $extract_started_at );
 			if ( is_wp_error( $check ) || ! is_file( $txt_file ) ) {
 				return '';
 			}
@@ -352,6 +473,7 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 			return true;
 		};
 		$missing_near = '';
+		$integrity_started_at = almaden_bookster_typst_perf_now();
 		$actual_text = $extract_text( 'raw' );
 		if ( ! $verify_text( $actual_text, $missing_near ) ) {
 			$layout_missing_near = '';
@@ -360,9 +482,12 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 				$GLOBALS['almaden_bookster_typst_integrity_warning'] = 'La verificación detectó una posible diferencia cerca de: "' . ( '' !== $layout_missing_near ? $layout_missing_near : $missing_near ) . '".';
 			}
 		}
+		almaden_bookster_typst_perf_add_timing( 'integrity_check', $integrity_started_at );
 	}
 
+	$pdf_read_started_at = almaden_bookster_typst_perf_now();
 	$pdf = file_get_contents( $output );
+	almaden_bookster_typst_perf_add_timing( 'pdf_read', $pdf_read_started_at );
 	if ( false === $pdf || 0 !== strpos( $pdf, '%PDF-' ) ) {
 		$failed_source = trailingslashit( sys_get_temp_dir() ) . 'almaden-typst-invalid-' . wp_generate_uuid4() . '.typ';
 		@file_put_contents( $failed_source, $document['source'] ?? '', LOCK_EX );
@@ -378,6 +503,9 @@ function almaden_bookster_compile_typst_pdf( $document ) {
 		almaden_bookster_typst_remove_tree( $temp_dir );
 		return new WP_Error( 'typst_invalid_pdf', 'El compilador devolvió un PDF inválido.' );
 	}
+	$cleanup_started_at = almaden_bookster_typst_perf_now();
 	almaden_bookster_typst_remove_tree( $temp_dir );
+	almaden_bookster_typst_perf_add_timing( 'temp_cleanup', $cleanup_started_at );
+	almaden_bookster_typst_perf_add_timing( 'compiler_total', $compiler_started_at );
 	return $pdf;
 }

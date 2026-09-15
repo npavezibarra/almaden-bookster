@@ -20,13 +20,19 @@ function get_post_meta( $book_id, $key ) {
 require_once dirname( __DIR__ ) . '/includes/ajax/ajax-typst-pdf.php';
 
 $client_state_source = file_get_contents( dirname( __DIR__ ) . '/assets/js/pdf/typst/editor-typst-pdf-state.js' );
+$client_main_source = file_get_contents( dirname( __DIR__ ) . '/assets/js/pdf/typst/editor-typst-pdf.js' );
 $client_view_source = file_get_contents( dirname( __DIR__ ) . '/assets/js/pdf/typst/editor-typst-pdf-view.js' );
-if ( false === strpos( $client_state_source, "const PREVIEW_CACHE_VERSION = 'v19';" ) ) {
+$compiler_source = file_get_contents( dirname( __DIR__ ) . '/includes/pdf-typst/typst-compiler.php' );
+if ( false === strpos( $client_state_source, "const PREVIEW_CACHE_VERSION = 'v23';" ) ) {
 	fwrite( STDERR, "La caché persistente del navegador no fue invalidada para la versión actual del renderer.\n" );
 	exit( 1 );
 }
-if ( '11' !== ALMADEN_BOOKSTER_TYPST_PREVIEW_RENDERER_VERSION ) {
+if ( '16' !== ALMADEN_BOOKSTER_TYPST_PREVIEW_RENDERER_VERSION ) {
 	fwrite( STDERR, "La versión de caché del renderer del servidor no fue actualizada.\n" );
+	exit( 1 );
+}
+if ( false === strpos( $client_state_source, "'chapter-fragment': 36" ) || false === strpos( $client_state_source, "'full-book': 4" ) ) {
+	fwrite( STDERR, "La caché del navegador no conserva presupuestos separados por tipo de preview.\n" );
 	exit( 1 );
 }
 if ( false !== strpos( $client_view_source, 'getFullBleedChapterImageUrl' ) || false !== strpos( $client_view_source, 'dataBleedGuideImage' ) ) {
@@ -35,6 +41,30 @@ if ( false !== strpos( $client_view_source, 'getFullBleedChapterImageUrl' ) || f
 }
 if ( false === strpos( $client_view_source, 'trimFrame.style.inset = `${bleedPx}px`;' ) ) {
 	fwrite( STDERR, "El visor no dibuja el TrimBox dentro de la página física.\n" );
+	exit( 1 );
+}
+if ( false === strpos( $client_state_source, "compilePayload.preview.scope = 'chapter-fragment';" ) ) {
+	fwrite( STDERR, "El preview de capítulo no genera un payload parcial.\n" );
+	exit( 1 );
+}
+if ( false === strpos( $client_main_source, "scope: 'full-book'" ) ) {
+	fwrite( STDERR, "La descarga PDF no fuerza una compilación completa del libro.\n" );
+	exit( 1 );
+}
+if ( false === strpos( $client_main_source, 'scheduleBackgroundFullBookSync' ) || false === strpos( $client_main_source, 'BACKGROUND_FULL_BOOK_DEBOUNCE_MS' ) ) {
+	fwrite( STDERR, "El preview rápido no programa una sincronización completa en background.\n" );
+	exit( 1 );
+}
+if ( false === strpos( $client_main_source, 'applyFullBookMetadataSilently' ) ) {
+	fwrite( STDERR, "La sincronización completa en background no actualiza metadata global silenciosamente.\n" );
+	exit( 1 );
+}
+if ( false === strpos( $compiler_source, "'pdftotext_integrity_check'" ) ) {
+	fwrite( STDERR, "El compilador no omite la verificación pesada en previews rápidos de capítulo.\n" );
+	exit( 1 );
+}
+if ( 48 !== almaden_bookster_typst_preview_cache_scope_limit( 'chapter-fragment' ) || 6 !== almaden_bookster_typst_preview_cache_scope_limit( 'full-book' ) ) {
+	fwrite( STDERR, "La caché del servidor no conserva límites separados para fragmentos y libros completos.\n" );
 	exit( 1 );
 }
 

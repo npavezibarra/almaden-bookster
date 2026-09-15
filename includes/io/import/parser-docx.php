@@ -58,26 +58,7 @@ function almaden_bookster_parse_docx_import_document( $path, $filename ) {
 	$blocks = array();
 	$body = $xpath->query( '//w:body' )->item( 0 );
 	if ( $body instanceof DOMElement ) {
-		foreach ( $body->childNodes as $child ) {
-			if ( XML_ELEMENT_NODE !== $child->nodeType ) {
-				continue;
-			}
-
-			if ( 'p' === $child->localName ) {
-				$blocks[] = almaden_bookster_docx_paragraph_to_import_block( $child, $xpath, $style_map, $numbering_map, $numbering_state );
-			} elseif ( 'tbl' === $child->localName ) {
-				$table_text = almaden_bookster_docx_table_to_markdown( $child, $xpath );
-				if ( '' !== trim( $table_text ) ) {
-					$blocks[] = array(
-						'type'          => 'paragraph',
-						'text'          => trim( $table_text ),
-						'style_key'     => 'table',
-						'style_label'   => 'Tabla',
-						'heading_level' => 0,
-					);
-				}
-			}
-		}
+		$blocks = almaden_bookster_docx_extract_blocks_from_container( $body, $xpath, $style_map, $numbering_map, $numbering_state );
 	}
 
 	return array(
@@ -85,6 +66,36 @@ function almaden_bookster_parse_docx_import_document( $path, $filename ) {
 		'blocks'      => $blocks,
 		'block_count' => count( array_filter( $blocks, function( $block ) { return 'blank' !== $block['type']; } ) ),
 	);
+}
+
+function almaden_bookster_docx_extract_blocks_from_container( DOMNode $container, DOMXPath $xpath, array $style_map, array $numbering_map = array(), array &$numbering_state = array() ) {
+	$blocks = array();
+	foreach ( $container->childNodes as $child ) {
+		if ( XML_ELEMENT_NODE !== $child->nodeType ) {
+			continue;
+		}
+
+		if ( 'p' === $child->localName ) {
+			$blocks[] = almaden_bookster_docx_paragraph_to_import_block( $child, $xpath, $style_map, $numbering_map, $numbering_state );
+		} elseif ( 'tbl' === $child->localName ) {
+			$table_text = almaden_bookster_docx_table_to_markdown( $child, $xpath );
+			if ( '' !== trim( $table_text ) ) {
+				$blocks[] = array(
+					'type'          => 'paragraph',
+					'text'          => trim( $table_text ),
+					'style_key'     => 'table',
+					'style_label'   => 'Tabla',
+					'heading_level' => 0,
+				);
+			}
+		} elseif ( 'sdt' === $child->localName || 'sdtContent' === $child->localName ) {
+			$nested_blocks = almaden_bookster_docx_extract_blocks_from_container( $child, $xpath, $style_map, $numbering_map, $numbering_state );
+			if ( ! empty( $nested_blocks ) ) {
+				$blocks = array_merge( $blocks, $nested_blocks );
+			}
+		}
+	}
+	return $blocks;
 }
 
 function almaden_bookster_docx_paragraph_to_import_block( DOMElement $paragraph, DOMXPath $xpath, array $style_map, array $numbering_map = array(), array &$numbering_state = array() ) {
@@ -170,32 +181,79 @@ function almaden_bookster_docx_paragraph_to_import_block( DOMElement $paragraph,
 
 function almaden_bookster_docx_table_to_markdown( DOMElement $table, DOMXPath $xpath ) {
 	$rows = array();
-	foreach ( $xpath->query( './w:tr', $table ) as $row ) {
-		$cells = array();
-		foreach ( $xpath->query( './w:tc', $row ) as $cell ) {
-			$paragraphs = array();
-			foreach ( $xpath->query( './w:p', $cell ) as $paragraph ) {
-				$text = trim( almaden_bookster_docx_paragraph_to_markdown( $paragraph, $xpath ) );
-				if ( '' !== $text ) {
-					$paragraphs[] = $text;
+	foreach ( $table->childNodes as $child ) {
+		if ( XML_ELEMENT_NODE !== $child->nodeType ) {
+			continue;
+		}
+		if ( 'tr' === $child->localName ) {
+			$row_text = almaden_bookster_docx_table_row_to_markdown( $child, $xpath );
+			if ( '' !== trim( $row_text ) ) {
+				$rows[] = $row_text;
+			}
+		} elseif ( 'sdt' === $child->localName || 'sdtContent' === $child->localName ) {
+			foreach ( $xpath->query( './/w:tr', $child ) as $sdt_row ) {
+				$row_text = almaden_bookster_docx_table_row_to_markdown( $sdt_row, $xpath );
+				if ( '' !== trim( $row_text ) ) {
+					$rows[] = $row_text;
 				}
 			}
-			if ( ! empty( $paragraphs ) ) {
-				$cells[] = implode( "\n\n", $paragraphs );
-			}
-		}
-		if ( ! empty( $cells ) ) {
-			$rows[] = implode( "\n\n", $cells );
 		}
 	}
 
 	return implode( "\n\n", $rows );
 }
 
+function almaden_bookster_docx_table_row_to_markdown( DOMElement $row, DOMXPath $xpath ) {
+	$cells = array();
+	foreach ( $row->childNodes as $child ) {
+		if ( XML_ELEMENT_NODE !== $child->nodeType ) {
+			continue;
+		}
+		if ( 'tc' === $child->localName ) {
+			$cell_text = almaden_bookster_docx_table_cell_to_markdown( $child, $xpath );
+			if ( '' !== $cell_text ) {
+				$cells[] = $cell_text;
+			}
+		} elseif ( 'sdt' === $child->localName || 'sdtContent' === $child->localName ) {
+			foreach ( $xpath->query( './/w:tc', $child ) as $sdt_cell ) {
+				$cell_text = almaden_bookster_docx_table_cell_to_markdown( $sdt_cell, $xpath );
+				if ( '' !== $cell_text ) {
+					$cells[] = $cell_text;
+				}
+			}
+		}
+	}
+
+	return implode( "\n\n", $cells );
+}
+
+function almaden_bookster_docx_table_cell_to_markdown( DOMElement $cell, DOMXPath $xpath ) {
+	$paragraphs = array();
+	foreach ( $xpath->query( './/w:p', $cell ) as $paragraph ) {
+		$text = trim( almaden_bookster_docx_paragraph_to_markdown( $paragraph, $xpath ) );
+		if ( '' !== $text ) {
+			$paragraphs[] = $text;
+		}
+	}
+
+	return implode( "\n\n", $paragraphs );
+}
+
 function almaden_bookster_docx_paragraph_to_markdown( DOMElement $paragraph, DOMXPath $xpath ) {
+	return almaden_bookster_docx_collect_node_markdown( $paragraph, $xpath );
+}
+
+function almaden_bookster_docx_collect_node_markdown( DOMNode $node, DOMXPath $xpath ) {
 	$pieces = array();
-	foreach ( $xpath->query( './w:r', $paragraph ) as $run ) {
-		$pieces[] = almaden_bookster_docx_run_to_markdown( $run, $xpath );
+	foreach ( $node->childNodes as $child ) {
+		if ( XML_ELEMENT_NODE !== $child->nodeType ) {
+			continue;
+		}
+		if ( 'r' === $child->localName ) {
+			$pieces[] = almaden_bookster_docx_run_to_markdown( $child, $xpath );
+		} elseif ( in_array( $child->localName, array( 'hyperlink', 'sdt', 'sdtContent', 'ins', 'smartTag', 'fldSimple', 'dir', 'bdo', 'customXml' ), true ) ) {
+			$pieces[] = almaden_bookster_docx_collect_node_markdown( $child, $xpath );
+		}
 	}
 	return implode( '', $pieces );
 }

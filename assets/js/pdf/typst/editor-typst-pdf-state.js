@@ -10,6 +10,7 @@
         currentLayout: 'single',
         showTextBounds: false,
         pendingUniversalCounter: null,
+        currentPreviewScope: 'full-book',
         imageBlocks: []
     };
 
@@ -18,8 +19,13 @@
     const PREVIEW_CACHE_STORE = 'compiled-previews';
     // Bump whenever server-side pagination or running-header/footer semantics
     // change; the persistent key otherwise reuses a PDF compiled by old code.
-    const PREVIEW_CACHE_VERSION = 'v20';
+    const PREVIEW_CACHE_VERSION = 'v23';
     const PREVIEW_CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+    const PREVIEW_CACHE_LIMITS = {
+        'chapter-fragment': 36,
+        'full-book': 4,
+        default: 8
+    };
 
     function getZoomFactor() {
         const select = document.getElementById('pdf-preview-zoom');
@@ -72,6 +78,19 @@
         console.info('[Typst preview performance]', { source, durationMs });
     }
 
+    function applyServerPerformance(performanceData = null, cacheSource = '') {
+        if (!performanceData || typeof performanceData !== 'object') return;
+        if (!bookState.pdfPreview || typeof bookState.pdfPreview !== 'object') {
+            bookState.pdfPreview = {};
+        }
+        bookState.pdfPreview.lastServerPerformance = {
+            ...performanceData,
+            cacheSource,
+            at: Date.now()
+        };
+        console.info('[Typst server performance]', bookState.pdfPreview.lastServerPerformance);
+    }
+
     function stableStringify(value) {
         if (value === null || typeof value !== 'object') {
             return JSON.stringify(value);
@@ -117,6 +136,10 @@
         }
         const digest = `${(left >>> 0).toString(16)}${(right >>> 0).toString(16)}`;
         return `${PREVIEW_CACHE_VERSION}:${bookState.bookId}:${digest}:${signature.length}`;
+    }
+
+    function normalizePreviewScope(value) {
+        return String(value || 'full-book') === 'chapter-fragment' ? 'chapter-fragment' : 'full-book';
     }
 
     function openPreviewCache() {
@@ -168,9 +191,11 @@
         if (!(blob instanceof Blob) || !blob.size) return;
         const database = await openPreviewCache();
         if (!database) return;
+        const previewScope = normalizePreviewScope(metadata?.previewScope || metadata?.preview_scope);
         const record = {
             key: getPersistentCacheKey(signature),
             bookId: String(bookState.bookId),
+            previewScope,
             signatureLength: signature.length,
             blob,
             metadata,
@@ -190,10 +215,19 @@
             const index = store.index('bookId');
             const request = index.getAll(String(bookState.bookId));
             request.onsuccess = () => {
-                request.result
-                    .sort((left, right) => Number(right.createdAt || 0) - Number(left.createdAt || 0))
-                    .slice(6)
-                    .forEach(stale => store.delete(stale.key));
+                const grouped = new Map();
+                request.result.forEach(record => {
+                    const scope = normalizePreviewScope(record?.previewScope || record?.metadata?.previewScope || record?.metadata?.preview_scope);
+                    if (!grouped.has(scope)) grouped.set(scope, []);
+                    grouped.get(scope).push(record);
+                });
+                grouped.forEach((records, scope) => {
+                    const limit = PREVIEW_CACHE_LIMITS[scope] || PREVIEW_CACHE_LIMITS.default;
+                    records
+                        .sort((left, right) => Number(right.createdAt || 0) - Number(left.createdAt || 0))
+                        .slice(limit)
+                        .forEach(stale => store.delete(stale.key));
+                });
             };
             transaction.oncomplete = resolve;
             transaction.onerror = resolve;
@@ -206,11 +240,36 @@
         const compilePayload = options.compilePayload && typeof options.compilePayload === 'object'
             ? options.compilePayload
             : payload();
+        const previewMode = normalizePreviewMode(compilePayload?.preview?.mode || bookState?.pdfPreview?.mode || bookState?.settings?.pdf_preview_mode);
+        const forceFullBook = options.scope === 'full-book' || previewMode === 'full';
 
         if (options.assetMode) {
             compilePayload.preview = compilePayload.preview && typeof compilePayload.preview === 'object'
                 ? { ...compilePayload.preview, assetMode: normalizePreviewAssetMode(options.assetMode) }
                 : { assetMode: normalizePreviewAssetMode(options.assetMode) };
+        }
+
+        if (!forceFullBook && previewMode === 'chapter') {
+            const rawChapters = Array.isArray(compilePayload.chapters) ? compilePayload.chapters : [];
+            const activeChapterId = String(bookState?.activeChapterId || '').trim();
+            const activeIndex = rawChapters.findIndex(chapter => String(chapter?.id || '') === activeChapterId);
+            const chapter = rawChapters[activeIndex >= 0 ? activeIndex : 0];
+            if (chapter) {
+                const counterEntry = getActiveChapterCounterEntry();
+                compilePayload.chapters = [chapter];
+                compilePayload.preview = compilePayload.preview && typeof compilePayload.preview === 'object'
+                    ? { ...compilePayload.preview }
+                    : {};
+                compilePayload.preview.scope = 'chapter-fragment';
+                compilePayload.preview.activeChapterId = String(chapter?.id || activeChapterId || '');
+                compilePayload.preview.fullChapterCount = rawChapters.length;
+                compilePayload.preview.originalChapterIndex = activeIndex >= 0 ? activeIndex : 0;
+                compilePayload.preview.pageStart = Number(counterEntry?.startPage || 0) > 0
+                    ? Number(counterEntry.startPage)
+                    : null;
+            }
+        } else if (compilePayload.preview && typeof compilePayload.preview === 'object') {
+            compilePayload.preview = { ...compilePayload.preview, scope: 'full-book' };
         }
 
         return compilePayload;
@@ -350,6 +409,9 @@
 
     function getVisiblePreviewPages(pageCount) {
         const mode = normalizePreviewMode(bookState?.pdfPreview?.mode || bookState?.settings?.pdf_preview_mode);
+        if (shared.currentPreviewScope === 'chapter-fragment') {
+            return Array.from({ length: pageCount }, (_, index) => index + 1);
+        }
         if ('chapter' !== mode) {
             return Array.from({ length: pageCount }, (_, index) => index + 1);
         }
@@ -439,7 +501,9 @@
             pageTemplateAssetDiagnostics: window.almadenPageTemplateAssetDiagnostics || [],
             pageTemplateAssetAudit: window.almadenPageTemplateAssetAudit || null,
             universalCounter: shared.pendingUniversalCounter || getUniversalCounter() || null,
-            imageBlocks: shared.imageBlocks || []
+            imageBlocks: shared.imageBlocks || [],
+            previewScope: shared.currentPreviewScope || 'full-book',
+            performance: bookState?.pdfPreview?.lastServerPerformance || null
         };
     }
 
@@ -454,6 +518,8 @@
         window.almadenPageTemplateAssetAudit = metadata.pageTemplateAssetAudit || null;
         shared.pendingUniversalCounter = metadata.universalCounter || null;
         shared.imageBlocks = Array.isArray(metadata.imageBlocks) ? metadata.imageBlocks : [];
+        shared.currentPreviewScope = metadata.previewScope || metadata.preview_scope || 'full-book';
+        applyServerPerformance(metadata.performance || null, 'browser');
         rebuildUniversalCounter();
         window.almadenPageTemplateState?.reconcileResults?.();
     }
@@ -465,7 +531,8 @@
             PREVIEW_CACHE_DB,
             PREVIEW_CACHE_STORE,
             PREVIEW_CACHE_VERSION,
-            PREVIEW_CACHE_MAX_AGE
+            PREVIEW_CACHE_MAX_AGE,
+            PREVIEW_CACHE_LIMITS
         },
         getZoomFactor,
         normalizeLayout,
@@ -474,9 +541,11 @@
         getPreviewModeCopy,
         getTypstPreviewDebounceMs,
         reportPreviewPerformance,
+        applyServerPerformance,
         stableStringify,
         getCompilePayloadSignature,
         getPersistentCacheKey,
+        normalizePreviewScope,
         openPreviewCache,
         readPersistentPreview,
         writePersistentPreview,

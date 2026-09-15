@@ -18,6 +18,11 @@
     let pendingCompileResolve = null;
     let pendingCompileSignature = null;
     let currentCompileSignature = null;
+    let backgroundCompileTimer = null;
+    let backgroundCompileSequence = 0;
+    let backgroundController = null;
+    let backgroundCompileSignature = null;
+    const BACKGROUND_FULL_BOOK_DEBOUNCE_MS = 4200;
 
     window.almadenTypstPdfMain = window.almadenTypstPdfMain || {};
     window.almadenTypstPdfMain.renderSequence = 0;
@@ -27,6 +32,117 @@
             pendingCompileResolve(result);
             pendingCompileResolve = null;
         }
+    }
+
+    function applyFullBookMetadataSilently(metadata = {}) {
+        const previewScope = metadata.preview_scope || metadata.previewScope || 'full-book';
+        if (!metadata || previewScope === 'chapter-fragment') return;
+        const previousScope = shared.currentPreviewScope || 'full-book';
+        const universalCounter = metadata.universal_counter || metadata.universalCounter || null;
+        const imageBlocks = metadata.image_blocks || metadata.imageBlocks || [];
+        if (universalCounter) {
+            shared.pendingUniversalCounter = universalCounter;
+            state.rebuildUniversalCounter();
+        }
+        if (Array.isArray(imageBlocks)) {
+            shared.imageBlocks = imageBlocks;
+        }
+        if (!bookState.pdfPreview || typeof bookState.pdfPreview !== 'object') {
+            bookState.pdfPreview = {};
+        }
+        bookState.pdfPreview.lastFullBookSync = {
+            at: Date.now(),
+            cache: metadata.cacheSource || '',
+            signature: backgroundCompileSignature || ''
+        };
+        shared.currentPreviewScope = previousScope;
+    }
+
+    async function compileFullBookInBackground(compilePayload, compileSignature, sequence) {
+        const startedAt = performance.now();
+        const cachedPreview = await state.readPersistentPreview(compileSignature);
+        if (sequence !== backgroundCompileSequence) return 0;
+        if (cachedPreview) {
+            applyFullBookMetadataSilently({ ...(cachedPreview.metadata || {}), cacheSource: 'browser' });
+            state.reportPreviewPerformance('background-browser-cache', startedAt);
+            return 1;
+        }
+
+        if (backgroundController) backgroundController.abort();
+        backgroundController = new AbortController();
+
+        const form = new FormData();
+        form.append('action', 'almaden_compile_typst_pdf');
+        form.append('nonce', bookState.nonce);
+        form.append('book_id', String(bookState.bookId));
+        form.append('payload', JSON.stringify(compilePayload));
+
+        try {
+            const response = await fetch(bookState.ajaxUrl, {
+                method: 'POST',
+                body: form,
+                credentials: 'same-origin',
+                signal: backgroundController.signal
+            });
+            if (!response.ok) throw new Error(await state.readError(response));
+            if (sequence !== backgroundCompileSequence) return 0;
+
+            const metadataLength = response.headers.get('X-Almaden-Metadata-Length') || '0';
+            const serverCacheStatus = response.headers.get('X-Almaden-Typst-Cache') || 'MISS-NOSTORE';
+            const envelope = await response.arrayBuffer();
+            const decodedResponse = window.almadenTypstResponse.decode(envelope, metadataLength);
+            const metadata = decodedResponse.metadata || {};
+            const blob = new Blob([decodedResponse.pdfBytes], { type: 'application/pdf' });
+            if (sequence !== backgroundCompileSequence) return 0;
+
+            applyFullBookMetadataSilently({ ...metadata, cacheSource: serverCacheStatus === 'HIT' ? 'server' : 'miss' });
+            state.applyServerPerformance(metadata.performance || null, `background-${serverCacheStatus === 'HIT' ? 'server' : 'miss'}`);
+            state.writePersistentPreview(compileSignature, blob, {
+                geometry: metadata.geometry || null,
+                integrity: metadata.integrity_warning
+                    ? { status: 'warning', message: String(metadata.integrity_warning) }
+                    : null,
+                openingDebug: metadata.opening_debug || [],
+                pageFlowMap: Array.isArray(metadata.page_flow) ? metadata.page_flow : [],
+                pageTemplateResults: Array.isArray(metadata.page_template_results) ? metadata.page_template_results : [],
+                pageTemplateAssetDiagnostics: Array.isArray(metadata.page_template_asset_diagnostics)
+                    ? metadata.page_template_asset_diagnostics
+                    : [],
+                pageTemplateAssetAudit: metadata.page_template_asset_audit || null,
+                universalCounter: metadata.universal_counter || null,
+                imageBlocks: Array.isArray(metadata.image_blocks) ? metadata.image_blocks : [],
+                previewScope: 'full-book',
+                performance: metadata.performance || null
+            }).catch(error => {
+                console.warn('No se pudo guardar el caché local del PDF completo en background.', error);
+            });
+            state.reportPreviewPerformance(serverCacheStatus === 'HIT' ? 'background-server-cache' : 'background-typst', startedAt);
+            return 1;
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                console.warn('[Typst background full-book sync failed]', { message: error.message });
+            }
+            return 0;
+        }
+    }
+
+    function scheduleBackgroundFullBookSync() {
+        const previewMode = state.normalizePreviewMode(bookState?.pdfPreview?.mode || bookState?.settings?.pdf_preview_mode);
+        if (previewMode !== 'chapter') return;
+        const compilePayload = state.buildTypstCompilePayload({ scope: 'full-book' });
+        const compileSignature = state.getCompilePayloadSignature(compilePayload);
+        if (backgroundCompileSignature === compileSignature) return;
+
+        clearTimeout(backgroundCompileTimer);
+        if (backgroundController) {
+            backgroundController.abort();
+            backgroundController = null;
+        }
+        const sequence = ++backgroundCompileSequence;
+        backgroundCompileSignature = compileSignature;
+        backgroundCompileTimer = setTimeout(() => {
+            compileFullBookInBackground(compilePayload, compileSignature, sequence);
+        }, BACKGROUND_FULL_BOOK_DEBOUNCE_MS);
     }
 
     async function compileTypstPreview(options = {}) {
@@ -63,6 +179,7 @@
                     ? { valid: true, engine: 'typst', warning: cachedMetadata.integrity.message, cache: 'browser' }
                     : { valid: true, engine: 'typst', cache: 'browser' };
                 state.reportPreviewPerformance('browser-cache', startedAt);
+                scheduleBackgroundFullBookSync();
                 return 1;
             }
         }
@@ -117,6 +234,8 @@
             window.almadenPageTemplateAssetAudit = responseMetadata.page_template_asset_audit || null;
             shared.pendingUniversalCounter = responseMetadata.universal_counter || null;
             shared.imageBlocks = Array.isArray(responseMetadata.image_blocks) ? responseMetadata.image_blocks : [];
+            shared.currentPreviewScope = responseMetadata.preview_scope || 'full-book';
+            state.applyServerPerformance(responseMetadata.performance || null, serverCacheHit ? 'server' : 'miss');
             window.almadenPageTemplateState?.reconcileResults?.();
             state.rebuildUniversalCounter();
 
@@ -139,6 +258,7 @@
                 console.warn('Typst PDF integrity warning:', integrity.message);
             }
             state.reportPreviewPerformance(serverCacheHit ? 'server-cache' : 'typst', startedAt);
+            scheduleBackgroundFullBookSync();
             return 1;
         } catch (error) {
             if (error.name === 'AbortError') return 0;
@@ -168,7 +288,10 @@
             clearPendingPromise(0);
             // Explicit editor actions (styles/templates) must reflect the
             // current renderer, not a browser PDF compiled by older code.
-            return compileTypstPreview({ forceRecompile: true, bypassPersistentCache: true });
+            return compileTypstPreview({ forceRecompile: true, bypassPersistentCache: true }).then(result => {
+                scheduleBackgroundFullBookSync();
+                return result;
+            });
         }
 
         if (compileTimer && pendingCompileSignature === compileSignature && pendingCompilePromise) {
@@ -203,7 +326,7 @@
             button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span class="hidden sm:inline">Compilando...</span>';
         }
         try {
-            const valid = await compileTypstPreview({ assetMode: 'original' });
+            const valid = await compileTypstPreview({ assetMode: 'original', scope: 'full-book' });
             if ((!valid && !shared.currentPdfBlob) || !shared.currentPdfUrl) {
                 const error = window.pdfContentIntegrity?.error || 'No se pudo generar el PDF para descargar.';
                 if (typeof window.showToast === 'function') {

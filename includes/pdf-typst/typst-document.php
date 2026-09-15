@@ -71,6 +71,18 @@ function almaden_bookster_build_typst_document( $payload ) {
 	extract( $context, EXTR_SKIP );
 	$prefix = almaden_bookster_typst_build_document_prefix( $context, $payload );
 	extract( $prefix, EXTR_SKIP );
+	$preview = isset( $payload['preview'] ) && is_array( $payload['preview'] )
+		? $payload['preview']
+		: array();
+	$preview_scope = isset( $preview['scope'] ) && 'chapter-fragment' === (string) $preview['scope']
+		? 'chapter-fragment'
+		: 'full-book';
+	$preview_page_start = isset( $preview['pageStart'] ) && is_numeric( $preview['pageStart'] )
+		? max( 1, (int) $preview['pageStart'] )
+		: 0;
+	if ( 'chapter-fragment' === $preview_scope && $preview_page_start > 1 ) {
+		$source .= '#counter(page).update(' . (int) $preview_page_start . ')' . "\n";
+	}
 	$asset_mode = function_exists( 'almaden_bookster_typst_normalize_asset_mode' )
 		? almaden_bookster_typst_normalize_asset_mode( $asset_mode ?? 'original' )
 		: ( 'original' === (string) ( $asset_mode ?? '' ) ? 'original' : 'optimized' );
@@ -683,6 +695,8 @@ function almaden_bookster_build_typst_document( $payload ) {
 
 	return array(
 		'source'        => $source,
+		'preview_scope' => $preview_scope,
+		'preview_fidelity' => 'chapter-fragment' === $preview_scope ? 'fast-preview' : 'full-book',
 		'page_templates' => $page_template_context['templates'],
 		'page_styles'   => $page_styles,
 		'page_template_context' => $page_template_context,
