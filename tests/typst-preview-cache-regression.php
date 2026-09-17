@@ -23,11 +23,11 @@ $client_state_source = file_get_contents( dirname( __DIR__ ) . '/assets/js/pdf/t
 $client_main_source = file_get_contents( dirname( __DIR__ ) . '/assets/js/pdf/typst/editor-typst-pdf.js' );
 $client_view_source = file_get_contents( dirname( __DIR__ ) . '/assets/js/pdf/typst/editor-typst-pdf-view.js' );
 $compiler_source = file_get_contents( dirname( __DIR__ ) . '/includes/pdf-typst/typst-compiler.php' );
-if ( false === strpos( $client_state_source, "const PREVIEW_CACHE_VERSION = 'v23';" ) ) {
+if ( false === strpos( $client_state_source, "const PREVIEW_CACHE_VERSION = 'v26';" ) ) {
 	fwrite( STDERR, "La caché persistente del navegador no fue invalidada para la versión actual del renderer.\n" );
 	exit( 1 );
 }
-if ( '16' !== ALMADEN_BOOKSTER_TYPST_PREVIEW_RENDERER_VERSION ) {
+if ( '19' !== ALMADEN_BOOKSTER_TYPST_PREVIEW_RENDERER_VERSION ) {
 	fwrite( STDERR, "La versión de caché del renderer del servidor no fue actualizada.\n" );
 	exit( 1 );
 }

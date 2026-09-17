@@ -19,7 +19,7 @@
     const PREVIEW_CACHE_STORE = 'compiled-previews';
     // Bump whenever server-side pagination or running-header/footer semantics
     // change; the persistent key otherwise reuses a PDF compiled by old code.
-    const PREVIEW_CACHE_VERSION = 'v23';
+    const PREVIEW_CACHE_VERSION = 'v26';
     const PREVIEW_CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
     const PREVIEW_CACHE_LIMITS = {
         'chapter-fragment': 36,
@@ -254,7 +254,14 @@
             const activeChapterId = String(bookState?.activeChapterId || '').trim();
             const activeIndex = rawChapters.findIndex(chapter => String(chapter?.id || '') === activeChapterId);
             const chapter = rawChapters[activeIndex >= 0 ? activeIndex : 0];
-            if (chapter) {
+            const isTocChapter = Boolean(
+                chapter && (
+                    String(chapter.is_toc || '') === '1' ||
+                    chapter.is_toc === true ||
+                    String(chapter.type || '') === 'toc'
+                )
+            );
+            if (chapter && !isTocChapter) {
                 const counterEntry = getActiveChapterCounterEntry();
                 compilePayload.fullChapters = rawChapters;
                 compilePayload.chapters = [chapter];
@@ -268,6 +275,8 @@
                 compilePayload.preview.pageStart = Number(counterEntry?.startPage || 0) > 0
                     ? Number(counterEntry.startPage)
                     : null;
+            } else if (compilePayload.preview && typeof compilePayload.preview === 'object') {
+                compilePayload.preview = { ...compilePayload.preview, scope: 'full-book' };
             }
         } else if (compilePayload.preview && typeof compilePayload.preview === 'object') {
             compilePayload.preview = { ...compilePayload.preview, scope: 'full-book' };
