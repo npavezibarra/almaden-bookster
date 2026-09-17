@@ -135,6 +135,15 @@ function buildCurrentPDFTemplateSettings(flatSettings) {
     const currentSettings = typeof bookState !== 'undefined' && bookState?.settings ? bookState.settings : {};
     pdf.page_templates = Array.isArray(currentSettings.page_templates) ? currentSettings.page_templates : [];
     pdf.page_styles = Array.isArray(currentSettings.page_styles) ? currentSettings.page_styles : [];
+
+    const tocChapter = Array.isArray(bookState?.chapters)
+        ? bookState.chapters.find(c => c && (String(c.is_toc || '') === '1' || c.is_toc === true))
+        : null;
+    if (tocChapter?.toc_levels && typeof tocChapter.toc_levels === 'object') {
+        pdf.toc_levels = tocChapter.toc_levels;
+    } else if (currentSettings.toc_levels && typeof currentSettings.toc_levels === 'object') {
+        pdf.toc_levels = currentSettings.toc_levels;
+    }
     return pdf;
 }
 
@@ -424,6 +433,15 @@ function applyBookTemplate(templateId) {
         bookState.settings = { ...(bookState.settings || {}), ...flatSettings };
         if (scopedSettings.pdf.credits_config && typeof initCreditsForm === 'function') {
             initCreditsForm();
+        }
+        if (scopedSettings.pdf.toc_levels && typeof scopedSettings.pdf.toc_levels === 'object') {
+            bookState.settings.toc_levels = scopedSettings.pdf.toc_levels;
+            const tocChapter = Array.isArray(bookState.chapters)
+                ? bookState.chapters.find(c => c && (String(c.is_toc || '') === '1' || c.is_toc === true))
+                : null;
+            if (tocChapter) {
+                tocChapter.toc_levels = scopedSettings.pdf.toc_levels;
+            }
         }
     }
 

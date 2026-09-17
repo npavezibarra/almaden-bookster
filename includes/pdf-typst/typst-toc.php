@@ -50,12 +50,35 @@ function almaden_bookster_typst_toc_title_text( $chapter ) {
 	return '' !== $title ? $title : 'Índice';
 }
 
-function almaden_bookster_typst_toc_styled_text( $value, $style ) {
+function almaden_bookster_typst_toc_styled_text( $value, $style, $hyphenate = null ) {
+	$hyphen_param = null !== $hyphenate ? ', hyphenate: ' . ( $hyphenate ? 'true' : 'false' ) : '';
 	return '#text(font: "' . almaden_bookster_typst_escape_string( $style['family'] )
 		. '", size: ' . $style['size'] . 'pt, weight: ' . $style['weight']
 		. ', style: "' . almaden_bookster_typst_escape_string( $style['style'] )
-		. '", tracking: ' . $style['tracking'] . 'pt)['
+		. '", tracking: ' . $style['tracking'] . 'pt' . $hyphen_param . ')['
 		. almaden_bookster_typst_escape_markup( $value ) . ']';
+}
+
+function almaden_bookster_typst_toc_level_config( $toc_levels, $level ) {
+	if ( ! is_array( $toc_levels ) ) {
+		return array();
+	}
+	$level_int = (int) $level;
+	$key_map = array(
+		0 => 'chapter',
+		1 => 'h1',
+		2 => 'h2',
+		3 => 'h3',
+		4 => 'h4',
+	);
+	$name_key = $key_map[ $level_int ] ?? ( 'h' . $level_int );
+	if ( isset( $toc_levels[ $name_key ] ) && is_array( $toc_levels[ $name_key ] ) ) {
+		return $toc_levels[ $name_key ];
+	}
+	if ( isset( $toc_levels[ (string) $level_int ] ) && is_array( $toc_levels[ (string) $level_int ] ) ) {
+		return $toc_levels[ (string) $level_int ];
+	}
+	return array();
 }
 
 function almaden_bookster_typst_toc_number_samples( $entries, $number_style ) {
@@ -186,7 +209,7 @@ function almaden_bookster_typst_render_toc( $chapter, $chapters, $settings, $fal
 		if ( ! $chapter_excluded ) {
 			$visible_chapters[] = array(
 				'label' => 'almaden-chapter-start-' . preg_replace( '/[^0-9A-Za-z_-]/', '', $chapter_id ),
-				'title' => almaden_bookster_typst_transform_title( trim( (string) ( $toc_chapter['title'] ?? 'Capítulo' ) ), $chapter['toc_text_transform'] ?? 'none' ),
+				'title' => trim( (string) ( $toc_chapter['title'] ?? 'Capítulo' ) ),
 				'number' => $prefix,
 				'level'  => 0,
 			);
@@ -216,6 +239,19 @@ function almaden_bookster_typst_render_toc( $chapter, $chapters, $settings, $fal
 		return '';
 	}
 
+	$toc_levels = array();
+	$raw_levels = ! empty( $chapter['toc_levels'] ) ? $chapter['toc_levels'] : ( $settings['toc_levels'] ?? null );
+	if ( ! empty( $raw_levels ) ) {
+		if ( is_array( $raw_levels ) ) {
+			$toc_levels = $raw_levels;
+		} elseif ( is_string( $raw_levels ) ) {
+			$decoded = json_decode( $raw_levels, true );
+			if ( is_array( $decoded ) ) {
+				$toc_levels = $decoded;
+			}
+		}
+	}
+
 	$output = '';
 	if ( $show_title ) {
 		$output .= $title_padding_top > 0 ? '#v(' . round( $title_padding_top, 4 ) . 'cm)' . "\n" : '';
@@ -232,9 +268,74 @@ function almaden_bookster_typst_render_toc( $chapter, $chapters, $settings, $fal
 	$output .= '#set par(leading: ' . $item_style['leading'] . 'em, spacing: ' . $item_spacing_pt . 'pt)' . "\n";
 	$output .= '#let toc-number-samples = ' . $number_samples . "\n";
 	foreach ( $visible_chapters as $entry_index => $entry ) {
+		$entry_level = (int) ( $entry['level'] ?? 0 );
+		$lvl_cfg = almaden_bookster_typst_toc_level_config( $toc_levels, $entry_level );
+
+		// 1. Text Transform
+		$raw_transform = $lvl_cfg['text_transform'] ?? '';
+		$entry_transform = ( '' !== $raw_transform && 'inherit' !== $raw_transform ) ? $raw_transform : ( $chapter['toc_text_transform'] ?? 'none' );
+		$transformed_title = almaden_bookster_typst_transform_title( $entry['title'], $entry_transform );
+
+		// 2. Weight, Style, Tracking, Hyphenate, Size
+		$entry_weight = ( ! empty( $lvl_cfg['font_weight'] ) && 'inherit' !== $lvl_cfg['font_weight'] ) ? $lvl_cfg['font_weight'] : $item_style['weight'];
+		$entry_style_val = ( ! empty( $lvl_cfg['font_style'] ) && 'inherit' !== $lvl_cfg['font_style'] ) ? $lvl_cfg['font_style'] : $item_style['style'];
+		$entry_size = ( isset( $lvl_cfg['font_size'] ) && '' !== trim( (string) $lvl_cfg['font_size'] ) && is_numeric( $lvl_cfg['font_size'] ) && (float) $lvl_cfg['font_size'] > 0 )
+			? (float) $lvl_cfg['font_size']
+			: $item_style['size'];
+		$entry_tracking = ( isset( $lvl_cfg['letter_spacing'] ) && '' !== trim( (string) $lvl_cfg['letter_spacing'] ) && is_numeric( $lvl_cfg['letter_spacing'] ) )
+			? round( (float) $lvl_cfg['letter_spacing'] * 0.75, 3 )
+			: $item_style['tracking'];
+		$entry_hyphenate = isset( $lvl_cfg['hyphenate'] ) && '' !== trim( (string) $lvl_cfg['hyphenate'] )
+			? ( almaden_bookster_typst_bool( $lvl_cfg['hyphenate'] ) ? true : false )
+			: null;
+
+		$entry_text_style = array(
+			'family'   => $item_style['family'],
+			'size'     => $entry_size,
+			'weight'   => $entry_weight,
+			'style'    => $entry_style_val,
+			'tracking' => $entry_tracking,
+		);
+
+		// 3. Indent
+		if ( isset( $lvl_cfg['indent'] ) && '' !== trim( (string) $lvl_cfg['indent'] ) && is_numeric( $lvl_cfg['indent'] ) ) {
+			$indent_pt = round( (float) $lvl_cfg['indent'] * 2.83465, 3 ) . 'pt';
+		} else {
+			$indent_pt = $entry_level > 0 ? ( $entry_level * 12 ) . 'pt' : '0pt';
+		}
+
+		// 4. Alignment
+		$entry_align_raw = strtolower( trim( (string) ( $lvl_cfg['align'] ?? '' ) ) );
+		if ( '' === $entry_align_raw || 'inherit' === $entry_align_raw ) {
+			$entry_align = $item_align;
+		} elseif ( in_array( $entry_align_raw, array( 'left', 'center', 'right', 'justify', 'justify-left', 'justify-right' ), true ) ) {
+			$entry_align = $entry_align_raw;
+		} else {
+			$entry_align = $item_align;
+		}
+
+		$align_directive = 'left';
+		$justify_directive = '';
+		if ( 'center' === $entry_align ) {
+			$align_directive = 'center';
+		} elseif ( 'right' === $entry_align ) {
+			$align_directive = 'right';
+		} elseif ( 'justify' === $entry_align || 'justify-left' === $entry_align ) {
+			$align_directive = 'left';
+			$justify_directive = '#set par(justify: true);';
+		} elseif ( 'justify-right' === $entry_align ) {
+			$align_directive = 'right';
+			$justify_directive = '#set par(justify: true);';
+		}
+
+		// 5. Line Height (Leading)
+		$leading_override = ( isset( $lvl_cfg['line_height'] ) && is_numeric( $lvl_cfg['line_height'] ) && (float) $lvl_cfg['line_height'] > 0 )
+			? '#set par(leading: ' . round( max( 0, (float) $lvl_cfg['line_height'] - 1 ), 4 ) . 'em);'
+			: '';
+
 		$number = trim( (string) ( $entry['number'] ?? '' ) );
 		$number_content = '' !== $number ? almaden_bookster_typst_toc_styled_text( $number, $number_style ) : '';
-		$title_content = almaden_bookster_typst_toc_styled_text( $entry['title'], $item_style );
+		$title_content = almaden_bookster_typst_toc_styled_text( $transformed_title, $entry_text_style, $entry_hyphenate );
 		$leader_box_options = 'width: 1fr, inset: 0pt';
 		if ( 'solid' === $leader_style ) {
 			$leader_box_options .= ', baseline: bottom';
@@ -245,8 +346,6 @@ function almaden_bookster_typst_render_toc( $chapter, $chapters, $settings, $fal
 		$page_expr = 0.0 !== $page_number_offset_pt ? '#move(dy: ' . round( $page_number_offset_pt, 3 ) . 'pt)[' . $page_expr . ']' : $page_expr;
 		$output .= '#block(width: 100%, breakable: false)[#layout(size => context {' . "\n";
 		$output .= '  let toc-number = [' . $number_content . ']' . "\n";
-		
-		$indent_pt = isset( $entry['level'] ) && $entry['level'] > 0 ? ( $entry['level'] * 12 ) . 'pt' : '0pt';
 		$output .= '  let toc-title = [' . $title_content . ']' . "\n";
 		$output .= '  let toc-leader = [' . $leader_content . ']' . "\n";
 		$output .= '  let toc-page = [' . $page_expr . ']' . "\n";
@@ -256,8 +355,8 @@ function almaden_bookster_typst_render_toc( $chapter, $chapters, $settings, $fal
 		$pad_open  = '0pt' !== $indent_pt ? '#pad(left: ' . $indent_pt . ')[' : '';
 		$pad_close = '0pt' !== $indent_pt ? ']' : '';
 		$output .= '' !== $leader_content
-			? '  let toc-main = [' . $pad_open . '#align(' . $item_align . ')[#toc-title#h(toc-gutter)#toc-leader]' . $pad_close . ']' . "\n"
-			: '  let toc-main = [' . $pad_open . '#align(' . $item_align . ')[#toc-title]' . $pad_close . ']' . "\n";
+			? '  let toc-main = [' . $pad_open . $justify_directive . $leading_override . '#align(' . $align_directive . ')[#toc-title#h(toc-gutter)#toc-leader]' . $pad_close . ']' . "\n"
+			: '  let toc-main = [' . $pad_open . $justify_directive . $leading_override . '#align(' . $align_directive . ')[#toc-title]' . $pad_close . ']' . "\n";
 		if ( $has_number_column ) {
 			$output .= '  grid(columns: (number-width, 1fr, page-width), gutter: toc-gutter, row-gutter: 0pt, align: (left + top, left + top, right + bottom), toc-number, toc-main, toc-page)' . "\n";
 		} else {

@@ -68,7 +68,7 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Enumerar Capítulos</label>
-                                <select id="chapter_toc_enumerate" name="toc_enumerate" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                                <select id="chapter_toc_enumerate" name="toc_enumerate" onchange="if (typeof toggleTocEnumerateControls === 'function') toggleTocEnumerateControls();" class="w-full bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-black">
                                     <option value="none">No enumerar</option>
                                     <option value="decimal">Números (1., 2., 3.)</option>
                                     <option value="roman">Números Romanos (I., II., III.)</option>
@@ -112,7 +112,7 @@
                             </div>
                         </div>
 
-						<div class="p-4 rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)] space-y-4">
+						<div id="chapter_toc_number_config_box" class="p-4 rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)] space-y-4">
 							<div>
 								<h4 class="text-sm font-semibold">Numeración del Capítulo {n/r}</h4>
 								<p class="text-[11px] text-[var(--text-muted)]">Se aplica solo cuando la enumeración está activada.</p>
@@ -135,6 +135,121 @@
 								<div><label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Estilo</label><select id="chapter_toc_page_font_style" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs"><option value="">Igual al título</option><option value="normal">Normal</option><option value="italic">Itálica</option></select></div>
 								<div class="col-span-2"><label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Letter Spacing (px)</label><input type="number" step="0.1" id="chapter_toc_page_letter_spacing" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs" placeholder="Igual al título"></div>
 							</div>
+						</div>
+
+						<div class="p-4 rounded-xl border border-[var(--border-color)] bg-[var(--bg-sidebar)] space-y-4">
+							<div>
+								<h4 class="text-sm font-semibold">Estilo Items de Capítulo</h4>
+								<p class="text-[11px] text-[var(--text-muted)]">Personaliza el estilo tipográfico, alineación y sangría por nivel jerárquico.</p>
+							</div>
+
+							<!-- Selector de Nivel -->
+							<div class="flex items-center gap-1.5 p-1 bg-neutral-200/60 dark:bg-neutral-800 rounded-lg text-xs font-medium">
+								<button type="button" onclick="switchTocLevelTab('chapter')" id="btn-toc-lvl-chapter" class="toc-lvl-btn flex-1 py-1.5 px-2 rounded-md bg-white dark:bg-neutral-700 shadow-sm text-black dark:text-white transition-all">Capítulo</button>
+								<button type="button" onclick="switchTocLevelTab('h1')" id="btn-toc-lvl-h1" class="toc-lvl-btn flex-1 py-1.5 px-2 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all">H1</button>
+								<button type="button" onclick="switchTocLevelTab('h2')" id="btn-toc-lvl-h2" class="toc-lvl-btn flex-1 py-1.5 px-2 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all">H2</button>
+								<button type="button" onclick="switchTocLevelTab('h3')" id="btn-toc-lvl-h3" class="toc-lvl-btn flex-1 py-1.5 px-2 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all">H3</button>
+								<button type="button" onclick="switchTocLevelTab('h4')" id="btn-toc-lvl-h4" class="toc-lvl-btn flex-1 py-1.5 px-2 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all">H4</button>
+							</div>
+
+							<!-- Paneles de Nivel -->
+							<?php
+							$toc_levels_meta = array(
+								'chapter' => array( 'label' => 'Capítulo (Nivel Principal)', 'default_indent' => '0' ),
+								'h1'      => array( 'label' => 'Subcapítulo (H1)', 'default_indent' => '4' ),
+								'h2'      => array( 'label' => 'Sección (H2)', 'default_indent' => '8' ),
+								'h3'      => array( 'label' => 'Subsección (H3)', 'default_indent' => '12' ),
+								'h4'      => array( 'label' => 'Apartado (H4)', 'default_indent' => '16' ),
+							);
+							$first_lvl = true;
+							foreach ( $toc_levels_meta as $lvl_key => $lvl_info ) :
+								$hidden_cls = $first_lvl ? '' : 'hidden';
+								$first_lvl = false;
+							?>
+							<div id="toc-lvl-panel-<?php echo esc_attr( $lvl_key ); ?>" class="toc-lvl-panel space-y-4 <?php echo esc_attr( $hidden_cls ); ?>">
+								<div class="grid grid-cols-2 gap-4">
+									<div>
+										<label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Transformación</label>
+										<select id="chapter_toc_lvl_<?php echo esc_attr( $lvl_key ); ?>_transform" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs">
+											<option value="inherit">Heredar / General</option>
+											<option value="none">Ninguna</option>
+											<option value="uppercase">MAYÚSCULAS (All Caps)</option>
+											<option value="lowercase">minúsculas</option>
+											<option value="capitalize">Capitalizar</option>
+										</select>
+									</div>
+									<div>
+										<label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Alineación</label>
+										<select id="chapter_toc_lvl_<?php echo esc_attr( $lvl_key ); ?>_align" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs">
+											<option value="inherit">Heredar / General</option>
+											<option value="left">Izquierda</option>
+											<option value="center">Centro</option>
+											<option value="right">Derecha</option>
+											<option value="justify">Justificado</option>
+											<option value="justify-left">Justificado Izquierda</option>
+											<option value="justify-right">Justificado Derecha</option>
+										</select>
+									</div>
+								</div>
+
+								<div class="grid grid-cols-2 gap-4">
+									<div>
+										<label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Tamaño de Fuente (px)</label>
+										<input type="number" step="0.5" id="chapter_toc_lvl_<?php echo esc_attr( $lvl_key ); ?>_font_size" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs" placeholder="Heredar">
+									</div>
+									<div>
+										<label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Grosor (Weight)</label>
+										<select id="chapter_toc_lvl_<?php echo esc_attr( $lvl_key ); ?>_weight" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs">
+											<option value="inherit">Heredar / General</option>
+											<option value="300">Light (300)</option>
+											<option value="normal">Normal (400)</option>
+											<option value="500">Medium (500)</option>
+											<option value="600">Semi-Bold (600)</option>
+											<option value="bold">Negrita (700)</option>
+											<option value="800">Extra-Bold (800)</option>
+											<option value="900">Black (900)</option>
+										</select>
+									</div>
+								</div>
+
+								<div class="grid grid-cols-2 gap-4">
+									<div>
+										<label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Estilo de Fuente</label>
+										<select id="chapter_toc_lvl_<?php echo esc_attr( $lvl_key ); ?>_style" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs">
+											<option value="inherit">Heredar / General</option>
+											<option value="normal">Normal</option>
+											<option value="italic">Itálica (Cursiva)</option>
+										</select>
+									</div>
+									<div>
+										<label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Interlineado (Line Height)</label>
+										<input type="number" step="0.1" id="chapter_toc_lvl_<?php echo esc_attr( $lvl_key ); ?>_line_height" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs" placeholder="Heredar">
+									</div>
+								</div>
+
+								<div class="grid grid-cols-2 gap-4">
+									<div>
+										<label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Letter Spacing (px)</label>
+										<input type="number" step="0.1" id="chapter_toc_lvl_<?php echo esc_attr( $lvl_key ); ?>_letter_spacing" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs" placeholder="Heredar">
+									</div>
+									<div>
+										<label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Sangría / Indentación (mm)</label>
+										<input type="number" step="0.5" id="chapter_toc_lvl_<?php echo esc_attr( $lvl_key ); ?>_indent" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs" placeholder="Default: <?php echo esc_attr( $lvl_info['default_indent'] ); ?> mm">
+									</div>
+								</div>
+
+								<div class="grid grid-cols-2 gap-4">
+									<div>
+										<label class="block text-xs font-semibold text-[var(--text-muted)] mb-1">Guionado (Hyphenation)</label>
+										<select id="chapter_toc_lvl_<?php echo esc_attr( $lvl_key ); ?>_hyphenate" class="w-full bg-white border border-[var(--border-color)] rounded-lg px-3 py-2 text-xs">
+											<option value="inherit">Heredar / General</option>
+											<option value="1">Activado</option>
+											<option value="0">Desactivado</option>
+										</select>
+									</div>
+								</div>
+							</div>
+							<?php endforeach; ?>
 						</div>
                         
 						<div class="grid grid-cols-2 gap-4">

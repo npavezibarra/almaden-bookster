@@ -188,6 +188,9 @@ function openChapterSettingsModal() {
 
         document.getElementById('chapter_toc_font_size').value = activeChapter.toc_font_size || '';
         document.getElementById('chapter_toc_enumerate').value = activeChapter.toc_enumerate || 'none';
+        if (typeof toggleTocEnumerateControls === 'function') {
+            toggleTocEnumerateControls();
+        }
         document.getElementById('chapter_toc_font_family').value = activeChapter.toc_font_family || '';
         document.getElementById('chapter_toc_font_style').value = activeChapter.toc_font_style || 'normal';
         document.getElementById('chapter_toc_font_weight').value = activeChapter.toc_font_weight || 'normal';
@@ -231,6 +234,9 @@ function openChapterSettingsModal() {
         document.getElementById('chapter_toc_title_padding_top').value = activeChapter.toc_title_padding_top || '';
         document.getElementById('chapter_toc_title_padding_bottom').value = activeChapter.toc_title_padding_bottom || '';
         document.getElementById('chapter_toc_title_line_height').value = activeChapter.toc_title_line_height || '';
+        if (typeof hydrateTocLevelSettings === 'function') {
+            hydrateTocLevelSettings(activeChapter);
+        }
     } else if (isCredits) {
         const settings = bookState.settings || {};
         const creditFontFamilyDefault = settings.font_family_content || '';
@@ -505,6 +511,7 @@ async function saveChapterSettings() {
             const tocPageNumberOffset = cleanFloat('chapter_toc_page_number_offset').trim();
             activeChapter.toc_page_number_offset = '' !== tocPageNumberOffset ? tocPageNumberOffset : '-0.8';
         }
+        activeChapter.toc_levels = typeof collectTocLevelSettings === 'function' ? collectTocLevelSettings() : null;
         activeChapter.hide_header = activeChapter.toc_hide_header;
         activeChapter.hide_footer = activeChapter.toc_hide_page_numbers;
         activeChapter.hide_all_headers_footers = (

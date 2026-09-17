@@ -133,8 +133,37 @@ $register_url = \AlmadenBookster\Auth\Utilities\AuthUtils::build_modal_url('regi
         to { transform: rotate(360deg); }
     }
     .pl-auth-eyebrow,
-    .pl-auth-logo,
     .pl-auth-tabs {
+        display: none;
+    }
+    .pl-auth-logo {
+        display: none;
+        align-items: center;
+        justify-content: flex-start;
+        margin: 0 0 24px;
+    }
+    .pl-auth-logo__wordmark {
+        color: #000;
+        line-height: 1;
+    }
+    .pl-auth-logo__image {
+        display: block;
+        height: auto;
+        object-fit: contain;
+        object-position: left center;
+    }
+    .urbanist-almaden-logo {
+        font-family: "Urbanist", sans-serif;
+        font-optical-sizing: auto;
+        font-weight: 700;
+        font-size: 34px !important;
+        font-style: normal;
+    }
+    #pl-auth-overlay.pl-auth-login-logo .pl-auth-logo {
+        display: flex;
+    }
+    #pl-auth-overlay.pl-auth-login-logo .pl-auth-title,
+    #pl-auth-overlay.pl-auth-login-logo .pl-auth-copy {
         display: none;
     }
     .pl-auth-title {
@@ -176,6 +205,14 @@ $register_url = \AlmadenBookster\Auth\Utilities\AuthUtils::build_modal_url('regi
         font-size: 0.95rem;
         outline: none;
     }
+    .pl-auth-field input[type="password"] {
+        font-size: 1.35rem;
+        letter-spacing: 0.15em;
+    }
+    .pl-auth-field input[type="password"]::placeholder {
+        font-size: 0.95rem;
+        letter-spacing: normal;
+    }
     .pl-auth-submit {
         width: 100%;
         margin-top: 10px;
@@ -202,7 +239,7 @@ $register_url = \AlmadenBookster\Auth\Utilities\AuthUtils::build_modal_url('regi
         display: none !important;
     }
 </style>
-<div id="pl-auth-overlay" data-initial-view="<?php echo esc_attr($view); ?>" data-notice="<?php echo esc_attr($notice); ?>" data-error="<?php echo esc_attr($error); ?>" data-auto-open="<?php echo esc_attr($auto_open ? '1' : '0'); ?>">
+<div id="pl-auth-overlay" class="<?php echo esc_attr( $view === 'login' ? 'pl-auth-login-logo' : '' ); ?>" data-initial-view="<?php echo esc_attr($view); ?>" data-notice="<?php echo esc_attr($notice); ?>" data-error="<?php echo esc_attr($error); ?>" data-auto-open="<?php echo esc_attr($auto_open ? '1' : '0'); ?>">
     <div id="pl-auth-card" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr__('Authentication', 'almaden-bookster'); ?>">
         <div class="pl-auth-loading" data-pl-auth-loading aria-hidden="true">
             <div class="pl-auth-loading__spinner" aria-hidden="true"></div>
@@ -219,6 +256,9 @@ $register_url = \AlmadenBookster\Auth\Utilities\AuthUtils::build_modal_url('regi
                         class="pl-auth-logo__image"
                         style="width: <?php echo esc_attr( (string) $contractor_logo_width ); ?>px; max-width: <?php echo esc_attr( (string) $contractor_logo_width ); ?>px;"
                     />
+                    <?php if ( '' !== trim( (string) $contractor_company_name ) ) : ?>
+                        <span class="text-xl font-semibold tracking-tight text-black"><?php echo esc_html( $brand_label ); ?></span>
+                    <?php endif; ?>
                 <?php else : ?>
                     <span class="urbanist-almaden-logo pl-auth-logo__wordmark"><?php echo esc_html( $brand_label ); ?></span>
                 <?php endif; ?>
@@ -294,6 +334,7 @@ $register_url = \AlmadenBookster\Auth\Utilities\AuthUtils::build_modal_url('regi
             var overlay = document.getElementById('pl-auth-overlay');
             if (!overlay) return;
             var isRegister = view === 'register';
+            var isLogin = view === 'login';
             var mode = overlay.querySelector('[data-pl-auth-mode]');
             var registerFields = overlay.querySelectorAll('.pl-auth-register-only');
             var loginOnly = overlay.querySelector('[data-pl-auth-login-row]');
@@ -301,6 +342,7 @@ $register_url = \AlmadenBookster\Auth\Utilities\AuthUtils::build_modal_url('regi
             var emailLabel = overlay.querySelector('[data-pl-auth-email-label]');
             var submit = overlay.querySelector('[data-pl-auth-submit]');
             if (mode) mode.value = isRegister ? 'register' : 'login';
+            overlay.classList.toggle('pl-auth-login-logo', isLogin);
             registerFields.forEach(function (field) {
                 field.classList.toggle('pl-auth-hidden', !isRegister);
             });

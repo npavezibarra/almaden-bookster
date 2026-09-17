@@ -108,6 +108,14 @@
             object-position: left center;
         }
 
+        .urbanist-almaden-logo {
+            font-family: "Urbanist", sans-serif;
+            font-optical-sizing: auto;
+            font-weight: 700;
+            font-size: 34px !important;
+            font-style: normal;
+        }
+
         .pl-auth-logo .urbanist-almaden-logo {
             font-size: 34px !important;
         }
@@ -188,6 +196,16 @@
 	        font-size: 0.95rem;
 	        outline: none;
 	        transition: border-color 0.2s ease;
+	    }
+
+	    .pl-auth-field input[type="password"] {
+	        font-size: 1.35rem;
+	        letter-spacing: 0.15em;
+	    }
+
+	    .pl-auth-field input[type="password"]::placeholder {
+	        font-size: 0.95rem;
+	        letter-spacing: normal;
 	    }
 
 	    .pl-auth-field input:focus {

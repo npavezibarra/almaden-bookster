@@ -219,3 +219,104 @@ function switchTocTab(tabId) {
         activeBtn.classList.add('border-black', 'text-black', 'dark:border-white', 'dark:text-white');
     }
 }
+
+function toggleTocEnumerateControls() {
+    const enumField = document.getElementById('chapter_toc_enumerate');
+    const numberBox = document.getElementById('chapter_toc_number_config_box');
+    if (!enumField || !numberBox) return;
+
+    const val = String(enumField.value || 'none').trim();
+    if (val === 'none' || !val) {
+        numberBox.classList.add('hidden');
+    } else {
+        numberBox.classList.remove('hidden');
+    }
+}
+
+function switchTocLevelTab(levelKey) {
+    const panels = document.querySelectorAll('.toc-lvl-panel');
+    panels.forEach(panel => panel.classList.add('hidden'));
+
+    const btns = document.querySelectorAll('.toc-lvl-btn');
+    btns.forEach(btn => {
+        btn.classList.remove('bg-white', 'dark:bg-neutral-700', 'shadow-sm', 'text-black', 'dark:text-white');
+        btn.classList.add('text-[var(--text-muted)]');
+    });
+
+    const activePanel = document.getElementById('toc-lvl-panel-' + levelKey);
+    if (activePanel) {
+        activePanel.classList.remove('hidden');
+    }
+
+    const activeBtn = document.getElementById('btn-toc-lvl-' + levelKey);
+    if (activeBtn) {
+        activeBtn.classList.remove('text-[var(--text-muted)]');
+        activeBtn.classList.add('bg-white', 'dark:bg-neutral-700', 'shadow-sm', 'text-black', 'dark:text-white');
+    }
+}
+
+function hydrateTocLevelSettings(activeChapter) {
+    if (!activeChapter) return;
+    let tocLevels = {};
+    if (activeChapter.toc_levels) {
+        if (typeof activeChapter.toc_levels === 'string') {
+            try {
+                tocLevels = JSON.parse(activeChapter.toc_levels) || {};
+            } catch (e) {
+                tocLevels = {};
+            }
+        } else if (typeof activeChapter.toc_levels === 'object') {
+            tocLevels = activeChapter.toc_levels;
+        }
+    }
+
+    ['chapter', 'h1', 'h2', 'h3', 'h4'].forEach(lvl => {
+        const lvlData = (tocLevels && typeof tocLevels === 'object' && tocLevels[lvl]) ? tocLevels[lvl] : {};
+        const setVal = (suffix, val) => {
+            const el = document.getElementById(`chapter_toc_lvl_${lvl}_${suffix}`);
+            if (el) el.value = val;
+        };
+        setVal('transform', lvlData.text_transform || 'inherit');
+        setVal('align', lvlData.align || 'inherit');
+        setVal('font_size', lvlData.font_size !== undefined && lvlData.font_size !== null ? lvlData.font_size : '');
+        setVal('weight', lvlData.font_weight || 'inherit');
+        setVal('style', lvlData.font_style || 'inherit');
+        setVal('line_height', lvlData.line_height !== undefined && lvlData.line_height !== null ? lvlData.line_height : '');
+        setVal('letter_spacing', lvlData.letter_spacing !== undefined && lvlData.letter_spacing !== null ? lvlData.letter_spacing : '');
+        setVal('indent', lvlData.indent !== undefined && lvlData.indent !== null ? lvlData.indent : '');
+        setVal('hyphenate', lvlData.hyphenate !== undefined && lvlData.hyphenate !== null ? String(lvlData.hyphenate) : 'inherit');
+    });
+
+    switchTocLevelTab('chapter');
+}
+
+function collectTocLevelSettings() {
+    const tocLevels = {};
+    ['chapter', 'h1', 'h2', 'h3', 'h4'].forEach(lvl => {
+        const transform = document.getElementById(`chapter_toc_lvl_${lvl}_transform`)?.value || 'inherit';
+        const align = document.getElementById(`chapter_toc_lvl_${lvl}_align`)?.value || 'inherit';
+        const fontSize = document.getElementById(`chapter_toc_lvl_${lvl}_font_size`)?.value || '';
+        const weight = document.getElementById(`chapter_toc_lvl_${lvl}_weight`)?.value || 'inherit';
+        const style = document.getElementById(`chapter_toc_lvl_${lvl}_style`)?.value || 'inherit';
+        const lineHeight = document.getElementById(`chapter_toc_lvl_${lvl}_line_height`)?.value || '';
+        const letterSpacing = document.getElementById(`chapter_toc_lvl_${lvl}_letter_spacing`)?.value || '';
+        const indent = document.getElementById(`chapter_toc_lvl_${lvl}_indent`)?.value || '';
+        const hyphenate = document.getElementById(`chapter_toc_lvl_${lvl}_hyphenate`)?.value || 'inherit';
+
+        const lvlObj = {};
+        if (transform !== 'inherit') lvlObj.text_transform = transform;
+        if (align !== 'inherit') lvlObj.align = align;
+        if (fontSize !== '') lvlObj.font_size = parseFloat(fontSize);
+        if (weight !== 'inherit') lvlObj.font_weight = weight;
+        if (style !== 'inherit') lvlObj.font_style = style;
+        if (lineHeight !== '') lvlObj.line_height = parseFloat(lineHeight);
+        if (letterSpacing !== '') lvlObj.letter_spacing = parseFloat(letterSpacing);
+        if (indent !== '') lvlObj.indent = parseFloat(indent);
+        if (hyphenate !== 'inherit') lvlObj.hyphenate = parseInt(hyphenate, 10);
+
+        if (Object.keys(lvlObj).length > 0) {
+            tocLevels[lvl] = lvlObj;
+        }
+    });
+    return Object.keys(tocLevels).length > 0 ? tocLevels : null;
+}

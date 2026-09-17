@@ -1090,6 +1090,9 @@ function almaden_bookster_typst_render_blocks_with_footnotes( $raw, $footnotes, 
  * Escape a Typst string literal without its surrounding quotes.
  */
 function almaden_bookster_typst_escape_string( $value ) {
+	while ( is_array( $value ) ) {
+		$value = reset( $value );
+	}
 	return str_replace( array( '\\', '"', "\n", "\r" ), array( '\\\\', '\\"', '\\n', '' ), (string) $value );
 }
 
