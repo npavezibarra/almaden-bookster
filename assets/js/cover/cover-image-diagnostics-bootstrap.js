@@ -444,6 +444,46 @@ document.addEventListener('DOMContentLoaded', () => {
         coverEditor.actions.coverPreflightObserver = observer;
     }
 
+    function setupPopoverToggles() {
+        const toggles = [
+            { btn: 'btn-front-cover-diagnostics-toggle', popover: 'front-cover-diagnostics-popover' },
+            { btn: 'btn-back-cover-diagnostics-toggle', popover: 'back-cover-diagnostics-popover' },
+            { btn: 'btn-editorial-diagnostics-toggle', popover: 'editorial-diagnostics-popover' }
+        ];
+
+        const closeAllPopovers = () => toggles.forEach(({ popover }) => document.getElementById(popover)?.classList.add('hidden'));
+
+        toggles.forEach(({ btn, popover }) => {
+            const btnEl = document.getElementById(btn);
+            const popoverEl = document.getElementById(popover);
+            if (btnEl && popoverEl) {
+                btnEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isHidden = popoverEl.classList.contains('hidden');
+                    closeAllPopovers();
+                    if (isHidden) {
+                        popoverEl.classList.remove('hidden');
+                        scheduleRefresh(true);
+                    }
+                });
+            }
+        });
+
+        document.querySelectorAll('.close-diagnostics-popover').forEach(closeBtn => {
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (closeBtn.dataset.target) document.getElementById(closeBtn.dataset.target)?.classList.add('hidden');
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('[id$="-diagnostics-popover"]') && !e.target.closest('[id$="-diagnostics-toggle"]')) {
+                closeAllPopovers();
+            }
+        });
+    }
+
+    setupPopoverToggles();
     observeLayoutChanges();
     Diagnostics.renderNoImage(frontPanel, 'Validación de portada', coverWidthCm, coverHeightCm, requiredDpi);
     Diagnostics.renderNoImage(backPanel, 'Validación de contraportada', coverWidthCm, coverHeightCm, requiredDpi);

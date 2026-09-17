@@ -10,20 +10,20 @@ if ( ! defined( 'ABSPATH' ) ) {
     </div>
     
     <div class="p-2 border-b border-gray-100 grid grid-cols-3 gap-1 bg-white">
-        <button id="add-text-layer-btn" class="bg-white border border-gray-300 text-gray-700 py-1.5 rounded text-[10px] font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-0.5 shadow-sm">
-            <i class="fa-solid fa-t"></i> Texto
+        <button id="add-text-layer-btn" class="bg-white border border-gray-300 text-gray-700 py-1 rounded font-semibold hover:bg-gray-50 transition flex items-center justify-center shadow-sm" style="font-size: 12px !important;" title="Texto">
+            <i class="fa-solid fa-t"></i>
         </button>
-        <button id="add-image-layer-btn" class="bg-white border border-gray-300 text-gray-700 py-1.5 rounded text-[10px] font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-0.5 shadow-sm">
-            <i class="fa-regular fa-image"></i> Imagen
+        <button id="add-image-layer-btn" class="bg-white border border-gray-300 text-gray-700 py-1 rounded font-semibold hover:bg-gray-50 transition flex items-center justify-center shadow-sm" style="font-size: 12px !important;" title="Imagen">
+            <i class="fa-regular fa-image"></i>
         </button>
-        <button id="add-shape-layer-btn" class="bg-white border border-gray-300 text-gray-700 py-1.5 rounded text-[10px] font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-0.5 shadow-sm">
-            <i class="fa-solid fa-shapes"></i> Forma
+        <button id="add-shape-layer-btn" class="bg-white border border-gray-300 text-gray-700 py-1 rounded font-semibold hover:bg-gray-50 transition flex items-center justify-center shadow-sm" style="font-size: 12px !important;" title="Forma">
+            <i class="fa-solid fa-shapes"></i>
         </button>
     </div>
 
     <!-- Group Action Panel -->
-    <div class="p-2 border-b border-gray-100 bg-white">
-        <button id="group-layers-btn" class="w-full bg-indigo-600 border border-indigo-700 text-white py-1.5 rounded text-xs font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-1.5 shadow-sm shadow-indigo-100">
+    <div class="p-2 border-b border-gray-100 bg-white" id="group-layers-btn-container" title="Selecciona al menos una capa para agrupar">
+        <button id="group-layers-btn" class="w-full bg-black text-white rounded font-semibold transition flex items-center justify-center shadow-sm opacity-50 cursor-not-allowed" style="font-size: 10px !important; padding: 4px 0 !important; gap: 4px !important; color: #fff !important;" title="Selecciona al menos una capa para agrupar" disabled>
             <i class="fa-solid fa-folder-plus"></i> Agrupar Capas
         </button>
     </div>

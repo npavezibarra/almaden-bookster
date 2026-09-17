@@ -48,5 +48,6 @@ function almaden_render_font_options( $defaults, $installed ) {
 			}
 		}
 	}
+	echo '<option value="__add_google_font__">+ Explorar Google Fonts...</option>' . "\n";
 }
 ?>

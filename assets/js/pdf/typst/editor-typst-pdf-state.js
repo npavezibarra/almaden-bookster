@@ -256,6 +256,7 @@
             const chapter = rawChapters[activeIndex >= 0 ? activeIndex : 0];
             if (chapter) {
                 const counterEntry = getActiveChapterCounterEntry();
+                compilePayload.fullChapters = rawChapters;
                 compilePayload.chapters = [chapter];
                 compilePayload.preview = compilePayload.preview && typeof compilePayload.preview === 'object'
                     ? { ...compilePayload.preview }

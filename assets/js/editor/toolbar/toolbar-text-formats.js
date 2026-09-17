@@ -92,7 +92,8 @@ function applyFontSize() {
 }
 
 function applyFontFamily(fontName) {
-    if (!fontName) return;
+    if (!fontName || fontName === '__add_google_font__') return;
+
 
     const surface = getToolbarSurface();
     if (surface && surface.id === 'visual-editor-surface') {

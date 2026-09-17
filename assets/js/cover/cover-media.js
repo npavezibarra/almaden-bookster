@@ -467,24 +467,10 @@ document.addEventListener('DOMContentLoaded', () => {
         refreshImageDiagnostics();
     });
 
-    // Accordions
-    toggleImagesBtn.addEventListener('click', () => {
-        el.imagesContent.classList.toggle('hidden');
-        el.imagesContent.classList.toggle('flex');
-        document.getElementById('images-section-icon').classList.toggle('-rotate-90');
-
-        if (!el.imagesContent.classList.contains('hidden')) {
-            refreshImageDiagnostics(true);
-        }
-    });
-
-    toggleFlapsBtn.addEventListener('click', () => {
-        el.flapsContent.classList.toggle('hidden');
-        el.flapsContent.classList.toggle('flex');
-        flapsIcon.classList.toggle('-rotate-90');
-    });
+    // Accordion handling is managed centrally in cover-book-format.js
 
     // Register exports
+
     window.CoverEditor.actions.applyImageToCover = applyImageToCover;
     window.CoverEditor.actions.applySpreadImage = applySpreadImage;
     window.CoverEditor.actions.openMediaUploader = openMediaUploader;

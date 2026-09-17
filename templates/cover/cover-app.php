@@ -205,6 +205,7 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
             bookId: <?php echo intval($book_id); ?>,
             nonce: "<?php echo esc_js($cover_nonce); ?>",
             exportNonce: "<?php echo esc_js($cover_export_nonce); ?>",
+            fontsNonce: "<?php echo esc_js( wp_create_nonce( 'almaden_fonts_nonce' ) ); ?>",
             ajaxUrl: "<?php echo esc_url(admin_url('admin-ajax.php')); ?>",
             mediaPickerNonce: "<?php echo esc_js( wp_create_nonce( 'almaden_bookster_media_picker_' . $book_id ) ); ?>",
             exportUrl: "<?php echo esc_url(admin_url('admin-post.php')); ?>",
@@ -216,6 +217,7 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
             settings: <?php echo json_encode($cover_settings); ?>,
             installedFonts: <?php echo json_encode($installed_fonts); ?>
         };
+
     </script>
     <?php
     if ( function_exists( 'almaden_bookster_render_quarantined_wp_head' ) ) {
@@ -298,7 +300,11 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
         <?php include dirname( __FILE__ ) . '/cover-sidebar-right.php'; ?>
     </div>
 
+    <!-- Shared Google Fonts Floating Modal -->
+    <?php include dirname( __FILE__ ) . '/../shared/google-fonts-modal.php'; ?>
+
     <!-- Scripts Modulares -->
+    <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/shared/google-fonts-modal.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-state.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-utils.js?v=' . time() ); ?>"></script>
     <script src="<?php echo esc_url( plugin_dir_url( dirname( dirname(__FILE__) ) ) . 'assets/js/cover/cover-book-format.js?v=' . time() ); ?>"></script>

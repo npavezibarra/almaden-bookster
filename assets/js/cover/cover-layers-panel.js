@@ -7,6 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.CoverEditor.actions.renderLayersPanel = function() {
         el.layersList.innerHTML = '';
+        const existingIds = new Set(s.textLayers.map(l => l.id));
+        s.selectedLayerIds = s.selectedLayerIds.filter(id => existingIds.has(id));
+        if (window.CoverEditor.actions.updateGroupButtonState) {
+            window.CoverEditor.actions.updateGroupButtonState();
+        }
+
         if (s.textLayers.length === 0) {
             el.layersList.innerHTML = '<div class="text-xs text-gray-400 text-center py-4">No hay capas</div>';
             return;
@@ -110,6 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (!s.selectedLayerIds.includes(id)) s.selectedLayerIds.push(id);
                 } else {
                     s.selectedLayerIds = s.selectedLayerIds.filter(x => x !== id);
+                }
+                if (window.CoverEditor.actions.updateGroupButtonState) {
+                    window.CoverEditor.actions.updateGroupButtonState();
                 }
             });
         }

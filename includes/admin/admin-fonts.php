@@ -12,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once dirname( __DIR__ ) . '/helpers/user-fonts.php';
+
 /**
  * Create the installed fonts table if it doesn't exist.
  */
@@ -222,11 +224,12 @@ function almaden_bookster_get_bundled_fonts_stylesheet_url() {
 }
 
 /**
- * Get all fonts available to the plugin, including bundled defaults.
+ * Get all fonts available to the plugin, including bundled defaults, admin fonts, and user personal fonts.
  *
+ * @param int $user_id Optional user ID. Defaults to current user.
  * @return array<int, array<string, string>>
  */
-function almaden_bookster_get_available_fonts_list() {
+function almaden_bookster_get_available_fonts_list( $user_id = 0 ) {
 	$fonts = array();
 
 	foreach ( almaden_bookster_get_bundled_fonts_list() as $font ) {
@@ -239,18 +242,27 @@ function almaden_bookster_get_available_fonts_list() {
 
 	foreach ( almaden_bookster_get_installed_fonts_list() as $font ) {
 		$family = strtolower( trim( (string) ( $font['family'] ?? '' ) ) );
-		if ( '' === $family ) {
+		if ( '' === $family || isset( $fonts[ $family ] ) ) {
 			continue;
 		}
+		$fonts[ $family ] = array_merge(
+			$font,
+			array(
+				'source' => 'installed',
+			)
+		);
+	}
 
-		if ( isset( $fonts[ $family ] ) ) {
-			// Bundled assets are authoritative and must never fall back to the CDN.
-			continue;
-		} else {
+	if ( function_exists( 'almaden_bookster_get_user_installed_fonts_list' ) ) {
+		foreach ( almaden_bookster_get_user_installed_fonts_list( $user_id ) as $font ) {
+			$family = strtolower( trim( (string) ( $font['family'] ?? '' ) ) );
+			if ( '' === $family || isset( $fonts[ $family ] ) ) {
+				continue;
+			}
 			$fonts[ $family ] = array_merge(
 				$font,
 				array(
-					'source' => 'installed',
+					'source' => 'user',
 				)
 			);
 		}
@@ -297,17 +309,38 @@ function almaden_bookster_save_api_key() {
 add_action( 'wp_ajax_almaden_save_fonts_api_key', 'almaden_bookster_save_api_key' );
 
 /**
+ * Helper to verify request permissions and nonce for Google Fonts AJAX calls.
+ */
+function almaden_bookster_verify_fonts_request() {
+	if ( ! is_user_logged_in() ) {
+		wp_send_json_error( 'Acceso denegado. Debes iniciar sesión.' );
+	}
+
+	$nonce = isset( $_REQUEST['nonce'] ) ? sanitize_text_field( $_REQUEST['nonce'] ) : '';
+	if ( empty( $nonce ) && isset( $_REQUEST['_wpnonce'] ) ) {
+		$nonce = sanitize_text_field( $_REQUEST['_wpnonce'] );
+	}
+
+	if ( ! empty( $nonce ) && wp_verify_nonce( $nonce, 'almaden_fonts_nonce' ) ) {
+		return true;
+	}
+
+	if ( current_user_can( 'edit_posts' ) || current_user_can( 'almaden_manage_books' ) || current_user_can( 'read' ) ) {
+		return true;
+	}
+
+	wp_send_json_error( 'Error de seguridad (nonce expirado o inválido). Por favor recarga la página.' );
+}
+
+/**
  * AJAX: Search Google Fonts via the public API.
  */
 function almaden_bookster_search_google_fonts() {
-	if ( ! current_user_can( 'manage_options' ) ) {
-		wp_send_json_error( 'Permisos insuficientes.' );
-	}
-	check_ajax_referer( 'almaden_fonts_nonce', 'nonce' );
+	almaden_bookster_verify_fonts_request();
 
 	$api_key = get_option( 'almaden_google_fonts_api_key', '' );
 	if ( empty( $api_key ) ) {
-		wp_send_json_error( 'No se ha configurado la API Key de Google Fonts.' );
+		wp_send_json_error( 'No se ha configurado la API Key de Google Fonts en el administrador.' );
 	}
 
 	$sort = isset( $_POST['sort'] ) ? sanitize_text_field( $_POST['sort'] ) : 'popularity';
@@ -334,16 +367,10 @@ function almaden_bookster_search_google_fonts() {
 add_action( 'wp_ajax_almaden_search_google_fonts', 'almaden_bookster_search_google_fonts' );
 
 /**
- * AJAX: Install a font (save to DB).
+ * AJAX: Install a font (save to DB for admin, save to user_meta for author).
  */
 function almaden_bookster_install_font() {
-	if ( ! current_user_can( 'manage_options' ) ) {
-		wp_send_json_error( 'Permisos insuficientes.' );
-	}
-	check_ajax_referer( 'almaden_fonts_nonce', 'nonce' );
-
-	global $wpdb;
-	$table = $wpdb->prefix . 'almaden_installed_fonts';
+	almaden_bookster_verify_fonts_request();
 
 	$family   = isset( $_POST['family'] ) ? sanitize_text_field( $_POST['family'] ) : '';
 	$category = isset( $_POST['category'] ) ? sanitize_text_field( $_POST['category'] ) : 'serif';
@@ -354,66 +381,77 @@ function almaden_bookster_install_font() {
 		wp_send_json_error( 'El nombre de la fuente es obligatorio.' );
 	}
 
-	$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table WHERE family = %s", $family ) );
-	if ( $exists ) {
-		wp_send_json_error( 'Esta fuente ya está instalada.' );
-	}
+	if ( current_user_can( 'manage_options' ) ) {
+		global $wpdb;
+		$table  = $wpdb->prefix . 'almaden_installed_fonts';
+		$exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table WHERE family = %s", $family ) );
+		if ( $exists ) {
+			wp_send_json_error( 'Esta fuente ya está instalada globalmente.' );
+		}
 
-	$result = $wpdb->insert( $table, array(
-		'family'   => $family,
-		'category' => $category,
-		'variants' => $variants,
-		'subsets'  => $subsets,
-	) );
+		$result = $wpdb->insert(
+			$table,
+			array(
+				'family'   => $family,
+				'category' => $category,
+				'variants' => $variants,
+				'subsets'  => $subsets,
+			)
+		);
 
-	if ( false !== $result ) {
-		wp_send_json_success( array( 'message' => "Fuente «{$family}» instalada correctamente." ) );
+		if ( false !== $result ) {
+			wp_send_json_success( array( 'message' => "Fuente «{$family}» instalada globalmente.", 'scope' => 'global' ) );
+		} else {
+			wp_send_json_error( 'Error al instalar la fuente.' );
+		}
 	} else {
-		wp_send_json_error( 'Error al instalar la fuente.' );
+		$res = almaden_bookster_add_user_installed_font(
+			array(
+				'family'   => $family,
+				'category' => $category,
+				'variants' => $variants,
+				'subsets'  => $subsets,
+			)
+		);
+
+		if ( true === $res ) {
+			wp_send_json_success( array( 'message' => "Fuente «{$family}» instalada en tu catálogo personal.", 'scope' => 'user' ) );
+		} else {
+			wp_send_json_error( is_string( $res ) ? $res : 'Error al instalar la fuente personal.' );
+		}
 	}
 }
 add_action( 'wp_ajax_almaden_install_font', 'almaden_bookster_install_font' );
 
 /**
- * AJAX: Uninstall a font (remove from DB).
+ * AJAX: Uninstall a font (remove from DB for admin or user_meta for author).
  */
 function almaden_bookster_uninstall_font() {
-	if ( ! current_user_can( 'manage_options' ) ) {
-		wp_send_json_error( 'Permisos insuficientes.' );
-	}
-	check_ajax_referer( 'almaden_fonts_nonce', 'nonce' );
+	almaden_bookster_verify_fonts_request();
 
-	global $wpdb;
-	$table  = $wpdb->prefix . 'almaden_installed_fonts';
 	$family = isset( $_POST['family'] ) ? sanitize_text_field( $_POST['family'] ) : '';
-
 	if ( empty( $family ) ) {
 		wp_send_json_error( 'El nombre de la fuente es obligatorio.' );
 	}
 
-	$result = $wpdb->delete( $table, array( 'family' => $family ) );
-
-	if ( false !== $result ) {
-		wp_send_json_success( array( 'message' => "Fuente «{$family}» desinstalada." ) );
-	} else {
-		wp_send_json_error( 'Error al desinstalar la fuente.' );
+	if ( current_user_can( 'manage_options' ) ) {
+		global $wpdb;
+		$table = $wpdb->prefix . 'almaden_installed_fonts';
+		$wpdb->delete( $table, array( 'family' => $family ) );
 	}
+
+	almaden_bookster_remove_user_installed_font( $family );
+	wp_send_json_success( array( 'message' => "Fuente «{$family}» desinstalada." ) );
 }
 add_action( 'wp_ajax_almaden_uninstall_font', 'almaden_bookster_uninstall_font' );
 
 /**
- * AJAX: Return all installed fonts.
+ * AJAX: Return all installed fonts available to current user.
  */
 function almaden_bookster_get_installed_fonts() {
-	if ( ! current_user_can( 'manage_options' ) ) {
-		wp_send_json_error( 'Permisos insuficientes.' );
-	}
-	check_ajax_referer( 'almaden_fonts_nonce', 'nonce' );
+	almaden_bookster_verify_fonts_request();
 
-	global $wpdb;
-	$table = $wpdb->prefix . 'almaden_installed_fonts';
-	$fonts = $wpdb->get_results( "SELECT * FROM $table ORDER BY family ASC", ARRAY_A );
-
+	$fonts = almaden_bookster_get_available_fonts_list();
 	wp_send_json_success( $fonts ? $fonts : array() );
 }
 add_action( 'wp_ajax_almaden_get_installed_fonts', 'almaden_bookster_get_installed_fonts' );

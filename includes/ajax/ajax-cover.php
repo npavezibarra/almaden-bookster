@@ -509,7 +509,7 @@ function almaden_bookster_save_cover_ajax() {
 
 	$snapshot_result = null;
 	if ( function_exists( 'almaden_bookster_generate_cover_thumbnail_snapshot' ) ) {
-		$snapshot_result = almaden_bookster_generate_cover_thumbnail_snapshot( $book_id );
+		$snapshot_result = almaden_bookster_generate_cover_thumbnail_snapshot( $book_id, array(), true );
 	}
 
 	$response = array(

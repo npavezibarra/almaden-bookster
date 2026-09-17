@@ -135,9 +135,19 @@ function almaden_bookster_build_cover_thumbnail_snapshot_html_doc( $book_id, $vi
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<?php if ( function_exists( 'almaden_bookster_get_bundled_fonts_stylesheet_url' ) ) : ?>
-		<link rel="stylesheet" href="<?php echo esc_url( almaden_bookster_get_bundled_fonts_stylesheet_url() ); ?>">
-	<?php endif; ?>
+	<?php
+	$bundled_fonts_css_path = dirname( dirname( dirname( __FILE__ ) ) ) . '/assets/fonts/bundled/bundled-fonts.css';
+	if ( file_exists( $bundled_fonts_css_path ) ) {
+		$bundled_css = file_get_contents( $bundled_fonts_css_path );
+		$bundled_dir_file_url = 'file://' . str_replace( ' ', '%20', dirname( dirname( dirname( __FILE__ ) ) ) ) . '/assets/fonts/bundled/';
+		$bundled_css = preg_replace_callback( '/url\(\s*[\'"]?\.\/([^\'")]+)[\'"]?\s*\)/i', function( $matches ) use ( $bundled_dir_file_url ) {
+			return "url('" . $bundled_dir_file_url . $matches[1] . "')";
+		}, $bundled_css );
+		echo '<style>' . $bundled_css . '</style>';
+	} elseif ( function_exists( 'almaden_bookster_get_bundled_fonts_stylesheet_url' ) ) {
+		echo '<link rel="stylesheet" href="' . esc_url( almaden_bookster_get_bundled_fonts_stylesheet_url() ) . '">';
+	}
+	?>
 	<?php if ( ! empty( $fonts_url ) ) : ?>
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -184,6 +194,15 @@ function almaden_bookster_build_cover_thumbnail_snapshot_html_doc( $book_id, $vi
 	</style>
 	<script>
 		(function () {
+			async function initSnapshot() {
+				if (document.fonts && document.fonts.ready) {
+					try {
+						await document.fonts.ready;
+					} catch (e) {}
+				}
+				scaleThumbnails();
+			}
+
 			function scaleThumbnails() {
 				const wrapper = document.querySelector('.cover-thumbnail-wrapper');
 				if (!wrapper) return;
@@ -201,9 +220,10 @@ function almaden_bookster_build_cover_thumbnail_snapshot_html_doc( $book_id, $vi
 			}
 
 			window.addEventListener('resize', scaleThumbnails);
-			window.addEventListener('load', scaleThumbnails);
-			setTimeout(scaleThumbnails, 100);
-			setTimeout(scaleThumbnails, 400);
+			window.addEventListener('load', initSnapshot);
+			setTimeout(initSnapshot, 100);
+			setTimeout(initSnapshot, 500);
+			setTimeout(initSnapshot, 1200);
 		})();
 	</script>
 </head>
@@ -232,7 +252,7 @@ function almaden_bookster_run_command_to_file( array $command, $expected_file, $
 	return true;
 }
 
-function almaden_bookster_generate_cover_thumbnail_snapshot( $book_id, array $payload = array() ) {
+function almaden_bookster_generate_cover_thumbnail_snapshot( $book_id, array $payload = array(), $force = false ) {
 	$book_id = absint( $book_id );
 	if ( $book_id <= 0 ) {
 		return new WP_Error( 'invalid_book', 'ID de libro inválido.' );
@@ -257,7 +277,7 @@ function almaden_bookster_generate_cover_thumbnail_snapshot( $book_id, array $pa
 	}
 
 	$existing_snapshot = almaden_bookster_get_cover_thumbnail_snapshot_metadata( $book_id );
-	if ( ! empty( $existing_snapshot['version'] ) && $existing_snapshot['version'] === $version && ! empty( $existing_snapshot['attachment_id'] ) && ! empty( $existing_snapshot['url'] ) ) {
+	if ( ! $force && ! empty( $existing_snapshot['version'] ) && $existing_snapshot['version'] === $version && ! empty( $existing_snapshot['attachment_id'] ) && ! empty( $existing_snapshot['url'] ) ) {
 		return array(
 			'attachment_id' => (int) $existing_snapshot['attachment_id'],
 			'url'           => $existing_snapshot['url'],
@@ -301,11 +321,18 @@ function almaden_bookster_generate_cover_thumbnail_snapshot( $book_id, array $pa
 		'--no-sandbox',
 		'--disable-gpu',
 		'--disable-dev-shm-usage',
+		'--disable-crash-reporter',
+		'--user-data-dir=' . $temp_dir . '/user-data',
 		'--allow-file-access-from-files',
+		'--disable-web-security',
+		'--allow-running-insecure-content',
+		'--ignore-certificate-errors',
+		'--allow-insecure-localhost',
+		'--font-render-hinting=full',
+		'--run-all-compositor-stages-before-draw',
 		'--hide-scrollbars',
 		'--force-device-scale-factor=1',
 		'--window-size=' . $viewport_width_px . ',' . $viewport_height_px,
-		'--virtual-time-budget=4000',
 		'--screenshot=' . $png_file,
 		'file://' . $html_file,
 	);
@@ -542,7 +569,7 @@ function almaden_get_cover_thumbnail_html( $book_id ) {
                             $c1 = $hex1;
                         }
 
-                        $isGradient = isset($layer['isGradient']) && $layer['isGradient'] === 'true';
+                        $isGradient = ! empty( $layer['isGradient'] ) && ( $layer['isGradient'] === true || $layer['isGradient'] === 'true' || $layer['isGradient'] === '1' );
                         if ($isGradient) {
                             $hex2 = isset($layer['color2']) ? $layer['color2'] : '#ffffff';
                             $op2 = isset($layer['color2Opacity']) ? floatval($layer['color2Opacity']) / 100 : 1;
@@ -574,7 +601,7 @@ function almaden_get_cover_thumbnail_html( $book_id ) {
                         $text = isset($layer['text']) ? esc_html($layer['text']) : '';
                         $hyphens = !empty($layer['hyphens']) ? 'auto' : 'none';
 
-                        $style .= "width: {$w}; height: {$h}; font-size: {$fontSize}px; font-weight: {$fontWeight}; font-style: {$fontStyle}; color: {$color}; font-family: '{$fontFamily}', sans-serif; text-align: {$textAlign}; white-space: pre-wrap; line-height: {$lineHeight}; letter-spacing: {$letterSpacing}px; font-synthesis: none; hyphens: {$hyphens}; -webkit-hyphens: {$hyphens};";
+                        $style .= "box-sizing: border-box; width: {$w}; height: {$h}; font-size: {$fontSize}px; font-weight: {$fontWeight}; font-style: {$fontStyle}; color: {$color}; font-family: '{$fontFamily}', sans-serif, serif; text-align: {$textAlign}; white-space: pre-wrap; line-height: {$lineHeight}; letter-spacing: {$letterSpacing}px; font-synthesis: none; hyphens: {$hyphens}; -webkit-hyphens: {$hyphens};";
                         echo "<div style=\"{$style}\">{$text}</div>";
                     }
                 }

@@ -152,16 +152,21 @@ function almaden_bookster_typst_render_toc( $chapter, $chapters, $settings, $fal
 	$visible_chapters = array();
 	$running_index = 0;
 	foreach ( $chapters as $toc_index => $toc_chapter ) {
-		if ( ! is_array( $toc_chapter ) || '1' === (string) ( $toc_chapter['is_toc'] ?? '' ) || '1' === (string) ( $toc_chapter['is_credits'] ?? '' ) || '1' === (string) ( $toc_chapter['exclude_from_numbering'] ?? '' ) ) {
+		if ( ! is_array( $toc_chapter ) || '1' === (string) ( $toc_chapter['is_toc'] ?? '' ) || '1' === (string) ( $toc_chapter['is_credits'] ?? '' ) ) {
 			continue;
 		}
-		++$running_index;
+		$is_numbered = '1' !== (string) ( $toc_chapter['exclude_from_numbering'] ?? '0' );
 		$chapter_id = trim( (string) ( $toc_chapter['id'] ?? (string) ( $toc_index + 1 ) ) );
 		$prefix = '';
-		if ( 'decimal' === $enumerate ) {
-			$prefix = $running_index . '.';
-		} elseif ( 'roman' === $enumerate ) {
-			$prefix = almaden_bookster_typst_toc_roman( $running_index ) . '.';
+		if ( $is_numbered ) {
+			++$running_index;
+			if ( 'decimal' === $enumerate ) {
+				$prefix = $running_index . '.';
+			} elseif ( 'roman' === $enumerate ) {
+				$prefix = almaden_bookster_typst_toc_roman( $running_index ) . '.';
+			} elseif ( 'bullet' === $enumerate ) {
+				$prefix = '•';
+			}
 		} elseif ( 'bullet' === $enumerate ) {
 			$prefix = '•';
 		}

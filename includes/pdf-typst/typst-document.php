@@ -109,6 +109,9 @@ function almaden_bookster_build_typst_document( $payload ) {
 	$numbered_chapter_index = 0;
 	$book_reference_groups = array();
 	$opening_debug = array();
+	$full_chapters = isset( $payload['fullChapters'] ) && is_array( $payload['fullChapters'] )
+		? $payload['fullChapters']
+		: ( isset( $payload['full_chapters'] ) && is_array( $payload['full_chapters'] ) ? $payload['full_chapters'] : $chapters );
 	foreach ( $chapters as $chapter_index => $chapter ) {
 		if ( ! is_array( $chapter ) ) {
 			continue;
@@ -410,7 +413,7 @@ function almaden_bookster_build_typst_document( $payload ) {
 			$toc_page_number_offset = is_numeric( $chapter['toc_page_number_offset'] ?? null ) ? (float) $chapter['toc_page_number_offset'] : -0.8;
 			$toc_title_source = almaden_bookster_typst_render_toc(
 				$chapter,
-				$chapters,
+				$full_chapters,
 				$settings,
 				array(
 					'title_family'      => $title_font_family,

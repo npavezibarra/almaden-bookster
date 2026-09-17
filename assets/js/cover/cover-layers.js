@@ -59,7 +59,12 @@ document.addEventListener('DOMContentLoaded', () => {
             option.textContent = font.family;
             propFontFamily.appendChild(option);
         });
+        const addOption = document.createElement('option');
+        addOption.value = '__add_google_font__';
+        addOption.textContent = '+ Explorar Google Fonts...';
+        propFontFamily.appendChild(addOption);
     }
+
 
     window.CoverEditor.actions.selectLayer = function(id) {
         s.activeLayerId = id;
@@ -70,9 +75,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (id) {
             const layer = s.textLayers.find(l => l.id === id);
             
-            el.textsContent.classList.remove('hidden');
-            el.textsContent.classList.add('flex');
-            textsIcon.classList.add('-rotate-90');
+            if (window.CoverEditor.actions.openSidebarSection) {
+                window.CoverEditor.actions.openSidebarSection('texts');
+            } else {
+                el.textsContent.classList.remove('hidden');
+                el.textsContent.classList.add('flex');
+                textsIcon.classList.remove('-rotate-90');
+            }
+
             
             if (layer.type === 'group') {
                 el.textPropertiesPanel.classList.add('hidden');
@@ -347,61 +357,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Shape Binding Inputs
-    if (propShapeType) {
-        propShapeType.addEventListener('change', (e) => {
-            const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-            if (layer && layer.type === 'shape') { layer.shapeType = e.target.value; window.CoverEditor.actions.renderTextLayers(); window.CoverEditor.actions.renderLayersPanel(); }
-        });
-    }
-    if (propShapeOpacity) {
-        propShapeOpacity.addEventListener('input', (e) => {
-            const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-            if (layer && layer.type === 'shape') { 
-                layer.opacity = parseInt(e.target.value) || 0; 
-                propShapeOpacityVal.textContent = layer.opacity + '%';
-                window.CoverEditor.actions.renderTextLayers(); 
-            }
-        });
-    }
-    if (propShapeIsGradient) {
-        propShapeIsGradient.addEventListener('change', (e) => {
-            const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-            if (layer && layer.type === 'shape') { 
-                layer.isGradient = e.target.checked; 
-                window.CoverEditor.actions.selectLayer(s.activeLayerId); // Re-run selectLayer to show/hide gradient controls
-            }
-        });
-    }
-    if (propShapeColor1) {
-        propShapeColor1.addEventListener('input', (e) => {
-            const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-            if (layer && layer.type === 'shape') { layer.color1 = e.target.value; window.CoverEditor.actions.renderTextLayers(); }
-        });
-    }
-    if (propShapeColor1Opacity) {
-        propShapeColor1Opacity.addEventListener('input', (e) => {
-            const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-            if (layer && layer.type === 'shape') { layer.color1Opacity = parseInt(e.target.value) || 0; window.CoverEditor.actions.renderTextLayers(); }
-        });
-    }
-    if (propShapeColor2) {
-        propShapeColor2.addEventListener('input', (e) => {
-            const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-            if (layer && layer.type === 'shape') { layer.color2 = e.target.value; window.CoverEditor.actions.renderTextLayers(); }
-        });
-    }
-    if (propShapeColor2Opacity) {
-        propShapeColor2Opacity.addEventListener('input', (e) => {
-            const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-            if (layer && layer.type === 'shape') { layer.color2Opacity = parseInt(e.target.value) || 0; window.CoverEditor.actions.renderTextLayers(); }
-        });
-    }
-    if (propShapeAngle) {
-        propShapeAngle.addEventListener('input', (e) => {
-            const layer = s.textLayers.find(l => l.id === s.activeLayerId);
-            if (layer && layer.type === 'shape') { layer.gradientAngle = parseInt(e.target.value) || 0; window.CoverEditor.actions.renderTextLayers(); }
-        });
-    }
+    const updateActiveShape = (fn, renderPanel = false) => {
+        const layer = s.textLayers.find(l => l.id === s.activeLayerId);
+        if (layer && layer.type === 'shape') {
+            fn(layer);
+            if (window.CoverEditor.actions.renderTextLayers) window.CoverEditor.actions.renderTextLayers();
+            if (renderPanel && window.CoverEditor.actions.renderLayersPanel) window.CoverEditor.actions.renderLayersPanel();
+        }
+    };
+    if (propShapeType) propShapeType.addEventListener('change', (e) => updateActiveShape(l => l.shapeType = e.target.value, true));
+    if (propShapeOpacity) propShapeOpacity.addEventListener('input', (e) => updateActiveShape(l => { l.opacity = parseInt(e.target.value) || 0; propShapeOpacityVal.textContent = l.opacity + '%'; }));
+    if (propShapeIsGradient) propShapeIsGradient.addEventListener('change', (e) => updateActiveShape(l => { l.isGradient = e.target.checked; window.CoverEditor.actions.selectLayer(s.activeLayerId); }));
+    if (propShapeColor1) propShapeColor1.addEventListener('input', (e) => updateActiveShape(l => l.color1 = e.target.value));
+    if (propShapeColor1Opacity) propShapeColor1Opacity.addEventListener('input', (e) => updateActiveShape(l => l.color1Opacity = parseInt(e.target.value) || 0));
+    if (propShapeColor2) propShapeColor2.addEventListener('input', (e) => updateActiveShape(l => l.color2 = e.target.value));
+    if (propShapeColor2Opacity) propShapeColor2Opacity.addEventListener('input', (e) => updateActiveShape(l => l.color2Opacity = parseInt(e.target.value) || 0));
+    if (propShapeAngle) propShapeAngle.addEventListener('input', (e) => updateActiveShape(l => l.gradientAngle = parseInt(e.target.value) || 0));
+
+    window.CoverEditor.actions.updateGroupButtonState = function() {
+        const groupBtn = document.getElementById('group-layers-btn');
+        const container = document.getElementById('group-layers-btn-container');
+        if (!groupBtn) return;
+
+        const hasSelected = s.selectedLayerIds && s.selectedLayerIds.length > 0;
+        const tooltipDisabled = "Selecciona al menos una capa para agrupar";
+        const tooltipEnabled = "Agrupar capas seleccionadas";
+
+        if (hasSelected) {
+            groupBtn.disabled = false;
+            groupBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            groupBtn.classList.add('hover:bg-gray-800', 'cursor-pointer');
+            groupBtn.title = tooltipEnabled;
+            if (container) container.title = tooltipEnabled;
+        } else {
+            groupBtn.disabled = true;
+            groupBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            groupBtn.classList.remove('hover:bg-gray-800', 'cursor-pointer');
+            groupBtn.title = tooltipDisabled;
+            if (container) container.title = tooltipDisabled;
+        }
+    };
 
     // Group Actions
     window.CoverEditor.actions.groupLayers = function(selectedIds) {
@@ -424,6 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         s.textLayers.push(newGroup);
         s.selectedLayerIds = [];
+        if (window.CoverEditor.actions.updateGroupButtonState) window.CoverEditor.actions.updateGroupButtonState();
         
         if (window.CoverEditor.actions.renderTextLayers) window.CoverEditor.actions.renderTextLayers();
         if (window.CoverEditor.actions.renderLayersPanel) window.CoverEditor.actions.renderLayersPanel();
@@ -485,9 +481,9 @@ document.addEventListener('DOMContentLoaded', () => {
         groupLayersBtn.addEventListener('click', () => {
             if (s.selectedLayerIds && s.selectedLayerIds.length > 0) {
                 window.CoverEditor.actions.groupLayers(s.selectedLayerIds);
-            } else {
-                alert("Selecciona al menos una capa usando los checkboxes para agruparlas.");
             }
         });
     }
+
+    window.CoverEditor.actions.updateGroupButtonState();
 });

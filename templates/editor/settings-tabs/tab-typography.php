@@ -4,6 +4,7 @@
                     <button type="button" role="tab" aria-controls="typography-headings-panel" id="btn-typography-headings" class="typography-tab-btn header-footer-tab-btn" onclick="switchTypographyTab('headings')" aria-selected="false">Títulos</button>
                     <button type="button" role="tab" aria-controls="typography-quotes-panel" id="btn-typography-quotes" class="typography-tab-btn header-footer-tab-btn" onclick="switchTypographyTab('quotes')" aria-selected="false">Citas</button>
                     <button type="button" role="tab" aria-controls="typography-tables-panel" id="btn-typography-tables" class="typography-tab-btn header-footer-tab-btn" onclick="switchTypographyTab('tables')" aria-selected="false">Tables</button>
+                    <button type="button" role="tab" aria-controls="typography-google-fonts-panel" id="btn-typography-google-fonts" class="typography-tab-btn header-footer-tab-btn" onclick="switchTypographyTab('google-fonts')" aria-selected="false">Google Fonts</button>
                 </nav>
 
                 <div id="typography-body-panel" class="typography-tab-panel" role="tabpanel" aria-labelledby="btn-typography-body">
@@ -325,6 +326,30 @@
                             <div>
                                 <label class="block text-[9px] text-[var(--text-muted)] mb-1">Fondo celdas</label>
                                 <input id="setting-table-cell-bg-color" type="text" placeholder="transparent" class="w-full bg-[var(--bg-app)] border border-[var(--border-color)] rounded-lg p-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-black">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                </div>
+
+                <div id="typography-google-fonts-panel" class="typography-tab-panel hidden" role="tabpanel" aria-labelledby="btn-typography-google-fonts">
+                <section class="settings-section-card">
+                    <h4><i class="fa-solid fa-cloud-arrow-down" aria-hidden="true"></i> Catálogo de Google Fonts</h4>
+                    <div class="settings-section-card-body space-y-4">
+                        <p class="text-xs text-[var(--text-muted)]">Explora e instala fuentes tipográficas desde Google Fonts para utilizarlas en tus libros.</p>
+                        <div>
+                            <button type="button" class="px-4 py-2 bg-black hover:bg-neutral-800 text-white font-semibold text-xs rounded-xl shadow transition inline-flex items-center gap-2" onclick="if(window.AlmadenGoogleFontsModal){ window.AlmadenGoogleFontsModal.open(); }">
+                                <i class="fa-solid fa-cloud-arrow-down"></i>
+                                <span>Explorar Catálogo de Google Fonts</span>
+                            </button>
+                        </div>
+                        <div class="pt-4 border-t border-[var(--border-color)]">
+                            <h5 class="text-xs font-bold text-[var(--text-main)] mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-bookmark text-gray-500"></i>
+                                <span>Tus fuentes activas</span>
+                            </h5>
+                            <div id="tab-typography-user-fonts-list" class="flex flex-wrap gap-2">
+                                <!-- Populated by AlmadenGoogleFontsModal -->
                             </div>
                         </div>
                     </div>

@@ -61,44 +61,101 @@ if ( ! defined( 'ABSPATH' ) ) {
 
         <div class="px-4 flex flex-col gap-6">
             <!-- Portada -->
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Portada (Front Cover)</label>
+            <div class="relative">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-sm font-semibold text-gray-700">Portada (Front Cover)</label>
+                    <button type="button" id="btn-front-cover-diagnostics-toggle" class="w-5 h-5 rounded-full bg-gray-100 hover:bg-black hover:text-white text-gray-500 text-[11px] font-bold inline-flex items-center justify-center transition border border-gray-200 shadow-sm cursor-pointer focus:outline-none" title="Ver validación de portada">
+                        ?
+                    </button>
+                </div>
                 <button type="button" id="btn-front-cover" class="block w-full text-sm font-semibold bg-gray-100 text-gray-700 py-2 px-4 rounded-md border border-gray-300 hover:bg-gray-200 transition mb-2 text-center">
                     <i class="fa-solid fa-image mr-1"></i> Seleccionar Imagen
                 </button>
                 <input type="hidden" id="upload-front-cover" />
                 <input type="hidden" id="upload-front-cover-attachment-id" value="0" />
-                <button type="button" id="clear-front-cover" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Eliminar Portada</button>
-                <div id="front-cover-diagnostics" class="mt-3 rounded-xl border border-dashed border-gray-200 bg-gray-50/80 px-3 py-3 text-[11px] leading-relaxed text-gray-600">
-                    <div class="font-semibold text-gray-700 uppercase tracking-wider mb-1">Validación de impresión</div>
-                    <div class="text-gray-500">Selecciona una imagen para ver si cumple con 14 x 21 cm a 300 dpi.</div>
+                <button type="button" id="clear-front-cover" class="hidden text-xs text-red-600 hover:text-red-800 font-medium mb-2"><i class="fa-solid fa-trash mr-1"></i> Eliminar Portada</button>
+
+                <!-- Floating Tooltip / Popover Panel -->
+                <div id="front-cover-diagnostics-popover" class="hidden absolute left-0 top-7 w-full z-40 bg-white rounded-xl shadow-2xl border border-gray-200 p-3.5 text-xs animate-in fade-in zoom-in duration-150">
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-2">
+                        <span class="font-bold text-gray-900 text-xs flex items-center gap-1.5">
+                            <i class="fa-solid fa-shield-halved text-gray-700"></i> Validación de Portada
+                        </span>
+                        <button type="button" class="close-diagnostics-popover text-gray-400 hover:text-gray-700 text-xs p-0.5" data-target="front-cover-diagnostics-popover">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div id="front-cover-diagnostics">
+                        <div class="mt-2 rounded-xl border border-dashed border-gray-200 bg-gray-50/80 px-3 py-3 text-[11px] leading-relaxed text-gray-600">
+                            <div class="font-semibold text-gray-700 uppercase tracking-wider mb-1">Validación de impresión</div>
+                            <div class="text-gray-500">Selecciona una imagen para ver si cumple con 14 x 21 cm a 300 dpi.</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="h-px bg-gray-200"></div>
 
             <!-- Contraportada -->
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Contraportada (Back Cover)</label>
+            <div class="relative">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-sm font-semibold text-gray-700">Contraportada (Back Cover)</label>
+                    <button type="button" id="btn-back-cover-diagnostics-toggle" class="w-5 h-5 rounded-full bg-gray-100 hover:bg-black hover:text-white text-gray-500 text-[11px] font-bold inline-flex items-center justify-center transition border border-gray-200 shadow-sm cursor-pointer focus:outline-none" title="Ver validación de contraportada">
+                        ?
+                    </button>
+                </div>
                 <button type="button" id="btn-back-cover" class="block w-full text-sm font-semibold bg-gray-100 text-gray-700 py-2 px-4 rounded-md border border-gray-300 hover:bg-gray-200 transition mb-2 text-center">
                     <i class="fa-solid fa-image mr-1"></i> Seleccionar Imagen
                 </button>
                 <input type="hidden" id="upload-back-cover" />
                 <input type="hidden" id="upload-back-cover-attachment-id" value="0" />
-                <button type="button" id="clear-back-cover" class="hidden text-xs text-red-600 hover:text-red-800 font-medium"><i class="fa-solid fa-trash mr-1"></i> Eliminar Contraportada</button>
-                <div id="back-cover-diagnostics" class="mt-3 rounded-xl border border-dashed border-gray-200 bg-gray-50/80 px-3 py-3 text-[11px] leading-relaxed text-gray-600">
-                    <div class="font-semibold text-gray-700 uppercase tracking-wider mb-1">Validación de impresión</div>
-                    <div class="text-gray-500">Selecciona una imagen para ver si cumple con 14 x 21 cm a 300 dpi.</div>
+                <button type="button" id="clear-back-cover" class="hidden text-xs text-red-600 hover:text-red-800 font-medium mb-2"><i class="fa-solid fa-trash mr-1"></i> Eliminar Contraportada</button>
+
+                <!-- Floating Tooltip / Popover Panel -->
+                <div id="back-cover-diagnostics-popover" class="hidden absolute left-0 top-7 w-full z-40 bg-white rounded-xl shadow-2xl border border-gray-200 p-3.5 text-xs animate-in fade-in zoom-in duration-150">
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-2">
+                        <span class="font-bold text-gray-900 text-xs flex items-center gap-1.5">
+                            <i class="fa-solid fa-shield-halved text-gray-700"></i> Validación de Contraportada
+                        </span>
+                        <button type="button" class="close-diagnostics-popover text-gray-400 hover:text-gray-700 text-xs p-0.5" data-target="back-cover-diagnostics-popover">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div id="back-cover-diagnostics">
+                        <div class="mt-2 rounded-xl border border-dashed border-gray-200 bg-gray-50/80 px-3 py-3 text-[11px] leading-relaxed text-gray-600">
+                            <div class="font-semibold text-gray-700 uppercase tracking-wider mb-1">Validación de impresión</div>
+                            <div class="text-gray-500">Selecciona una imagen para ver si cumple con 14 x 21 cm a 300 dpi.</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="h-px bg-gray-200"></div>
 
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Preflight General</label>
-                <div id="cover-editorial-diagnostics" class="mt-1 rounded-xl border border-dashed border-gray-200 bg-gray-50/80 px-3 py-3 text-[11px] leading-relaxed text-gray-600">
-                    <div class="font-semibold text-gray-700 uppercase tracking-wider mb-1">Verificación de preprensa</div>
-                    <div class="text-gray-500">Revisando sangrado, área segura, tipografías y uso de color.</div>
+            <div class="relative">
+                <div class="flex items-center justify-between mb-1">
+                    <label class="block text-sm font-semibold text-gray-700">Preflight General</label>
+                    <button type="button" id="btn-editorial-diagnostics-toggle" class="w-5 h-5 rounded-full bg-gray-100 hover:bg-black hover:text-white text-gray-500 text-[11px] font-bold inline-flex items-center justify-center transition border border-gray-200 shadow-sm cursor-pointer focus:outline-none" title="Ver verificación de preprensa">
+                        ?
+                    </button>
+                </div>
+
+                <!-- Floating Tooltip / Popover Panel -->
+                <div id="editorial-diagnostics-popover" class="hidden absolute left-0 top-7 w-full z-40 bg-white rounded-xl shadow-2xl border border-gray-200 p-3.5 text-xs animate-in fade-in zoom-in duration-150">
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-2">
+                        <span class="font-bold text-gray-900 text-xs flex items-center gap-1.5">
+                            <i class="fa-solid fa-list-check text-gray-700"></i> Preflight General
+                        </span>
+                        <button type="button" class="close-diagnostics-popover text-gray-400 hover:text-gray-700 text-xs p-0.5" data-target="editorial-diagnostics-popover">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div id="cover-editorial-diagnostics">
+                        <div class="mt-1 rounded-xl border border-dashed border-gray-200 bg-gray-50/80 px-3 py-3 text-[11px] leading-relaxed text-gray-600">
+                            <div class="font-semibold text-gray-700 uppercase tracking-wider mb-1">Verificación de preprensa</div>
+                            <div class="text-gray-500">Revisando sangrado, área segura, tipografías y uso de color.</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

@@ -1,6 +1,8 @@
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-core.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/editor-ui.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/shared/book-media-picker.js?v=' . time(), __FILE__ ) ); ?>"></script>
+    <script src="<?php echo esc_url( plugins_url( '../../assets/js/shared/google-fonts-modal.js?v=' . time(), __FILE__ ) ); ?>"></script>
+
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/toolbar/toolbar-core.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/toolbar/toolbar-text-formats.js?v=' . time(), __FILE__ ) ); ?>"></script>
     <script src="<?php echo esc_url( plugins_url( '../../assets/js/editor/toolbar/toolbar-image-block.js?v=' . time(), __FILE__ ) ); ?>"></script>

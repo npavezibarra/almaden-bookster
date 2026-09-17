@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!layer.width) div.style.width = '150px';
                 if (!layer.height) div.style.height = '150px';
             } else {
-                div.style.fontFamily = `'${layer.fontFamily}', serif`;
+                div.style.fontFamily = `'${layer.fontFamily}', sans-serif, serif`;
                 div.style.fontSize = `${layer.fontSize}px`;
                 div.style.fontWeight = layer.fontWeight || 400;
                 div.style.fontStyle = layer.fontStyle || 'normal';

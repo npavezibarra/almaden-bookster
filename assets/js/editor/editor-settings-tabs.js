@@ -135,27 +135,37 @@ function switchTypographyTab(tab) {
     const showHeadings = tab === 'headings';
     const showQuotes = tab === 'quotes';
     const showTables = tab === 'tables';
+    const showGoogleFonts = tab === 'google-fonts';
     const bodyPanel = document.getElementById('typography-body-panel');
     const headingsPanel = document.getElementById('typography-headings-panel');
     const quotesPanel = document.getElementById('typography-quotes-panel');
     const tablesPanel = document.getElementById('typography-tables-panel');
+    const googleFontsPanel = document.getElementById('typography-google-fonts-panel');
     const bodyButton = document.getElementById('btn-typography-body');
     const headingsButton = document.getElementById('btn-typography-headings');
     const quotesButton = document.getElementById('btn-typography-quotes');
     const tablesButton = document.getElementById('btn-typography-tables');
+    const googleFontsButton = document.getElementById('btn-typography-google-fonts');
 
-    bodyPanel?.classList.toggle('hidden', showHeadings || showQuotes || showTables);
+    bodyPanel?.classList.toggle('hidden', showHeadings || showQuotes || showTables || showGoogleFonts);
     headingsPanel?.classList.toggle('hidden', !showHeadings);
     quotesPanel?.classList.toggle('hidden', !showQuotes);
     tablesPanel?.classList.toggle('hidden', !showTables);
-    bodyButton?.classList.toggle('is-active', !showHeadings && !showQuotes && !showTables);
+    googleFontsPanel?.classList.toggle('hidden', !showGoogleFonts);
+    bodyButton?.classList.toggle('is-active', !showHeadings && !showQuotes && !showTables && !showGoogleFonts);
     headingsButton?.classList.toggle('is-active', showHeadings);
     quotesButton?.classList.toggle('is-active', showQuotes);
     tablesButton?.classList.toggle('is-active', showTables);
-    bodyButton?.setAttribute('aria-selected', showHeadings || showQuotes || showTables ? 'false' : 'true');
+    googleFontsButton?.classList.toggle('is-active', showGoogleFonts);
+    bodyButton?.setAttribute('aria-selected', !showHeadings && !showQuotes && !showTables && !showGoogleFonts ? 'true' : 'false');
     headingsButton?.setAttribute('aria-selected', showHeadings ? 'true' : 'false');
     quotesButton?.setAttribute('aria-selected', showQuotes ? 'true' : 'false');
     tablesButton?.setAttribute('aria-selected', showTables ? 'true' : 'false');
+    googleFontsButton?.setAttribute('aria-selected', showGoogleFonts ? 'true' : 'false');
+
+    if (showGoogleFonts && window.AlmadenGoogleFontsModal) {
+        window.AlmadenGoogleFontsModal.open();
+    }
 }
 
 function switchHeadingTypographyTab(level, tab) {
