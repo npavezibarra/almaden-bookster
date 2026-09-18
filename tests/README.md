@@ -9,6 +9,8 @@ importacion, plantillas de pagina, reader, shell y exportacion Typst/PDF.
 
 - `*.php`: pruebas ejecutables con PHP para regresiones de importacion,
   renderizado, shell y pipeline Typst.
+- `cover-thumbnail-regression.php`: verifica recorte al trim, aislamiento
+  tipografico, espera de fuentes e invalidacion del snapshot de portada.
 - `*.test.js`: pruebas JavaScript para coordinadores, estado de pagina y
   experiencia de preview.
 

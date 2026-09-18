@@ -9,5 +9,6 @@ Archivos y subdirectorios contenidos aquí:
 
 * cover-thumbnail-metadata.php
 * cover-thumbnail-generator.php
+* cover-thumbnail-renderer.php
 * cover-thumbnail-geometry.php
 * cover-thumbnail-cron.php

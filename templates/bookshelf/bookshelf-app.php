@@ -104,11 +104,12 @@ if ( false === $bookshelf_catalog_markup ) {
 				const targetWidth = wrapper.clientWidth;
 				const frontCoverPx = parseFloat(wrapper.getAttribute('data-front-cover-px'));
 				const startPx = parseFloat(wrapper.getAttribute('data-start-px'));
+				const startYPx = parseFloat(wrapper.getAttribute('data-start-y-px')) || 0;
 				if (frontCoverPx > 0) {
 					const scale = targetWidth / frontCoverPx;
 					const spread = wrapper.querySelector('.cover-spread-container');
 					if (spread) {
-						spread.style.transform = `scale(${scale}) translateX(${-startPx}px)`;
+						spread.style.transform = `scale(${scale}) translate(${-startPx}px, ${-startYPx}px)`;
 					}
 				}
 			});

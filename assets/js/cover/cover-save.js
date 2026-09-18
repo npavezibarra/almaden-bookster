@@ -71,6 +71,9 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(res => res.json())
         .then(response => {
             if (response.success) {
+                if (response.data && response.data.snapshot_error) {
+                    console.error('Cover snapshot generation failed:', response.data.snapshot_error);
+                }
                 saveCoverBtn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> Guardado';
                 setTimeout(() => {
                     saveCoverBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Portada';

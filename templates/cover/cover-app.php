@@ -246,7 +246,7 @@ $total_pages = ( $total_pages && intval( $total_pages ) > 0 ) ? intval( $total_p
         #almaden-cover-app-body #almaden-cover-navbar,
         #almaden-cover-app-body #almaden-cover-navbar :where(*):not(.fa):not(.fa-solid):not(.fa-regular):not(.fa-brands),
         #almaden-cover-app-body #almaden-cover-app-workspace,
-        #almaden-cover-app-body #almaden-cover-app-workspace :where(*):not(.fa):not(.fa-solid):not(.fa-regular):not(.fa-brands),
+        #almaden-cover-app-body #almaden-cover-app-workspace :where(*):not(.fa):not(.fa-solid):not(.fa-regular):not(.fa-brands):not(.text-layer):not(.text-layer *),
         #almaden-cover-app-body :where(button, input, select, textarea),
         #almaden-cover-app-body :where(h1, h2, h3, h4, h5, h6, label, .font-sans, .font-bold, .font-semibold, .font-medium) {
             font-family: "Urbanist", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
